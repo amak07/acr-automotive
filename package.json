@@ -13,7 +13,13 @@
     "test:ci": "jest --ci --coverage --watchAll=false",
     "test:full": "npm run type-check && npm test"
   },
-  "keywords": ["auto-parts", "cross-reference", "search", "automotive", "b2b"],
+  "keywords": [
+    "auto-parts",
+    "cross-reference",
+    "search",
+    "automotive",
+    "b2b"
+  ],
   "author": "ACR Automotive",
   "license": "ISC",
   "description": "Auto parts cross-reference search system for ACR Automotive",
@@ -23,6 +29,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@supabase/supabase-js": "^2.46.0",
     "@tanstack/react-query": "^5.0.0",
+    "@types/lodash": "^4.17.20",
     "@types/node": "^24.1.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
@@ -31,6 +38,7 @@
     "clsx": "^2.1.1",
     "eslint": "^9.32.0",
     "eslint-config-next": "^15.4.4",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.526.0",
     "next": "^15.4.4",
     "postcss": "^8.5.6",
@@ -41,7 +49,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "xlsx": "^0.18.5",
-    "zod": "^4.0.10",
+    "zod": "^4.0.17",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
