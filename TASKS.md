@@ -1,18 +1,19 @@
 # TASKS.md - ACR Automotive Development Tasks
 
-_Last Updated: January 12, 2025_
+_Last Updated: August 12, 2025_
 
-## 🎯 Current Sprint: Foundation & Core Data
+## 🎯 Current Sprint: Excel Parser Implementation
 
 ### 🔥 Active Tasks
 
 - [x] **TASK-001**: Set up Supabase project and database schema ✅ COMPLETED
 - [x] **TASK-002**: Adapt rental management app structure for ACR Automotive ✅ COMPLETED
-- [ ] **TASK-003**: Implement Excel parser with validation system
+- [x] **TASK-007**: Excel parser foundation ✅ COMPLETED
+- [ ] **TASK-007A**: Two-pass processing engine 🔄 NEXT UP
 
 ### 📋 MVP Development Phases
 
-## Phase 1: Core Data Foundation (Week 1) ✅ FOUNDATION COMPLETE
+## Phase 1: Core Data Foundation (Week 1) 🔄 IN PROGRESS
 
 ### Project Foundation
 
@@ -38,30 +39,59 @@ _Last Updated: January 12, 2025_
   - [x] Add all performance indexes (SKU, vehicle, search)
   - [x] Implement business logic functions (search_by_sku, search_by_vehicle)
 
-### Excel Processing System
+### Excel Processing System (REVISED AFTER ANALYSIS)
 
-- [ ] **TASK-007**: Excel parser core functionality
+- [x] **TASK-007**: Excel parser foundation ✅ COMPLETED
 
-  - [ ] Install and configure SheetJS (xlsx library)
-  - [ ] Create ExcelParser class with validation
-  - [ ] Map Excel columns A-N to database fields
-  - [ ] Implement Zod schemas for data validation
-  - [ ] Handle error detection and reporting
+  - [x] Install and configure SheetJS (xlsx library)
+  - [x] Create flexible column detection system
+  - [x] Support both CATALOGACION and LISTA DE PRECIOS formats
+  - [x] Handle Excel files with different header structures
+  - [x] Basic file reading and validation
+  - [x] Spanish header recognition with accent handling
+  - [x] Real data testing (2,336 rows from CATALOGACION file)
+  - [x] Comprehensive unit tests with plain language comments
+  - [x] Excel file validation system
+  - [x] Documentation (/docs folder with detailed guides)
+
+- [ ] **TASK-007A**: Two-pass processing engine
+
+  - [ ] Implement ExcelProcessor class with two-pass strategy
+  - [ ] Pass 1: Discover unique parts (753 from analysis)
+  - [ ] Pass 2: Collect vehicle applications (2,335 from analysis)
+  - [ ] Handle expected duplicates (535 parts with multiple vehicles)
+  - [ ] Validate part data consistency across duplicate ACR SKUs
+
+- [ ] **TASK-007B**: Data consistency validation
+
+  - [ ] Detect part data conflicts (same ACR SKU, different part attributes)
+  - [ ] Validate vehicle application uniqueness
+  - [ ] Check for problematic duplicates (same part + same vehicle)
+  - [ ] Generate detailed conflict reports with row numbers
 
 - [ ] **TASK-008**: Excel upload interface
 
   - [ ] Create admin upload page with drag-and-drop
-  - [ ] Show upload progress and validation results
-  - [ ] Display preview: summary + first 10 rows + all errors
-  - [ ] Block import if any validation errors found
-  - [ ] Success state with import summary
+  - [ ] Show upload progress and column detection
+  - [ ] Display processing results: unique parts + applications + conflicts
+  - [ ] Preview system: summary + first 10 parts + all errors
+  - [ ] Block import if any data consistency issues found
+
+- [ ] **TASK-008A**: Error reporting system
+
+  - [ ] Implement detailed error types (required, duplicate, conflict, format)
+  - [ ] Row/column/field-specific error messages
+  - [ ] Categorize errors: blocking vs warnings
+  - [ ] Visual error display in admin interface
+  - [ ] Export error reports for debugging
 
 - [ ] **TASK-009**: Database import functionality
   - [ ] Implement DatabaseImporter class
-  - [ ] Batch processing for large Excel files (100 rows/batch)
-  - [ ] Handle parts, vehicle_applications, and cross_references insertion
+  - [ ] Insert unique parts (one per ACR SKU)
+  - [ ] Insert vehicle applications (multiple per part)
+  - [ ] Insert cross-references (competitor mappings)
   - [ ] Transaction management for data consistency
-  - [ ] Error logging and rollback capability
+  - [ ] Handle import conflicts and rollback capability
 
 ### i18n System
 
@@ -80,13 +110,22 @@ _Last Updated: January 12, 2025_
   - [x] Create admin route protection (mock)
   - [x] Admin layout components and navigation
 
+### Excel Parser Testing
+
+- [ ] **TASK-012**: Excel parser test suite
+  - [ ] Test two-pass processing with real data
+  - [ ] Test data consistency validation
+  - [ ] Test error detection and reporting
+  - [ ] Test performance with 2,335 rows
+  - [ ] Test column mapping flexibility
+
 ---
 
 ## Phase 2: Search Interface (Week 2) ⏳ NOT STARTED
 
 ### Vehicle Search System
 
-- [ ] **TASK-012**: Multi-step search interface
+- [ ] **TASK-013**: Multi-step search interface
 
   - [ ] Create vehicle search component with 4 dropdowns
   - [ ] Implement Make → Model → Year → Part Type progression
@@ -94,7 +133,7 @@ _Last Updated: January 12, 2025_
   - [ ] Loading states and error handling
   - [ ] Mobile-responsive design for tablets
 
-- [ ] **TASK-013**: Search API endpoints
+- [ ] **TASK-014**: Search API endpoints
   - [ ] GET /api/data/makes - Vehicle makes from database
   - [ ] GET /api/data/models/:make - Models for specific make
   - [ ] GET /api/data/years/:make/:model - Years for make/model
@@ -103,7 +142,7 @@ _Last Updated: January 12, 2025_
 
 ### SKU Cross-Reference Search
 
-- [ ] **TASK-014**: SKU search interface
+- [ ] **TASK-015**: SKU search interface
 
   - [ ] Create SKU search input component
   - [ ] Implement autocomplete/suggestions
@@ -111,7 +150,7 @@ _Last Updated: January 12, 2025_
   - [ ] Cross-reference mapping display
   - [ ] Search history (session-based)
 
-- [ ] **TASK-015**: SKU search API
+- [ ] **TASK-016**: SKU search API
   - [ ] GET /api/search/sku - Cross-reference SKU lookup
   - [ ] Implement search_by_sku PostgreSQL function
   - [ ] Handle exact matches (ACR + competitor SKUs)
@@ -120,7 +159,7 @@ _Last Updated: January 12, 2025_
 
 ### Search Results & Part Details
 
-- [ ] **TASK-016**: Search results display
+- [ ] **TASK-017**: Search results display
 
   - [ ] Create search results component grid
   - [ ] SKU-prominent layout (Baleros-Bisa pattern)
@@ -128,17 +167,17 @@ _Last Updated: January 12, 2025_
   - [ ] Pagination for large result sets
   - [ ] Sort and filter options
 
-- [ ] **TASK-017**: Part details pages
+- [ ] **TASK-018**: Part details pages
   - [ ] Create individual part detail page
   - [ ] Display full specifications and technical data
-  - [ ] Vehicle applications table
+  - [ ] Vehicle applications table (multiple vehicles per part)
   - [ ] Cross-reference information display
   - [ ] Image display (with fallback for missing images)
   - [ ] GET /api/parts/:id endpoint
 
 ### Search Performance
 
-- [ ] **TASK-018**: Performance optimization
+- [ ] **TASK-019**: Performance optimization
   - [ ] Implement TanStack Query for search caching
   - [ ] Add search result caching strategies
   - [ ] Optimize database queries and indexes
@@ -151,7 +190,7 @@ _Last Updated: January 12, 2025_
 
 ### Image Management System
 
-- [ ] **TASK-019**: Image upload interface
+- [ ] **TASK-020**: Image upload interface
 
   - [ ] Create admin image upload component
   - [ ] Part selector dropdown (search by SKU)
@@ -159,7 +198,7 @@ _Last Updated: January 12, 2025_
   - [ ] Image preview before upload
   - [ ] Progress indicators and error handling
 
-- [ ] **TASK-020**: Image storage integration
+- [ ] **TASK-021**: Image storage integration
   - [ ] Configure Supabase Storage bucket policies
   - [ ] Implement image upload to Supabase Storage
   - [ ] Standardized naming convention (acr_sku.jpg)
@@ -168,14 +207,15 @@ _Last Updated: January 12, 2025_
 
 ### Excel Re-import System
 
-- [ ] **TASK-021**: Excel update detection
+- [ ] **TASK-022**: Excel update detection
 
   - [ ] Compare new Excel data with existing database
   - [ ] Detect new parts, modified parts, removed parts
   - [ ] Show diff summary before import
   - [ ] Handle part updates vs complete replacement
+  - [ ] Version control for data changes
 
-- [ ] **TASK-022**: Update workflow
+- [ ] **TASK-023**: Update workflow
   - [ ] Admin interface for monthly Excel updates
   - [ ] Preview changes before applying
   - [ ] Backup existing data before import
@@ -184,7 +224,7 @@ _Last Updated: January 12, 2025_
 
 ### Production Preparation
 
-- [ ] **TASK-023**: Spanish translation implementation
+- [ ] **TASK-024**: Spanish translation implementation
 
   - [ ] Translate all UI text to Spanish
   - [ ] Technical terminology validation
@@ -192,7 +232,7 @@ _Last Updated: January 12, 2025_
   - [ ] Test language switching functionality
   - [ ] Production language configuration
 
-- [ ] **TASK-024**: Performance optimization
+- [ ] **TASK-025**: Performance optimization
 
   - [ ] Database query optimization
   - [ ] Search performance tuning (sub-300ms target)
@@ -200,7 +240,7 @@ _Last Updated: January 12, 2025_
   - [ ] Mobile responsiveness testing
   - [ ] Core Web Vitals optimization
 
-- [ ] **TASK-025**: Production deployment
+- [ ] **TASK-026**: Production deployment
 
   - [ ] Vercel deployment configuration
   - [ ] Environment variables setup (staging/production)
@@ -208,10 +248,10 @@ _Last Updated: January 12, 2025_
   - [ ] CDN configuration for images
   - [ ] Monitoring and error tracking setup
 
-- [ ] **TASK-026**: User acceptance testing
+- [ ] **TASK-027**: User acceptance testing
   - [ ] End-to-end functionality testing
   - [ ] Mobile device testing (tablets)
-  - [ ] Search accuracy validation
+  - [ ] Search accuracy validation with real data
   - [ ] Performance benchmarking
   - [ ] User training materials for Humberto
 
@@ -221,7 +261,7 @@ _Last Updated: January 12, 2025_
 
 ### Authentication & Security (Post-MVP)
 
-- [ ] **TASK-027**: Real authentication system
+- [ ] **TASK-028**: Real authentication system
 
   - [ ] Implement Supabase Auth with email/password
   - [ ] Add verification_codes table for 2FA
@@ -229,7 +269,7 @@ _Last Updated: January 12, 2025_
   - [ ] Session management (8-hour admin sessions)
   - [ ] Password reset functionality
 
-- [ ] **TASK-028**: Admin user management
+- [ ] **TASK-029**: Admin user management
   - [ ] Multiple admin users support
   - [ ] Role-based access control
   - [ ] Admin profiles table
@@ -238,7 +278,7 @@ _Last Updated: January 12, 2025_
 
 ### Advanced Data Management
 
-- [ ] **TASK-029**: Version control system
+- [ ] **TASK-030**: Version control system
 
   - [ ] data_versions table implementation
   - [ ] Import approval workflow (pending → approved)
@@ -246,7 +286,7 @@ _Last Updated: January 12, 2025_
   - [ ] Rollback to previous versions
   - [ ] Import history tracking
 
-- [ ] **TASK-030**: Advanced admin features
+- [ ] **TASK-031**: Advanced admin features
   - [ ] Bulk image upload functionality
   - [ ] CSV/Excel export capabilities
   - [ ] Data backup and restore
@@ -255,7 +295,7 @@ _Last Updated: January 12, 2025_
 
 ### Enhanced Search Features
 
-- [ ] **TASK-031**: Search analytics
+- [ ] **TASK-032**: Search analytics
 
   - [ ] Track popular searches and parts
   - [ ] Search success rate monitoring
@@ -263,7 +303,7 @@ _Last Updated: January 12, 2025_
   - [ ] Admin dashboard with insights
   - [ ] Performance metrics tracking
 
-- [ ] **TASK-032**: Advanced search options
+- [ ] **TASK-033**: Advanced search options
   - [ ] Advanced filters (position, ABS type, drive type)
   - [ ] Search suggestions and autocomplete
   - [ ] Bulk part lookup (multiple SKUs)
@@ -272,7 +312,7 @@ _Last Updated: January 12, 2025_
 
 ### Business Features
 
-- [ ] **TASK-033**: Enhanced part management
+- [ ] **TASK-034**: Enhanced part management
 
   - [ ] Part availability status (in stock, discontinued)
   - [ ] Technical documentation uploads
@@ -280,7 +320,7 @@ _Last Updated: January 12, 2025_
   - [ ] Product lifecycle management
   - [ ] Inventory integration hooks
 
-- [ ] **TASK-034**: Integration capabilities
+- [ ] **TASK-035**: Integration capabilities
   - [ ] Public API endpoints for distributors
   - [ ] Webhook notifications for data updates
   - [ ] Third-party inventory system integration
@@ -289,12 +329,208 @@ _Last Updated: January 12, 2025_
 
 ### User Experience Enhancements
 
-- [ ] **TASK-035**: Advanced UI features
+- [ ] **TASK-036**: Advanced UI features
   - [ ] Print-friendly part details
   - [ ] Offline functionality (PWA)
   - [ ] Advanced admin dashboard
   - [ ] Custom branding options
   - [ ] Accessibility improvements (WCAG compliance)
+
+---
+
+## 🧩 DETAILED TASK BREAKDOWN (Week 1 Focus)
+
+### 📊 TASK-007: Excel Parser Foundation (2-3 days)
+
+#### Subtasks:
+
+1. **TASK-007.1**: Install dependencies and basic setup
+
+   - [ ] `npm install xlsx lodash zod`
+   - [ ] Create `/lib/excel/` directory structure
+   - [ ] Set up TypeScript types for Excel processing
+   - [ ] Basic file reading test
+
+2. **TASK-007.2**: Column detection system
+
+   - [ ] Create `ColumnMapping` interface
+   - [ ] Implement `detectColumnMapping()` function
+   - [ ] Support Spanish headers (ACR, TMK, Clase, MARCA, etc.)
+   - [ ] Fallback to manual mapping if auto-detection fails
+   - [ ] Validate required columns are present
+
+3. **TASK-007.3**: Excel file validation
+   - [ ] File type validation (XLSX, XLS only)
+   - [ ] File size limits (max 50MB)
+   - [ ] Sheet structure validation
+   - [ ] Header row detection
+   - [ ] Data range identification
+
+#### Acceptance Criteria:
+
+- ✅ Can read both CATALOGACION and LISTA DE PRECIOS formats
+- ✅ Auto-detects Spanish column headers
+- ✅ Validates file structure before processing
+- ✅ Returns clear error messages for invalid files
+
+### 🔄 TASK-007A: Two-Pass Processing Engine (3-4 days)
+
+#### Subtasks:
+
+1. **TASK-007A.1**: Pass 1 - Unique parts discovery
+
+   - [ ] Group Excel rows by ACR SKU
+   - [ ] Extract part attributes from first occurrence
+   - [ ] Create `Map<string, PartData>` for unique parts
+   - [ ] Track first occurrence row number for error reporting
+
+2. **TASK-007A.2**: Pass 2 - Vehicle applications collection
+
+   - [ ] Convert every Excel row to vehicle application
+   - [ ] Link applications to parts via ACR SKU
+   - [ ] Detect duplicate vehicle applications
+   - [ ] Create comprehensive application list
+
+3. **TASK-007A.3**: Processing result generation
+   - [ ] Combine unique parts and applications
+   - [ ] Generate processing summary statistics
+   - [ ] Create preview data (first 10 parts)
+   - [ ] Calculate processing metrics
+
+#### Acceptance Criteria:
+
+- ✅ Correctly identifies 753 unique parts from 2,335 rows
+- ✅ Creates all 2,335 vehicle applications
+- ✅ Links applications to correct parts
+- ✅ Generates accurate processing summary
+
+### 🔍 TASK-007B: Data Consistency Validation (2-3 days)
+
+#### Subtasks:
+
+1. **TASK-007B.1**: Part data conflict detection
+
+   - [ ] Compare part attributes across duplicate ACR SKUs
+   - [ ] Detect inconsistencies in part_type, position, etc.
+   - [ ] Generate detailed conflict reports
+   - [ ] Track conflicting row numbers
+
+2. **TASK-007B.2**: Vehicle application validation
+
+   - [ ] Check for duplicate vehicle applications
+   - [ ] Validate make/model/year format
+   - [ ] Ensure required fields are not empty
+   - [ ] Cross-reference with part data
+
+3. **TASK-007B.3**: Error classification system
+   - [ ] Categorize errors: blocking vs warnings
+   - [ ] Generate error severity levels
+   - [ ] Create actionable error messages
+   - [ ] Provide fix suggestions
+
+#### Acceptance Criteria:
+
+- ✅ Detects all data consistency issues
+- ✅ Categorizes errors appropriately
+- ✅ Provides clear error messages with row/column references
+- ✅ Blocks import only when necessary
+
+### 📱 TASK-008: Excel Upload Interface (2-3 days)
+
+#### Subtasks:
+
+1. **TASK-008.1**: File upload component
+
+   - [ ] Drag-and-drop Excel file upload
+   - [ ] File type validation feedback
+   - [ ] Upload progress indicator
+   - [ ] File info display (name, size, rows)
+
+2. **TASK-008.2**: Processing results display
+
+   - [ ] Show two-pass processing progress
+   - [ ] Display unique parts vs applications summary
+   - [ ] Preview first 10 parts with vehicle applications
+   - [ ] Real-time processing status updates
+
+3. **TASK-008.3**: Error reporting interface
+   - [ ] Organized error display (blocking vs warnings)
+   - [ ] Row/column/field-specific error highlighting
+   - [ ] Downloadable error report
+   - [ ] Fix suggestions and help text
+
+#### Acceptance Criteria:
+
+- ✅ User-friendly file upload experience
+- ✅ Clear processing feedback and progress
+- ✅ Comprehensive error reporting
+- ✅ Import only proceeds if no blocking errors
+
+### 🗄️ TASK-009: Database Import Functionality (2-3 days)
+
+#### Subtasks:
+
+1. **TASK-009.1**: Parts table import
+
+   - [ ] Insert unique parts (753 records)
+   - [ ] Handle ACR SKU uniqueness constraint
+   - [ ] Map Excel columns to database fields
+   - [ ] Return part IDs for applications linking
+
+2. **TASK-009.2**: Vehicle applications import
+
+   - [ ] Insert all applications (2,335 records)
+   - [ ] Link to parts via foreign key
+   - [ ] Handle duplicate application prevention
+   - [ ] Batch processing for performance
+
+3. **TASK-009.3**: Cross-references import
+
+   - [ ] Create competitor SKU mappings
+   - [ ] Extract competitor brands from SKUs
+   - [ ] Link to parts table
+   - [ ] Handle duplicate cross-references
+
+4. **TASK-009.4**: Transaction management
+   - [ ] Wrap all imports in database transaction
+   - [ ] Rollback on any import failure
+   - [ ] Generate import success report
+   - [ ] Handle import conflicts gracefully
+
+#### Acceptance Criteria:
+
+- ✅ Successfully imports all data from Excel
+- ✅ Maintains data integrity with proper constraints
+- ✅ Handles errors gracefully with rollback
+- ✅ Provides detailed import success/failure reporting
+
+---
+
+## 🎯 Current Week Priorities (Week 1)
+
+### Day 1-2: Excel Parser Foundation
+
+- **Focus**: TASK-007 (Excel file reading, column detection, validation)
+- **Goal**: Can successfully read and parse both Excel file formats
+- **Milestone**: Parse CATALOGACION file and identify 753 unique ACR SKUs
+
+### Day 3-4: Two-Pass Processing
+
+- **Focus**: TASK-007A (unique parts discovery, vehicle applications)
+- **Goal**: Correctly process 2,335 rows into 753 parts + 2,335 applications
+- **Milestone**: Generate accurate processing summary
+
+### Day 5-6: Data Validation & Interface
+
+- **Focus**: TASK-007B and TASK-008 (consistency checks, upload UI)
+- **Goal**: Detect data conflicts and present results clearly
+- **Milestone**: Admin can upload Excel and see detailed processing results
+
+### Day 7: Database Import
+
+- **Focus**: TASK-009 (database insertion with transactions)
+- **Goal**: Successfully import processed data to database
+- **Milestone**: Complete Excel-to-database workflow working
 
 ---
 
@@ -310,30 +546,32 @@ _Last Updated: January 12, 2025_
 
 ### Task Dependencies
 
-- **Database tasks** must complete before search implementation
-- **Excel parser** required before admin upload interface
-- **i18n setup** should be done early to avoid refactoring
-- **Mock auth** enables admin feature development
-- **Search functionality** required before production deployment
+- **TASK-007** (Excel Parser) → Must complete before TASK-008 (Upload Interface)
+- **TASK-007A** (Two-Pass Processing) → Required for TASK-009 (Database Import)
+- **TASK-007B** (Data Validation) → Required for TASK-008 (Error Display)
+- **All Excel tasks** → Must complete before Phase 2 (Search Interface)
 
 ### Definition of Done (MVP)
 
 Each task is considered complete when:
 
 - [ ] Functionality works as specified
+- [ ] Handles real data from provided Excel files
 - [ ] Code follows TypeScript strict mode
-- [ ] Component is mobile-responsive
+- [ ] Component is mobile-responsive (if UI task)
 - [ ] Error states are handled gracefully
 - [ ] Basic testing is complete (core features only)
 - [ ] Translation keys are added for all UI text
 - [ ] Documentation is updated if needed
 
-### Testing Requirements (Simplified)
+### Testing Requirements (Excel Focus)
 
-- **Core features only**: Excel parsing, search functionality, data validation
-- **Type-safe factories**: Ensure schema changes break tests appropriately
-- **Critical paths**: Authentication (when added), cross-reference accuracy
-- **Performance**: Search response times under 300ms
+- **Critical**: Excel parsing accuracy with real data
+- **Critical**: Two-pass processing correctness
+- **Critical**: Data consistency validation
+- **Critical**: Database import integrity
+- **Important**: Error handling and reporting
+- **Important**: File format compatibility
 
 ---
 
@@ -343,24 +581,27 @@ Each task is considered complete when:
 
 - **Foundation**: 100% Complete ✅ (project structure, branding, dependencies)
 - **Database**: 100% Complete ✅ (Supabase setup, schema, functions, RLS)
-- **Excel Parser**: 0% Complete (implementation pending)
+- **Excel Parser Foundation**: 100% Complete ✅ (file reading, validation, Spanish headers)
+- **Excel Two-Pass Processing**: 0% Complete (NEXT UP)
 - **i18n**: 100% Complete ✅ (custom system with EN/ES support)
-- **Overall MVP**: ~35% Complete
+- **Overall MVP**: ~60% Complete
 
 ### Week 1 Goals
 
 - ✅ Complete project foundation and database setup
-- [ ] Working Excel parser with validation
-- [ ] Basic admin interface for uploads
+- ✅ Excel parser foundation (file reading, validation, header detection)
+- 🔄 **NEXT**: Two-pass processing engine (unique parts discovery)
+- 🔄 **NEXT**: Admin interface for Excel uploads
 - ✅ Simple i18n system implementation
 
-### Success Metrics for MVP
+### Success Metrics for Excel Parser
 
-- **Excel import**: 100% success rate (zero error tolerance)
-- **Search performance**: <300ms response time
-- **Mobile compatibility**: Works on tablets
-- **Data accuracy**: Perfect cross-reference mapping
-- **User experience**: Spanish interface, professional design
+- **Data Accuracy**: 100% successful parsing of provided Excel files
+- **Unique Parts**: Correctly identify 753 unique ACR SKUs
+- **Applications**: Process all 2,335 vehicle applications
+- **Conflicts**: Detect and report all data consistency issues
+- **Performance**: Process 2,335 rows in under 10 seconds
+- **User Experience**: Clear error reporting and progress feedback
 
 ---
 
@@ -370,24 +611,24 @@ Each task is considered complete when:
 
 - **File size limit**: 500 lines maximum per file
 - **TypeScript**: Strict mode, avoid `any` types
-- **Testing**: Focus on critical business logic
+- **Testing**: Focus on critical business logic (Excel parsing)
 - **Documentation**: Update PLANNING.md when architecture changes
 
 ### Key Decisions Made
 
 - ✅ **Database**: 3 tables only (parts, vehicle_applications, cross_references)
-- ✅ **Authentication**: Mock for MVP, real auth post-MVP
-- ✅ **i18n**: Custom simple solution, not next-i18next
-- ✅ **Images**: Admin upload interface, no Google Drive migration
-- ✅ **Error handling**: Block Excel imports on any validation errors
-- ✅ **Tech Stack**: Replaced Prisma+NextAuth with Supabase+TanStack Query
-- ✅ **Dependencies**: Added xlsx, zustand, @supabase/supabase-js, @tanstack/react-query
+- ✅ **Excel Processing**: Two-pass strategy for unique parts discovery
+- ✅ **Data Strategy**: One part per ACR SKU, multiple vehicle applications
+- ✅ **Error Handling**: Block imports on data consistency issues
+- ✅ **File Formats**: Support both CATALOGACION and LISTA DE PRECIOS
+- ✅ **Dependencies**: SheetJS for Excel, Zod for validation, Lodash for data processing
 
 ### Recently Discovered Tasks
 
-- **TASK-004A**: Create Zustand store for search state management
-- **TASK-007A**: Add Excel file type validation (XLSX, XLS only)
-- **TASK-010A**: Add number/date formatting utilities for Mexican locale
+- **TASK-007.4**: Handle Spanish text normalization (trim spaces, case handling)
+- **TASK-008.4**: Column mapping interface for manual header assignment
+- **TASK-009.5**: Import progress tracking and cancellation
+- **TASK-012.1**: Performance testing with large Excel files
 
 ---
 
@@ -395,20 +636,37 @@ Each task is considered complete when:
 
 ### External Dependencies
 
-- **Supabase project setup** (required for all database tasks)
-- **Humberto's Excel file access** (required for parser testing)
+- **Supabase project setup** ✅ (completed)
+- **Humberto's Excel file access** ✅ (files provided and analyzed)
 - **Spanish translation review** (required before production)
 
 ### Internal Dependencies
 
-- **Database schema** → All search functionality
-- **Excel parser** → Admin upload interface
-- **Search API** → Frontend search components
-- **i18n setup** → All UI components
+- **Two-pass processing** → All subsequent Excel tasks
+- **Data consistency validation** → Admin interface design
+- **Excel parser completion** → Search functionality can begin
+- **Database import** → Search testing with real data
 
 ### Blocking Issues
 
 - None currently identified
+
+---
+
+## 🎲 Risk Mitigation
+
+### Excel Processing Risks
+
+- **Data inconsistency**: Mitigated by comprehensive validation
+- **Performance issues**: Mitigated by efficient two-pass processing
+- **File format changes**: Mitigated by flexible column detection
+- **Large file handling**: Mitigated by batch processing and progress tracking
+
+### Technical Risks
+
+- **Memory usage**: Monitor with 2,335 row processing
+- **Database constraints**: Test with real data volumes
+- **Error handling**: Comprehensive error scenarios testing
 
 ---
 

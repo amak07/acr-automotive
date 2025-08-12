@@ -41,6 +41,12 @@
 - **Supabase** (database + storage)
 - **Generic SMTP** (email delivery - configurable provider for future 2FA)
 
+### Excel Processing
+
+- **SheetJS (xlsx library)** (Excel file parsing and validation)
+- **Zod** (Excel data validation schemas)
+- **Two-pass processing** (unique parts discovery + vehicle applications)
+
 ### Internationalization (i18n)
 
 - **Custom simple solution** (not next-i18next for MVP)
@@ -65,20 +71,21 @@
 
 ### Data Source
 
-- **Excel files**: Humberto maintains all product data in Excel workbooks
+- **Primary Excel**: `CATALOGACION ACR CLIENTES.xlsx` (2,335 vehicle applications for 753 unique parts)
+- **Secondary Excel**: `LISTA DE PRECIOS` (price lists with additional competitor cross-references)
 - **Images**: Humberto will upload directly via admin interface (no Google Drive migration)
 - **Monthly updates**: Replace Excel data monthly, detect new/removed parts
 
-## Database Schema (MVP - Simplified)
+## Database Schema (REVISED - Based on Excel Analysis)
 
-### Core Tables Only (3 Tables Total)
+### Core Tables (3 Tables Total)
 
 ```sql
--- Main parts catalog (from Excel columns)
+-- Main parts catalog (753 unique ACR SKUs)
 CREATE TABLE parts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  acr_sku VARCHAR(50) UNIQUE NOT NULL,           -- Humberto's SKU (Column B)
-  competitor_sku VARCHAR(50),                    -- Cross-reference SKU (Column D)
+  acr_sku VARCHAR(50) UNIQUE NOT NULL,           -- Unique constraint - one part per ACR SKU
+  competitor_sku VARCHAR(50),                    -- From first occurrence in Excel
   part_type VARCHAR(100) NOT NULL,               -- MAZA, etc. (Column E)
   position VARCHAR(50),                          -- TRASERA, DELANTERA (Column F)
   abs_type VARCHAR(20),                          -- C/ABS, S/ABS (Column G)
@@ -90,32 +97,37 @@ CREATE TABLE parts (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Vehicle compatibility (from Excel columns K, L, M)
+-- Vehicle compatibility (2,335 applications from Excel)
 CREATE TABLE vehicle_applications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   part_id UUID REFERENCES parts(id) ON DELETE CASCADE,
-  make VARCHAR(50) NOT NULL,                     -- ACURA, BMW (Column K)
-  model VARCHAR(100) NOT NULL,                   -- MDX, 328i (Column L)
+  make VARCHAR(50) NOT NULL,                     -- ACURA, HONDA (Column K)
+  model VARCHAR(100) NOT NULL,                   -- MDX, PILOT (Column L)
   year_range VARCHAR(20) NOT NULL,               -- 2007-2013 (Column M)
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(part_id, make, model, year_range)       -- Prevent duplicate applications
 );
 
--- Cross-reference mapping (derived from Excel)
+-- Cross-reference mapping (from Excel competitor SKUs)
 CREATE TABLE cross_references (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   acr_part_id UUID REFERENCES parts(id) ON DELETE CASCADE,
-  competitor_sku VARCHAR(50) NOT NULL,           -- From Excel Column D
+  competitor_sku VARCHAR(50) NOT NULL,           -- TM512342, etc.
   competitor_brand VARCHAR(50),                  -- TM, Bosch, Denso (extracted)
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(acr_part_id, competitor_sku)            -- Prevent duplicate cross-refs
 );
 ```
 
-### Key Design Decisions
+### Key Design Decisions (UPDATED)
 
+- ✅ **One part per ACR SKU**: Parts table has unique constraint on acr_sku
+- ✅ **Multiple applications per part**: Same part fits multiple vehicles (535 parts have multiple applications)
+- ✅ **Two-pass Excel processing**: First discover unique parts, then collect all vehicle applications
+- ✅ **Data consistency validation**: Ensure same ACR SKU has consistent part attributes across Excel rows
 - ❌ **No separate lookup tables**: Extract categories/makes/models dynamically from main tables
 - ❌ **No auth tables**: Mock admin mode in development, add real auth post-MVP
 - ❌ **No audit tables**: Keep it simple, add version control post-MVP
-- ❌ **No verification codes table**: Supabase handles auth when we add it later
 
 ### Data Extraction Strategy
 
@@ -133,33 +145,41 @@ SELECT DISTINCT model FROM vehicle_applications WHERE make = ? ORDER BY model;
 SELECT DISTINCT year_range FROM vehicle_applications WHERE make = ? AND model = ?;
 ```
 
-## Excel Data Structure (Confirmed from Analysis)
+## Excel Data Structure (CONFIRMED from Real Files)
 
-### Excel Columns Mapping
+### Primary File: CATALOGACION ACR CLIENTES.xlsx
 
 ```
-Column A: ID (number, optional)
-Column B: ACR SKU (required) → parts.acr_sku
-Column C: Unknown field (ignored)
-Column D: Competitor SKU (optional) → parts.competitor_sku
-Column E: Part Type (required) → parts.part_type
-Column F: Position (optional) → parts.position
-Column G: ABS Type (optional) → parts.abs_type
-Column H: Bolt Pattern (optional) → parts.bolt_pattern
-Column I: Drive Type (optional) → parts.drive_type
-Column J: Specifications (optional) → parts.specifications
-Column K: Vehicle Make (required) → vehicle_applications.make
-Column L: Vehicle Model (required) → vehicle_applications.model
-Column M: Year Range (required) → vehicle_applications.year_range
-Column N: Image URL (optional) → parts.image_url
+Column A (0): "#" → Optional ID (ignored)
+Column B (1): "ACR" → parts.acr_sku (REQUIRED, UNIQUE per part)
+Column C (2): "SYD" → Ignored (unknown field)
+Column D (3): "TMK " → parts.competitor_sku (optional)
+Column E (4): "Clase" → parts.part_type (REQUIRED)
+Column F (5): "Posicion" → parts.position (optional)
+Column G (6): "Sistema" → parts.abs_type (optional)
+Column H (7): "Birlos" → parts.bolt_pattern (optional)
+Column I (8): "Traccion" → parts.drive_type (optional)
+Column J (9): "Observaciones" → parts.specifications (optional)
+Column K (10): "MARCA" → vehicle_applications.make (REQUIRED)
+Column L (11): "APLICACIÓN " → vehicle_applications.model (REQUIRED)
+Column M (12): "AÑO " → vehicle_applications.year_range (REQUIRED)
+Column N (13): "URL IMAGEN " → parts.image_url (optional)
 ```
 
-### Excel Processing Rules
+### Secondary File: LISTA DE PRECIOS (Future Enhancement)
 
-- **Total rows**: ~2,336 parts in current Excel
-- **Error handling**: Block import if ANY errors found (MVP approach)
-- **Preview**: Show summary + first 10 rows + all errors (not all 2,336 rows)
-- **Updates**: On subsequent imports, detect new parts added/removed
+- Different structure with additional competitor cross-references
+- Can be processed to enhance cross_references table
+- Contains pricing information (not used in MVP)
+
+### Excel Processing Rules (UPDATED)
+
+- **Total rows**: 2,335 vehicle applications
+- **Unique parts**: 753 ACR SKUs
+- **Expected duplicates**: 535 parts have multiple vehicle applications
+- **Error handling**: Block import if data consistency issues found
+- **Preview**: Show summary + first 10 rows + all errors + duplicate analysis
+- **Two-pass processing**: Discover unique parts, then collect all applications
 
 ## MVP Features (Priority Order)
 
@@ -177,13 +197,13 @@ Column N: Image URL (optional) → parts.image_url
    - Add search indexes and business logic functions
    - Test with sample data
 
-3. **✅ Excel Parser**
+3. **🔄 Excel Parser (IN PROGRESS)**
 
-   - Upload Excel file via admin interface
-   - Parse columns A-N with validation
-   - Show preview: summary + errors + sample rows
-   - Block import if any errors found
-   - Import to database on success
+   - Two-pass processing system for unique parts discovery
+   - Flexible column mapping for different Excel formats
+   - Data consistency validation across duplicate ACR SKUs
+   - Detailed error reporting (row/column/field level)
+   - Block import on data conflicts, allow expected duplicates
 
 4. **✅ Simple i18n Setup**
 
@@ -198,21 +218,21 @@ Column N: Image URL (optional) → parts.image_url
 
 ### Phase 2: Search Interface (1 week)
 
-6. **✅ Vehicle Search**
+6. **Vehicle Search**
 
    - Multi-step dropdown interface (Baleros-Bisa pattern)
    - Make → Model → Year → Part Type progression
    - Dynamic dropdowns populated from database
    - Search results display with SKU prominence
 
-7. **✅ SKU Cross-Reference Search**
+7. **SKU Cross-Reference Search**
 
    - Single input field for SKU search
    - Search both ACR SKUs and competitor SKUs
    - Fuzzy matching for typos
    - Clear display of cross-reference mapping
 
-8. **✅ Part Details Page**
+8. **Part Details Page**
 
    - Individual part page with full specifications
    - Vehicle applications table
@@ -220,7 +240,7 @@ Column N: Image URL (optional) → parts.image_url
    - Image display (if available)
    - Technical specifications
 
-9. **✅ Search Results Display**
+9. **Search Results Display**
    - SKU-prominent layout (matching Baleros-Bisa)
    - Professional B2B design
    - Mobile-responsive for tablets
@@ -228,21 +248,21 @@ Column N: Image URL (optional) → parts.image_url
 
 ### Phase 3: Admin Management (1 week)
 
-10. **✅ Image Upload Interface**
+10. **Image Upload Interface**
 
     - Admin can upload images per part
     - Simple part selector + file upload
     - Images stored in Supabase Storage
     - Auto-update parts.image_url in database
 
-11. **✅ Excel Re-import**
+11. **Excel Re-import**
 
     - Handle subsequent monthly uploads
     - Detect new parts vs existing parts
     - Show changes before applying
     - Replace existing data with new import
 
-12. **✅ Production Deployment**
+12. **Production Deployment**
     - Spanish translation implementation
     - Performance optimization
     - Vercel deployment
@@ -252,47 +272,47 @@ Column N: Image URL (optional) → parts.image_url
 
 ### Authentication & Security
 
-- **Real authentication system** with Supabase Auth
-- **2FA email verification** with nodemailer/SMTP
-- **Session management** (8-hour admin sessions)
-- **Admin user management** (if multiple admins needed)
+- Real authentication system with Supabase Auth
+- 2FA email verification with nodemailer/SMTP
+- Session management (8-hour admin sessions)
+- Admin user management (if multiple admins needed)
 
 ### Data Management
 
-- **Version control system** for Excel imports
-- **Data diff visualization** (show changes between imports)
-- **Rollback capability** to previous versions
-- **Import approval workflow** (pending → approved flow)
-- **Audit logging** for admin activities
+- Version control system for Excel imports
+- Data diff visualization (show changes between imports)
+- Rollback capability to previous versions
+- Import approval workflow (pending → approved flow)
+- Audit logging for admin activities
 
 ### Advanced Search
 
-- **Search analytics** (track popular searches)
-- **Advanced filters** (position, ABS type, drive type)
-- **Search suggestions** and autocomplete
-- **Bulk part lookup** (multiple SKUs at once)
+- Search analytics (track popular searches)
+- Advanced filters (position, ABS type, drive type)
+- Search suggestions and autocomplete
+- Bulk part lookup (multiple SKUs at once)
 
 ### Business Features
 
-- **Part availability status** (in stock, discontinued)
-- **Product categories management** (admin-controlled)
-- **Competitor brand management** (organized cross-references)
-- **Technical documentation** uploads per part
+- Part availability status (in stock, discontinued)
+- Product categories management (admin-controlled)
+- Competitor brand management (organized cross-references)
+- Technical documentation uploads per part
 
 ### User Experience
 
-- **Advanced admin dashboard** with analytics
-- **Bulk image upload** functionality
-- **CSV/Excel export** of search results
-- **Print-friendly part details** for counter staff
-- **Barcode/QR code** generation for parts
+- Advanced admin dashboard with analytics
+- Bulk image upload functionality
+- CSV/Excel export of search results
+- Print-friendly part details for counter staff
+- Barcode/QR code generation for parts
 
 ### Integration & API
 
-- **Public API endpoints** for distributor integration
-- **Webhook notifications** for data updates
-- **Third-party integrations** (inventory systems)
-- **Mobile app** for field sales
+- Public API endpoints for distributor integration
+- Webhook notifications for data updates
+- Third-party integrations (inventory systems)
+- Mobile app for field sales
 
 ## Technical Implementation
 
@@ -311,7 +331,12 @@ src/
 │   └── parts/             # Part display components
 ├── lib/                   # Utilities & configurations
 │   ├── supabase/          # Supabase client & utilities
-│   ├── excel/             # Excel parsing logic
+│   ├── excel/             # Excel parsing logic (NEW)
+│   │   ├── parser.ts      # Core Excel parsing with SheetJS
+│   │   ├── processor.ts   # Two-pass processing logic
+│   │   ├── validator.ts   # Data validation and consistency checks
+│   │   ├── importer.ts    # Database import logic
+│   │   └── types.ts       # Excel processing type definitions
 │   ├── i18n/              # Translation system
 │   └── search/            # Search algorithms
 ├── hooks/                 # Custom React hooks
@@ -334,9 +359,31 @@ GET  /api/data/years/:make/:model // Years for make/model
 GET  /api/data/categories        // Part categories
 
 // Admin routes (mocked in dev)
-POST /api/admin/upload-excel     // Excel import
+POST /api/admin/upload-excel     // Excel import with two-pass processing
 POST /api/admin/upload-image     // Image upload for parts
 GET  /api/admin/parts            // Admin parts management
+```
+
+### Excel Processing Strategy (NEW)
+
+```typescript
+// Two-pass processing for unique parts discovery
+interface ExcelProcessingFlow {
+  step1_parse: "Read Excel with SheetJS, detect columns, validate format";
+  step2_discover: "Group rows by ACR SKU, validate part data consistency";
+  step3_validate: "Check for data conflicts and problematic duplicates";
+  step4_preview: "Generate summary with errors and sample data";
+  step5_import: "Create unique parts + vehicle applications + cross-refs";
+}
+
+// Expected data volumes from real Excel analysis
+interface DataVolumes {
+  totalExcelRows: 2335;
+  uniqueParts: 753;
+  vehicleApplications: 2335;
+  expectedDuplicates: 535; // Parts with multiple vehicle applications
+  crossReferences: 753; // One per unique part with competitor SKU
+}
 ```
 
 ### Search Performance Strategy
@@ -433,7 +480,7 @@ return <h1>{t("search.vehicle", locale)}</h1>;
 ### Technical Constraints
 
 - **File size limit**: 500 lines maximum per file
-- **Error tolerance**: Zero tolerance for import errors in MVP
+- **Error tolerance**: Zero tolerance for data consistency issues
 - **Mobile responsiveness**: Must work on tablets at parts counters
 - **Search speed**: Sub-300ms response times for all searches
 - **Data integrity**: No corrupt or incomplete parts data
@@ -449,9 +496,10 @@ return <h1>{t("search.vehicle", locale)}</h1>;
 
 ### Data Risks
 
-- **Excel format changes**: Flexible parser that can handle column variations
+- **Excel format changes**: Flexible parser with auto-detection and manual mapping
 - **Data quality issues**: Strict validation with clear error messages
 - **Large file uploads**: Chunked processing for Excel files > 5MB
+- **Data consistency**: Two-pass processing validates part data across rows
 
 ### Technical Risks
 
@@ -467,4 +515,4 @@ return <h1>{t("search.vehicle", locale)}</h1>;
 
 ---
 
-_This document serves as the single source of truth for the ACR Automotive project. Update as requirements evolve and features are implemented._
+_This document serves as the single source of truth for the ACR Automotive project. Updated with real Excel analysis and two-pass processing strategy._

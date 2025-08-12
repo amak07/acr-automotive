@@ -231,5 +231,6 @@ src/
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - Set `NODE_ENV=production`
    - Configure other environment variables from `.env.example`
-#   a c r - a u t o m o t i v e  
- 
+     #   a c r - a u t o m o t i v e 
+      
+      
