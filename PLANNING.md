@@ -1,0 +1,470 @@
+# PLANNING.md - ACR Automotive
+
+## Project Overview
+
+**Project Name**: ACR Automotive
+**Type**: Production-ready auto parts cross-reference search website
+**Target**: B2B auto parts distributors and counter staff in Mexico
+**Business**: Humberto's auto parts manufacturing company specializing in **MAZAS** (wheel bearings/hubs)
+
+## Architecture & Tech Stack
+
+### Core Framework (Adapted from Rental Management App)
+
+- **Next.js 15** with App Router (React 18)
+- **TypeScript 5+** for full type safety
+- **Node.js 18+** runtime
+
+### Frontend & UI
+
+- **Tailwind CSS** (primary styling approach)
+- **shadcn/ui** (copy-paste component library - we own the code)
+- **Radix UI** (accessible primitives via shadcn/ui)
+- **Lucide React** (icons)
+- **React Hook Form + Zod** (forms and validation)
+
+### Backend & Database
+
+- **Next.js API Routes** (business logic layer)
+- **Supabase PostgreSQL** (managed database)
+- **Supabase Storage** (image CDN and file management)
+
+### State Management
+
+- **React useState/useReducer** (local component state)
+- **TanStack Query** (server state management)
+- **Zustand** (global state for search filters, theme, language)
+
+### Infrastructure & Hosting
+
+- **Vercel** (hosting + CI/CD) - Better for Next.js
+- **Supabase** (database + storage)
+- **Generic SMTP** (email delivery - configurable provider for future 2FA)
+
+### Internationalization (i18n)
+
+- **Custom simple solution** (not next-i18next for MVP)
+- **Development**: English
+- **Production**: Spanish (Mexican auto parts market)
+- **All UI text translatable** from day 1
+
+## Business Requirements
+
+### Core Business Value
+
+- **Cross-reference search**: Users enter competitor SKUs → Find Humberto's equivalent parts
+- **Vehicle search**: Search by Make → Model → Year → Part Type
+- **Monthly data updates**: Humberto uploads Excel monthly with new/updated parts
+- **Professional B2B interface**: Clean, technical design for parts counter staff
+
+### Target Users
+
+- **Primary**: Counter staff at auto parts distributors (AutoZone, O'Reilly's)
+- **Secondary**: Smaller auto parts retailers and direct customers
+- **Admin**: Humberto (single admin for MVP)
+
+### Data Source
+
+- **Excel files**: Humberto maintains all product data in Excel workbooks
+- **Images**: Humberto will upload directly via admin interface (no Google Drive migration)
+- **Monthly updates**: Replace Excel data monthly, detect new/removed parts
+
+## Database Schema (MVP - Simplified)
+
+### Core Tables Only (3 Tables Total)
+
+```sql
+-- Main parts catalog (from Excel columns)
+CREATE TABLE parts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  acr_sku VARCHAR(50) UNIQUE NOT NULL,           -- Humberto's SKU (Column B)
+  competitor_sku VARCHAR(50),                    -- Cross-reference SKU (Column D)
+  part_type VARCHAR(100) NOT NULL,               -- MAZA, etc. (Column E)
+  position VARCHAR(50),                          -- TRASERA, DELANTERA (Column F)
+  abs_type VARCHAR(20),                          -- C/ABS, S/ABS (Column G)
+  bolt_pattern VARCHAR(50),                      -- 5 ROSCAS, 4, etc. (Column H)
+  drive_type VARCHAR(20),                        -- 4X2, 4X4 (Column I)
+  specifications TEXT,                           -- 28 ESTRIAS, etc. (Column J)
+  image_url TEXT,                                -- Supabase Storage URL (admin upload)
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Vehicle compatibility (from Excel columns K, L, M)
+CREATE TABLE vehicle_applications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  part_id UUID REFERENCES parts(id) ON DELETE CASCADE,
+  make VARCHAR(50) NOT NULL,                     -- ACURA, BMW (Column K)
+  model VARCHAR(100) NOT NULL,                   -- MDX, 328i (Column L)
+  year_range VARCHAR(20) NOT NULL,               -- 2007-2013 (Column M)
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Cross-reference mapping (derived from Excel)
+CREATE TABLE cross_references (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  acr_part_id UUID REFERENCES parts(id) ON DELETE CASCADE,
+  competitor_sku VARCHAR(50) NOT NULL,           -- From Excel Column D
+  competitor_brand VARCHAR(50),                  -- TM, Bosch, Denso (extracted)
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Key Design Decisions
+
+- ❌ **No separate lookup tables**: Extract categories/makes/models dynamically from main tables
+- ❌ **No auth tables**: Mock admin mode in development, add real auth post-MVP
+- ❌ **No audit tables**: Keep it simple, add version control post-MVP
+- ❌ **No verification codes table**: Supabase handles auth when we add it later
+
+### Data Extraction Strategy
+
+```sql
+-- Get categories dynamically
+SELECT DISTINCT part_type FROM parts ORDER BY part_type;
+
+-- Get vehicle makes
+SELECT DISTINCT make FROM vehicle_applications ORDER BY make;
+
+-- Get models for a make
+SELECT DISTINCT model FROM vehicle_applications WHERE make = ? ORDER BY model;
+
+-- Get years for make/model
+SELECT DISTINCT year_range FROM vehicle_applications WHERE make = ? AND model = ?;
+```
+
+## Excel Data Structure (Confirmed from Analysis)
+
+### Excel Columns Mapping
+
+```
+Column A: ID (number, optional)
+Column B: ACR SKU (required) → parts.acr_sku
+Column C: Unknown field (ignored)
+Column D: Competitor SKU (optional) → parts.competitor_sku
+Column E: Part Type (required) → parts.part_type
+Column F: Position (optional) → parts.position
+Column G: ABS Type (optional) → parts.abs_type
+Column H: Bolt Pattern (optional) → parts.bolt_pattern
+Column I: Drive Type (optional) → parts.drive_type
+Column J: Specifications (optional) → parts.specifications
+Column K: Vehicle Make (required) → vehicle_applications.make
+Column L: Vehicle Model (required) → vehicle_applications.model
+Column M: Year Range (required) → vehicle_applications.year_range
+Column N: Image URL (optional) → parts.image_url
+```
+
+### Excel Processing Rules
+
+- **Total rows**: ~2,336 parts in current Excel
+- **Error handling**: Block import if ANY errors found (MVP approach)
+- **Preview**: Show summary + first 10 rows + all errors (not all 2,336 rows)
+- **Updates**: On subsequent imports, detect new parts added/removed
+
+## MVP Features (Priority Order)
+
+### Phase 1: Core Data Foundation (1 week)
+
+1. **✅ Project Setup**
+
+   - Adapt rental management app structure for ACR Automotive
+   - Next.js 15 + TypeScript + Tailwind + shadcn/ui
+   - Supabase database and storage setup
+
+2. **✅ Database Schema**
+
+   - Create 3 core tables (parts, vehicle_applications, cross_references)
+   - Add search indexes and business logic functions
+   - Test with sample data
+
+3. **✅ Excel Parser**
+
+   - Upload Excel file via admin interface
+   - Parse columns A-N with validation
+   - Show preview: summary + errors + sample rows
+   - Block import if any errors found
+   - Import to database on success
+
+4. **✅ Simple i18n Setup**
+
+   - Custom translation system (not next-i18next)
+   - English for development, Spanish for production
+   - All UI text translatable from day 1
+
+5. **✅ Mock Admin Mode**
+   - Skip authentication for MVP
+   - Admin mode always enabled in development
+   - Focus on core business logic first
+
+### Phase 2: Search Interface (1 week)
+
+6. **✅ Vehicle Search**
+
+   - Multi-step dropdown interface (Baleros-Bisa pattern)
+   - Make → Model → Year → Part Type progression
+   - Dynamic dropdowns populated from database
+   - Search results display with SKU prominence
+
+7. **✅ SKU Cross-Reference Search**
+
+   - Single input field for SKU search
+   - Search both ACR SKUs and competitor SKUs
+   - Fuzzy matching for typos
+   - Clear display of cross-reference mapping
+
+8. **✅ Part Details Page**
+
+   - Individual part page with full specifications
+   - Vehicle applications table
+   - Cross-reference information
+   - Image display (if available)
+   - Technical specifications
+
+9. **✅ Search Results Display**
+   - SKU-prominent layout (matching Baleros-Bisa)
+   - Professional B2B design
+   - Mobile-responsive for tablets
+   - Spanish interface elements
+
+### Phase 3: Admin Management (1 week)
+
+10. **✅ Image Upload Interface**
+
+    - Admin can upload images per part
+    - Simple part selector + file upload
+    - Images stored in Supabase Storage
+    - Auto-update parts.image_url in database
+
+11. **✅ Excel Re-import**
+
+    - Handle subsequent monthly uploads
+    - Detect new parts vs existing parts
+    - Show changes before applying
+    - Replace existing data with new import
+
+12. **✅ Production Deployment**
+    - Spanish translation implementation
+    - Performance optimization
+    - Vercel deployment
+    - User acceptance testing with Humberto
+
+## Post-MVP Features (Future Enhancements)
+
+### Authentication & Security
+
+- **Real authentication system** with Supabase Auth
+- **2FA email verification** with nodemailer/SMTP
+- **Session management** (8-hour admin sessions)
+- **Admin user management** (if multiple admins needed)
+
+### Data Management
+
+- **Version control system** for Excel imports
+- **Data diff visualization** (show changes between imports)
+- **Rollback capability** to previous versions
+- **Import approval workflow** (pending → approved flow)
+- **Audit logging** for admin activities
+
+### Advanced Search
+
+- **Search analytics** (track popular searches)
+- **Advanced filters** (position, ABS type, drive type)
+- **Search suggestions** and autocomplete
+- **Bulk part lookup** (multiple SKUs at once)
+
+### Business Features
+
+- **Part availability status** (in stock, discontinued)
+- **Product categories management** (admin-controlled)
+- **Competitor brand management** (organized cross-references)
+- **Technical documentation** uploads per part
+
+### User Experience
+
+- **Advanced admin dashboard** with analytics
+- **Bulk image upload** functionality
+- **CSV/Excel export** of search results
+- **Print-friendly part details** for counter staff
+- **Barcode/QR code** generation for parts
+
+### Integration & API
+
+- **Public API endpoints** for distributor integration
+- **Webhook notifications** for data updates
+- **Third-party integrations** (inventory systems)
+- **Mobile app** for field sales
+
+## Technical Implementation
+
+### Project Structure
+
+```
+src/
+├── app/                     # Next.js App Router
+│   ├── (public)/           # Public search interface
+│   ├── admin/              # Admin panel (mock auth in dev)
+│   └── api/               # Backend API routes
+├── components/             # React components
+│   ├── ui/                # shadcn/ui base components
+│   ├── search/            # Search interface components
+│   ├── admin/             # Admin panel components
+│   └── parts/             # Part display components
+├── lib/                   # Utilities & configurations
+│   ├── supabase/          # Supabase client & utilities
+│   ├── excel/             # Excel parsing logic
+│   ├── i18n/              # Translation system
+│   └── search/            # Search algorithms
+├── hooks/                 # Custom React hooks
+├── types/                 # TypeScript definitions
+└── __tests__/            # Test files (core features only)
+```
+
+### API Endpoints
+
+```typescript
+// Public search routes
+GET  /api/search/vehicle         // Multi-step vehicle search
+GET  /api/search/sku             // Cross-reference SKU search
+GET  /api/parts/:id              // Part details with applications
+
+// Data routes (for dropdowns)
+GET  /api/data/makes             // Vehicle makes
+GET  /api/data/models/:make      // Models for make
+GET  /api/data/years/:make/:model // Years for make/model
+GET  /api/data/categories        // Part categories
+
+// Admin routes (mocked in dev)
+POST /api/admin/upload-excel     // Excel import
+POST /api/admin/upload-image     // Image upload for parts
+GET  /api/admin/parts            // Admin parts management
+```
+
+### Search Performance Strategy
+
+- **PostgreSQL indexes** on SKUs, make/model/year combinations
+- **Full-text search** with trigram matching for typos
+- **TanStack Query caching** for frequent searches
+- **Static generation** for category pages with ISR
+
+### Image Management
+
+- **Supabase Storage** for all part images
+- **CDN distribution** automatic via Supabase
+- **Admin upload interface** (no Google Drive migration)
+- **Standardized naming**: `{acr_sku}.jpg` format
+
+## UI/UX Design Patterns
+
+### Reference Design (Baleros-Bisa Pattern)
+
+- **Multi-step search**: Category → Make → Model → Year dropdowns
+- **SKU prominence**: Large, bold part numbers in results
+- **Professional B2B aesthetic**: Clean, technical design
+- **Spanish-first interface**: Mexican auto parts industry standard
+- **Mobile-optimized**: Touch-friendly for tablets at parts counters
+
+### Component Patterns
+
+- **Search modal**: Triggered by floating search icon
+- **Product cards**: SKU + description + brand + "Detalles" button
+- **Dropdown cascades**: Dynamic loading of Make → Model → Year
+- **Error states**: Clear messaging for no results or errors
+
+## Development Workflow
+
+### Environment Setup
+
+- **Local**: `localhost:3000` with Supabase local development
+- **Development**: English language, mock admin mode
+- **Staging**: Vercel preview deployments with Supabase staging
+- **Production**: Spanish language, real authentication
+
+### Testing Strategy (Simplified)
+
+- **Core features only**: Excel parsing, search functionality
+- **No comprehensive coverage**: Focus on business-critical paths
+- **Type-safe factories**: Ensure schema changes break tests
+- **Security focus**: Test data validation when auth is added
+
+### Translation Implementation
+
+```typescript
+// lib/i18n.ts - Simple custom solution
+const translations = {
+  "search.vehicle": { en: "Search by Vehicle", es: "Búsqueda por Vehículo" },
+  "search.sku": { en: "Search by SKU", es: "Búsqueda por SKU" },
+  "part.details": { en: "Part Details", es: "Detalles de Pieza" },
+};
+
+export const t = (key: string, locale: "en" | "es" = "en") =>
+  translations[key]?.[locale] || key;
+
+// Usage in components
+const { locale } = useLocale(); // Zustand store
+return <h1>{t("search.vehicle", locale)}</h1>;
+```
+
+## Success Metrics
+
+### Technical Metrics
+
+- **Search Performance**: Results in < 300ms
+- **Data Accuracy**: 100% Excel import success rate (block on errors)
+- **User Experience**: Mobile-friendly score > 95 (Google PageSpeed)
+- **Uptime**: 99.9% availability
+
+### Business Metrics
+
+- **Cross-reference accuracy**: 95%+ match rate for competitor SKUs
+- **Admin efficiency**: Monthly Excel updates < 30 minutes
+- **User adoption**: Reduced customer service calls for part lookup
+- **Search success**: 90%+ of searches return relevant results
+
+## Key Constraints & Requirements
+
+### Business Constraints
+
+- **Excel workflow**: Must maintain Humberto's preferred Excel process
+- **Monthly updates**: Optimized for monthly data refresh cycle
+- **Spanish interface**: All UI text in Spanish for Mexican market
+- **B2B focus**: Professional aesthetic for parts counter use
+- **No e-commerce**: Search and reference only, no purchasing functionality
+
+### Technical Constraints
+
+- **File size limit**: 500 lines maximum per file
+- **Error tolerance**: Zero tolerance for import errors in MVP
+- **Mobile responsiveness**: Must work on tablets at parts counters
+- **Search speed**: Sub-300ms response times for all searches
+- **Data integrity**: No corrupt or incomplete parts data
+
+### Operational Constraints
+
+- **Single admin**: Humberto is sole administrator initially
+- **Manual image management**: Admin uploads images via interface
+- **Monthly data cycles**: Optimized for monthly rather than real-time updates
+- **Minimal maintenance**: System should run with minimal intervention
+
+## Risk Mitigation
+
+### Data Risks
+
+- **Excel format changes**: Flexible parser that can handle column variations
+- **Data quality issues**: Strict validation with clear error messages
+- **Large file uploads**: Chunked processing for Excel files > 5MB
+
+### Technical Risks
+
+- **Search performance**: Proper indexing and caching strategies
+- **Image storage**: Supabase Storage with CDN for reliability
+- **Mobile compatibility**: Extensive testing on tablet devices
+
+### Business Risks
+
+- **User adoption**: Focus on familiar Baleros-Bisa UI patterns
+- **Translation accuracy**: Native Spanish speaker review of all text
+- **Admin usability**: Simple, clear interfaces for non-technical users
+
+---
+
+_This document serves as the single source of truth for the ACR Automotive project. Update as requirements evolve and features are implemented._
