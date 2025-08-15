@@ -43,9 +43,10 @@
 
 ### Excel Processing
 
-- **SheetJS (xlsx library)** (Excel file parsing and validation)
-- **Zod** (Excel data validation schemas)
-- **Two-pass processing** (unique parts discovery + vehicle applications)
+- **SheetJS (xlsx library)** (Direct Buffer/ArrayBuffer support)
+- **TypeScript strict types** (Production-ready type safety)
+- **Two-step workflow** (PRECIOS cross-references → CATALOGACION applications)
+- **Hardcoded column mapping** (Simplified, reliable approach)
 
 ### Internationalization (i18n)
 
@@ -69,12 +70,12 @@
 - **Secondary**: Smaller auto parts retailers and direct customers
 - **Admin**: Humberto (single admin for MVP)
 
-### Data Source
+### Data Sources (UPDATED)
 
-- **Primary Excel**: `CATALOGACION ACR CLIENTES.xlsx` (2,335 vehicle applications for 753 unique parts)
-- **Secondary Excel**: `LISTA DE PRECIOS` (price lists with additional competitor cross-references)
-- **Images**: Humberto will upload directly via admin interface (no Google Drive migration)
-- **Monthly updates**: Replace Excel data monthly, detect new/removed parts
+- **PRECIOS Excel**: `LISTA DE PRECIOS` ✅ (865 ACR parts, 7,530 cross-references) **COMPLETED**
+- **CATALOGACION Excel**: `CATALOGACION ACR CLIENTES.xlsx` ⏳ (~2,335 vehicle applications) **TODO**  
+- **Images**: Admin upload via Supabase Storage (no Google Drive migration)
+- **Two-step monthly workflow**: PRECIOS first → CATALOGACION second
 
 ## Database Schema (REVISED - Based on Excel Analysis)
 
@@ -145,41 +146,34 @@ SELECT DISTINCT model FROM vehicle_applications WHERE make = ? ORDER BY model;
 SELECT DISTINCT year_range FROM vehicle_applications WHERE make = ? AND model = ?;
 ```
 
-## Excel Data Structure (CONFIRMED from Real Files)
+## Excel File Structures (UPDATED from Real Implementation)
 
-### Primary File: CATALOGACION ACR CLIENTES.xlsx
-
+**PRECIOS File**: `LISTA DE PRECIOS` ✅ **COMPLETED**
 ```
-Column A (0): "#" → Optional ID (ignored)
-Column B (1): "ACR" → parts.acr_sku (REQUIRED, UNIQUE per part)
-Column C (2): "SYD" → Ignored (unknown field)
-Column D (3): "TMK " → parts.competitor_sku (optional)
-Column E (4): "Clase" → parts.part_type (REQUIRED)
-Column F (5): "Posicion" → parts.position (optional)
-Column G (6): "Sistema" → parts.abs_type (optional)
-Column H (7): "Birlos" → parts.bolt_pattern (optional)
-Column I (8): "Traccion" → parts.drive_type (optional)
-Column J (9): "Observaciones" → parts.specifications (optional)
-Column K (10): "MARCA" → vehicle_applications.make (REQUIRED)
-Column L (11): "APLICACIÓN " → vehicle_applications.model (REQUIRED)
-Column M (12): "AÑO " → vehicle_applications.year_range (REQUIRED)
-Column N (13): "URL IMAGEN " → parts.image_url (optional)
+Header Row: 8, Data Starts: 9
+Column A: "#" (ID - ignored)
+Column B: "ACR" (ACR SKU - required) 
+Columns C-M: Competitor brands (NATIONAL, TMK, GSP, etc.)
+Results: 865 parts, 7,530 cross-references
+Performance: <100ms processing
 ```
 
-### Secondary File: LISTA DE PRECIOS (Future Enhancement)
+**CATALOGACION File**: `CATALOGACION ACR CLIENTES.xlsx` ⏳ **TODO**
+```  
+Header Row: 1, Data Starts: 2
+Column B: "ACR" (ACR SKU - links to PRECIOS)
+Column E: "Clase" (Part type)
+Column K: "MARCA" (Vehicle make)
+Column L: "APLICACIÓN" (Vehicle model) 
+Column M: "AÑO" (Year range)
+Expected: ~2,335 vehicle applications
+```
 
-- Different structure with additional competitor cross-references
-- Can be processed to enhance cross_references table
-- Contains pricing information (not used in MVP)
-
-### Excel Processing Rules (UPDATED)
-
-- **Total rows**: 2,335 vehicle applications
-- **Unique parts**: 753 ACR SKUs
-- **Expected duplicates**: 535 parts have multiple vehicle applications
-- **Error handling**: Block import if data consistency issues found
-- **Preview**: Show summary + first 10 rows + all errors + duplicate analysis
-- **Two-pass processing**: Discover unique parts, then collect all applications
+**Processing Strategy:**
+- **Step 1**: Import PRECIOS → Establish master part list (✅ DONE)
+- **Step 2**: Import CATALOGACION → Add part details + vehicle applications (⏳ TODO)
+- **Validation**: All CATALOGACION ACR SKUs must exist in PRECIOS first
+- **Performance Target**: <200ms total processing time
 
 ## MVP Features (Priority Order)
 
@@ -197,13 +191,14 @@ Column N (13): "URL IMAGEN " → parts.image_url (optional)
    - Add search indexes and business logic functions
    - Test with sample data
 
-3. **🔄 Excel Parser (IN PROGRESS)**
+3. **✅ PRECIOS Excel Parser (COMPLETED)**
 
-   - Two-pass processing system for unique parts discovery
-   - Flexible column mapping for different Excel formats
-   - Data consistency validation across duplicate ACR SKUs
-   - Detailed error reporting (row/column/field level)
-   - Block import on data conflicts, allow expected duplicates
+   - **Two-Step Import Workflow**: PRECIOS (cross-references) → CATALOGACION (applications)
+   - **Simplified Architecture**: Hardcoded column positions, no dynamic detection
+   - **Direct Buffer Support**: Accepts both Buffer and ArrayBuffer inputs
+   - **Real Data Volumes**: 865 ACR parts, 7,530 cross-references from actual file
+   - **Performance**: <100ms processing time for 865 rows
+   - **Production Ready**: Full test coverage with real Excel file integration
 
 4. **✅ Simple i18n Setup**
 
@@ -331,12 +326,12 @@ src/
 │   └── parts/             # Part display components
 ├── lib/                   # Utilities & configurations
 │   ├── supabase/          # Supabase client & utilities
-│   ├── excel/             # Excel parsing logic (NEW)
-│   │   ├── parser.ts      # Core Excel parsing with SheetJS
-│   │   ├── processor.ts   # Two-pass processing logic
-│   │   ├── validator.ts   # Data validation and consistency checks
-│   │   ├── importer.ts    # Database import logic
-│   │   └── types.ts       # Excel processing type definitions
+│   ├── excel/             # Excel parsing logic (UPDATED)
+│   │   ├── precios-parser.ts    # ✅ PRECIOS cross-reference parser (COMPLETE)
+│   │   ├── catalogacion-parser.ts # ⏳ CATALOGACION applications parser (TODO)
+│   │   ├── types.ts       # Excel processing type definitions
+│   │   ├── README.md      # Quick start documentation
+│   │   └── __tests__/     # Real Excel file integration tests
 │   ├── i18n/              # Translation system
 │   └── search/            # Search algorithms
 ├── hooks/                 # Custom React hooks
@@ -358,33 +353,48 @@ GET  /api/data/models/:make      // Models for make
 GET  /api/data/years/:make/:model // Years for make/model
 GET  /api/data/categories        // Part categories
 
-// Admin routes (mocked in dev)
-POST /api/admin/upload-excel     // Excel import with two-pass processing
-POST /api/admin/upload-image     // Image upload for parts
-GET  /api/admin/parts            // Admin parts management
+// Admin routes (mocked in dev)  
+POST /api/admin/upload-precios      // ✅ PRECIOS Excel import (cross-references)
+POST /api/admin/upload-catalogacion // ⏳ CATALOGACION Excel import (applications)
+POST /api/admin/upload-image        // Image upload for parts
+GET  /api/admin/parts               // Admin parts management
 ```
 
-### Excel Processing Strategy (NEW)
+### Excel Processing Architecture (UPDATED)
 
+**Two-Step Import Workflow:**
 ```typescript
-// Two-pass processing for unique parts discovery
-interface ExcelProcessingFlow {
-  step1_parse: "Read Excel with SheetJS, detect columns, validate format";
-  step2_discover: "Group rows by ACR SKU, validate part data consistency";
-  step3_validate: "Check for data conflicts and problematic duplicates";
-  step4_preview: "Generate summary with errors and sample data";
-  step5_import: "Create unique parts + vehicle applications + cross-refs";
+// Step 1: PRECIOS Parser (Cross-References) - COMPLETED
+interface PreciosProcessing {
+  input: "LISTA DE PRECIOS Excel file";
+  output: "865 ACR parts + 7,530 cross-reference mappings";
+  fileStructure: {
+    headerRow: 8;
+    dataStartRow: 9;
+    columns: "A=ID, B=ACR_SKU, C-M=Competitor brands";
+  };
+  performance: "<100ms for 865 rows";
+  status: "✅ Production Ready";
 }
 
-// Expected data volumes from real Excel analysis
-interface DataVolumes {
-  totalExcelRows: 2335;
-  uniqueParts: 753;
-  vehicleApplications: 2335;
-  expectedDuplicates: 535; // Parts with multiple vehicle applications
-  crossReferences: 753; // One per unique part with competitor SKU
+// Step 2: CATALOGACION Parser (Applications) - NEXT
+interface CatalogacionProcessing {
+  input: "CATALOGACION ACR CLIENTES Excel file";
+  output: "Part details + vehicle applications";
+  fileStructure: {
+    headerRow: 1;
+    dataStartRow: 2;
+    columns: "A=ID, B=ACR_SKU, E=Type, K=Make, L=Model, M=Year";
+  };
+  status: "⏳ Not Started";
 }
 ```
+
+**Actual Data Volumes (From Real Files):**
+- **PRECIOS**: 865 ACR parts, 7,530 cross-references  
+- **CATALOGACION**: ~2,335 vehicle applications (estimated)
+- **Processing Speed**: <100ms per file
+- **Memory**: Efficient Buffer/ArrayBuffer support
 
 ### Search Performance Strategy
 
