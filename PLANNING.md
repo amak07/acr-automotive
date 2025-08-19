@@ -146,6 +146,71 @@ SELECT DISTINCT model FROM vehicle_applications WHERE make = ? ORDER BY model;
 SELECT DISTINCT year_range FROM vehicle_applications WHERE make = ? AND model = ?;
 ```
 
+## Conflict Detection System (NEW - Data Integrity Focus)
+
+### Business Requirement
+
+**Problem**: Excel files may contain data inconsistencies that could corrupt the database or confuse users.
+**Solution**: Comprehensive conflict detection with clear admin reporting before any data import.
+
+### Conflict Types & Severity
+
+#### 🚨 **BLOCKING ERRORS** (Must fix before import)
+- **Duplicate ACR SKUs with conflicting data** - Same SKU with different part specifications
+- **Invalid data formats** - Malformed SKUs, dates, or required fields
+- **Database constraint violations** - Data that would break foreign key or unique constraints
+
+#### ⚠️ **WARNINGS** (Import proceeds, admin reviews)
+- **Orphaned applications** - CATALOGACION references ACR SKUs not in PRECIOS (13 found in test data)
+- **Missing cross-references** - PRECIOS parts without any vehicle applications
+- **Data quality issues** - Unusual patterns that may indicate errors
+
+#### ℹ️ **INFO** (For awareness only)
+- **Processing statistics** - Row counts, performance metrics
+- **Data insights** - Part-to-application ratios, most common vehicles
+
+### Admin UX Flow
+
+```
+File Upload → Processing → Conflict Detection → Review → Decision
+    ↓              ↓             ↓             ↓         ↓
+[Drag File]  [Progress]   [Conflict List]  [Details] [Import/Fix]
+```
+
+**Conflict Presentation:**
+- **Summary view**: Count by severity with expand/collapse details
+- **Detailed view**: Specific rows, affected SKUs, resolution suggestions
+- **Downloadable reports**: Excel/CSV for offline review
+- **Action buttons**: Fix and re-upload vs. Import with warnings
+
+### Technical Implementation
+
+```typescript
+interface ConflictReport {
+  type: 'error' | 'warning' | 'info';
+  source: 'precios' | 'catalogacion' | 'cross-validation';
+  conflictType: string;
+  description: string;
+  affectedRows: number[];
+  affectedSkus: string[];
+  suggestion?: string;
+  impact: 'blocking' | 'non-blocking';
+}
+
+interface ProcessingResult {
+  success: boolean;
+  data?: ParsedData;
+  conflicts: ConflictReport[];
+  summary: ProcessingSummary;
+}
+```
+
+**Integration Points:**
+- **Parser Enhancement**: Wrap existing parsers with conflict detection
+- **Admin Interface**: Conflict review screen before database import
+- **Database Import**: Only proceed if no blocking conflicts
+- **User Training**: Documentation for common conflict resolution
+
 ## Excel File Structures (UPDATED from Real Implementation)
 
 **PRECIOS File**: `LISTA DE PRECIOS` ✅ **COMPLETED**
@@ -158,7 +223,7 @@ Results: 865 parts, 7,530 cross-references
 Performance: <100ms processing
 ```
 
-**CATALOGACION File**: `CATALOGACION ACR CLIENTES.xlsx` ⏳ **TODO**
+**CATALOGACION File**: `CATALOGACION ACR CLIENTES.xlsx` ✅ **COMPLETED**
 ```  
 Header Row: 1, Data Starts: 2
 Column B: "ACR" (ACR SKU - links to PRECIOS)
@@ -166,14 +231,17 @@ Column E: "Clase" (Part type)
 Column K: "MARCA" (Vehicle make)
 Column L: "APLICACIÓN" (Vehicle model) 
 Column M: "AÑO" (Year range)
-Expected: ~2,335 vehicle applications
+Results: 740 unique parts, 2,304 vehicle applications
+Performance: <200ms target achieved (96-113ms actual)
+Data Integrity: 13 orphaned SKUs detected for review
 ```
 
 **Processing Strategy:**
-- **Step 1**: Import PRECIOS → Establish master part list (✅ DONE)
-- **Step 2**: Import CATALOGACION → Add part details + vehicle applications (⏳ TODO)
-- **Validation**: All CATALOGACION ACR SKUs must exist in PRECIOS first
-- **Performance Target**: <200ms total processing time
+- **Step 1**: Import PRECIOS → Establish master part list (✅ COMPLETED)
+- **Step 2**: Import CATALOGACION → Add part details + vehicle applications (✅ COMPLETED)
+- **Step 3**: Conflict Detection → Data integrity validation (⏳ NEXT)
+- **Validation**: CATALOGACION ACR SKUs validated against PRECIOS master list
+- **Performance Target**: <200ms total processing time (✅ ACHIEVED)
 
 ## MVP Features (Priority Order)
 
@@ -200,16 +268,31 @@ Expected: ~2,335 vehicle applications
    - **Performance**: <100ms processing time for 865 rows
    - **Production Ready**: Full test coverage with real Excel file integration
 
-4. **✅ Simple i18n Setup**
+4. **✅ CATALOGACION Excel Parser (COMPLETED)**
+
+   - **Vehicle Applications Processing**: 740 unique parts, 2,304 applications from actual file
+   - **Part Details Extraction**: Type, position, specifications, vehicle compatibility
+   - **PRECIOS Integration**: Validation against master ACR SKU list
+   - **Performance**: <200ms target achieved (96-113ms actual processing)
+   - **Data Integrity**: Orphaned SKU detection (13 found in test data)
+   - **Production Ready**: Full test coverage with real Excel file integration
+
+5. **✅ Simple i18n Setup**
 
    - Custom translation system (not next-i18next)
    - English for development, Spanish for production
    - All UI text translatable from day 1
 
-5. **✅ Mock Admin Mode**
+6. **✅ Mock Admin Mode**
    - Skip authentication for MVP
    - Admin mode always enabled in development
    - Focus on core business logic first
+
+7. **⏳ Conflict Detection System (NEXT)**
+   - Data integrity validation across both parsers
+   - Admin-friendly conflict reporting interface
+   - Blocking vs non-blocking error classification
+   - Resolution workflow for Humberto
 
 ### Phase 2: Search Interface (1 week)
 
