@@ -17,7 +17,7 @@ ACR Automotive solves a critical problem in the auto parts industry: **cross-ref
 - **⚡ Fast Cross-Reference**: Competitor part numbers instantly mapped to ACR equivalents
 - **📱 Mobile-First Design**: Optimized for tablets used at parts counters
 - **🌍 Bilingual Support**: English development, Spanish production (Mexican market)
-- **📊 Excel Integration**: Monthly data updates via Excel upload with validation
+- **📊 Excel Integration**: Monthly data updates via Excel upload with conflict detection and validation
 - **🖼️ Image Management**: Admin interface for product photos
 
 ## 🏗️ Technical Architecture
@@ -207,7 +207,7 @@ src/
 │   └── parts/              # Part display
 ├── lib/                    # Core utilities
 │   ├── supabase/           # Database client
-│   ├── excel/              # Excel parsing
+│   ├── excel/              # Excel parsing with conflict detection
 │   ├── search/             # Search algorithms
 │   └── i18n/               # Translation system
 ├── hooks/                  # Custom React hooks

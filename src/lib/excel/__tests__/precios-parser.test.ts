@@ -1,6 +1,7 @@
 // Simple tests for PreciosParser - ACR Automotive
 import { PreciosParser } from "../precios-parser";
 import { PreciosRow } from "../types";
+import { CONFLICT_TYPES } from "../conflict-types";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -208,7 +209,7 @@ describe("PreciosParser", () => {
 
   // Real Excel file test
   describe("Real Excel File Integration", () => {
-    test("should parse the actual PRECIOS Excel file", () => {
+    test("should parse the actual PRECIOS Excel file with conflict detection", () => {
       // Load the real Excel file
       const excelFilePath = path.join(
         __dirname,
@@ -226,43 +227,54 @@ describe("PreciosParser", () => {
       // Parse the file directly with Buffer
       const result = PreciosParser.parseFile(fileBuffer);
 
-      // Verify structure
+      // ProcessingResult assertions
       expect(result).toBeDefined();
-      expect(result.acrSkus).toBeInstanceOf(Set);
-      expect(Array.isArray(result.crossReferences)).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.canProceed).toBe(true);
+      expect(result.conflicts).toBeDefined();
+      expect(result.data).toBeDefined();
       expect(result.summary).toBeDefined();
 
-      // Verify we got reasonable data amounts
+      // Data assertions (now nested under result.data)
+      expect(result.data.acrSkus).toBeInstanceOf(Set);
+      expect(Array.isArray(result.data.crossReferences)).toBe(true);
+      expect(result.data.summary).toBeDefined();
 
-      // Basic expectations - adjust these based on your actual file
-      expect(result.acrSkus.size).toBeGreaterThan(0);
-      expect(result.crossReferences.length).toBeGreaterThan(0);
-      expect(result.summary.processingTimeMs).toBeLessThan(5000); // Should be fast
+      // Verify we got reasonable data amounts
+      expect(result.data.acrSkus.size).toBeGreaterThan(0);
+      expect(result.data.crossReferences.length).toBeGreaterThan(0);
+      expect(result.data.summary.processingTimeMs).toBeLessThan(5000); // Should be fast
+
+      // Conflict detection assertions
+      expect(result.conflicts).toBeInstanceOf(Array);
+      console.log('PRECIOS Conflicts found:', result.conflicts.length);
+      
+      // Check for duplicate conflicts (if any)
+      const duplicateConflicts = result.conflicts.filter(c => c.conflictType === CONFLICT_TYPES.DUPLICATE_ACR_SKU);
+      if (duplicateConflicts.length > 0) {
+        console.log('Found duplicate ACR SKUs:', duplicateConflicts.length);
+        duplicateConflicts.forEach(conflict => {
+          expect(conflict.severity).toBe('error');
+          expect(conflict.impact).toBe('blocking');
+          expect(conflict.source).toBe('precios');
+        });
+      }
 
       // Verify all ACR SKUs start with "ACR"
-      result.acrSkus.forEach((sku) => {
+      result.data.acrSkus.forEach((sku) => {
         expect(sku.startsWith("ACR")).toBe(true);
       });
 
       // Verify cross-references have proper structure
-      if (result.crossReferences.length > 0) {
-        const firstCrossRef = result.crossReferences[0];
+      if (result.data.crossReferences.length > 0) {
+        const firstCrossRef = result.data.crossReferences[0];
         expect(firstCrossRef.acrSku).toBeDefined();
         expect(firstCrossRef.competitorBrand).toBeDefined();
         expect(firstCrossRef.competitorSku).toBeDefined();
         expect(firstCrossRef.acrSku.startsWith("ACR")).toBe(true);
       }
 
-      // Verify sample data structure
-      const sampleAcrSkus = Array.from(result.acrSkus).slice(0, 3);
-      expect(sampleAcrSkus.length).toBeGreaterThan(0);
-
-      if (result.crossReferences.length > 0) {
-        const sampleCrossRef = result.crossReferences[0];
-        expect(sampleCrossRef.acrSku).toBeDefined();
-        expect(sampleCrossRef.competitorBrand).toBeDefined();
-        expect(sampleCrossRef.competitorSku).toBeDefined();
-      }
+      console.log('PRECIOS Results:', result.data.summary);
     });
 
     test("should handle expected data volumes from real file", () => {
@@ -280,20 +292,20 @@ describe("PreciosParser", () => {
       // - Multiple cross-references per part
 
       // Verify reasonable data volumes (adjust based on actual file)
-      expect(result.acrSkus.size).toBeGreaterThan(100); // At least 100 parts
-      expect(result.acrSkus.size).toBeLessThan(2000); // Less than 2000 parts
+      expect(result.data.acrSkus.size).toBeGreaterThan(100); // At least 100 parts
+      expect(result.data.acrSkus.size).toBeLessThan(2000); // Less than 2000 parts
 
       // Cross-references should be more than parts (multiple competitors per part)
-      expect(result.crossReferences.length).toBeGreaterThanOrEqual(
-        result.acrSkus.size
+      expect(result.data.crossReferences.length).toBeGreaterThanOrEqual(
+        result.data.acrSkus.size
       );
 
       // Performance check
-      expect(result.summary.processingTimeMs).toBeLessThan(10000); // Under 10 seconds
+      expect(result.data.summary.processingTimeMs).toBeLessThan(10000); // Under 10 seconds
 
       // Check for specific competitor brands
       const brands = new Set(
-        result.crossReferences.map((ref) => ref.competitorBrand)
+        result.data.crossReferences.map((ref) => ref.competitorBrand)
       );
 
       // Should find some of the expected brands
