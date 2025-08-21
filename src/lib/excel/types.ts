@@ -1,41 +1,36 @@
 // TypeScript interfaces for Excel processing - ACR Automotive
-//  Business Understanding:
-//   - CATALOGACION = Vehicle applications (one-to-many: one part fits many vehicles)
-//   - PRECIOS = Cross-reference mappings (competitor SKUs → ACR SKUs)
-//   - Two separate workflows, not one combined process
 
 export const PRECIOS_COLUMNS = {
-  ID: 1, // column A (IGNORE THIS COLUMN)
-  ACR_SKU: 2, // column B
-  NATIONAL: 3, // column C
-  ATV: 4, // column D
-  SYD: 5, // column E
-  TMK: 6, // col F
-  GROB: 7, // col G
-  RACE: 8, // col H
-  OEM: 9, // col I
-  OEM2: 10, // col J
-  GMB: 11, // col K
-  GSP: 12, // col L
-  FAG: 13, // col M
-  // future competitor columns go here...
+  ID: 1,
+  ACR_SKU: 2,
+  NATIONAL: 3,
+  ATV: 4,
+  SYD: 5,
+  TMK: 6,
+  GROB: 7,
+  RACE: 8,
+  OEM: 9,
+  OEM2: 10,
+  GMB: 11,
+  GSP: 12,
+  FAG: 13,
 };
 
 export const CATALOGACION_COLUMNS = {
-  ID: 1, // column A (IGNORE THIS COLUMN)
-  ACR_SKU: 2, // col B
-  SYD: 3, // col C  (IGNORE THIS COLUMN)
-  TMK: 4, // col D (IGNORE THIS COLUMN)
-  PART_TYPE: 5, // col E "CLASE"
-  POSICION: 6, // col F
-  SISTEMA: 7, // col G
-  BIRLOS: 8, // col H
-  TRACCION: 9, // col I
-  OBSERVACIONES: 10, // col J
-  MAKE: 11, // col K "MARCA",
-  MODEL: 12, // col L "APLICACION"
-  YEAR: 13, // col M "ANO",
-  IMAGE_URL: 14, // col N (IGNORE THIS COLUMN)
+  ID: 1,
+  ACR_SKU: 2,
+  SYD: 3,
+  TMK: 4,
+  PART_TYPE: 5,
+  POSICION: 6,
+  SISTEMA: 7,
+  BIRLOS: 8,
+  TRACCION: 9,
+  OBSERVACIONES: 10,
+  MAKE: 11,
+  MODEL: 12,
+  YEAR: 13,
+  IMAGE_URL: 14,
 };
 
 export const EXCEL_STRUCTURE = {
@@ -141,15 +136,6 @@ export interface VehicleApplication {
   model: string;
   yearRange: string;
   rowNumber: number; // For error reporting
-}
-
-export interface ParseError {
-  row: number;
-  field?: string; // acrSku, partType, etc.
-  errorType: "required" | "duplicate" | "invalid_format" | "data_conflict";
-  message: string;
-  cellValue?: any;
-  suggestion?: string;
 }
 
 export interface CrossReference {

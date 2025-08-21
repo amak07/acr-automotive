@@ -46,9 +46,35 @@ const catalogacionResult = CatalogacionParser.parseFile(
 ## Data Integrity Features
 
 - **ACR SKU Validation:** CATALOGACION validated against PRECIOS master list
+- **Conflict Detection:** Comprehensive reporting system for data inconsistencies
+- **Severity Classification:** Blocking errors vs. warnings vs. info messages
 - **Orphaned Detection:** Reports ACR SKUs in CATALOGACION but not in PRECIOS
 - **Performance Monitoring:** Sub-200ms processing time targets
 - **Error Handling:** Graceful handling of malformed data
+
+## Conflict Detection System (NEW)
+
+```typescript
+// Enhanced parser results with conflict detection
+interface ProcessingResult<TData> {
+  success: boolean;
+  data?: TData;
+  conflicts: ConflictReport[];
+  summary: ProcessingSummary;
+  canProceed: boolean;
+}
+
+// Individual conflict reports for admin review
+interface ConflictReport {
+  severity: 'error' | 'warning' | 'info';
+  source: 'precios' | 'catalogacion' | 'cross-validation';
+  description: string;
+  affectedRows: number[];
+  affectedSkus: string[];
+  suggestion?: string;
+  impact: 'blocking' | 'non-blocking';
+}
+```
 
 ## Types
 
