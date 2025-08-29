@@ -1,219 +1,238 @@
--- ACR Automotive Database Schema
--- Auto parts cross-reference search system
+-- ============================================================================
+-- ACR Automotive Database Schema - LEARNING VERSION
+-- Auto parts cross-reference search system for Humberto's business
+-- ============================================================================
 
--- Enable UUID extension
+-- We need UUID generation and fuzzy text search capabilities
+-- Extensions to enable:
+-- 1. "uuid-ossp" - for generating unique IDs
+-- 2. "pg_trgm" - for fuzzy search (finding similar SKUs when users make typos)
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Enable trigram extension for fuzzy search
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
--- Parts catalog table (main parts data from Excel)
+
+-- ============================================================================
+-- TABLE 1: PARTS (Main parts catalog)
+-- ============================================================================
+-- This stores the main parts data from both Excel files
+-- Data comes from: PRECIOS (basic info) + CATALOGACION (detailed specs)
+
+-- Requirements from PLANNING.md:
+-- - Primary key: UUID (auto-generated)
+-- - ACR SKU: Humberto's part number (UNIQUE, required)
+-- - Part details: type, position, ABS, bolt pattern, drive type, specs
+-- - Image URL: for admin-uploaded photos
+-- - Timestamps: created_at, updated_at
+
 CREATE TABLE parts (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  acr_sku VARCHAR(50) UNIQUE NOT NULL,           -- Humberto's SKU (Column B)
-  competitor_sku VARCHAR(50),                    -- Cross-reference SKU (Column D)
-  part_type VARCHAR(100) NOT NULL,               -- MAZA, etc. (Column E)
-  position VARCHAR(50),                          -- TRASERA, DELANTERA (Column F)
-  abs_type VARCHAR(20),                          -- C/ABS, S/ABS (Column G)
-  bolt_pattern VARCHAR(50),                      -- 5 ROSCAS, 4, etc. (Column H)
-  drive_type VARCHAR(20),                        -- 4X2, 4X4 (Column I)
-  specifications TEXT,                           -- 28 ESTRIAS, etc. (Column J)
-  image_url TEXT,                                -- Supabase Storage URL (admin upload)
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    acr_sku VARCHAR(50) NOT NULL UNIQUE,
+    part_type VARCHAR(100) NOT NULL,
+    position_type VARCHAR(50),
+    abs_type VARCHAR(20),
+    bolt_pattern VARCHAR(50),
+    drive_type VARCHAR(20),
+    specifications TEXT,
+    image_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Vehicle compatibility table (from Excel columns K, L, M)
+
+-- ============================================================================
+-- TABLE 2: VEHICLE_APPLICATIONS (Which parts fit which cars)
+-- ============================================================================
+-- This stores vehicle compatibility from CATALOGACION Excel
+-- One part can fit multiple vehicles, so this is a separate table
+
 CREATE TABLE vehicle_applications (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  part_id UUID REFERENCES parts(id) ON DELETE CASCADE,
-  make VARCHAR(50) NOT NULL,                     -- ACURA, BMW (Column K)
-  model VARCHAR(100) NOT NULL,                   -- MDX, 328i (Column L)
-  year_range VARCHAR(20) NOT NULL,               -- 2007-2013 (Column M)
-  created_at TIMESTAMPTZ DEFAULT NOW()
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    part_id UUID NOT NULL REFERENCES parts(id) ON DELETE CASCADE,
+    make VARCHAR(50) NOT NULL,
+    model VARCHAR(100) NOT NULL,
+    year_range VARCHAR(20) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Cross-reference mapping table (derived from Excel)
+
+-- ============================================================================
+-- TABLE 3: CROSS_REFERENCES (Competitor SKU mappings)
+-- ============================================================================
+-- This stores competitor SKU to ACR part mappings from PRECIOS Excel
+-- One ACR part can have multiple competitor equivalents
+
 CREATE TABLE cross_references (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  acr_part_id UUID REFERENCES parts(id) ON DELETE CASCADE,
-  competitor_sku VARCHAR(50) NOT NULL,           -- From Excel Column D
-  competitor_brand VARCHAR(50),                  -- TM, Bosch, Denso (extracted)
-  created_at TIMESTAMPTZ DEFAULT NOW()
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    acr_part_id UUID NOT NULL REFERENCES parts(id) ON DELETE CASCADE,
+    competitor_sku VARCHAR(50) NOT NULL,
+    competitor_brand VARCHAR(50),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Performance indexes for fast searches
-CREATE INDEX idx_parts_acr_sku ON parts(acr_sku);
-CREATE INDEX idx_parts_competitor_sku ON parts(competitor_sku) WHERE competitor_sku IS NOT NULL;
-CREATE INDEX idx_parts_part_type ON parts(part_type);
-CREATE INDEX idx_vehicle_applications_make ON vehicle_applications(make);
-CREATE INDEX idx_vehicle_applications_model ON vehicle_applications(model);
-CREATE INDEX idx_vehicle_applications_year ON vehicle_applications(year_range);
-CREATE INDEX idx_vehicle_applications_part_id ON vehicle_applications(part_id);
-CREATE INDEX idx_cross_references_competitor_sku ON cross_references(competitor_sku);
-CREATE INDEX idx_cross_references_acr_part_id ON cross_references(acr_part_id);
 
--- Trigram indexes for fuzzy search
+-- ============================================================================
+-- PERFORMANCE INDEXES (Make searches fast)
+-- ============================================================================
+-- These make database searches much faster
+-- Critical for sub-300ms search response times
+
+-- Indexes for parts table:
+CREATE INDEX idx_parts_acr_sku ON parts(acr_sku);  -- For ACR SKU lookup
+CREATE INDEX idx_parts_part_type ON parts(part_type);  -- For part type filtering
+
+-- Indexes for vehicle_applications table:
+CREATE INDEX idx_vehicle_applications_make ON vehicle_applications(make);  -- For make search
+CREATE INDEX idx_vehicle_applications_model ON vehicle_applications(model);  -- For model search
+CREATE INDEX idx_vehicle_applications_year ON vehicle_applications(year_range);  -- For year search
+CREATE INDEX idx_vehicle_applications_part_id ON vehicle_applications(part_id);  -- For joining to parts
+
+-- Indexes for cross_references table:
+CREATE INDEX idx_cross_references_competitor_sku ON cross_references(competitor_sku);  -- For competitor SKU lookup
+CREATE INDEX idx_cross_references_acr_part_id ON cross_references(acr_part_id);  -- For joining to parts
+
+
+-- ============================================================================
+-- FUZZY SEARCH INDEXES (Handle typos in SKU searches)
+-- ============================================================================
+-- These use the pg_trgm extension for fuzzy matching
+
 CREATE INDEX idx_parts_acr_sku_trgm ON parts USING gin(acr_sku gin_trgm_ops);
-CREATE INDEX idx_parts_competitor_sku_trgm ON parts USING gin(competitor_sku gin_trgm_ops) WHERE competitor_sku IS NOT NULL;
 CREATE INDEX idx_cross_references_competitor_sku_trgm ON cross_references USING gin(competitor_sku gin_trgm_ops);
 
--- Updated_at trigger function
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
 
--- Apply updated_at trigger to parts table
-CREATE TRIGGER update_parts_updated_at BEFORE UPDATE ON parts
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- ============================================================================
+-- DATABASE FUNCTIONS (Search logic)
+-- ============================================================================
+-- These are stored procedures that handle complex search queries
 
--- SKU search function with fuzzy matching
+-- Search for parts by SKU with intelligent fallback strategy
+-- Priority order: exact ACR → exact competitor → fuzzy search
+-- Returns parts with match quality information for UI display
 CREATE OR REPLACE FUNCTION search_by_sku(search_sku TEXT)
 RETURNS TABLE (
-  id UUID,
-  acr_sku VARCHAR(50),
-  competitor_sku VARCHAR(50),
-  part_type VARCHAR(100),
-  position VARCHAR(50),
-  abs_type VARCHAR(20),
-  bolt_pattern VARCHAR(50),
-  drive_type VARCHAR(20),
-  specifications TEXT,
-  image_url TEXT,
-  match_type TEXT
+    id UUID,
+    acr_sku VARCHAR(50),
+    part_type VARCHAR(100),
+    position_type VARCHAR(50),
+    abs_type VARCHAR(20),
+    bolt_pattern VARCHAR(50),
+    drive_type VARCHAR(20),
+    specifications TEXT,
+    image_url TEXT,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ,
+    match_type TEXT,
+    similarity_score REAL
 ) AS $$
 BEGIN
-  -- First, try exact match on ACR SKU
-  RETURN QUERY
-  SELECT 
-    p.id, p.acr_sku, p.competitor_sku, p.part_type, p.position,
-    p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url,
-    'exact_acr'::TEXT as match_type
-  FROM parts p
-  WHERE p.acr_sku = search_sku;
-  
-  -- If no exact ACR match, try exact match on competitor SKU
-  IF NOT FOUND THEN
+    -- Step 1: Try exact match on ACR SKU (highest priority)
     RETURN QUERY
-    SELECT 
-      p.id, p.acr_sku, p.competitor_sku, p.part_type, p.position,
-      p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url,
-      'exact_competitor'::TEXT as match_type
+    SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url, p.created_at, p.updated_at,
+      'exact_acr'::TEXT AS match_type,
+      1.0::REAL AS similarity_score  -- Perfect match = 1.0
     FROM parts p
-    WHERE p.competitor_sku = search_sku;
-  END IF;
-  
-  -- If no exact match, try cross-reference table
-  IF NOT FOUND THEN
-    RETURN QUERY
-    SELECT 
-      p.id, p.acr_sku, p.competitor_sku, p.part_type, p.position,
-      p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url,
-      'cross_reference'::TEXT as match_type
-    FROM parts p
-    INNER JOIN cross_references cr ON p.id = cr.acr_part_id
-    WHERE cr.competitor_sku = search_sku;
-  END IF;
-  
-  -- If still no match, try fuzzy matching (similarity > 0.6)
-  IF NOT FOUND THEN
-    RETURN QUERY
-    SELECT 
-      p.id, p.acr_sku, p.competitor_sku, p.part_type, p.position,
-      p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url,
-      'fuzzy'::TEXT as match_type
-    FROM parts p
-    WHERE 
-      similarity(p.acr_sku, search_sku) > 0.6 
-      OR (p.competitor_sku IS NOT NULL AND similarity(p.competitor_sku, search_sku) > 0.6)
-    ORDER BY 
-      GREATEST(
-        similarity(p.acr_sku, search_sku),
-        COALESCE(similarity(p.competitor_sku, search_sku), 0)
-      ) DESC
-    LIMIT 10;
-  END IF;
+    WHERE p.acr_sku = search_sku;
+
+    -- Step 2: If no ACR match, try exact competitor SKU match
+    IF NOT FOUND THEN
+      RETURN QUERY
+      SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url, p.created_at, p.updated_at,
+        'competitor_sku'::TEXT AS match_type,
+        1.0::REAL AS similarity_score  -- Perfect match = 1.0
+      FROM parts p
+      JOIN cross_references c ON p.id = c.acr_part_id
+      WHERE c.competitor_sku = search_sku;
+    END IF;
+
+    -- Step 3: If still no match, try fuzzy search (handles typos)
+    IF NOT FOUND THEN
+      RETURN QUERY
+      -- Search both ACR and competitor SKUs for similar matches
+      SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url, p.created_at, p.updated_at,
+             'fuzzy'::TEXT AS match_type,
+             similarity(p.acr_sku, search_sku) AS similarity_score
+      FROM parts p
+      WHERE similarity(p.acr_sku, search_sku) > 0.6
+
+      UNION
+
+      SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url, p.created_at, p.updated_at,
+             'fuzzy'::TEXT AS match_type,
+             similarity(c.competitor_sku, search_sku) AS similarity_score
+      FROM parts p
+      JOIN cross_references c ON p.id = c.acr_part_id
+      WHERE similarity(c.competitor_sku, search_sku) > 0.6
+
+      ORDER BY similarity_score DESC  -- Best matches first
+      LIMIT 10;  -- Return top 10 fuzzy matches
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
--- Vehicle search function
+
+-- This should find parts that fit specific vehicles
 CREATE OR REPLACE FUNCTION search_by_vehicle(
-  vehicle_make TEXT,
-  vehicle_model TEXT,
-  vehicle_year_range TEXT DEFAULT NULL,
-  part_type_filter TEXT DEFAULT NULL
+    make TEXT,
+    model TEXT,
+    year_range TEXT
 )
 RETURNS TABLE (
-  id UUID,
-  acr_sku VARCHAR(50),
-  competitor_sku VARCHAR(50),
-  part_type VARCHAR(100),
-  position VARCHAR(50),
-  abs_type VARCHAR(20),
-  bolt_pattern VARCHAR(50),
-  drive_type VARCHAR(20),
-  specifications TEXT,
-  image_url TEXT
+    id UUID,
+    acr_sku VARCHAR(50),
+    part_type VARCHAR(100),
+    position_type VARCHAR(50),
+    abs_type VARCHAR(20),
+    bolt_pattern VARCHAR(50),
+    drive_type VARCHAR(20),
+    specifications TEXT,
+    image_url TEXT,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
 ) AS $$
 BEGIN
-  RETURN QUERY
-  SELECT DISTINCT
-    p.id, p.acr_sku, p.competitor_sku, p.part_type, p.position,
-    p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url
-  FROM parts p
-  INNER JOIN vehicle_applications va ON p.id = va.part_id
-  WHERE 
-    va.make ILIKE vehicle_make
-    AND va.model ILIKE vehicle_model
-    AND (vehicle_year_range IS NULL OR va.year_range = vehicle_year_range)
-    AND (part_type_filter IS NULL OR p.part_type ILIKE part_type_filter)
-  ORDER BY p.acr_sku;
+    RETURN QUERY
+    SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications,
+    p.image_url, p.created_at, p.updated_at
+    FROM parts p
+    JOIN vehicle_applications va ON p.id = va.part_id
+    WHERE va.make = $1 AND va.model = $2 AND va.year_range = $3;
 END;
 $$ LANGUAGE plpgsql;
 
--- Row Level Security (RLS) policies
+
+-- ============================================================================
+-- SECURITY (Row Level Security policies). NEEDED by Supabase.
+-- ============================================================================
+-- These control who can read/write data
+
+-- Enable RLS on all tables
 ALTER TABLE parts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vehicle_applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cross_references ENABLE ROW LEVEL SECURITY;
 
--- Public read access for all tables (search functionality)
-CREATE POLICY "Enable read access for all users" ON parts FOR SELECT USING (true);
-CREATE POLICY "Enable read access for all users" ON vehicle_applications FOR SELECT USING (true);
-CREATE POLICY "Enable read access for all users" ON cross_references FOR SELECT USING (true);
+-- Public read access for search functionality:
+CREATE POLICY "Public read" ON parts FOR SELECT USING (true);
+CREATE POLICY "Public read" ON vehicle_applications FOR SELECT USING (true);
+CREATE POLICY "Public read" ON cross_references FOR SELECT USING (true);
 
--- Admin write access (will be enhanced when auth is added)
--- For now, allow all writes in development
-CREATE POLICY "Enable write access for development" ON parts FOR ALL USING (true);
-CREATE POLICY "Enable write access for development" ON vehicle_applications FOR ALL USING (true);
-CREATE POLICY "Enable write access for development" ON cross_references FOR ALL USING (true);
+-- Admin write access (for now, allow all writes in development):
+CREATE POLICY "Admin write" ON parts FOR ALL USING (true);
+CREATE POLICY "Admin write" ON vehicle_applications FOR ALL USING (true);
+CREATE POLICY "Admin write" ON cross_references FOR ALL USING (true);
+
+
+-- ============================================================================
+-- STORAGE SETUP (For part images)
+-- ============================================================================
 
 -- Create storage bucket for part images
-INSERT INTO storage.buckets (id, name, public) VALUES ('part-images', 'part-images', true);
+INSERT INTO storage.buckets (id, name, public) VALUES ('acr-part-images', 'acr-part-images', true);
 
--- Storage RLS policies
-CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'part-images');
-CREATE POLICY "Admin Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'part-images');
-CREATE POLICY "Admin Update" ON storage.objects FOR UPDATE USING (bucket_id = 'part-images');
-CREATE POLICY "Admin Delete" ON storage.objects FOR DELETE USING (bucket_id = 'part-images');
+-- Create storage policies
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'acr-part-images');
+CREATE POLICY "Admin Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'acr-part-images');
 
--- Sample data for testing (optional)
--- This will be replaced by Excel import in production
-/*
-INSERT INTO parts (acr_sku, competitor_sku, part_type, position, abs_type, bolt_pattern, drive_type, specifications) VALUES
-('ACR-MAZA-001', 'TM-513121', 'MAZA', 'DELANTERA', 'C/ABS', '5 ROSCAS', '4X2', '28 ESTRIAS'),
-('ACR-MAZA-002', 'BOSCH-HU513121', 'MAZA', 'TRASERA', 'S/ABS', '4 ROSCAS', '4X4', '32 ESTRIAS');
 
-INSERT INTO vehicle_applications (part_id, make, model, year_range) VALUES
-((SELECT id FROM parts WHERE acr_sku = 'ACR-MAZA-001'), 'TOYOTA', 'CAMRY', '2007-2011'),
-((SELECT id FROM parts WHERE acr_sku = 'ACR-MAZA-001'), 'HONDA', 'ACCORD', '2008-2012'),
-((SELECT id FROM parts WHERE acr_sku = 'ACR-MAZA-002'), 'NISSAN', 'ALTIMA', '2009-2013');
-
-INSERT INTO cross_references (acr_part_id, competitor_sku, competitor_brand) VALUES
-((SELECT id FROM parts WHERE acr_sku = 'ACR-MAZA-001'), 'TM-513121', 'TM'),
-((SELECT id FROM parts WHERE acr_sku = 'ACR-MAZA-001'), 'DENSO-513121', 'DENSO'),
-((SELECT id FROM parts WHERE acr_sku = 'ACR-MAZA-002'), 'BOSCH-HU513121', 'BOSCH');
-*/

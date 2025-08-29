@@ -84,19 +84,32 @@ _Last Updated: August 15, 2025_
 
 - [ ] **TASK-014**: Database import functionality
 
-  - [ ] PRECIOS data import to cross_references table
-  - [ ] CATALOGACION data import to parts + vehicle_applications tables
-  - [ ] Transaction management for two-step import
+  - [ ] Database schema validation and setup
+  - [ ] PRECIOS data import (parts + cross_references tables)
+  - [ ] CATALOGACION data import (part details + vehicle_applications)
+  - [ ] Transaction management with backup/rollback system
   - [ ] Import validation and conflict handling integration
   - [ ] Progress tracking and status reporting
+  - [ ] Test with real Excel data and verify database structure
+
+- [ ] **TASK-014A**: Excel Import Workflow System
+
+  - [ ] Database import API endpoints (POST /api/admin/import-precios, /api/admin/import-catalogacion)
+  - [ ] Data fetching for current database state (optimized queries with joins)
+  - [ ] Diff engine implementation (JavaScript-based comparison algorithms)
+  - [ ] Diff report generation with field-level and relationship changes
+  - [ ] Import workflow state management (multi-step approval process)
+  - [ ] Database transaction implementation with backup/rollback capability
+  - [ ] Testing with real Excel data and database integration
 
 - [ ] **TASK-015**: Admin upload interface
 
-  - [ ] Two-step upload workflow UI
-  - [ ] PRECIOS upload with progress and validation
-  - [ ] CATALOGACION upload with part matching
+  - [ ] Multi-step workflow UI (Step 1-4 progress indicators)
+  - [ ] PRECIOS upload with diff preview and approval gate
+  - [ ] CATALOGACION upload with diff preview and approval gate  
+  - [ ] Combined diff summary and final approval
   - [ ] Processing results display and error reporting
-  - [ ] Simple drag-and-drop interface
+  - [ ] Simple drag-and-drop interface with conflict presentation
 
 ### i18n System
 
