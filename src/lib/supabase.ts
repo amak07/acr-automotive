@@ -39,7 +39,7 @@ export type Database = {
           acr_sku: string
           competitor_sku: string | null
           part_type: string
-          position: string | null
+          position_type: string | null
           abs_type: string | null
           bolt_pattern: string | null
           drive_type: string | null
@@ -53,7 +53,7 @@ export type Database = {
           acr_sku: string
           competitor_sku?: string | null
           part_type: string
-          position?: string | null
+          position_type?: string | null
           abs_type?: string | null
           bolt_pattern?: string | null
           drive_type?: string | null
@@ -67,7 +67,7 @@ export type Database = {
           acr_sku?: string
           competitor_sku?: string | null
           part_type?: string
-          position?: string | null
+          position_type?: string | null
           abs_type?: string | null
           bolt_pattern?: string | null
           drive_type?: string | null
@@ -140,7 +140,7 @@ export type Database = {
           acr_sku: string
           competitor_sku: string | null
           part_type: string
-          position: string | null
+          position_type: string | null
           abs_type: string | null
           bolt_pattern: string | null
           drive_type: string | null
@@ -161,7 +161,7 @@ export type Database = {
           acr_sku: string
           competitor_sku: string | null
           part_type: string
-          position: string | null
+          position_type: string | null
           abs_type: string | null
           bolt_pattern: string | null
           drive_type: string | null

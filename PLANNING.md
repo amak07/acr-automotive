@@ -220,6 +220,166 @@ interface ProcessingResult {
 - Build conflict resolution workflow for Humberto
 - Integrate conflict-aware parsers with database import
 
+## Excel Import Workflow System (NEW - Complete Import Process)
+
+### Business Requirement
+
+**Problem**: Humberto needs a reliable, error-free way to update his parts database monthly with new Excel files while maintaining data integrity and having visibility into changes.
+
+**Solution**: Multi-step import workflow with diff preview, approval gates, and atomic database transactions.
+
+### Workflow Design
+
+#### Complete Import Flow
+```
+1. Upload PRECIOS Excel → Parse → Validate → Generate Diff → Approve/Reject
+   ↓ (if approved)
+2. Upload CATALOGACION Excel → Parse → Validate → Generate Diff → Approve/Reject  
+   ↓ (if approved)
+3. Show Combined Diff Summary → Final Approve/Reject
+   ↓ (if approved)
+4. Execute Database Transaction (Backup → Import) → Success Report
+```
+
+#### Step-by-Step Process
+1. **PRECIOS Upload**: Admin uploads cross-reference Excel file
+2. **PRECIOS Processing**: Parse, validate, detect conflicts
+3. **PRECIOS Diff**: Compare against current database, show changes
+4. **PRECIOS Approval**: Admin reviews and approves/rejects changes
+5. **CATALOGACION Upload**: Admin uploads vehicle applications Excel file
+6. **CATALOGACION Processing**: Parse, validate, detect conflicts  
+7. **CATALOGACION Diff**: Compare against current database, show changes
+8. **CATALOGACION Approval**: Admin reviews and approves/rejects changes
+9. **Final Review**: Combined diff summary of all changes
+10. **Database Import**: Atomic transaction with backup and rollback capability
+
+### Diff Detection System
+
+#### Data Comparison Strategy
+- **Field-Level Changes**: Track modifications to individual part attributes
+- **Relationship Changes**: Track added/removed cross-references and vehicle applications
+- **JavaScript-Based**: Client-side comparison for MVP (database-side optimization post-MVP)
+
+#### Diff Report Structure
+```typescript
+interface DiffReport {
+  parts: {
+    added: PartRecord[];
+    removed: PartRecord[];
+    modified: PartModification[];
+  };
+  applications: {
+    added: ApplicationRecord[];
+    removed: ApplicationRecord[];
+  };
+  crossReferences: {
+    added: CrossRefRecord[];
+    removed: CrossRefRecord[];
+  };
+  summary: DiffSummary;
+}
+
+interface PartModification {
+  acrSku: string;
+  fieldChanges: Record<string, { old: any, new: any }>;
+  relationshipChanges: {
+    crossReferences: { added: string[], removed: string[] };
+    applications: { added: VehicleApp[], removed: VehicleApp[] };
+  };
+}
+```
+
+#### Example Diff Display
+```
+Part: ACR123 Changes:
+  Field Changes:
+    ✏️ Description: "Old desc" → "New desc" 
+    ✏️ Part Type: "MAZA" → "HUB"
+  
+  Cross-References:
+    ✅ Added: TM512342, BOSCH987654
+    ❌ Removed: GSP456789, NATIONAL123
+  
+  Vehicle Applications:
+    ✅ Added: Honda Accord 2019-2021
+    ❌ Removed: Toyota Camry 2020-2022
+```
+
+### Database Transaction Strategy
+
+#### Backup and Rollback System
+- **Simple Backup**: Current + Previous version only (no complex versioning)
+- **Backup Tables**: `parts_backup`, `vehicle_applications_backup`, `cross_references_backup`
+- **Rollback Process**: Copy backup tables back to main tables
+- **Transaction Safety**: All-or-nothing import with automatic rollback on failure
+
+#### Import Process
+```sql
+BEGIN TRANSACTION;
+  -- 1. Backup current data
+  INSERT INTO parts_backup SELECT * FROM parts;
+  INSERT INTO vehicle_applications_backup SELECT * FROM vehicle_applications;
+  INSERT INTO cross_references_backup SELECT * FROM cross_references;
+  
+  -- 2. Clear current tables
+  DELETE FROM cross_references;
+  DELETE FROM vehicle_applications;  
+  DELETE FROM parts;
+  
+  -- 3. Insert new data
+  INSERT INTO parts VALUES (...);
+  INSERT INTO vehicle_applications VALUES (...);
+  INSERT INTO cross_references VALUES (...);
+  
+  -- 4. Commit if all successful
+COMMIT;
+```
+
+### Performance Requirements
+
+#### Processing Targets
+- **PRECIOS Diff Generation**: <30 seconds (865 parts, 7,530 cross-references)
+- **CATALOGACION Diff Generation**: <30 seconds (740 parts, 2,304 applications)
+- **Database Import**: <60 seconds for complete transaction
+- **Memory Usage**: Efficient handling of 10,000+ database records
+
+#### Optimization Strategy
+- **Batch Processing**: 1,000 records per database batch
+- **Efficient Lookups**: Use Maps/Sets for O(1) comparison performance
+- **Single Query Optimization**: Fetch current state with joins, not separate queries
+- **Future Enhancement**: Database-side comparison functions for better performance
+
+### Admin User Experience
+
+#### Visual Design
+- **Progress Indicators**: Clear step-by-step progress (Step 1 of 4, etc.)
+- **Diff Presentation**: Expandable sections with color-coded changes
+- **Error Handling**: Clear conflict reports with specific row/field references
+- **Confirmation Gates**: Multiple approval points prevent accidental imports
+
+#### Session Management
+- **No Persistence**: Complete workflow in single browser session
+- **Browser Refresh**: Loses progress (acceptable for admin workflow)
+- **Error Recovery**: Clear restart path if process fails
+
+### Implementation Status
+
+- ✅ **Excel Parsers**: PRECIOS and CATALOGACION parsers complete
+- ✅ **Conflict Detection**: Integrated validation system
+- ✅ **Design Documentation**: Complete workflow specification
+- ⏳ **Database Import**: Core import functionality
+- ⏳ **Diff Engine**: JavaScript comparison algorithms
+- ⏳ **Admin Interface**: Multi-step workflow UI
+- ⏳ **Testing**: End-to-end workflow validation
+
+### Future Enhancements (Post-MVP)
+
+- **Database-Side Comparison**: Move diff logic to PostgreSQL for better performance
+- **Advanced Versioning**: Multiple historical versions with timestamps
+- **Partial Imports**: Import only specific parts/sections of Excel files
+- **Import Scheduling**: Automated monthly import workflows
+- **Change Notifications**: Email alerts for significant data changes
+
 ## Excel File Structures (UPDATED from Real Implementation)
 
 **PRECIOS File**: `LISTA DE PRECIOS` ✅ **COMPLETED**
