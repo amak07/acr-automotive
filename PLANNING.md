@@ -156,7 +156,7 @@ SELECT DISTINCT year_range FROM vehicle_applications WHERE make = ? AND model = 
 ### Conflict Types & Severity
 
 #### 🚨 **BLOCKING ERRORS** (Must fix before import)
-- **Duplicate ACR SKUs with conflicting data** - Same SKU with different part specifications
+- ~~**Duplicate ACR SKUs with conflicting data**~~ - REMOVED: Multiple rows per ACR SKU now supported (Jan 2025)
 - **Invalid data formats** - Malformed SKUs, dates, or required fields
 - **Database constraint violations** - Data that would break foreign key or unique constraints
 
@@ -367,10 +367,10 @@ COMMIT;
 - ✅ **Excel Parsers**: PRECIOS and CATALOGACION parsers complete
 - ✅ **Conflict Detection**: Integrated validation system
 - ✅ **Design Documentation**: Complete workflow specification
-- ⏳ **Database Import**: Core import functionality
+- ✅ **Database Import**: Core import functionality with duplicate handling
+- ✅ **Testing Infrastructure**: Test schema isolation and end-to-end pipeline
 - ⏳ **Diff Engine**: JavaScript comparison algorithms
 - ⏳ **Admin Interface**: Multi-step workflow UI
-- ⏳ **Testing**: End-to-end workflow validation
 
 ### Future Enhancements (Post-MVP)
 

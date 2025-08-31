@@ -17,6 +17,11 @@ import { randomUUID } from "crypto";
 /**
  * Parser for LISTA DE PRECIOS Excel file
  * Column B = ACR SKU, Columns C-M = competitor brands
+ * 
+ * NORMALIZED DATA STRUCTURE (Updated Architecture):
+ * - Multiple rows can have the same ACR SKU (one row per cross-reference)
+ * - Each row contains one competitor SKU per brand column
+ * - Results in one unique part + multiple cross-references per ACR SKU
  */
 export class PreciosParser {
   /**
@@ -45,8 +50,10 @@ export class PreciosParser {
       const acrSkus = this.extractAcrSkus(preciosRows);
 
       const conflicts: ConflictReport[] = [];
-      const duplicateSkuConflicts = this.detectDuplicateAcrSkus(preciosRows);
-      conflicts.push(...duplicateSkuConflicts);
+      // Note: Duplicate ACR SKUs are now EXPECTED for normalized data structure
+      // Each ACR SKU can have multiple rows, one per competitor cross-reference
+      // const duplicateSkuConflicts = this.detectDuplicateAcrSkus(preciosRows);
+      // conflicts.push(...duplicateSkuConflicts);
 
       const hasBlockingConflicts = conflicts.some(
         (c) => c.impact === "blocking"

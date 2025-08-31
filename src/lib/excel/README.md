@@ -51,6 +51,7 @@ const catalogacionResult = CatalogacionParser.parseFile(
 - **Orphaned Detection:** Reports ACR SKUs in CATALOGACION but not in PRECIOS
 - **Performance Monitoring:** Sub-200ms processing time targets
 - **Error Handling:** Graceful handling of malformed data
+- **Normalized Data Support:** ✅ Multiple rows per ACR SKU now supported (Updated Jan 2025)
 
 ## Conflict Detection System (NEW)
 
