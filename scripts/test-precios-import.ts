@@ -4,14 +4,14 @@
  */
 
 // Load environment variables from .env file
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 
 import { PreciosParser } from "../src/lib/excel/precios-parser";
-import { testImportPreciosData } from "../src/lib/supabase/test-import";
-import { testSupabase, clearTestTables, verifyTestSchema } from "../src/lib/supabase/test-client";
 import * as fs from "fs";
 import * as path from "path";
+import { clearTestTables, testSupabase, verifyTestSchema } from "./test-client";
+import { testImportPreciosData } from "./test-import";
 
 async function testPreciosImportPipeline() {
   console.log("🧪 Starting PRECIOS Import Pipeline Test (TEST SCHEMA)...\n");
@@ -21,24 +21,29 @@ async function testPreciosImportPipeline() {
     console.log("🔍 Verifying test schema...");
     const schemaExists = await verifyTestSchema();
     if (!schemaExists) {
-      console.error("❌ Test schema not set up. Please run test-schema.sql first.");
+      console.error(
+        "❌ Test schema not set up. Please run test-schema.sql first."
+      );
       return;
     }
     // Step 1: Load real Excel file
     console.log("📂 Loading Excel file...");
-    const excelPath = path.join(__dirname, "../src/lib/excel/__tests__/09 LISTA DE PRECIOS ACR 21 07 2024 INV 100725.xlsx");
-    
+    const excelPath = path.join(
+      __dirname,
+      "../src/lib/excel/__tests__/09 LISTA DE PRECIOS ACR 21 07 2024 INV 100725.xlsx"
+    );
+
     if (!fs.existsSync(excelPath)) {
       throw new Error(`Excel file not found: ${excelPath}`);
     }
-    
+
     const excelBuffer = fs.readFileSync(excelPath);
     console.log(`✅ Loaded Excel file: ${excelBuffer.length} bytes`);
 
     // Step 2: Parse Excel file
     console.log("\n📊 Parsing Excel file...");
     const preciosResult = PreciosParser.parseFile(excelBuffer);
-    
+
     if (!preciosResult.success || !preciosResult.data) {
       console.error("❌ Excel parsing failed:", preciosResult.conflicts);
       return;
@@ -53,24 +58,25 @@ async function testPreciosImportPipeline() {
     // Step 3: Clean existing test data first
     console.log("\n🧹 Cleaning existing test data...");
     await clearTestTables();
-    
+
     // Step 4: Import to TEST database
     console.log("\n💾 Importing to TEST database...");
     const startTime = Date.now();
-    
+
     const importResult = await testImportPreciosData(preciosResult.data);
-    
+
     const importTime = Date.now() - startTime;
     console.log(`✅ Import completed in ${importTime}ms:`);
     console.log(`   • ${importResult.parts.length} parts inserted`);
-    console.log(`   • ${importResult.crossReferences.length} cross-references inserted`);
+    console.log(
+      `   • ${importResult.crossReferences.length} cross-references inserted`
+    );
 
     // Step 4: Verify database data
     console.log("\n🔍 Verifying database data...");
     await verifyTestDatabaseData(importResult);
 
     console.log("\n🎉 Test completed successfully!");
-
   } catch (error) {
     console.error("\n❌ Test failed:", error);
   }
@@ -86,8 +92,10 @@ async function verifyTestDatabaseData(importResult: any) {
     .select("count", { count: "exact", head: true });
 
   console.log(`✅ Database verification:`);
-  console.log(`   • Parts: ${partsCount?.[0]?.count || 'unknown'}`);
-  console.log(`   • Cross-references: ${crossRefsCount?.[0]?.count || 'unknown'}`);
+  console.log(`   • Parts: ${partsCount?.[0]?.count || "unknown"}`);
+  console.log(
+    `   • Cross-references: ${crossRefsCount?.[0]?.count || "unknown"}`
+  );
 }
 
 // Cleanup function - now uses clearTestTables from test-client
@@ -98,22 +106,24 @@ async function cleanupTestData() {
 // Command line interface
 if (require.main === module) {
   const command = process.argv[2];
-  
+
   switch (command) {
-    case 'test':
+    case "test":
     case undefined:
       testPreciosImportPipeline();
       break;
-    case 'cleanup':
-    case 'clear':
+    case "cleanup":
+    case "clear":
       console.log("🧹 Clearing Supabase tables...");
-      cleanupTestData().then(() => {
-        console.log("✅ Tables cleared successfully");
-        process.exit(0);
-      }).catch(err => {
-        console.error("❌ Error clearing tables:", err.message);
-        process.exit(1);
-      });
+      cleanupTestData()
+        .then(() => {
+          console.log("✅ Tables cleared successfully");
+          process.exit(0);
+        })
+        .catch((err) => {
+          console.error("❌ Error clearing tables:", err.message);
+          process.exit(1);
+        });
       break;
     default:
       console.log(`
