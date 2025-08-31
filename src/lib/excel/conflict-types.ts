@@ -122,7 +122,7 @@ export interface ConflictSummary {
 // Conflict types - simplified to only what we actually use
 export const CONFLICT_TYPES = {
   // PRECIOS parser conflicts
-  DUPLICATE_ACR_SKU: "duplicate_acr_sku", // ✅ Implemented - blocking error
+  // DUPLICATE_ACR_SKU: "duplicate_acr_sku", // ❌ REMOVED - Multiple rows per ACR SKU now supported (Jan 2025)
 
   // CATALOGACION parser conflicts  
   ORPHANED_APPLICATION: "orphaned_application", // ✅ Implemented - warning

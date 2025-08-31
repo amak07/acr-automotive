@@ -11,7 +11,9 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --watchAll=false",
-    "test:full": "npm run type-check && npm test"
+    "test:full": "npm run type-check && npm test",
+    "test:import": "tsx scripts/test-precios-import.ts",
+    "test:import:cleanup": "tsx scripts/test-precios-import.ts cleanup"
   },
   "keywords": [
     "auto-parts",
@@ -36,6 +38,7 @@
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.1",
     "eslint": "^9.32.0",
     "eslint-config-next": "^15.4.4",
     "lodash": "^4.17.21",
