@@ -7,54 +7,54 @@ import {
   PartData,
   VehicleApplication,
 } from "./types";
-import {
-  ConflictReport,
-  ProcessingResult,
-} from "./conflict-types";
-import { ConflictFactory } from "./conflict-utils";
 
+/**
+ * Simplified CATALOGACION Parser for One-Time Bootstrap Import
+ * 
+ * Input: CATALOGACION ACR CLIENTES Excel file + Valid ACR SKUs from PRECIOS
+ * Output: Part details + Vehicle applications
+ * No complex validation - just parse and log orphaned SKUs
+ */
 export class CatalogacionParser {
   /**
-   * Parse CATALOGACION Excel file
+   * Parse CATALOGACION Excel file - SIMPLIFIED
    */
   static parseFile(
     fileBuffer: ArrayBuffer | Buffer,
     validAcrSkus: Set<string>
-  ): ProcessingResult<CatalogacionResult> {
+  ): CatalogacionResult {
+    console.log("🔍 Starting CATALOGACION parsing...");
     const startTime = Date.now();
 
     try {
-      // Step 1: Read Excel workbook (same as PRECIOS)
+      // Read Excel file
       const workbook = XLSX.read(fileBuffer, { type: "buffer" });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
-      // Step 2: Extract raw data rows
+      // Extract data rows (skip header row 1)
       const rawRows = this.extractDataRows(worksheet);
+      console.log(`📄 Found ${rawRows.length} data rows`);
 
-      // Step 3: Parse into CatalogacionRow objects
+      // Parse into structured data
       const catalogacionRows = this.parseRows(rawRows);
+      console.log(`✅ Parsed ${catalogacionRows.length} valid rows`);
 
-      // Step 4: Validate ACR SKUs (NEW - not in PRECIOS)
-      const { valid, orphaned } = this.validateAcrSkus(
-        catalogacionRows,
-        validAcrSkus
-      );
+      // Separate valid vs orphaned SKUs
+      const { valid, orphaned } = this.validateAcrSkus(catalogacionRows, validAcrSkus);
+      console.log(`🔗 Valid: ${valid.length}, Orphaned: ${orphaned.length}`);
 
-      const conflicts: ConflictReport[] = [];
-
-      // Create conflict report for orphaned SKUs (if any)
       if (orphaned.length > 0) {
-        const orphanedConflict =
-          ConflictFactory.createOrphanedApplicationConflict(orphaned);
-        conflicts.push(orphanedConflict);
+        console.warn(`⚠️  Found ${orphaned.length} orphaned ACR SKUs:`, orphaned);
       }
 
-      // Step 5: Transform to parts and applications
-      const { parts, applications } =
-        this.transformToPartsAndApplications(valid);
+      // Generate part data and vehicle applications from valid rows
+      const parts = this.extractPartData(valid);
+      const applications = this.extractVehicleApplications(valid);
 
-      // Step 6: Build CatalogacionResult
-      const catalogacionResult: CatalogacionResult = {
+      const processingTime = Date.now() - startTime;
+      console.log(`⚡ CATALOGACION parsing completed in ${processingTime}ms`);
+
+      return {
         parts,
         applications,
         orphanedApplications: orphaned,
@@ -62,156 +62,73 @@ export class CatalogacionParser {
           totalParts: parts.length,
           totalApplications: applications.length,
           orphanedCount: orphaned.length,
-          processingTimeMs: Date.now() - startTime,
+          processingTimeMs: processingTime,
         },
       };
 
-      // Step 7: Build ProcessingResult wrapper
-      const processingResult: ProcessingResult<CatalogacionResult> = {
-        success: true, // No blocking conflicts for orphaned SKUs
-        data: catalogacionResult,
-        conflicts,
-        summary: {
-          processingTimeMs: Date.now() - startTime,
-          totalRows: rawRows.length,
-          validRecords: valid.length,
-          skippedRows: catalogacionRows.length - valid.length,
-          conflictCounts: {
-            errors: 0,
-            warnings: conflicts.filter((c) => c.severity === "warning").length,
-            info: conflicts.filter((c) => c.severity === "info").length,
-          },
-        },
-        canProceed: true,
-      };
-
-      return processingResult;
     } catch (error) {
-      throw new Error(`Failed to parse CATALOGACION file: ${error}`);
+      console.error("❌ CATALOGACION parsing failed:", error);
+      throw new Error(`CATALOGACION parsing failed: ${error instanceof Error ? error.message : error}`);
     }
   }
 
   /**
-   * Extract data rows from worksheet, skipping header rows
+   * Extract data rows from Excel worksheet
    */
   private static extractDataRows(worksheet: XLSX.WorkSheet): any[][] {
-    // Get worksheet range to understand the data boundaries
-    const range = worksheet["!ref"];
-    if (!range) {
-      return [];
-    }
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+    const rows: any[][] = [];
 
-    // Start from DATA_START_ROW (row 2)
-    const worksheetRange = XLSX.utils.decode_range(range);
-    const endRow = worksheetRange.e.r + 1;
-
-    const data = XLSX.utils.sheet_to_json(worksheet, {
-      range: `A${EXCEL_STRUCTURE.CATALOGACION.DATA_START_ROW}:N${endRow}`,
-      header: 1,
-    });
-
-    return data as any[][];
-  }
-
-  /**
-   * Parse raw Excel rows into typed CatalogacionRow objects
-   */
-  private static parseRows(rawRows: any[][]): CatalogacionRow[] {
-    const catalogacionRows: CatalogacionRow[] = [];
-
-    for (let i = 0; i < rawRows.length; i++) {
-      const row = rawRows[i];
-      const rowNumber = EXCEL_STRUCTURE.CATALOGACION.DATA_START_ROW + i;
-
-      try {
-        const catalogacionRow = this.parseRow(row, rowNumber);
-        if (catalogacionRow) {
-          catalogacionRows.push(catalogacionRow);
-        }
-      } catch (error) {
-        continue;
+    // Data starts at row 2 (header at row 1)
+    for (let row = EXCEL_STRUCTURE.CATALOGACION.DATA_START_ROW - 1; row <= range.e.r; row++) {
+      const rowData: any[] = [];
+      
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+        const cell = worksheet[cellAddress];
+        rowData[col] = cell ? cell.v : null;
+      }
+      
+      // Skip empty rows
+      const hasData = rowData.some(cell => cell !== null && cell !== undefined && cell !== '');
+      if (hasData) {
+        rows.push(rowData);
       }
     }
 
-    return catalogacionRows;
+    return rows;
   }
 
   /**
-   * Parse a single Excel row into CatalogacionRow
+   * Parse raw rows into CatalogacionRow objects
    */
-  private static parseRow(
-    row: any[],
-    rowNumber: number
-  ): CatalogacionRow | null {
-    // Extract ACR SKU from column B
-    const acrSku = row[CATALOGACION_COLUMNS.ACR_SKU - 1]; // Convert 1-based to 0-based
+  private static parseRows(rawRows: any[][]): CatalogacionRow[] {
+    const validRows: CatalogacionRow[] = [];
+    
+    rawRows.forEach((row, index) => {
+      const acrSku = row[CATALOGACION_COLUMNS.ACR_SKU - 1]?.toString()?.trim();
+      
+      // Skip rows without ACR SKU
+      if (!acrSku) {
+        return;
+      }
 
-    // Skip empty rows or rows without ACR SKU
-    if (!acrSku || typeof acrSku !== "string") {
-      return null;
-    }
-
-    // Skip rows with invalid ACR SKU format
-    if (!this.isValidAcrSku(acrSku.trim())) {
-      return null;
-    }
-
-    // Extract vehicle data (make, model, year, part type)
-    const partType = row[CATALOGACION_COLUMNS.PART_TYPE - 1];
-    const make = row[CATALOGACION_COLUMNS.MAKE - 1];
-    const model = row[CATALOGACION_COLUMNS.MODEL - 1];
-    const yearRange = row[CATALOGACION_COLUMNS.YEAR - 1];
-    const absType = row[CATALOGACION_COLUMNS.SISTEMA - 1];
-    const boltPattern = row[CATALOGACION_COLUMNS.BIRLOS - 1];
-    const driveType = row[CATALOGACION_COLUMNS.TRACCION - 1];
-    const position = row[CATALOGACION_COLUMNS.POSICION - 1];
-    const specifications = row[CATALOGACION_COLUMNS.OBSERVACIONES - 1];
-
-    // Validate required fields
-    if (!partType || !make || !model || !yearRange) {
-      return null; // Skip rows missing required fields
-    }
-
-    // Clean and validate required string fields
-    const cleanPartType = partType.toString().trim();
-    const cleanMake = make.toString().trim();
-    const cleanModel = model.toString().trim();
-    const cleanYearRange = yearRange.toString().trim();
-
-    if (!cleanPartType || !cleanMake || !cleanModel || !cleanYearRange) {
-      return null; // Skip rows with empty required fields
-    }
-
-    // Clean optional fields (convert empty strings to undefined)
-    const cleanPosition = (position && position.toString().trim()) || undefined;
-    const cleanAbsType = (absType && absType.toString().trim()) || undefined;
-    const cleanBoltPattern =
-      (boltPattern && boltPattern.toString().trim()) || undefined;
-    const cleanDriveType =
-      (driveType && driveType.toString().trim()) || undefined;
-    const cleanSpecifications =
-      (specifications && specifications.toString().trim()) || undefined;
-
-    return {
-      acrSku: acrSku.trim(),
-      partType: cleanPartType,
-      make: cleanMake,
-      model: cleanModel,
-      yearRange: cleanYearRange,
-      position: cleanPosition,
-      absType: cleanAbsType,
-      boltPattern: cleanBoltPattern,
-      driveType: cleanDriveType,
-      specifications: cleanSpecifications,
-      rowNumber,
-    };
-  }
-
-  /**
-   * Validate ACR SKU format (should start with "ACR")
-   */
-  private static isValidAcrSku(sku: string): boolean {
-    return sku.startsWith("ACR");
+      validRows.push({
+        rowNumber: index + EXCEL_STRUCTURE.CATALOGACION.DATA_START_ROW,
+        acrSku,
+        partType: row[CATALOGACION_COLUMNS.PART_TYPE - 1]?.toString()?.trim() || '',
+        position: row[CATALOGACION_COLUMNS.POSICION - 1]?.toString()?.trim() || '',
+        absType: row[CATALOGACION_COLUMNS.SISTEMA - 1]?.toString()?.trim() || '',
+        boltPattern: row[CATALOGACION_COLUMNS.BIRLOS - 1]?.toString()?.trim() || '',
+        driveType: row[CATALOGACION_COLUMNS.TRACCION - 1]?.toString()?.trim() || '',
+        specifications: row[CATALOGACION_COLUMNS.OBSERVACIONES - 1]?.toString()?.trim() || '',
+        make: row[CATALOGACION_COLUMNS.MAKE - 1]?.toString()?.trim() || '',
+        model: row[CATALOGACION_COLUMNS.MODEL - 1]?.toString()?.trim() || '',
+        yearRange: row[CATALOGACION_COLUMNS.YEAR - 1]?.toString()?.trim() || ''
+      });
+    });
+    
+    return validRows;
   }
 
   /**
@@ -224,55 +141,54 @@ export class CatalogacionParser {
     const valid: CatalogacionRow[] = [];
     const orphanedSet = new Set<string>();
 
-    for (const row of catalogacionRows) {
+    catalogacionRows.forEach(row => {
       if (validAcrSkus.has(row.acrSku)) {
         valid.push(row);
       } else {
         orphanedSet.add(row.acrSku);
       }
-    }
+    });
 
-    return {
-      valid,
-      orphaned: Array.from(orphanedSet),
-    };
+    return { valid, orphaned: Array.from(orphanedSet) };
   }
 
   /**
-   * Creates Parts data and Vehicle Applications from parsed catalogacion rows.
+   * Extract part data from valid rows
    */
-  private static transformToPartsAndApplications(
-    catalogacionRows: CatalogacionRow[]
-  ): { parts: PartData[]; applications: VehicleApplication[] } {
-    const partsMap = new Map<string, PartData>();
-    const applications: VehicleApplication[] = [];
+  private static extractPartData(validRows: CatalogacionRow[]): PartData[] {
+    // Group by ACR SKU and take first occurrence for each
+    const partMap = new Map<string, PartData>();
 
-    for (const row of catalogacionRows) {
-      if (!partsMap.has(row.acrSku)) {
-        const part: PartData = {
+    validRows.forEach(row => {
+      if (!partMap.has(row.acrSku)) {
+        partMap.set(row.acrSku, {
           acrSku: row.acrSku,
           partType: row.partType,
+          position: row.position,
           absType: row.absType,
           boltPattern: row.boltPattern,
           driveType: row.driveType,
-          position: row.position,
           specifications: row.specifications,
-          firstSeenAtRow: row.rowNumber,
-        };
-        partsMap.set(row.acrSku, part);
+          firstSeenAtRow: row.rowNumber
+        });
       }
+    });
 
-      // Create vehicle application for every row
-      const vehicleApplication: VehicleApplication = {
+    return Array.from(partMap.values());
+  }
+
+  /**
+   * Extract vehicle applications from valid rows
+   */
+  private static extractVehicleApplications(validRows: CatalogacionRow[]): VehicleApplication[] {
+    return validRows
+      .filter(row => row.make && row.model && row.yearRange) // Only rows with vehicle data
+      .map(row => ({
         acrSku: row.acrSku,
         make: row.make,
         model: row.model,
         yearRange: row.yearRange,
-        rowNumber: row.rowNumber,
-      };
-      applications.push(vehicleApplication);
-    }
-
-    return { parts: Array.from(partsMap.values()), applications };
+        rowNumber: row.rowNumber
+      }));
   }
 }

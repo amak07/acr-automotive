@@ -1,6 +1,6 @@
 import { supabase } from "./client";
 import { mapPrecios_ACRSkus_ToDatabase } from "./mappers";
-import { PreciosResult, CrossReference } from "@/lib/excel/types";
+import { PreciosResult, CrossReference, CatalogacionResult, VehicleApplication } from "@/lib/excel/types";
 import {
   DatabasePartRow,
   DatabaseCrossRef,
@@ -139,5 +139,155 @@ export async function importPreciosData(preciosResult: PreciosResult) {
   return {
     parts: insertedParts,
     crossReferences: insertedCrossRefs,
+  };
+}
+
+/**
+ * Step 4: Import vehicle applications from CATALOGACION data
+ * 
+ * @param applications - Vehicle application data from CATALOGACION parser
+ * @param existingParts - Parts already in database (from PRECIOS import)
+ * @returns Array of inserted vehicle applications
+ */
+export async function importVehicleApplications(
+  applications: VehicleApplication[],
+  existingParts: DatabasePartRow[]
+): Promise<any[]> {
+  // Create lookup map for ACR SKU -> Part ID
+  const partIdMap = new Map<string, string>();
+  existingParts.forEach((part) => {
+    partIdMap.set(part.acr_sku, part.id);
+  });
+
+  // Transform vehicle applications to database format
+  const databaseApplications: Array<{
+    part_id: string;
+    make: string;
+    model: string;
+    year_range: string;
+  }> = [];
+  let skippedOrphaned = 0;
+
+  applications.forEach((app) => {
+    const partId = partIdMap.get(app.acrSku);
+    if (!partId) {
+      skippedOrphaned++;
+      console.warn(`⚠️  Skipping application for orphaned ACR SKU: ${app.acrSku}`);
+      return;
+    }
+
+    databaseApplications.push({
+      part_id: partId,
+      make: app.make,
+      model: app.model, 
+      year_range: app.yearRange,
+    });
+  });
+
+  if (skippedOrphaned > 0) {
+    console.log(`📊 Skipped ${skippedOrphaned} applications for orphaned ACR SKUs`);
+  }
+  console.log(`📊 Importing ${databaseApplications.length} vehicle applications`);
+
+  // Insert vehicle applications
+  const result = await supabase
+    .from("vehicle_applications")
+    .insert(databaseApplications)
+    .select();
+
+  if (result.error) {
+    throw new Error(`Failed to insert vehicle applications: ${result.error.message}`);
+  }
+
+  if (!result.data) {
+    throw new Error("No data returned from vehicle applications insert");
+  }
+
+  return result.data;
+}
+
+/**
+ * Step 5: Update part details from CATALOGACION data
+ * Updates existing parts with additional details from CATALOGACION file
+ * 
+ * @param catalogacionResult - Output from CatalogacionParser.parseFile()
+ * @param existingParts - Parts already in database (from PRECIOS import)
+ */
+export async function updatePartDetails(
+  catalogacionResult: CatalogacionResult,
+  existingParts: DatabasePartRow[]
+): Promise<void> {
+  // Create lookup map for ACR SKU -> Part ID
+  const partIdMap = new Map<string, string>();
+  existingParts.forEach((part) => {
+    partIdMap.set(part.acr_sku, part.id);
+  });
+
+  // Group part data by ACR SKU (take first occurrence for each)
+  const partDetailsMap = new Map<string, any>();
+  catalogacionResult.parts.forEach((part) => {
+    if (!partDetailsMap.has(part.acrSku)) {
+      partDetailsMap.set(part.acrSku, {
+        part_type: part.partType || null,
+        position_type: part.position || null,
+        abs_type: part.absType || null, 
+        bolt_pattern: part.boltPattern || null,
+        drive_type: part.driveType || null,
+        specifications: part.specifications || null,
+      });
+    }
+  });
+
+  // Update parts in batches
+  let updateCount = 0;
+  for (const [acrSku, details] of partDetailsMap) {
+    const partId = partIdMap.get(acrSku);
+    if (!partId) {
+      continue; // Skip orphaned SKUs
+    }
+
+    const result = await supabase
+      .from("parts")
+      .update(details)
+      .eq("id", partId);
+
+    if (result.error) {
+      console.error(`Failed to update part ${acrSku}:`, result.error);
+    } else {
+      updateCount++;
+    }
+  }
+
+  console.log(`📊 Updated ${updateCount} parts with CATALOGACION details`);
+}
+
+/**
+ * Complete CATALOGACION import workflow
+ * 
+ * @param catalogacionResult - Output from CatalogacionParser.parseFile()
+ * @param existingParts - Parts already in database (from PRECIOS import)
+ * @returns Summary of import results
+ */
+export async function importCatalogacionData(
+  catalogacionResult: CatalogacionResult,
+  existingParts: DatabasePartRow[]
+) {
+  console.log("🚀 Starting CATALOGACION data import...");
+
+  // Step 1: Update part details
+  await updatePartDetails(catalogacionResult, existingParts);
+
+  // Step 2: Import vehicle applications
+  const insertedApplications = await importVehicleApplications(
+    catalogacionResult.applications,
+    existingParts
+  );
+
+  console.log("✅ CATALOGACION import completed successfully");
+
+  return {
+    updatedParts: catalogacionResult.parts.length,
+    insertedApplications: insertedApplications.length,
+    orphanedSkus: catalogacionResult.orphanedApplications,
   };
 }

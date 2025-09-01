@@ -2,301 +2,153 @@
 
 _Last Updated: January 29, 2025_
 
-## 🎯 Current Sprint: Database Import System (Phase 2)
+## 🎯 Current Sprint: Bootstrap Import + Admin CRUD (Phase 2)
 
-### 📊 Progress Summary
+### 📊 Progress Summary - REVISED ARCHITECTURE
 - **Foundation**: 100% Complete ✅ (Project structure, database, i18n, auth)
-- **PRECIOS Parser**: 100% Complete ✅ (Cross-references, 865 parts, production-ready)
-- **CATALOGACION Parser**: 100% Complete ✅ (Vehicle applications, 740 parts, 2,304 applications)
-- **Conflict Detection**: 100% Complete ✅ (Interfaces, utilities, parser integration complete)
-- **Database Schema & Deployment**: 100% Complete ✅ (Supabase deployed, functions working)
-- **Overall Phase 1**: 100% Complete ✅
+- **PRECIOS Parser & Import**: 100% Complete ✅ (865 parts, 7,530 cross-references imported)
+- **CATALOGACION Parser**: 100% Complete ✅ (Parser ready, import needs completion)
+- **Database Schema**: 100% Complete ✅ (Supabase deployed, functions working)
+- **NEW FOCUS**: Admin CRUD Interface (0% - not started)
 
-### 🔥 Active Tasks
+### 🔥 Active Tasks - REVISED PRIORITIES
 
 - [x] **TASK-001**: Set up Supabase project and database schema ✅ COMPLETED  
-- [x] **TASK-002**: Adapt rental management app structure for ACR Automotive ✅ COMPLETED
-- [x] **TASK-007**: PRECIOS Excel parser (cross-references) ✅ COMPLETED
-- [x] **TASK-013**: CATALOGACION Excel parser (applications) ✅ COMPLETED
-- [x] **TASK-013A**: Conflict Detection System ✅ COMPLETED
-- [x] **TASK-006A**: Database schema deployment to Supabase ✅ COMPLETED
-- [x] **TASK-006B**: Database functions (search_by_sku, search_by_vehicle) ✅ COMPLETED
-- [x] **TASK-006C**: Performance indexes and fuzzy search setup ✅ COMPLETED
-- [x] **TASK-006D**: Documentation organization and cleanup ✅ COMPLETED
+- [x] **TASK-002**: Adapt rental management app structure ✅ COMPLETED
+- [x] **TASK-007**: PRECIOS Excel parser + import ✅ COMPLETED
+- [x] **TASK-013**: CATALOGACION Excel parser ✅ COMPLETED
+- [x] **TASK-006**: Database schema deployment ✅ COMPLETED
+- [ ] **TASK-BOOTSTRAP**: Complete CATALOGACION import to database ⏳ IN PROGRESS
+- [ ] **TASK-CRUD-001**: Admin parts management interface ⏳ NOT STARTED
 
-### 📋 MVP Development Phases
+### 📋 MVP Development Phases - REVISED
 
-## Phase 1: Core Data Foundation (Week 1) ✅ 100% COMPLETE
+## Phase 1: Bootstrap Data Foundation ✅ 95% COMPLETE
 
-### Project Foundation
+### Project Foundation ✅ COMPLETED
+- [x] Next.js 15 + TypeScript + Tailwind + shadcn/ui setup
+- [x] Supabase database and storage configuration  
+- [x] Simple i18n system (English dev, Spanish prod)
+- [x] Mock admin mode (no authentication for MVP)
 
-- [x] **TASK-004**: Project setup and structure adaptation ✅ COMPLETED
-  - [x] Clone and adapt rental management app structure
-  - [x] Update package.json with ACR Automotive branding
-  - [x] Configure Next.js 15 + TypeScript + Tailwind + shadcn/ui
-  - [x] Set up proper file structure (/app, /components, /lib, /hooks)
+### Database & Parsers ✅ COMPLETED
+- [x] Database schema (parts, vehicle_applications, cross_references)
+- [x] Search functions (search_by_sku, search_by_vehicle) 
+- [x] PRECIOS parser + database import (865 parts, 7,530 cross-refs)
+- [x] CATALOGACION parser (ready for database import)
 
-### Database Setup
+### Bootstrap Import ⏳ 50% COMPLETE
+- [x] PRECIOS data imported to database ✅ 
+- [ ] CATALOGACION data import (vehicle applications) ⏳ NEEDS COMPLETION
+- [ ] Bootstrap script for one-time local import
+- [ ] Manual data quality verification
 
-- [x] **TASK-005**: Supabase project configuration ✅ COMPLETED
+## Phase 2: Admin CRUD Interface (NEW FOCUS) ⏳ NOT STARTED
 
-  - [x] Create new Supabase project for ACR Automotive
-  - [x] Configure environment variables (local, staging, production)
-  - [x] Set up Supabase Storage bucket for part images
-  - [x] Configure Row Level Security policies
+### **TASK-BOOTSTRAP**: Complete One-Time Import ⏳ IN PROGRESS
 
-- [x] **TASK-006**: Database schema implementation ✅ COMPLETED
-  - [x] Create `parts` table with all Excel column mappings
-  - [x] Create `vehicle_applications` table for compatibility data
-  - [x] Create `cross_references` table for SKU mapping
-  - [x] Add all performance indexes (SKU, vehicle, search)
-  - [x] Implement business logic functions (search_by_sku, search_by_vehicle)
+- [x] PRECIOS data import (865 parts, 7,530 cross-references) ✅ COMPLETED
+- [ ] **CATALOGACION import functionality** ⏳ CURRENT TASK
+  - [ ] Implement `importCatalogacionData()` function
+  - [ ] Map CATALOGACION to vehicle_applications table
+  - [ ] Update part details from CATALOGACION data  
+  - [ ] Handle orphaned SKUs gracefully (13 found)
+- [ ] Bootstrap script for local one-time import
+- [ ] Manual verification and cleanup of imported data
 
-### Excel Processing System (UPDATED ARCHITECTURE)
+### **TASK-CRUD-001**: Parts Management System ⏳ NOT STARTED
 
-- [x] **TASK-007**: PRECIOS Excel parser (cross-references) ✅ COMPLETED
+- [ ] **Admin Parts List Interface**
+  - [ ] Parts table with pagination (20 per page)
+  - [ ] Search by ACR SKU, part type, specifications
+  - [ ] Sort by creation date, part type, SKU
+  - [ ] Quick actions (edit, delete, view details)
+  
+- [ ] **Create/Edit Part Form**
+  - [ ] Form with all part fields (ACR SKU, type, specs, etc.)
+  - [ ] Zod validation schema for part data
+  - [ ] Real-time validation feedback
+  - [ ] Save draft functionality
 
-  - [x] Two-step import workflow architecture design
-  - [x] PRECIOS parser with hardcoded column mapping
-  - [x] Real file processing (865 parts, 7,530 cross-references)
-  - [x] Buffer/ArrayBuffer support for file handling
-  - [x] Production-ready performance (<100ms processing)
-  - [x] Comprehensive test suite with real Excel file
-  - [x] Complete type safety and error handling
-  - [x] Streamlined documentation (30-second reading)
+- [ ] **Part Details View**
+  - [ ] Complete part information display
+  - [ ] Vehicle applications table (related data)
+  - [ ] Cross-references table (competitor mappings)
+  - [ ] Image display with upload capability
 
-- [x] **TASK-013**: CATALOGACION Excel parser (applications) ✅ COMPLETED
+### **TASK-CRUD-002**: Vehicle Applications Management ⏳ NOT STARTED
 
-  - [x] CATALOGACION parser implementation
-  - [x] Part details extraction (type, position, specs)
-  - [x] Vehicle applications processing (2,304 rows actual)
-  - [x] Validation against PRECIOS master list
-  - [x] Integration with existing cross-reference data
-  - [x] Performance optimization (<200ms target achieved: 96-113ms)
-  - [x] Comprehensive test suite with real Excel file integration
-  - [x] Data integrity validation (13 orphaned SKUs detected)
+- [ ] **Vehicle Applications Interface**
+  - [ ] Add vehicle compatibility per part
+  - [ ] Make → Model → Year cascade dropdowns
+  - [ ] Bulk add multiple vehicles to a part
+  - [ ] Remove vehicle applications with confirmation
 
-- [x] **TASK-013A**: Conflict Detection System ✅ COMPLETED
+- [ ] **Vehicle Data Management**  
+  - [ ] Dynamic vehicle dropdown population from database
+  - [ ] Add new makes/models/years not in database
+  - [ ] Duplicate prevention for same part + vehicle combo
+  - [ ] Bulk operations (add same part to multiple vehicles)
 
-  - [x] Design conflict detection interfaces and types
-  - [x] Implement conflict detection in PRECIOS parser  
-  - [x] Implement conflict detection in CATALOGACION parser
-  - [x] Create unified conflict reporting system
-  - [x] Simplify conflict types to only needed ones
-  - [x] Clean up Excel files - remove unused imports and dead code
-  - [ ] Admin UI mockups for conflict presentation
-  - [ ] Conflict resolution workflow design
+### **TASK-CRUD-003**: Cross-References Management ⏳ NOT STARTED
 
-- [ ] **TASK-014**: Database import functionality
+- [ ] **Competitor SKU Management**
+  - [ ] Add competitor SKU mappings per part
+  - [ ] Competitor brand auto-detection and manual override
+  - [ ] Remove cross-references with confirmation
+  - [ ] Bulk import competitor SKUs from text/CSV
 
-  - [ ] Database schema validation and setup
-  - [ ] PRECIOS data import (parts + cross_references tables)
-  - [ ] CATALOGACION data import (part details + vehicle_applications)
-  - [ ] Transaction management with backup/rollback system
-  - [ ] Import validation and conflict handling integration
-  - [ ] Progress tracking and status reporting
-  - [ ] Test with real Excel data and verify database structure
+- [ ] **Cross-Reference Validation**
+  - [ ] Duplicate competitor SKU prevention
+  - [ ] SKU format validation (length, characters)
+  - [ ] Brand standardization (TM, TMK, GSP, etc.)
 
-- [ ] **TASK-014A**: Excel Import Workflow System
+### **TASK-CRUD-004**: Image Management ⏳ NOT STARTED
 
-  - [x] **Database import core functionality** ✅ COMPLETED
-    - [x] PRECIOS data mapping (Excel → Database types)
-    - [x] Two-step import process (parts first, then cross-references)
-    - [x] Duplicate cross-reference handling (data entry cleanup)
-    - [x] Long SKU filtering (>50 chars) with graceful degradation
-    - [x] Test schema isolation for safe testing
-    - [x] End-to-end testing pipeline with real Excel data (865 parts, 4,483 cross-refs)
-  - [ ] Database import API endpoints (POST /api/admin/import-precios, /api/admin/import-catalogacion)
-  - [ ] Data fetching for current database state (optimized queries with joins)
-  - [ ] Diff engine implementation (JavaScript-based comparison algorithms)
-  - [ ] Diff report generation with field-level and relationship changes
-  - [ ] Import workflow state management (multi-step approval process)
+- [ ] **Part Image Upload**
+  - [ ] Single image upload per part to Supabase Storage
+  - [ ] Image preview before and after upload
+  - [ ] Standardized naming (acr_sku.jpg)
+  - [ ] Replace existing images functionality
 
-- [ ] **TASK-015**: Admin upload interface
+- [ ] **Bulk Image Operations**
+  - [ ] Bulk upload multiple images (drag & drop folder)
+  - [ ] Auto-match images to parts by filename
+  - [ ] Image optimization (resize, WebP conversion)
+  - [ ] Missing image reports
 
-  - [ ] Multi-step workflow UI (Step 1-4 progress indicators)
-  - [ ] PRECIOS upload with diff preview and approval gate
-  - [ ] CATALOGACION upload with diff preview and approval gate  
-  - [ ] Combined diff summary and final approval
-  - [ ] Processing results display and error reporting
-  - [ ] Simple drag-and-drop interface with conflict presentation
-
-### i18n System
-
-- [x] **TASK-010**: Simple translation system ✅ COMPLETED
-  - [x] Create custom i18n utilities (lib/i18n.ts)
-  - [x] Set up translation keys for all UI text
-  - [x] Implement useTranslation hook
-  - [x] Configure English (dev) and Spanish (production) locales
-  - [x] Create Zustand store for language switching
-
-### Mock Authentication
-
-- [x] **TASK-011**: Development admin mode ✅ COMPLETED
-  - [x] Create mock authentication utilities
-  - [x] Admin mode always enabled in development
-  - [x] Create admin route protection (mock)
-  - [x] Admin layout components and navigation
-
-### Excel Parser Testing
-
-- [x] **TASK-012**: PRECIOS parser test suite ✅ COMPLETED
-  - [x] Unit tests for all parser methods
-  - [x] Real Excel file integration testing (865 rows)
-  - [x] Performance validation (<100ms processing)
-  - [x] Type safety and error handling tests
-  - [x] Buffer/ArrayBuffer compatibility tests
-
-### Conflict Detection System
-
-- [x] **TASK-013A**: Conflict Detection Architecture ✅ COMPLETED
-
-  - [x] Design ConflictReport interface and types
-  - [x] Create ProcessingResult wrapper for parsers
-  - [x] Define conflict severity levels (blocking, warning, info)
-  - [x] Implement conflict aggregation and reporting utilities
-  - [x] Integrate conflict detection with PRECIOS parser
-  - [x] Integrate conflict detection with CATALOGACION parser
-  - [x] Simplify conflict types to only needed ones (2 types)
-  - [x] Clean up Excel files and remove unused code
-  - [ ] Create conflict presentation UI mockups
-  - [ ] Document admin conflict resolution workflow
-
----
-
-## Phase 2: Search Interface (Week 2) ⏳ NOT STARTED
+## Phase 3: Search Interface (UNCHANGED) ⏳ NOT STARTED
 
 ### Vehicle Search System
+- [ ] Multi-step search interface (Make → Model → Year → Part Type)
+- [ ] Dynamic dropdown population from database
+- [ ] Search results with SKU prominence (Baleros-Bisa pattern)
+- [ ] Mobile-responsive design for tablets
 
-- [ ] **TASK-013**: Multi-step search interface
+### SKU Cross-Reference Search  
+- [ ] Single input field for competitor SKU lookup
+- [ ] Fuzzy matching for typos (trigram similarity)
+- [ ] Clear cross-reference mapping display
+- [ ] Search performance optimization (<300ms target)
 
-  - [ ] Create vehicle search component with 4 dropdowns
-  - [ ] Implement Make → Model → Year → Part Type progression
-  - [ ] Dynamic dropdown population from database
-  - [ ] Loading states and error handling
-  - [ ] Mobile-responsive design for tablets
+### Part Details & Results
+- [ ] Individual part pages with complete data
+- [ ] Vehicle applications table per part
+- [ ] Cross-reference information display
+- [ ] Image display with fallback handling
+- [ ] Professional B2B design
 
-- [ ] **TASK-014**: Search API endpoints
-  - [ ] GET /api/data/makes - Vehicle makes from database
-  - [ ] GET /api/data/models/:make - Models for specific make
-  - [ ] GET /api/data/years/:make/:model - Years for make/model
-  - [ ] GET /api/data/categories - Part types from parts table
-  - [ ] GET /api/search/vehicle - Vehicle-based parts search
+## Phase 4: Production Deployment ⏳ NOT STARTED
 
-### SKU Cross-Reference Search
+### Spanish Translation & Polish
+- [ ] Complete Spanish translation for production
+- [ ] Technical terminology validation
+- [ ] UI/UX refinements based on testing
 
-- [ ] **TASK-015**: SKU search interface
-
-  - [ ] Create SKU search input component
-  - [ ] Implement autocomplete/suggestions
-  - [ ] Handle typos with fuzzy matching
-  - [ ] Cross-reference mapping display
-  - [ ] Search history (session-based)
-
-- [ ] **TASK-016**: SKU search API
-  - [ ] GET /api/search/sku - Cross-reference SKU lookup
-  - [ ] Implement search_by_sku PostgreSQL function
-  - [ ] Handle exact matches (ACR + competitor SKUs)
-  - [ ] Fuzzy matching for typos (trigram similarity)
-  - [ ] Return match type (exact_acr, cross_reference, fuzzy)
-
-### Search Results & Part Details
-
-- [ ] **TASK-017**: Search results display
-
-  - [ ] Create search results component grid
-  - [ ] SKU-prominent layout (Baleros-Bisa pattern)
-  - [ ] Professional B2B design implementation
-  - [ ] Pagination for large result sets
-  - [ ] Sort and filter options
-
-- [ ] **TASK-018**: Part details pages
-  - [ ] Create individual part detail page
-  - [ ] Display full specifications and technical data
-  - [ ] Vehicle applications table (multiple vehicles per part)
-  - [ ] Cross-reference information display
-  - [ ] Image display (with fallback for missing images)
-  - [ ] GET /api/parts/:id endpoint
-
-### Search Performance
-
-- [ ] **TASK-019**: Performance optimization
-  - [ ] Implement TanStack Query for search caching
-  - [ ] Add search result caching strategies
-  - [ ] Optimize database queries and indexes
-  - [ ] Add loading states and skeleton UI
-  - [ ] Performance monitoring and metrics
-
----
-
-## Phase 3: Admin Management (Week 3) ⏳ NOT STARTED
-
-### Image Management System
-
-- [ ] **TASK-020**: Image upload interface
-
-  - [ ] Create admin image upload component
-  - [ ] Part selector dropdown (search by SKU)
-  - [ ] File upload with drag-and-drop
-  - [ ] Image preview before upload
-  - [ ] Progress indicators and error handling
-
-- [ ] **TASK-021**: Image storage integration
-  - [ ] Configure Supabase Storage bucket policies
-  - [ ] Implement image upload to Supabase Storage
-  - [ ] Standardized naming convention (acr_sku.jpg)
-  - [ ] Auto-update parts.image_url in database
-  - [ ] Image optimization (WebP conversion, resizing)
-
-### Excel Re-import System
-
-- [ ] **TASK-022**: Excel update detection
-
-  - [ ] Compare new Excel data with existing database
-  - [ ] Detect new parts, modified parts, removed parts
-  - [ ] Show diff summary before import
-  - [ ] Handle part updates vs complete replacement
-  - [ ] Version control for data changes
-
-- [ ] **TASK-023**: Update workflow
-  - [ ] Admin interface for monthly Excel updates
-  - [ ] Preview changes before applying
-  - [ ] Backup existing data before import
-  - [ ] Import progress tracking
-  - [ ] Success/failure reporting
-
-### Production Preparation
-
-- [ ] **TASK-024**: Spanish translation implementation
-
-  - [ ] Translate all UI text to Spanish
-  - [ ] Technical terminology validation
-  - [ ] Date/number formatting for Mexican locale
-  - [ ] Test language switching functionality
-  - [ ] Production language configuration
-
-- [ ] **TASK-025**: Performance optimization
-
-  - [ ] Database query optimization
-  - [ ] Search performance tuning (sub-300ms target)
-  - [ ] Image loading optimization
-  - [ ] Mobile responsiveness testing
-  - [ ] Core Web Vitals optimization
-
-- [ ] **TASK-026**: Production deployment
-
-  - [ ] Vercel deployment configuration
-  - [ ] Environment variables setup (staging/production)
-  - [ ] Supabase production database setup
-  - [ ] CDN configuration for images
-  - [ ] Monitoring and error tracking setup
-
-- [ ] **TASK-027**: User acceptance testing
-  - [ ] End-to-end functionality testing
-  - [ ] Mobile device testing (tablets)
-  - [ ] Search accuracy validation with real data
-  - [ ] Performance benchmarking
-  - [ ] User training materials for Humberto
+### Performance & Deployment  
+- [ ] Search performance optimization
+- [ ] Vercel deployment configuration
+- [ ] User acceptance testing with Humberto
 
 ---
 
@@ -618,38 +470,37 @@ Each task is considered complete when:
 
 ---
 
-## 📊 Progress Tracking
+## 📊 Progress Tracking - REVISED ARCHITECTURE
 
-### Current Status (Week 1)
+### Current Status (Bootstrap + CRUD Focus)
 
-- **Foundation**: 100% Complete ✅ (project structure, branding, dependencies)
-- **Database**: 100% Complete ✅ (Supabase setup, schema, functions, RLS)
-- **Excel Parser Foundation**: 100% Complete ✅ (PRECIOS and CATALOGACION parsers)
-- **Conflict Detection**: 100% Complete ✅ (interfaces, integration, cleanup)
-- **i18n**: 100% Complete ✅ (custom system with EN/ES support)
-- **Overall MVP**: ~70% Complete
+- **Foundation**: 100% Complete ✅ (Next.js, Supabase, i18n, mock auth)
+- **Database**: 100% Complete ✅ (schema, functions, indexes)
+- **PRECIOS Import**: 100% Complete ✅ (865 parts, 7,530 cross-references)
+- **CATALOGACION Import**: 50% Complete ⏳ (parser ready, DB import needed)
+- **Admin CRUD**: 0% Complete ⏳ (new primary focus)
+- **Overall MVP**: ~60% Complete
 
-### Week 1 Achievements
+### Current Achievements
 
-- ✅ Complete project foundation and database setup
-- ✅ PRECIOS Excel parser (cross-references) production-ready
-- ✅ CATALOGACION parser (vehicle applications) production-ready
-- ✅ Real file processing with 865 parts + 7,530 cross-references + 2,304 applications
-- ✅ Performance optimization (<100ms PRECIOS, <200ms CATALOGACION)
-- ✅ Comprehensive testing with real Excel integration
-- ✅ Conflict detection system with simplified 2-conflict-type approach
-- ✅ Code cleanup and optimization
-- 🔄 **NEXT**: Database integration and admin interface
+- ✅ Complete project foundation (Next.js 15 + Supabase)
+- ✅ PRECIOS data fully imported to database
+- ✅ CATALOGACION parser ready (13 orphaned SKUs identified)
+- ✅ Database schema with search functions deployed
+- ✅ Streamlined architecture (removed complex import workflows)
 
-### Actual Success Metrics (Both Parsers Complete)
+### Next Priority: CATALOGACION Import
 
-- **Data Accuracy**: ✅ 100% successful parsing of both PRECIOS and CATALOGACION files
-- **PRECIOS Results**: ✅ 865 unique ACR SKUs, 7,530 competitor mappings  
-- **CATALOGACION Results**: ✅ 740 unique parts, 2,304 vehicle applications
-- **Performance**: ✅ <100ms PRECIOS, <200ms CATALOGACION (both exceed targets)
-- **Conflict Detection**: ✅ 13 orphaned SKUs detected and reported as warnings
-- **Type Safety**: ✅ Full TypeScript support with Buffer/ArrayBuffer
-- **Production Ready**: ✅ Complete test coverage, documentation, and code cleanup
+- **Current Task**: Implement `importCatalogacionData()` function
+- **Goal**: Complete bootstrap with 740 parts + 2,304 vehicle applications
+- **After Import**: Focus shifts to admin CRUD interface
+
+### Success Metrics (Revised)
+
+- **Data Bootstrap**: Get 80% of data imported quickly ✅ (PRECIOS done)
+- **Admin Productivity**: CRUD interface replaces Excel workflows
+- **Search Performance**: <300ms response times maintained
+- **User Experience**: Professional B2B interface for Humberto
 
 ---
 

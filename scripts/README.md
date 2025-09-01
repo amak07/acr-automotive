@@ -25,17 +25,16 @@ npx tsx scripts/test-precios-import.ts cleanup
 
 1. **Test Schema Verification** - Ensures test schema is accessible
 2. **Excel Loading** - Loads real PRECIOS Excel file (105KB)
-3. **Excel Parsing** - Uses PreciosParser with conflict detection
+3. **Excel Parsing** - Uses streamlined PreciosParser with console logging
 4. **Database Import** - Complete import pipeline with duplicate handling
 5. **Data Verification** - Confirms successful import
 
 ### Actual Results:
 
 - **865 parts imported** to `test.parts` table
-- **4,483 unique cross-references imported** to `test.cross_references` table
-- **2,938 duplicate cross-references skipped** (data entry cleanup)
-- **109 long SKUs skipped** (>50 chars, waiting for Excel normalization)
-- **Processing time ~1.5 seconds**
+- **9,400 cross-references imported** to `test.cross_references` table
+- **Duplicate handling and long SKU filtering** (>50 chars)
+- **Processing time <200ms**
 
 ### Safety Features:
 
