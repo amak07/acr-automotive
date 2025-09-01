@@ -44,12 +44,7 @@ async function testPreciosImportPipeline() {
     console.log("\n📊 Parsing Excel file...");
     const preciosResult = PreciosParser.parseFile(excelBuffer);
 
-    if (!preciosResult.success || !preciosResult.data) {
-      console.error("❌ Excel parsing failed:", preciosResult.conflicts);
-      return;
-    }
-
-    const { acrSkus, crossReferences, summary } = preciosResult.data;
+    const { acrSkus, crossReferences, summary } = preciosResult;
     console.log(`✅ Parsed successfully:`);
     console.log(`   • ${acrSkus.size} unique ACR SKUs`);
     console.log(`   • ${crossReferences.length} cross-references`);
@@ -63,7 +58,7 @@ async function testPreciosImportPipeline() {
     console.log("\n💾 Importing to TEST database...");
     const startTime = Date.now();
 
-    const importResult = await testImportPreciosData(preciosResult.data);
+    const importResult = await testImportPreciosData(preciosResult);
 
     const importTime = Date.now() - startTime;
     console.log(`✅ Import completed in ${importTime}ms:`);

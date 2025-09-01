@@ -13,31 +13,12 @@ import { Locale, TranslationKeys } from '@/types/parts'
  * All UI text is defined here with English and Spanish translations.
  * Add new keys as needed throughout development.
  */
+// Minimal translations - add keys as needed during development
 const translations: Record<keyof TranslationKeys, Record<Locale, string>> = {
-  // Search interface
-  'search.vehicle': {
-    en: 'Search by Vehicle',
-    es: 'Búsqueda por Vehículo'
-  },
+  // Search interface (core functionality)
   'search.sku': {
     en: 'Search by SKU',
     es: 'Búsqueda por SKU'
-  },
-  'search.make': {
-    en: 'Make',
-    es: 'Marca'
-  },
-  'search.model': {
-    en: 'Model',
-    es: 'Modelo'
-  },
-  'search.year': {
-    en: 'Year',
-    es: 'Año'
-  },
-  'search.partType': {
-    en: 'Part Type',
-    es: 'Tipo de Pieza'
   },
   'search.enterSKU': {
     en: 'Enter part number or SKU',
@@ -52,78 +33,10 @@ const translations: Record<keyof TranslationKeys, Record<Locale, string>> = {
     es: 'Buscando...'
   },
   
-  // Part details
-  'part.details': {
-    en: 'Part Details',
-    es: 'Detalles de Pieza'
-  },
-  'part.sku': {
-    en: 'SKU',
-    es: 'SKU'
-  },
-  'part.type': {
-    en: 'Type',
-    es: 'Tipo'
-  },
-  'part.position': {
-    en: 'Position',
-    es: 'Posición'
-  },
-  'part.abs': {
-    en: 'ABS',
-    es: 'ABS'
-  },
-  'part.bolts': {
-    en: 'Bolt Pattern',
-    es: 'Patrón de Tornillos'
-  },
-  'part.drive': {
-    en: 'Drive Type',
-    es: 'Tipo de Tracción'
-  },
-  'part.specs': {
-    en: 'Specifications',
-    es: 'Especificaciones'
-  },
-  'part.applications': {
-    en: 'Vehicle Applications',
-    es: 'Aplicaciones de Vehículos'
-  },
-  'part.crossReference': {
-    en: 'Cross Reference',
-    es: 'Referencia Cruzada'
-  },
-  
-  // Admin interface
-  'admin.upload': {
-    en: 'Upload Excel File',
-    es: 'Subir Archivo Excel'
-  },
-  'admin.import': {
-    en: 'Import Data',
-    es: 'Importar Datos'
-  },
-  'admin.preview': {
-    en: 'Preview Import',
-    es: 'Previsualizar Importación'
-  },
-  'admin.confirm': {
-    en: 'Confirm Import',
-    es: 'Confirmar Importación'
-  },
-  'admin.errors': {
-    en: 'Validation Errors',
-    es: 'Errores de Validación'
-  },
-  
   // Common
   'common.search': {
     en: 'Search',
     es: 'Buscar'
-  },
-  'common.clear': {
-    en: 'Clear',
-    es: 'Limpiar'
   },
   'common.loading': {
     en: 'Loading...',
@@ -132,10 +45,6 @@ const translations: Record<keyof TranslationKeys, Record<Locale, string>> = {
   'common.error': {
     en: 'Error',
     es: 'Error'
-  },
-  'common.success': {
-    en: 'Success',
-    es: 'Éxito'
   }
 }
 

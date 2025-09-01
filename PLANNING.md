@@ -146,239 +146,43 @@ SELECT DISTINCT model FROM vehicle_applications WHERE make = ? ORDER BY model;
 SELECT DISTINCT year_range FROM vehicle_applications WHERE make = ? AND model = ?;
 ```
 
-## Conflict Detection System (NEW - Data Integrity Focus)
+## One-Time Data Import System (Simplified Approach)
 
 ### Business Requirement
 
-**Problem**: Excel files may contain data inconsistencies that could corrupt the database or confuse users.
-**Solution**: Comprehensive conflict detection with clear admin reporting before any data import.
+**Problem**: Humberto has existing Excel files with auto parts data that need to be imported once to bootstrap the system.
+**Solution**: Simple one-time import script that gets 80% of data into the database quickly, then switch to CRUD management.
 
-### Conflict Types & Severity
+### Import Strategy
 
-#### 🚨 **BLOCKING ERRORS** (Must fix before import)
-- ~~**Duplicate ACR SKUs with conflicting data**~~ - REMOVED: Multiple rows per ACR SKU now supported (Jan 2025)
-- **Invalid data formats** - Malformed SKUs, dates, or required fields
-- **Database constraint violations** - Data that would break foreign key or unique constraints
-
-#### ⚠️ **WARNINGS** (Import proceeds, admin reviews)
-- **Orphaned applications** - CATALOGACION references ACR SKUs not in PRECIOS (13 found in test data)
-- **Missing cross-references** - PRECIOS parts without any vehicle applications
-- **Data quality issues** - Unusual patterns that may indicate errors
-
-#### ℹ️ **INFO** (For awareness only)
-- **Processing statistics** - Row counts, performance metrics
-- **Data insights** - Part-to-application ratios, most common vehicles
-
-### Admin UX Flow
-
+#### One-Time Bootstrap Process
 ```
-File Upload → Processing → Conflict Detection → Review → Decision
-    ↓              ↓             ↓             ↓         ↓
-[Drag File]  [Progress]   [Conflict List]  [Details] [Import/Fix]
+1. Run PRECIOS import locally → Get 865 parts + 7,530 cross-references
+2. Run CATALOGACION import locally → Add part details + 2,304 vehicle applications  
+3. Manual cleanup of any obvious issues
+4. Switch to admin CRUD interface for ongoing management
 ```
 
-**Conflict Presentation:**
-- **Summary view**: Count by severity with expand/collapse details
-- **Detailed view**: Specific rows, affected SKUs, resolution suggestions
-- **Downloadable reports**: Excel/CSV for offline review
-- **Action buttons**: Fix and re-upload vs. Import with warnings
+**Philosophy**: "Good enough to start, perfect through admin interface"
 
 ### Technical Implementation
 
 ```typescript
-interface ConflictReport {
-  type: 'error' | 'warning' | 'info';
-  source: 'precios' | 'catalogacion' | 'cross-validation';
-  conflictType: string;
-  description: string;
-  affectedRows: number[];
-  affectedSkus: string[];
-  suggestion?: string;
-  impact: 'blocking' | 'non-blocking';
-}
-
-interface ProcessingResult {
-  success: boolean;
-  data?: ParsedData;
-  conflicts: ConflictReport[];
-  summary: ProcessingSummary;
+// Simple import script (run once locally)
+async function bootstrapDatabase() {
+  // Step 1: Import PRECIOS data
+  const preciosResult = await PreciosParser.parseFile(preciosBuffer);
+  await importPreciosData(preciosResult);
+  
+  // Step 2: Import CATALOGACION data  
+  const catalogacionResult = await CatalogacionParser.parseFile(catalogacionBuffer);
+  await importCatalogacionData(catalogacionResult);
+  
+  console.log("✅ Bootstrap complete - ready for admin CRUD management");
 }
 ```
 
-**Implementation Status:**
-- ✅ **Core Interfaces**: ConflictReport, ProcessingResult, ConflictSummary types
-- ✅ **Utility Functions**: ConflictFactory, ConflictAggregator classes  
-- ✅ **Severity Classification**: Error (blocking), Warning, Info levels
-- ✅ **Parser Integration**: Both PRECIOS and CATALOGACION parsers integrated
-- ✅ **Simplified Types**: Reduced to 2 main conflict types (duplicate SKUs, orphaned applications)
-- ✅ **Code Cleanup**: Removed unused imports, comments, and dead code
-- ⏳ **Admin Interface**: Conflict review screen before database import
-- ⏳ **Database Import**: Only proceed if no blocking conflicts
-
-**Next Steps:**
-- Create admin UI components for conflict presentation  
-- Build conflict resolution workflow for Humberto
-- Integrate conflict-aware parsers with database import
-
-## Excel Import Workflow System (NEW - Complete Import Process)
-
-### Business Requirement
-
-**Problem**: Humberto needs a reliable, error-free way to update his parts database monthly with new Excel files while maintaining data integrity and having visibility into changes.
-
-**Solution**: Multi-step import workflow with diff preview, approval gates, and atomic database transactions.
-
-### Workflow Design
-
-#### Complete Import Flow
-```
-1. Upload PRECIOS Excel → Parse → Validate → Generate Diff → Approve/Reject
-   ↓ (if approved)
-2. Upload CATALOGACION Excel → Parse → Validate → Generate Diff → Approve/Reject  
-   ↓ (if approved)
-3. Show Combined Diff Summary → Final Approve/Reject
-   ↓ (if approved)
-4. Execute Database Transaction (Backup → Import) → Success Report
-```
-
-#### Step-by-Step Process
-1. **PRECIOS Upload**: Admin uploads cross-reference Excel file
-2. **PRECIOS Processing**: Parse, validate, detect conflicts
-3. **PRECIOS Diff**: Compare against current database, show changes
-4. **PRECIOS Approval**: Admin reviews and approves/rejects changes
-5. **CATALOGACION Upload**: Admin uploads vehicle applications Excel file
-6. **CATALOGACION Processing**: Parse, validate, detect conflicts  
-7. **CATALOGACION Diff**: Compare against current database, show changes
-8. **CATALOGACION Approval**: Admin reviews and approves/rejects changes
-9. **Final Review**: Combined diff summary of all changes
-10. **Database Import**: Atomic transaction with backup and rollback capability
-
-### Diff Detection System
-
-#### Data Comparison Strategy
-- **Field-Level Changes**: Track modifications to individual part attributes
-- **Relationship Changes**: Track added/removed cross-references and vehicle applications
-- **JavaScript-Based**: Client-side comparison for MVP (database-side optimization post-MVP)
-
-#### Diff Report Structure
-```typescript
-interface DiffReport {
-  parts: {
-    added: PartRecord[];
-    removed: PartRecord[];
-    modified: PartModification[];
-  };
-  applications: {
-    added: ApplicationRecord[];
-    removed: ApplicationRecord[];
-  };
-  crossReferences: {
-    added: CrossRefRecord[];
-    removed: CrossRefRecord[];
-  };
-  summary: DiffSummary;
-}
-
-interface PartModification {
-  acrSku: string;
-  fieldChanges: Record<string, { old: any, new: any }>;
-  relationshipChanges: {
-    crossReferences: { added: string[], removed: string[] };
-    applications: { added: VehicleApp[], removed: VehicleApp[] };
-  };
-}
-```
-
-#### Example Diff Display
-```
-Part: ACR123 Changes:
-  Field Changes:
-    ✏️ Description: "Old desc" → "New desc" 
-    ✏️ Part Type: "MAZA" → "HUB"
-  
-  Cross-References:
-    ✅ Added: TM512342, BOSCH987654
-    ❌ Removed: GSP456789, NATIONAL123
-  
-  Vehicle Applications:
-    ✅ Added: Honda Accord 2019-2021
-    ❌ Removed: Toyota Camry 2020-2022
-```
-
-### Database Transaction Strategy
-
-#### Backup and Rollback System
-- **Simple Backup**: Current + Previous version only (no complex versioning)
-- **Backup Tables**: `parts_backup`, `vehicle_applications_backup`, `cross_references_backup`
-- **Rollback Process**: Copy backup tables back to main tables
-- **Transaction Safety**: All-or-nothing import with automatic rollback on failure
-
-#### Import Process
-```sql
-BEGIN TRANSACTION;
-  -- 1. Backup current data
-  INSERT INTO parts_backup SELECT * FROM parts;
-  INSERT INTO vehicle_applications_backup SELECT * FROM vehicle_applications;
-  INSERT INTO cross_references_backup SELECT * FROM cross_references;
-  
-  -- 2. Clear current tables
-  DELETE FROM cross_references;
-  DELETE FROM vehicle_applications;  
-  DELETE FROM parts;
-  
-  -- 3. Insert new data
-  INSERT INTO parts VALUES (...);
-  INSERT INTO vehicle_applications VALUES (...);
-  INSERT INTO cross_references VALUES (...);
-  
-  -- 4. Commit if all successful
-COMMIT;
-```
-
-### Performance Requirements
-
-#### Processing Targets
-- **PRECIOS Diff Generation**: <30 seconds (865 parts, 7,530 cross-references)
-- **CATALOGACION Diff Generation**: <30 seconds (740 parts, 2,304 applications)
-- **Database Import**: <60 seconds for complete transaction
-- **Memory Usage**: Efficient handling of 10,000+ database records
-
-#### Optimization Strategy
-- **Batch Processing**: 1,000 records per database batch
-- **Efficient Lookups**: Use Maps/Sets for O(1) comparison performance
-- **Single Query Optimization**: Fetch current state with joins, not separate queries
-- **Future Enhancement**: Database-side comparison functions for better performance
-
-### Admin User Experience
-
-#### Visual Design
-- **Progress Indicators**: Clear step-by-step progress (Step 1 of 4, etc.)
-- **Diff Presentation**: Expandable sections with color-coded changes
-- **Error Handling**: Clear conflict reports with specific row/field references
-- **Confirmation Gates**: Multiple approval points prevent accidental imports
-
-#### Session Management
-- **No Persistence**: Complete workflow in single browser session
-- **Browser Refresh**: Loses progress (acceptable for admin workflow)
-- **Error Recovery**: Clear restart path if process fails
-
-### Implementation Status
-
-- ✅ **Excel Parsers**: PRECIOS and CATALOGACION parsers complete
-- ✅ **Conflict Detection**: Integrated validation system
-- ✅ **Design Documentation**: Complete workflow specification
-- ✅ **Database Import**: Core import functionality with duplicate handling
-- ✅ **Testing Infrastructure**: Test schema isolation and end-to-end pipeline
-- ⏳ **Diff Engine**: JavaScript comparison algorithms
-- ⏳ **Admin Interface**: Multi-step workflow UI
-
-### Future Enhancements (Post-MVP)
-
-- **Database-Side Comparison**: Move diff logic to PostgreSQL for better performance
-- **Advanced Versioning**: Multiple historical versions with timestamps
-- **Partial Imports**: Import only specific parts/sections of Excel files
-- **Import Scheduling**: Automated monthly import workflows
-- **Change Notifications**: Email alerts for significant data changes
+**After Bootstrap**: Excel parsers become archived code, not deleted but not actively maintained.
 
 ## Excel File Structures (UPDATED from Real Implementation)
 
@@ -412,109 +216,84 @@ Data Integrity: 13 orphaned SKUs detected for review
 - **Validation**: CATALOGACION ACR SKUs validated against PRECIOS master list
 - **Performance Target**: <200ms total processing time (✅ ACHIEVED)
 
-## MVP Features (Priority Order)
+## MVP Features (Revised Priority Order)
 
-### Phase 1: Core Data Foundation (1 week)
+### Phase 1: Bootstrap Data Foundation (2 days)
 
-1. **✅ Project Setup**
-
-   - Adapt rental management app structure for ACR Automotive
+1. **✅ Project Setup (COMPLETED)**
    - Next.js 15 + TypeScript + Tailwind + shadcn/ui
    - Supabase database and storage setup
+   - Simple i18n system (English dev, Spanish prod)
+   - Mock admin mode (no authentication)
 
-2. **✅ Database Schema**
+2. **✅ Database Schema (COMPLETED)**
+   - 3 core tables: parts, vehicle_applications, cross_references
+   - Search indexes and business logic functions
+   - Supabase Storage for images
 
-   - Create 3 core tables (parts, vehicle_applications, cross_references)
-   - Add search indexes and business logic functions
-   - Test with sample data
+3. **🔄 One-Time Data Import (IN PROGRESS)**
+   - Complete CATALOGACION import to populate vehicle_applications
+   - Bootstrap script to run both imports locally
+   - Manual verification of imported data quality
+   - Archive Excel parsers after successful import
 
-3. **✅ PRECIOS Excel Parser (COMPLETED)**
+### Phase 2: Admin CRUD Interface (1 week)
 
-   - **Two-Step Import Workflow**: PRECIOS (cross-references) → CATALOGACION (applications)
-   - **Simplified Architecture**: Hardcoded column positions, no dynamic detection
-   - **Direct Buffer Support**: Accepts both Buffer and ArrayBuffer inputs
-   - **Real Data Volumes**: 865 ACR parts, 7,530 cross-references from actual file
-   - **Performance**: <100ms processing time for 865 rows
-   - **Production Ready**: Full test coverage with real Excel file integration
+4. **Parts Management System**
+   - List all parts with pagination and search
+   - Create new parts with full form validation
+   - Edit existing parts (ACR SKU, type, specs, etc.)
+   - Delete parts (with confirmation and cascade handling)
 
-4. **✅ CATALOGACION Excel Parser (COMPLETED)**
+5. **Vehicle Applications Management**
+   - Add/remove vehicle compatibility per part
+   - Bulk vehicle application management
+   - Vehicle dropdown cascades (Make → Model → Year)
+   - Duplicate prevention and validation
 
-   - **Vehicle Applications Processing**: 740 unique parts, 2,304 applications from actual file
-   - **Part Details Extraction**: Type, position, specifications, vehicle compatibility
-   - **PRECIOS Integration**: Validation against master ACR SKU list
-   - **Performance**: <200ms target achieved (96-113ms actual processing)
-   - **Data Integrity**: Orphaned SKU detection (13 found in test data)
-   - **Production Ready**: Full test coverage with real Excel file integration
+6. **Cross-References Management**
+   - Add/remove competitor SKU mappings per part
+   - Competitor brand extraction and management
+   - Cross-reference validation and duplicate prevention
+   - Bulk cross-reference operations
 
-5. **✅ Simple i18n Setup**
+7. **Image Management**
+   - Upload images per part to Supabase Storage
+   - Image preview and replacement functionality
+   - Standardized naming (acr_sku.jpg)
+   - Bulk image upload capabilities
 
-   - Custom translation system (not next-i18next)
-   - English for development, Spanish for production
-   - All UI text translatable from day 1
+### Phase 3: Search Interface (1 week)
 
-6. **✅ Mock Admin Mode**
-   - Skip authentication for MVP
-   - Admin mode always enabled in development
-   - Focus on core business logic first
-
-7. **✅ Conflict Detection System (COMPLETED)**
-   - ✅ Data integrity validation interfaces and utilities
-   - ✅ Admin-friendly conflict reporting system design
-   - ✅ Blocking vs non-blocking error classification
-   - ✅ Parser integration with both PRECIOS and CATALOGACION
-   - ✅ Simplified to 2 main conflict types (duplicates, orphans)
-   - ✅ Code cleanup and optimization
-
-### Phase 2: Search Interface (1 week)
-
-6. **Vehicle Search**
-
+8. **Vehicle Search**
    - Multi-step dropdown interface (Baleros-Bisa pattern)
    - Make → Model → Year → Part Type progression
    - Dynamic dropdowns populated from database
-   - Search results display with SKU prominence
+   - Search results with SKU prominence
 
-7. **SKU Cross-Reference Search**
-
-   - Single input field for SKU search
+9. **SKU Cross-Reference Search**
+   - Single input field for competitor SKU lookup
    - Search both ACR SKUs and competitor SKUs
    - Fuzzy matching for typos
-   - Clear display of cross-reference mapping
+   - Clear cross-reference mapping display
 
-8. **Part Details Page**
+10. **Part Details & Results**
+    - Individual part pages with complete data
+    - Vehicle applications table per part
+    - Cross-reference information display
+    - Image display with fallback handling
+    - Professional B2B design (mobile-responsive)
 
-   - Individual part page with full specifications
-   - Vehicle applications table
-   - Cross-reference information
-   - Image display (if available)
-   - Technical specifications
+### Phase 4: Production Deployment (2-3 days)
 
-9. **Search Results Display**
-   - SKU-prominent layout (matching Baleros-Bisa)
-   - Professional B2B design
-   - Mobile-responsive for tablets
-   - Spanish interface elements
+11. **Spanish Translation & Polish**
+    - Complete Spanish translation for production
+    - Technical terminology validation
+    - UI/UX refinements based on testing
 
-### Phase 3: Admin Management (1 week)
-
-10. **Image Upload Interface**
-
-    - Admin can upload images per part
-    - Simple part selector + file upload
-    - Images stored in Supabase Storage
-    - Auto-update parts.image_url in database
-
-11. **Excel Re-import**
-
-    - Handle subsequent monthly uploads
-    - Detect new parts vs existing parts
-    - Show changes before applying
-    - Replace existing data with new import
-
-12. **Production Deployment**
-    - Spanish translation implementation
-    - Performance optimization
-    - Vercel deployment
+12. **Performance & Deployment**
+    - Search performance optimization (<300ms target)
+    - Vercel deployment configuration
     - User acceptance testing with Humberto
 
 ## Post-MVP Features (Future Enhancements)
@@ -608,49 +387,45 @@ GET  /api/data/models/:make      // Models for make
 GET  /api/data/years/:make/:model // Years for make/model
 GET  /api/data/categories        // Part categories
 
-// Admin routes (mocked in dev)  
-POST /api/admin/upload-precios      // ✅ PRECIOS Excel import (cross-references)
-POST /api/admin/upload-catalogacion // ✅ CATALOGACION Excel import (applications)
-POST /api/admin/upload-image        // Image upload for parts
-GET  /api/admin/parts               // Admin parts management
+// Admin CRUD routes (NEW FOCUS)
+GET    /api/admin/parts          // List parts with pagination/search
+POST   /api/admin/parts          // Create new part
+GET    /api/admin/parts/:id      // Get single part with relations
+PUT    /api/admin/parts/:id      // Update part
+DELETE /api/admin/parts/:id      // Delete part
+
+GET    /api/admin/parts/:id/vehicles      // Get vehicle applications
+POST   /api/admin/parts/:id/vehicles      // Add vehicle application
+DELETE /api/admin/vehicles/:id            // Remove vehicle application
+
+GET    /api/admin/parts/:id/cross-refs    // Get cross-references
+POST   /api/admin/parts/:id/cross-refs    // Add cross-reference
+DELETE /api/admin/cross-refs/:id          // Remove cross-reference
+
+POST   /api/admin/parts/:id/image         // Upload part image
 ```
 
-### Excel Processing Architecture (UPDATED)
+### Bootstrap Import Architecture (Simplified)
 
-**Two-Step Import Workflow:**
-```typescript
-// Step 1: PRECIOS Parser (Cross-References) - COMPLETED
-interface PreciosProcessing {
-  input: "LISTA DE PRECIOS Excel file";
-  output: "865 ACR parts + 7,530 cross-reference mappings";
-  fileStructure: {
-    headerRow: 8;
-    dataStartRow: 9;
-    columns: "A=ID, B=ACR_SKU, C-M=Competitor brands";
-  };
-  performance: "<100ms for 865 rows";
-  status: "✅ Production Ready";
-}
+**One-Time Import Process:**
+```bash
+# Simple one-time bootstrap (run locally)
+npm run bootstrap
 
-// Step 2: CATALOGACION Parser (Applications) - NEXT
-interface CatalogacionProcessing {
-  input: "CATALOGACION ACR CLIENTES Excel file";
-  output: "Part details + vehicle applications";
-  fileStructure: {
-    headerRow: 1;
-    dataStartRow: 2;
-    columns: "A=ID, B=ACR_SKU, E=Type, K=Make, L=Model, M=Year";
-  };
-  status: "⏳ Not Started";
-}
+# This runs: scripts/bootstrap-import.ts
+# 1. Parse PRECIOS → Import 865 parts + 7,530 cross-references
+# 2. Parse CATALOGACION → Import 2,304 vehicle applications + part details
+# 3. Handle orphaned SKUs gracefully (skip with warnings)
+# 4. System ready for admin CRUD interface
 ```
 
-**Actual Data Volumes (From Real Files):**
-- **PRECIOS**: 865 ACR parts, 7,530 cross-references  
-- **CATALOGACION**: 740 unique parts, 2,304 vehicle applications (actual)
-- **Processing Speed**: <100ms PRECIOS, <200ms CATALOGACION
-- **Memory**: Efficient Buffer/ArrayBuffer support
-- **Conflict Detection**: 13 orphaned SKUs detected and reported
+**Data Volumes (From Real Files):**
+- **PRECIOS**: 865 parts, 7,530 cross-references ✅ IMPORTABLE
+- **CATALOGACION**: 740 parts, 2,304 vehicle applications ✅ IMPORTABLE  
+- **Performance**: <100ms PRECIOS, <200ms CATALOGACION
+- **Post-Bootstrap**: Excel parsers can be archived, CRUD interface becomes primary tool
+
+**Implementation Status**: ✅ **COMPLETE** - Ready for bootstrap import
 
 ### Search Performance Strategy
 
