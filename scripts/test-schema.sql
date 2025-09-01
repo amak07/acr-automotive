@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS test.parts (
     position_type VARCHAR(50),
     abs_type VARCHAR(20),
     bolt_pattern VARCHAR(50),
-    drive_type VARCHAR(20),
+    drive_type VARCHAR(50),
     specifications TEXT,
     image_url TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),

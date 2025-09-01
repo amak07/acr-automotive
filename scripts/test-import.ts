@@ -5,7 +5,7 @@
 
 import { mapPrecios_ACRSkus_ToDatabase } from "@/lib/supabase/mappers";
 import { testSupabase } from "./test-client";
-import { PreciosResult, CrossReference } from "@/lib/excel/types";
+import { PreciosResult, CrossReference, CatalogacionResult, VehicleApplication } from "@/lib/excel/types";
 import { DatabaseCrossRef, DatabasePartRow } from "@/lib/supabase/utils";
 
 /**
@@ -143,5 +143,162 @@ export async function testImportPreciosData(preciosResult: PreciosResult) {
   return {
     parts: insertedParts,
     crossReferences: insertedCrossRefs,
+  };
+}
+
+/**
+ * Test version of importVehicleApplications - uses test schema
+ */
+export async function testImportVehicleApplications(
+  applications: VehicleApplication[],
+  existingParts: DatabasePartRow[]
+): Promise<any[]> {
+  console.log("🧪 [TEST] Importing vehicle applications to test.vehicle_applications table...");
+
+  // Create lookup map for ACR SKU -> Part ID
+  const partIdMap = new Map<string, string>();
+  existingParts.forEach((part) => {
+    partIdMap.set(part.acr_sku, part.id);
+  });
+
+  // Transform vehicle applications to database format with duplicate detection
+  const databaseApplications: Array<{
+    part_id: string;
+    make: string;
+    model: string;
+    year_range: string;
+  }> = [];
+  const applicationSet = new Set<string>(); // Track unique combinations
+  let skippedOrphaned = 0;
+  let skippedDuplicates = 0;
+
+  applications.forEach((app) => {
+    const partId = partIdMap.get(app.acrSku);
+    if (!partId) {
+      skippedOrphaned++;
+      console.warn(`⚠️  [TEST] Skipping application for orphaned ACR SKU: ${app.acrSku}`);
+      return;
+    }
+
+    // Create unique key for this part-vehicle combination
+    const uniqueKey = `${partId}|${app.make}|${app.model}|${app.yearRange}`;
+    if (applicationSet.has(uniqueKey)) {
+      skippedDuplicates++;
+      return; // Skip duplicate application
+    }
+    applicationSet.add(uniqueKey);
+
+    databaseApplications.push({
+      part_id: partId,
+      make: app.make,
+      model: app.model, 
+      year_range: app.yearRange,
+    });
+  });
+
+  if (skippedOrphaned > 0) {
+    console.log(`📊 [TEST] Skipped ${skippedOrphaned} applications for orphaned ACR SKUs`);
+  }
+  if (skippedDuplicates > 0) {
+    console.log(`📊 [TEST] Skipped ${skippedDuplicates} duplicate vehicle applications`);
+  }
+  console.log(`📊 [TEST] Importing ${databaseApplications.length} unique vehicle applications to test schema`);
+
+  // Insert vehicle applications
+  const result = await testSupabase
+    .from("vehicle_applications")
+    .insert(databaseApplications)
+    .select();
+
+  if (result.error) {
+    throw new Error(`Failed to insert vehicle applications: ${result.error.message}`);
+  }
+
+  if (!result.data) {
+    throw new Error("No data returned from vehicle applications insert");
+  }
+
+  console.log(`✅ [TEST] Inserted ${result.data.length} vehicle applications to test schema`);
+  return result.data;
+}
+
+/**
+ * Test version of updatePartDetails - uses test schema
+ */
+export async function testUpdatePartDetails(
+  catalogacionResult: CatalogacionResult,
+  existingParts: DatabasePartRow[]
+): Promise<void> {
+  console.log("🧪 [TEST] Updating part details in test.parts table...");
+
+  // Create lookup map for ACR SKU -> Part ID
+  const partIdMap = new Map<string, string>();
+  existingParts.forEach((part) => {
+    partIdMap.set(part.acr_sku, part.id);
+  });
+
+  // Group part data by ACR SKU (take first occurrence for each)
+  const partDetailsMap = new Map<string, any>();
+  catalogacionResult.parts.forEach((part) => {
+    if (!partDetailsMap.has(part.acrSku)) {
+      partDetailsMap.set(part.acrSku, {
+        part_type: part.partType || null,
+        position_type: part.position || null,
+        abs_type: part.absType || null, 
+        bolt_pattern: part.boltPattern || null,
+        drive_type: part.driveType || null,
+        specifications: part.specifications || null,
+      });
+    }
+  });
+
+  // Update parts in batches
+  let updateCount = 0;
+  for (const [acrSku, details] of partDetailsMap) {
+    const partId = partIdMap.get(acrSku);
+    if (!partId) {
+      continue; // Skip orphaned SKUs
+    }
+
+    const result = await testSupabase
+      .from("parts")
+      .update(details)
+      .eq("id", partId);
+
+    if (result.error) {
+      console.error(`❌ [TEST] Failed to update part ${acrSku}:`, result.error);
+      console.error(`    Details:`, JSON.stringify(details, null, 2));
+    } else {
+      updateCount++;
+    }
+  }
+
+  console.log(`📊 [TEST] Updated ${updateCount} parts with CATALOGACION details in test schema`);
+}
+
+/**
+ * Test version of importCatalogacionData - orchestrates test imports
+ */
+export async function testImportCatalogacionData(
+  catalogacionResult: CatalogacionResult,
+  existingParts: DatabasePartRow[]
+) {
+  console.log("🧪 [TEST] Starting CATALOGACION data import to test schema...");
+
+  // Step 1: Update part details
+  await testUpdatePartDetails(catalogacionResult, existingParts);
+
+  // Step 2: Import vehicle applications
+  const insertedApplications = await testImportVehicleApplications(
+    catalogacionResult.applications,
+    existingParts
+  );
+
+  console.log("✅ [TEST] CATALOGACION import completed successfully");
+
+  return {
+    updatedParts: catalogacionResult.parts.length,
+    insertedApplications: insertedApplications.length,
+    orphanedSkus: catalogacionResult.orphanedApplications,
   };
 }
