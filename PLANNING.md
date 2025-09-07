@@ -1,5 +1,67 @@
 # PLANNING.md - ACR Automotive
 
+## MASTER PROMPT FOR PERSONAL DEVELOPMENT
+
+**Context**: I am a junior developer learning SQL, databases, and Next.js. You are my experienced tech lead, helping guide me and preparing me for interviews.
+
+**Your Role**: 
+- Guide me with simple implementation plans for each task
+- Help me understand architectural decisions before writing code  
+- Only write code when I explicitly ask you to complete a coding task
+- Review my implementations like a tech lead would
+- Move on only when we've achieved each task successfully
+
+**Teaching Style**:
+- Ask me architectural questions to make me think through problems
+- Let me implement first, then review and guide improvements
+- Explain concepts in interview-friendly ways
+- Focus on understanding WHY, not just HOW
+
+## 🎯 CURRENT SESSION STATE (Updated: January 29, 2025)
+
+**What We've Accomplished:**
+✅ **GET /api/admin/parts** - Complete list endpoint with pagination, search, sorting
+✅ **Zod validation** - Professional query parameter validation 
+✅ **Supabase query patterns** - Learned immutable query builder concepts
+✅ **API testing** - Successfully tested with curl commands
+✅ **Business logic decisions** - ACR SKU immutability, cascade deletes, etc.
+
+**Current Task:** ✅ **COMPLETED** - Full CRUD API Implementation
+
+**Architecture Decisions Made:**
+- **Single-file CRUD approach**: All endpoints in `/api/admin/parts/route.ts` for MVP
+- **Query parameter routing**: `GET ?id=uuid` for single part vs `GET ?limit=20` for list
+- **Separate queries pattern**: Industry standard - 3 separate queries for part details instead of JOINs
+- **UUID validation**: Strict validation with custom error messages using `z.uuid()`
+- **Error handling**: 400 (validation), 404 (not found), 409 (duplicate), 201 (created), 200 (success)
+- **ACR prefix automation**: User enters "10094077" → "ACR10094077" (UX improvement)
+- **Cascade deletes**: Handled via database foreign key constraints
+- **Response typing**: Full TypeScript integration with `DatabasePartRow` and `PostgrestError`
+
+**Completed Implementation:**
+✅ **GET /api/admin/parts** - List with pagination, search, sorting  
+✅ **GET /api/admin/parts?id=uuid** - Single part with vehicle applications and cross-references
+✅ **POST /api/admin/parts** - Create with validation, duplicate prevention, ACR prefix
+✅ **PUT /api/admin/parts** - Update existing (immutable ACR SKU), 404 handling  
+✅ **DELETE /api/admin/parts** - Delete with 404 handling, cascade via DB constraints
+
+**Key Concepts Learned:**
+- Complete CRUD API implementation with Next.js App Router
+- Supabase query patterns: immutable builders, separate queries vs JOINs
+- Professional error handling: HTTP status codes, PostgrestError typing
+- Advanced Zod validation: .uuid(), .omit(), .extend(), custom error messages
+- Database relationships: foreign keys, cascade deletes, related data queries
+- TypeScript integration: generated types, interface design, proper typing
+- Industry standards: separate queries, UUID validation, REST conventions
+- Business logic implementation: immutable fields, prefix automation, data integrity
+
+**Student's Current Understanding Level:**
+- **Production-ready API skills**: Can build complete CRUD systems independently
+- **Advanced TypeScript**: Using generated types, proper error handling, complex validation
+- **Database relationships**: Understanding foreign keys, joins, related data patterns  
+- **Industry best practices**: Following REST standards, proper HTTP codes, maintainable patterns
+- **Interview-ready**: Demonstrates full-stack API development competency
+
 ## Project Overview
 
 **Project Name**: ACR Automotive
@@ -73,7 +135,7 @@
 ### Data Sources (UPDATED)
 
 - **PRECIOS Excel**: `LISTA DE PRECIOS` ✅ (865 ACR parts, 7,530 cross-references) **COMPLETED**
-- **CATALOGACION Excel**: `CATALOGACION ACR CLIENTES.xlsx` ⏳ (~2,335 vehicle applications) **TODO**  
+- **CATALOGACION Excel**: `CATALOGACION ACR CLIENTES.xlsx` ⏳ (~2,335 vehicle applications) **TODO**
 - **Images**: Admin upload via Supabase Storage (no Google Drive migration)
 - **Two-step monthly workflow**: PRECIOS first → CATALOGACION second
 
@@ -156,9 +218,10 @@ SELECT DISTINCT year_range FROM vehicle_applications WHERE make = ? AND model = 
 ### Import Strategy
 
 #### One-Time Bootstrap Process
+
 ```
 1. Run PRECIOS import locally → Get 865 parts + 7,530 cross-references
-2. Run CATALOGACION import locally → Add part details + 2,304 vehicle applications  
+2. Run CATALOGACION import locally → Add part details + 2,304 vehicle applications
 3. Manual cleanup of any obvious issues
 4. Switch to admin CRUD interface for ongoing management
 ```
@@ -173,11 +236,13 @@ async function bootstrapDatabase() {
   // Step 1: Import PRECIOS data
   const preciosResult = await PreciosParser.parseFile(preciosBuffer);
   await importPreciosData(preciosResult);
-  
-  // Step 2: Import CATALOGACION data  
-  const catalogacionResult = await CatalogacionParser.parseFile(catalogacionBuffer);
+
+  // Step 2: Import CATALOGACION data
+  const catalogacionResult = await CatalogacionParser.parseFile(
+    catalogacionBuffer
+  );
   await importCatalogacionData(catalogacionResult);
-  
+
   console.log("✅ Bootstrap complete - ready for admin CRUD management");
 }
 ```
@@ -187,22 +252,24 @@ async function bootstrapDatabase() {
 ## Excel File Structures (UPDATED from Real Implementation)
 
 **PRECIOS File**: `LISTA DE PRECIOS` ✅ **COMPLETED**
+
 ```
 Header Row: 8, Data Starts: 9
 Column A: "#" (ID - ignored)
-Column B: "ACR" (ACR SKU - required) 
+Column B: "ACR" (ACR SKU - required)
 Columns C-M: Competitor brands (NATIONAL, TMK, GSP, etc.)
 Results: 865 parts, 7,530 cross-references
 Performance: <100ms processing
 ```
 
 **CATALOGACION File**: `CATALOGACION ACR CLIENTES.xlsx` ✅ **COMPLETED**
-```  
+
+```
 Header Row: 1, Data Starts: 2
 Column B: "ACR" (ACR SKU - links to PRECIOS)
 Column E: "Clase" (Part type)
 Column K: "MARCA" (Vehicle make)
-Column L: "APLICACIÓN" (Vehicle model) 
+Column L: "APLICACIÓN" (Vehicle model)
 Column M: "AÑO" (Year range)
 Results: 740 unique parts, 2,304 vehicle applications
 Performance: <200ms target achieved (96-113ms actual)
@@ -210,6 +277,7 @@ Data Integrity: 13 orphaned SKUs detected for review
 ```
 
 **Processing Strategy:**
+
 - **Step 1**: Import PRECIOS → Establish master part list (✅ COMPLETED)
 - **Step 2**: Import CATALOGACION → Add part details + vehicle applications (✅ COMPLETED)
 - **Step 3**: Conflict Detection → Data integrity validation (✅ COMPLETED)
@@ -221,12 +289,14 @@ Data Integrity: 13 orphaned SKUs detected for review
 ### Phase 1: Bootstrap Data Foundation (2 days)
 
 1. **✅ Project Setup (COMPLETED)**
+
    - Next.js 15 + TypeScript + Tailwind + shadcn/ui
    - Supabase database and storage setup
    - Simple i18n system (English dev, Spanish prod)
    - Mock admin mode (no authentication)
 
 2. **✅ Database Schema (COMPLETED)**
+
    - 3 core tables: parts, vehicle_applications, cross_references
    - Search indexes and business logic functions
    - Supabase Storage for images
@@ -238,8 +308,9 @@ Data Integrity: 13 orphaned SKUs detected for review
    - ✅ Production database populated with real data (865 parts, 6,408 cross-refs, 2,304 applications)
 
 **Data Quality Findings (From Real Excel Testing):**
+
 - ✅ **2,992 duplicate cross-references** automatically filtered during import
-- ✅ **109+ long competitor SKUs** (>50 chars) automatically skipped with warnings  
+- ✅ **109+ long competitor SKUs** (>50 chars) automatically skipped with warnings
 - ✅ **7 duplicate vehicle applications** automatically deduplicated
 - ✅ **13 orphaned ACR SKUs** identified and reported (present in CATALOGACION but not PRECIOS)
 - ✅ **1 drive_type field constraint** updated from 20→50 chars to accommodate "FRENOS SERVICIO LIGERO"
@@ -250,19 +321,23 @@ Data Integrity: 13 orphaned SKUs detected for review
 
 ### Phase 2: Admin CRUD Interface (NEXT - 1 week)
 
-4. **🔄 Parts Management System (IN PROGRESS)**
-   - List all parts with pagination and search
-   - Create new parts with full form validation
-   - Edit existing parts (ACR SKU, type, specs, etc.)
-   - Delete parts (with confirmation and cascade handling)
+4. **✅ Parts Management System (COMPLETED)**
+
+   - ✅ List all parts with pagination and search
+   - ✅ Get single part with vehicle applications and cross-references  
+   - ✅ Create new parts with full form validation and ACR prefix automation
+   - ✅ Edit existing parts (immutable ACR SKU, business rules enforced)
+   - ✅ Delete parts with 404 handling and cascade via database constraints
 
 5. **Vehicle Applications Management**
+
    - Add/remove vehicle compatibility per part
    - Bulk vehicle application management
    - Vehicle dropdown cascades (Make → Model → Year)
    - Duplicate prevention and validation
 
 6. **Cross-References Management**
+
    - Add/remove competitor SKU mappings per part
    - Competitor brand extraction and management
    - Cross-reference validation and duplicate prevention
@@ -277,12 +352,14 @@ Data Integrity: 13 orphaned SKUs detected for review
 ### Phase 3: Search Interface (1 week)
 
 8. **Vehicle Search**
+
    - Multi-step dropdown interface (Baleros-Bisa pattern)
    - Make → Model → Year → Part Type progression
    - Dynamic dropdowns populated from database
    - Search results with SKU prominence
 
 9. **SKU Cross-Reference Search**
+
    - Single input field for competitor SKU lookup
    - Search both ACR SKUs and competitor SKUs
    - Fuzzy matching for typos
@@ -298,6 +375,7 @@ Data Integrity: 13 orphaned SKUs detected for review
 ### Phase 4: Production Deployment (2-3 days)
 
 11. **Spanish Translation & Polish**
+
     - Complete Spanish translation for production
     - Technical terminology validation
     - UI/UX refinements based on testing
@@ -419,6 +497,7 @@ POST   /api/admin/parts/:id/image         // Upload part image
 ### Bootstrap Import Architecture (Simplified)
 
 **One-Time Import Process:**
+
 ```bash
 # Simple one-time bootstrap (run locally)
 npm run bootstrap
@@ -431,8 +510,9 @@ npm run bootstrap
 ```
 
 **Data Volumes (From Real Files):**
+
 - **PRECIOS**: 865 parts, 7,530 cross-references ✅ IMPORTABLE
-- **CATALOGACION**: 740 parts, 2,304 vehicle applications ✅ IMPORTABLE  
+- **CATALOGACION**: 740 parts, 2,304 vehicle applications ✅ IMPORTABLE
 - **Performance**: <100ms PRECIOS, <200ms CATALOGACION
 - **Post-Bootstrap**: Excel parsers can be archived, CRUD interface becomes primary tool
 
