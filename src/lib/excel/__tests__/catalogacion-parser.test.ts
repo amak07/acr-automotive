@@ -99,15 +99,55 @@ describe('CatalogacionParser - Simplified', () => {
       expect(firstApp).toHaveProperty('acrSku');
       expect(firstApp).toHaveProperty('make');
       expect(firstApp).toHaveProperty('model');
-      expect(firstApp).toHaveProperty('yearRange');
+      expect(firstApp).toHaveProperty('startYear');
+      expect(firstApp).toHaveProperty('endYear');
 
       // All applications should have required fields
       const invalidApps = result.applications.filter(app => 
-        !app.acrSku || !app.make || !app.model || !app.yearRange
+        !app.acrSku || !app.make || !app.model || !app.startYear || !app.endYear
       );
       expect(invalidApps.length).toBe(0);
 
       console.log(`✅ All ${result.applications.length} vehicle applications have valid structure`);
+    });
+
+    it('should parse year ranges correctly', () => {
+      // Skip test if Excel files don't exist
+      if (!fs.existsSync(PRECIOS_FILE_PATH) || !fs.existsSync(CATALOGACION_FILE_PATH)) {
+        return;
+      }
+
+      // First get valid ACR SKUs from PRECIOS
+      const preciosBuffer = fs.readFileSync(PRECIOS_FILE_PATH);
+      const preciosResult = PreciosParser.parseFile(preciosBuffer);
+      const validAcrSkus = preciosResult.acrSkus;
+
+      // Parse CATALOGACION
+      const catalogacionBuffer = fs.readFileSync(CATALOGACION_FILE_PATH);
+      const result = CatalogacionParser.parseFile(catalogacionBuffer, validAcrSkus);
+
+      // Check year parsing results
+      const appsWithYears = result.applications.filter(app => app.startYear && app.endYear);
+      expect(appsWithYears.length).toBeGreaterThan(0);
+
+      // Log sample year data for verification
+      const sampleApps = result.applications.slice(0, 5);
+      console.log('📅 Sample year parsing results:');
+      sampleApps.forEach((app, index) => {
+        console.log(`  ${index + 1}. ${app.acrSku}: ${app.startYear}-${app.endYear} (${app.make} ${app.model})`);
+      });
+
+      // Validate that years are numeric when converted
+      const validYears = appsWithYears.filter(app => {
+        const start = Number(app.startYear);
+        const end = Number(app.endYear);
+        return !isNaN(start) && !isNaN(end) && start > 1900 && start <= 2030 && end >= start;
+      });
+      
+      console.log(`✅ ${validYears.length} out of ${appsWithYears.length} applications have valid year ranges`);
+      
+      // Most should have valid years (allow some parsing failures)
+      expect(validYears.length).toBeGreaterThan(appsWithYears.length * 0.8); // 80% should be valid
     });
   });
 

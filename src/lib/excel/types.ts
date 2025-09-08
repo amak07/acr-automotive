@@ -112,7 +112,8 @@ export interface CatalogacionRow {
   specifications?: string;
   make: string;
   model: string;
-  yearRange: string;
+  startYear: string;
+  endYear: string;
   rowNumber: number;
 }
 
@@ -134,7 +135,8 @@ export interface VehicleApplication {
   acrSku: string; // Links to PartData
   make: string;
   model: string;
-  yearRange: string;
+  startYear: number;
+  endYear: number;
   rowNumber: number; // For error reporting
 }
 

@@ -1,6 +1,11 @@
 import { supabase } from "./client";
 import { mapPrecios_ACRSkus_ToDatabase } from "./mappers";
-import { PreciosResult, CrossReference, CatalogacionResult, VehicleApplication } from "@/lib/excel/types";
+import {
+  PreciosResult,
+  CrossReference,
+  CatalogacionResult,
+  VehicleApplication,
+} from "@/lib/excel/types";
 import {
   DatabasePartRow,
   DatabaseCrossRef,
@@ -58,22 +63,26 @@ export async function importCrossReferences(
 
   let skippedLongSkus = 0;
   let skippedDuplicates = 0;
-  
+
   crossReferences.forEach((item) => {
     const partId = partIdMap.get(item.acrSku);
     if (!partId) {
       throw new Error(
         `Cross-reference ACR SKU "${item.acrSku}" not found in inserted parts`
       );
-    } 
-    
+    }
+
     // Skip competitor SKUs that are too long for current database schema
     if (item.competitorSku.length > 50) {
       skippedLongSkus++;
-      console.warn(`⚠️  Skipping long competitor SKU (${item.competitorSku.length} chars): "${item.competitorSku.substring(0, 50)}..."`);
+      console.warn(
+        `⚠️  Skipping long competitor SKU (${
+          item.competitorSku.length
+        } chars): "${item.competitorSku.substring(0, 50)}..."`
+      );
       return;
     }
-    
+
     // Create unique key to detect duplicates
     const uniqueKey = `${partId}|${item.competitorSku}`;
     if (crossRefSet.has(uniqueKey)) {
@@ -81,7 +90,7 @@ export async function importCrossReferences(
       return; // Skip duplicate
     }
     crossRefSet.add(uniqueKey);
-    
+
     const dbCrossRef: DatabaseCrossRef = {
       acr_part_id: partId,
       competitor_sku: item.competitorSku,
@@ -89,14 +98,20 @@ export async function importCrossReferences(
     };
     databaseCrossRefs.push(dbCrossRef);
   });
-  
+
   // Log skipped count for visibility
   if (skippedLongSkus > 0 || skippedDuplicates > 0) {
-    console.log(`📊 Skipped ${skippedLongSkus} cross-references with long SKUs (>50 chars)`);
+    console.log(
+      `📊 Skipped ${skippedLongSkus} cross-references with long SKUs (>50 chars)`
+    );
     if (skippedDuplicates > 0) {
-      console.log(`📊 Skipped ${skippedDuplicates} duplicate cross-references (data entry cleanup)`);
+      console.log(
+        `📊 Skipped ${skippedDuplicates} duplicate cross-references (data entry cleanup)`
+      );
     }
-    console.log(`📊 Importing ${databaseCrossRefs.length} unique cross-references`);
+    console.log(
+      `📊 Importing ${databaseCrossRefs.length} unique cross-references`
+    );
   }
 
   // Step 3: Insert into Supabase with error handling
@@ -144,7 +159,7 @@ export async function importPreciosData(preciosResult: PreciosResult) {
 
 /**
  * Step 4: Import vehicle applications from CATALOGACION data
- * 
+ *
  * @param applications - Vehicle application data from CATALOGACION parser
  * @param existingParts - Parts already in database (from PRECIOS import)
  * @returns Array of inserted vehicle applications
@@ -164,7 +179,8 @@ export async function importVehicleApplications(
     part_id: string;
     make: string;
     model: string;
-    year_range: string;
+    start_year: number;
+    end_year: number;
   }> = [];
   let skippedOrphaned = 0;
 
@@ -172,22 +188,29 @@ export async function importVehicleApplications(
     const partId = partIdMap.get(app.acrSku);
     if (!partId) {
       skippedOrphaned++;
-      console.warn(`⚠️  Skipping application for orphaned ACR SKU: ${app.acrSku}`);
+      console.warn(
+        `⚠️  Skipping application for orphaned ACR SKU: ${app.acrSku}`
+      );
       return;
     }
 
     databaseApplications.push({
       part_id: partId,
       make: app.make,
-      model: app.model, 
-      year_range: app.yearRange,
+      model: app.model,
+      start_year: app.startYear,
+      end_year: app.endYear,
     });
   });
 
   if (skippedOrphaned > 0) {
-    console.log(`📊 Skipped ${skippedOrphaned} applications for orphaned ACR SKUs`);
+    console.log(
+      `📊 Skipped ${skippedOrphaned} applications for orphaned ACR SKUs`
+    );
   }
-  console.log(`📊 Importing ${databaseApplications.length} vehicle applications`);
+  console.log(
+    `📊 Importing ${databaseApplications.length} vehicle applications`
+  );
 
   // Insert vehicle applications
   const result = await supabase
@@ -196,7 +219,9 @@ export async function importVehicleApplications(
     .select();
 
   if (result.error) {
-    throw new Error(`Failed to insert vehicle applications: ${result.error.message}`);
+    throw new Error(
+      `Failed to insert vehicle applications: ${result.error.message}`
+    );
   }
 
   if (!result.data) {
@@ -209,7 +234,7 @@ export async function importVehicleApplications(
 /**
  * Step 5: Update part details from CATALOGACION data
  * Updates existing parts with additional details from CATALOGACION file
- * 
+ *
  * @param catalogacionResult - Output from CatalogacionParser.parseFile()
  * @param existingParts - Parts already in database (from PRECIOS import)
  */
@@ -230,7 +255,7 @@ export async function updatePartDetails(
       partDetailsMap.set(part.acrSku, {
         part_type: part.partType || null,
         position_type: part.position || null,
-        abs_type: part.absType || null, 
+        abs_type: part.absType || null,
         bolt_pattern: part.boltPattern || null,
         drive_type: part.driveType || null,
         specifications: part.specifications || null,
@@ -263,7 +288,7 @@ export async function updatePartDetails(
 
 /**
  * Complete CATALOGACION import workflow
- * 
+ *
  * @param catalogacionResult - Output from CatalogacionParser.parseFile()
  * @param existingParts - Parts already in database (from PRECIOS import)
  * @returns Summary of import results
