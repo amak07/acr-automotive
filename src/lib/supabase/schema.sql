@@ -51,7 +51,8 @@ CREATE TABLE vehicle_applications (
     part_id UUID NOT NULL REFERENCES parts(id) ON DELETE CASCADE,
     make VARCHAR(50) NOT NULL,
     model VARCHAR(100) NOT NULL,
-    year_range VARCHAR(20) NOT NULL,
+    start_year INT NOT NULL,
+    end_year INT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -86,7 +87,7 @@ CREATE INDEX idx_parts_part_type ON parts(part_type);  -- For part type filterin
 -- Indexes for vehicle_applications table:
 CREATE INDEX idx_vehicle_applications_make ON vehicle_applications(make);  -- For make search
 CREATE INDEX idx_vehicle_applications_model ON vehicle_applications(model);  -- For model search
-CREATE INDEX idx_vehicle_applications_year ON vehicle_applications(year_range);  -- For year search
+CREATE INDEX idx_vehicle_applications_year ON vehicle_applications(start_year, end_year); -- For year search
 CREATE INDEX idx_vehicle_applications_part_id ON vehicle_applications(part_id);  -- For joining to parts
 
 -- Indexes for cross_references table:
@@ -177,7 +178,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION search_by_vehicle(
     make TEXT,
     model TEXT,
-    year_range TEXT
+    target_year INT
 )
 RETURNS TABLE (
     id UUID,
@@ -198,7 +199,7 @@ BEGIN
     p.image_url, p.created_at, p.updated_at
     FROM parts p
     JOIN vehicle_applications va ON p.id = va.part_id
-    WHERE va.make = $1 AND va.model = $2 AND va.year_range = $3;
+    WHERE va.make = $1 AND va.model = $2 AND $3 BETWEEN va.start_year AND va.end_year;
 END;
 $$ LANGUAGE plpgsql;
 
