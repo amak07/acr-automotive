@@ -62,8 +62,34 @@ export async function GET(request: NextRequest) {
         .range(params.offset, params.offset + params.limit - 1)
         .order(params.sort_by, { ascending: params.sort_order === "asc" });
 
+      // Text search in ACR SKU
       if (params.search) {
         query = query.ilike("acr_sku", `%${params.search}%`);
+      }
+
+      // Filter by part type
+      if (params.part_type) {
+        query = query.eq("part_type", params.part_type);
+      }
+
+      // Filter by position type
+      if (params.position_type) {
+        query = query.eq("position_type", params.position_type);
+      }
+
+      // Filter by ABS type
+      if (params.abs_type) {
+        query = query.eq("abs_type", params.abs_type);
+      }
+
+      // Filter by drive type
+      if (params.drive_type) {
+        query = query.eq("drive_type", params.drive_type);
+      }
+
+      // Filter by bolt pattern
+      if (params.bolt_pattern) {
+        query = query.eq("bolt_pattern", params.bolt_pattern);
       }
 
       const {
