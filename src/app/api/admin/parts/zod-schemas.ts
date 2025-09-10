@@ -7,6 +7,13 @@ export const querySchema = z.object({
   search: z.string().optional(),
   sort_by: z.string().optional().default("acr_sku"),
   sort_order: z.enum(["asc", "desc"]).default("asc"),
+  
+  // Filter parameters
+  part_type: z.string().optional(),
+  position_type: z.string().optional(),
+  abs_type: z.string().optional(),
+  drive_type: z.string().optional(),
+  bolt_pattern: z.string().optional(),
 });
 
 export const createPartSchema = z.object({
