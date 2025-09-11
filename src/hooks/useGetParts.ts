@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { querySchema } from "@/app/api/admin/parts/zod-schemas";
 import { z } from "zod";
-import { DatabasePartRow } from "@/lib/supabase/utils";
 import { EnrichedPart } from "@/app/api/admin/parts/route";
 
 type UsePartsParams = z.infer<typeof querySchema>;

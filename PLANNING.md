@@ -390,6 +390,9 @@ Data Integrity: 13 orphaned SKUs detected for review
    - ✅ Create new parts with full form validation and ACR prefix automation
    - ✅ Edit existing parts (immutable ACR SKU, business rules enforced)
    - ✅ Delete parts with 404 handling and cascade via database constraints
+   - ✅ **API Enhancement (Jan 2025)**: Extended parts list API to include vehicle/cross-reference counts via Supabase joins
+   - ✅ **UI Connection**: PartsList component connected to real data with TanStack Query, pagination, and loading states
+   - ✅ **Component Architecture**: Extracted AdminPagination component for reusability across admin interfaces
 
 5. **Vehicle Applications Management**
 
