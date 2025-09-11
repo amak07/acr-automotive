@@ -80,9 +80,25 @@ export const translations: Record<keyof TranslationKeys, Record<Locale, string>>
     en: 'vehicles',
     es: 'vehículos'
   },
+  'admin.parts.vehicle': {
+    en: 'vehicle',
+    es: 'vehículo'
+  },
   'admin.parts.references': {
     en: 'references',
     es: 'referencias'
+  },
+  'admin.parts.reference': {
+    en: 'reference',
+    es: 'referencia'
+  },
+  'admin.parts.vehicleApplications': {
+    en: 'Vehicle Applications',
+    es: 'Aplicaciones de Vehículos'
+  },
+  'admin.parts.crossReferences': {
+    en: 'Cross References',
+    es: 'Referencias Cruzadas'
   },
   'admin.parts.pagination': {
     en: 'Showing {{start}}-{{end}} of {{total}} parts',
@@ -91,8 +107,8 @@ export const translations: Record<keyof TranslationKeys, Record<Locale, string>>
   
   // Common Actions
   'common.actions.view': {
-    en: 'View',
-    es: 'Ver'
+    en: 'See Details',
+    es: 'Ver Detalles'
   },
   'common.actions.edit': {
     en: 'Edit',
@@ -123,6 +139,14 @@ export const translations: Record<keyof TranslationKeys, Record<Locale, string>>
   'common.error': {
     en: 'Error',
     es: 'Error'
+  },
+  'common.error.generic': {
+    en: 'Something went wrong',
+    es: 'Algo salió mal'
+  },
+  'common.error.tryAgain': {
+    en: 'Please try again',
+    es: 'Por favor, inténtalo de nuevo'
   },
   'common.success': {
     en: 'Success',

@@ -27,7 +27,11 @@ export interface TranslationKeys {
   'admin.parts.specifications': string;
   'admin.parts.applications': string;
   'admin.parts.vehicles': string;
+  'admin.parts.vehicle': string;
   'admin.parts.references': string;
+  'admin.parts.reference': string;
+  'admin.parts.vehicleApplications': string;
+  'admin.parts.crossReferences': string;
   'admin.parts.pagination': string;
   
   // Common Actions
@@ -41,6 +45,8 @@ export interface TranslationKeys {
   // Common States
   'common.loading': string;
   'common.error': string;
+  'common.error.generic': string;
+  'common.error.tryAgain': string;
   'common.success': string;
   
   // Part Types & Positions
