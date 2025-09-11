@@ -10,6 +10,18 @@ import {
 import { PostgrestError } from "@supabase/supabase-js";
 import { DatabasePartRow } from "@/lib/supabase/utils";
 
+// Type for parts with joined relationships
+type PartWithRelations = DatabasePartRow & {
+  vehicle_applications: Array<{ id: string }>;
+  cross_references: Array<{ id: string }>;
+};
+
+// Type for enriched response
+export type EnrichedPart = DatabasePartRow & {
+  vehicle_count: number;
+  cross_reference_count: number;
+};
+
 type AdminPartsQueryParams = z.infer<typeof querySchema>;
 
 export async function GET(request: NextRequest) {
@@ -58,7 +70,11 @@ export async function GET(request: NextRequest) {
     } else {
       let query = supabase
         .from("parts")
-        .select("*")
+        .select(`
+          *,
+          vehicle_applications(id),
+          cross_references(id)
+        `, { count: "exact" })
         .range(params.offset, params.offset + params.limit - 1)
         .order(params.sort_by, { ascending: params.sort_order === "asc" });
 
@@ -94,12 +110,36 @@ export async function GET(request: NextRequest) {
 
       const {
         data,
+        count,
         error: supabaseError,
-      }: { data: DatabasePartRow[] | null; error: PostgrestError | null } =
-        await query;
+      }: {
+        data: PartWithRelations[] | null;
+        count: number | null;
+        error: PostgrestError | null;
+      } = await query;
+
       if (supabaseError) throw supabaseError;
 
-      return Response.json({ data });
+      // Transform the data to include counts
+      const enrichedData: EnrichedPart[] | null = data?.map(part => ({
+        // Spread the base part properties
+        id: part.id,
+        acr_sku: part.acr_sku,
+        part_type: part.part_type,
+        position_type: part.position_type,
+        abs_type: part.abs_type,
+        bolt_pattern: part.bolt_pattern,
+        drive_type: part.drive_type,
+        specifications: part.specifications,
+        image_url: part.image_url,
+        created_at: part.created_at,
+        updated_at: part.updated_at,
+        // Add the computed counts
+        vehicle_count: part.vehicle_applications?.length || 0,
+        cross_reference_count: part.cross_references?.length || 0,
+      })) || null;
+
+      return Response.json({ data: enrichedData, count });
     }
   } catch (error) {
     return Response.json(
