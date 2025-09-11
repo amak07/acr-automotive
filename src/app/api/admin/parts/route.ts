@@ -70,11 +70,14 @@ export async function GET(request: NextRequest) {
     } else {
       let query = supabase
         .from("parts")
-        .select(`
+        .select(
+          `
           *,
           vehicle_applications(id),
           cross_references(id)
-        `, { count: "exact" })
+        `,
+          { count: "exact" }
+        )
         .range(params.offset, params.offset + params.limit - 1)
         .order(params.sort_by, { ascending: params.sort_order === "asc" });
 
@@ -120,24 +123,24 @@ export async function GET(request: NextRequest) {
 
       if (supabaseError) throw supabaseError;
 
-      // Transform the data to include counts
-      const enrichedData: EnrichedPart[] | null = data?.map(part => ({
-        // Spread the base part properties
-        id: part.id,
-        acr_sku: part.acr_sku,
-        part_type: part.part_type,
-        position_type: part.position_type,
-        abs_type: part.abs_type,
-        bolt_pattern: part.bolt_pattern,
-        drive_type: part.drive_type,
-        specifications: part.specifications,
-        image_url: part.image_url,
-        created_at: part.created_at,
-        updated_at: part.updated_at,
-        // Add the computed counts
-        vehicle_count: part.vehicle_applications?.length || 0,
-        cross_reference_count: part.cross_references?.length || 0,
-      })) || null;
+      const enrichedData: EnrichedPart[] | null =
+        data?.map((part) => ({
+          // Base part properties
+          id: part.id,
+          acr_sku: part.acr_sku,
+          part_type: part.part_type,
+          position_type: part.position_type,
+          abs_type: part.abs_type,
+          bolt_pattern: part.bolt_pattern,
+          drive_type: part.drive_type,
+          specifications: part.specifications,
+          image_url: part.image_url,
+          created_at: part.created_at,
+          updated_at: part.updated_at,
+          // Add the computed counts
+          vehicle_count: part.vehicle_applications?.length || 0,
+          cross_reference_count: part.cross_references?.length || 0,
+        })) || null;
 
       return Response.json({ data: enrichedData, count });
     }
