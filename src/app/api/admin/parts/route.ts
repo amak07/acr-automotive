@@ -1,28 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
-import { z } from "zod";
+import {
+  AdminPartsQueryParams,
+  CreatePartRequest,
+  UpdatePartRequest,
+  DeletePartRequest,
+  DatabasePartRow,
+  EnrichedPart,
+  PartWithRelations
+} from "@/types";
 import {
   querySchema,
   createPartSchema,
   updatePartSchema,
   deletePartSchema,
-} from "./zod-schemas";
+} from "./schemas";
 import { PostgrestError } from "@supabase/supabase-js";
-import { DatabasePartRow } from "@/lib/supabase/utils";
+import { z } from "zod";
 
-// Type for parts with joined relationships
-type PartWithRelations = DatabasePartRow & {
-  vehicle_applications: Array<{ id: string }>;
-  cross_references: Array<{ id: string }>;
-};
+// Types imported from centralized location
 
-// Type for enriched response
-export type EnrichedPart = DatabasePartRow & {
-  vehicle_count: number;
-  cross_reference_count: number;
-};
-
-type AdminPartsQueryParams = z.infer<typeof querySchema>;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -154,13 +151,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-type AdminPartsPostParams = z.infer<typeof createPartSchema>;
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
 
   try {
-    const params: AdminPartsPostParams = createPartSchema.parse(body);
+    const params: CreatePartRequest = createPartSchema.parse(body);
     const {
       sku_number,
       part_type,
@@ -224,13 +220,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-type AdminPartsPutParams = z.infer<typeof updatePartSchema>;
 
 export async function PUT(request: NextRequest) {
   const body = await request.json();
 
   try {
-    const params: AdminPartsPutParams = updatePartSchema.parse(body);
+    const params: UpdatePartRequest = updatePartSchema.parse(body);
     const {
       part_type,
       abs_type,
@@ -292,13 +287,12 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-type AdminPartsDeleteParams = z.infer<typeof deletePartSchema>;
 
 export async function DELETE(request: NextRequest) {
   const body = await request.json();
 
   try {
-    const params: AdminPartsDeleteParams = deletePartSchema.parse(body);
+    const params: DeletePartRequest = deletePartSchema.parse(body);
     const { id } = params;
     const {
       data,

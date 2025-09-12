@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { Search } from "lucide-react";
+import { AdminPartsQueryParams } from "@/types";
 
-export function SearchFilters() {
+type SearchFiltersProps = {
+  searchTerm: AdminPartsQueryParams;
+  setSearchTerm: Dispatch<SetStateAction<AdminPartsQueryParams>>;
+};
+
+export function SearchFilters(props: SearchFiltersProps) {
   const { t } = useLocale();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [partType, setPartType] = useState("");
-  const [position, setPosition] = useState("");
+  const { searchTerm, setSearchTerm } = props;
 
   return (
     <div className="bg-white p-4 rounded-lg border border-acr-gray-200 shadow-sm mb-6 lg:p-6">
@@ -20,8 +24,10 @@ export function SearchFilters() {
           <input
             type="text"
             placeholder={t("admin.search.placeholder")}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchTerm.search}
+            onChange={(e) =>
+              setSearchTerm({ ...searchTerm, search: e.target.value })
+            }
             className="w-full pl-10 pr-4 py-3 border border-acr-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent text-sm"
           />
         </div>
@@ -85,8 +91,10 @@ export function SearchFilters() {
               <input
                 type="text"
                 placeholder={t("admin.search.placeholder")}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTerm.search}
+                onChange={(e) =>
+                  setSearchTerm({ ...searchTerm, search: e.target.value })
+                }
                 className="w-full pl-10 pr-4 py-2 border border-acr-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent"
               />
             </div>

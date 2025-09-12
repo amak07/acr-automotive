@@ -1,11 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { querySchema } from "@/app/api/admin/parts/zod-schemas";
-import { z } from "zod";
-import { EnrichedPart } from "@/app/api/admin/parts/route";
+import { AdminPartsQueryParams, EnrichedPart } from "@/types";
 
-type UsePartsParams = z.infer<typeof querySchema>;
+type UsePartsParams = AdminPartsQueryParams;
 
 export function useGetParts(queryParams: UsePartsParams) {
   const {
