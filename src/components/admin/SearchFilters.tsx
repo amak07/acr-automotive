@@ -2,17 +2,27 @@
 
 import { Dispatch, SetStateAction } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { Search } from "lucide-react";
+import { Search, XCircleIcon } from "lucide-react";
 import { AdminPartsQueryParams } from "@/types";
 
+export type SearchTerms = Pick<
+  AdminPartsQueryParams,
+  | "abs_type"
+  | "bolt_pattern"
+  | "drive_type"
+  | "part_type"
+  | "position_type"
+  | "search"
+>;
+
 type SearchFiltersProps = {
-  searchTerm: AdminPartsQueryParams;
-  setSearchTerm: Dispatch<SetStateAction<AdminPartsQueryParams>>;
+  searchTerms: SearchTerms;
+  setSearchTerms: Dispatch<SetStateAction<SearchTerms>>;
 };
 
 export function SearchFilters(props: SearchFiltersProps) {
   const { t } = useLocale();
-  const { searchTerm, setSearchTerm } = props;
+  const { searchTerms, setSearchTerms } = props;
 
   return (
     <div className="bg-white p-4 rounded-lg border border-acr-gray-200 shadow-sm mb-6 lg:p-6">
@@ -24,12 +34,20 @@ export function SearchFilters(props: SearchFiltersProps) {
           <input
             type="text"
             placeholder={t("admin.search.placeholder")}
-            value={searchTerm.search}
+            value={searchTerms.search}
             onChange={(e) =>
-              setSearchTerm({ ...searchTerm, search: e.target.value })
+              setSearchTerms({ ...searchTerms, search: e.target.value })
             }
-            className="w-full pl-10 pr-4 py-3 border border-acr-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent text-sm"
+            className="w-full pl-10 pr-10 py-3 border border-acr-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent text-sm"
           />
+          {searchTerms.search && (
+            <button
+              onClick={() => setSearchTerms({ ...searchTerms, search: "" })}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-acr-gray-400 hover:text-acr-gray-600 transition-colors"
+            >
+              <XCircleIcon className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Filter Dropdowns - Commented out for now */}
@@ -91,12 +109,20 @@ export function SearchFilters(props: SearchFiltersProps) {
               <input
                 type="text"
                 placeholder={t("admin.search.placeholder")}
-                value={searchTerm.search}
+                value={searchTerms.search}
                 onChange={(e) =>
-                  setSearchTerm({ ...searchTerm, search: e.target.value })
+                  setSearchTerms({ ...searchTerms, search: e.target.value })
                 }
-                className="w-full pl-10 pr-4 py-2 border border-acr-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent"
+                className="w-full pl-10 pr-10 py-2 border border-acr-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent"
               />
+              {searchTerms.search && (
+                <button
+                  onClick={() => setSearchTerms({ ...searchTerms, search: "" })}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-acr-gray-400 hover:text-acr-gray-600 transition-colors"
+                >
+                  <XCircleIcon className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 

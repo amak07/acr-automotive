@@ -6,9 +6,26 @@ import { useGetParts } from "@/hooks/useGetParts";
 import { createPartsTableColumns } from "./parts-table-config";
 import { AdminPagination } from "./AdminPagination";
 import { useState } from "react";
+import { SearchTerms } from "./SearchFilters";
+import { useDebounce } from "use-debounce";
 
-export function PartsList() {
+type PartsListProps = {
+  searchTerms: SearchTerms;
+};
+
+export function PartsList(props: PartsListProps) {
   const { t } = useLocale();
+  const {
+    searchTerms: {
+      abs_type,
+      bolt_pattern,
+      drive_type,
+      part_type,
+      position_type,
+      search,
+    },
+  } = props;
+  const [debouncedSearchTerm] = useDebounce(search, 300);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(25);
   const {
@@ -20,6 +37,12 @@ export function PartsList() {
     offset: (currentPage - 1) * limit,
     sort_by: "acr_sku",
     sort_order: "asc",
+    abs_type,
+    bolt_pattern,
+    drive_type,
+    part_type,
+    position_type,
+    search: debouncedSearchTerm,
   });
   const data = response?.data;
   const total = response?.count || 0;
@@ -145,15 +168,16 @@ export function PartsList() {
               <tr>
                 {tableColumns.map((item) => (
                   <th
-                    key={item.label}
+                    key={item.key}
                     className={`py-3 px-4 text-xs font-semibold text-acr-gray-700 uppercase tracking-wider ${
                       item.key === "vehicle_count" ||
-                      item.key === "cross_reference_count"
+                      item.key === "cross_reference_count" ||
+                      item.key === "data_summary"
                         ? "text-center"
                         : "text-left"
                     }`}
                   >
-                    {t(item.label)}
+                    {item.label ? t(item.label) : ""}
                   </th>
                 ))}
               </tr>
