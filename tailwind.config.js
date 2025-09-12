@@ -16,8 +16,8 @@ module.exports = {
           200: '#fecaca',
           300: '#fca5a5',
           400: '#f87171',
-          500: '#ef4444', // Primary red
-          600: '#dc2626', // Darker red for buttons
+          500: '#ed1c24', // Official ACR Automotive logo red
+          600: '#d91920', // Slightly darker for hover states
           700: '#b91c1c',
           800: '#991b1b',
           900: '#7f1d1d',

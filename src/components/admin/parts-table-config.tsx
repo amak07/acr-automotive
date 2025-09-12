@@ -56,59 +56,77 @@ export const createPartsTableColumns = (
     key: "part_type",
     label: "admin.search.partType",
     render: (value: any) => (
-      <span className="text-sm font-medium text-acr-gray-900">{value}</span>
+      <span className="text-sm font-medium text-acr-gray-900">
+        {value || ''}
+      </span>
     ),
   },
   {
     key: "specifications",
     label: "admin.parts.specifications",
-    render: (value: any, part?: EnrichedPart) => (
-      <div className="text-xs space-y-0.5 min-w-[140px]">
-        {part?.position_type && (
-          <div className="flex items-center gap-1">
-            <span className="text-blue-600">📍</span>
-            <span className="text-acr-gray-700">{part.position_type}</span>
+    render: (value: any, part?: EnrichedPart) => {
+      const hasSpecs = part?.position_type || part?.abs_type || part?.drive_type || part?.bolt_pattern || part?.specifications;
+      
+      if (!hasSpecs) {
+        return (
+          <div className="text-xs min-w-[140px] text-center text-acr-gray-400 italic py-2">
+            {t("parts.labels.noNotes")}
           </div>
-        )}
-        {part?.abs_type && (
-          <div className="flex items-center gap-1">
-            <span className="text-green-600">🔧</span>
-            <span className="text-acr-gray-700">{part.abs_type}</span>
-          </div>
-        )}
-        {part?.drive_type && (
-          <div className="flex items-center gap-1">
-            <span className="text-purple-600">🚗</span>
-            <span className="text-acr-gray-700">{part.drive_type}</span>
-          </div>
-        )}
-        {part?.bolt_pattern && (
-          <div className="flex items-center gap-1">
-            <span className="text-orange-600">⚙️</span>
-            <span className="text-acr-gray-700 font-mono">{part.bolt_pattern}</span>
-          </div>
-        )}
-        {part?.specifications && (
-          <div className="text-acr-gray-500 italic truncate max-w-[120px]" title={part.specifications}>
-            📝 {part.specifications}
-          </div>
-        )}
-      </div>
-    ),
+        );
+      }
+
+      return (
+        <div className="text-xs space-y-0.5 min-w-[140px]">
+          {part?.position_type && (
+            <div className="flex items-center gap-1">
+              <span className="text-blue-600">📍</span>
+              <span className="text-acr-gray-600 text-xs uppercase font-medium">{t("parts.labels.position")}:</span>
+              <span className="text-acr-gray-700">{part.position_type}</span>
+            </div>
+          )}
+          {part?.abs_type && (
+            <div className="flex items-center gap-1">
+              <span className="text-green-600">🔧</span>
+              <span className="text-acr-gray-600 text-xs uppercase font-medium">{t("parts.labels.abs")}:</span>
+              <span className="text-acr-gray-700">{part.abs_type}</span>
+            </div>
+          )}
+          {part?.drive_type && (
+            <div className="flex items-center gap-1">
+              <span className="text-purple-600">🚗</span>
+              <span className="text-acr-gray-600 text-xs uppercase font-medium">{t("parts.labels.drive")}:</span>
+              <span className="text-acr-gray-700">{part.drive_type}</span>
+            </div>
+          )}
+          {part?.bolt_pattern && (
+            <div className="flex items-center gap-1">
+              <span className="text-orange-600">⚙️</span>
+              <span className="text-acr-gray-600 text-xs uppercase font-medium">{t("parts.labels.bolts")}:</span>
+              <span className="text-acr-gray-700 font-mono">{part.bolt_pattern}</span>
+            </div>
+          )}
+          {part?.specifications && (
+            <div className="text-acr-gray-500 italic truncate max-w-[120px]" title={part.specifications}>
+              📝 {part.specifications}
+            </div>
+          )}
+        </div>
+      );
+    },
   },
   {
     key: "data_summary",
     label: "admin.parts.dataRelations", 
     render: (value: any, part?: EnrichedPart) => (
-      <div className="text-xs space-y-1 min-w-[100px]">
-        <div className="flex items-center gap-1">
+      <div className="text-xs space-y-1 min-w-[100px] text-center">
+        <div className="flex items-center justify-center gap-1">
           <span className="text-blue-600">🚗</span>
           <span className="text-acr-gray-900 font-medium">{part?.vehicle_count || 0}</span>
           <span className="text-acr-gray-500">
             {t((part?.vehicle_count || 0) === 1 ? "admin.parts.vehicle" : "admin.parts.vehicles")}
           </span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-center gap-1">
           <span className="text-green-600">🔗</span>
           <span className="text-acr-gray-900 font-medium">{part?.cross_reference_count || 0}</span>
           <span className="text-acr-gray-500">

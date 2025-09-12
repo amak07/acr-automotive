@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale } from '@/contexts/LocaleContext';
+import { AcrLogo } from '@/components/ui/AcrLogo';
 
 export function AdminHeader() {
   const { locale, setLocale, isDevMode, t } = useLocale();
@@ -10,9 +11,7 @@ export function AdminHeader() {
       <div className="px-4 py-4 max-w-md mx-auto lg:max-w-6xl lg:px-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-acr-red-600 rounded-md flex items-center justify-center">
-              <span className="text-white font-bold text-sm">ACR</span>
-            </div>
+            <AcrLogo className="h-8" showText={false} />
             <h1 className="text-xl font-semibold text-acr-gray-800">
               {t('admin.header.title')}
             </h1>

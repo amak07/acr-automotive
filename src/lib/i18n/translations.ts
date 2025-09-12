@@ -141,6 +141,10 @@ export const translations: Record<
     en: "Search",
     es: "Buscar",
   },
+  "common.actions.all": {
+    en: "All",
+    es: "Todos",
+  },
 
   // Common States
   "common.loading": {
@@ -181,15 +185,70 @@ export const translations: Record<
     en: "Shock Absorber",
     es: "Amortiguador",
   },
+  "parts.types.birlos": {
+    en: "Wheel Studs",
+    es: "Birlos",
+  },
 
   // Part Positions
+  "parts.positions.delantera": {
+    en: "Front",
+    es: "Delantera",
+  },
   "parts.positions.delantero": {
     en: "Front",
     es: "Delantero",
   },
+  "parts.positions.trasera": {
+    en: "Rear", 
+    es: "Trasera",
+  },
   "parts.positions.trasero": {
     en: "Rear",
     es: "Trasero",
+  },
+  
+  // ABS Types
+  "parts.abs.with": {
+    en: "With ABS",
+    es: "Con ABS",
+  },
+  "parts.abs.without": {
+    en: "Without ABS",
+    es: "Sin ABS",
+  },
+  
+  // Drive Types
+  "parts.drive.4x2": {
+    en: "4x2",
+    es: "4x2",
+  },
+  "parts.drive.4x4": {
+    en: "4x4", 
+    es: "4x4",
+  },
+  
+  
+  // Field labels for specs display
+  "parts.labels.position": {
+    en: "Position",
+    es: "Posición",
+  },
+  "parts.labels.abs": {
+    en: "ABS",
+    es: "ABS",
+  },
+  "parts.labels.drive": {
+    en: "Drive",
+    es: "Tracción",
+  },
+  "parts.labels.bolts": {
+    en: "Bolts",
+    es: "Pernos",
+  },
+  "parts.labels.noNotes": {
+    en: "No specifications",
+    es: "Sin especificaciones",
   },
 
   // Search (legacy - keeping for backward compatibility)
