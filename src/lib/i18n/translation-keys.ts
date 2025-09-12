@@ -32,6 +32,8 @@ export interface TranslationKeys {
   'admin.parts.reference': string;
   'admin.parts.vehicleApplications': string;
   'admin.parts.crossReferences': string;
+  'admin.parts.dataRelations': string;
+  'admin.parts.details': string;
   'admin.parts.pagination': string;
   
   // Common Actions

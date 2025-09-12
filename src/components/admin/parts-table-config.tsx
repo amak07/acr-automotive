@@ -1,25 +1,56 @@
-'use client';
+"use client";
 
-import { JSX } from "react";
-import { Edit } from "lucide-react";
+import { JSX, useState } from "react";
+import { Copy, Check } from "lucide-react";
 import { TranslationKeys } from "@/lib/i18n/translation-keys";
-import { DatabasePartRow } from "@/lib/supabase/utils";
+import { EnrichedPart } from "@/types";
 
 export interface TableColumn {
   key: string;
-  label: keyof TranslationKeys;
-  render: (value: any, part?: DatabasePartRow) => JSX.Element;
+  label?: keyof TranslationKeys;
+  render: (value: any, part?: EnrichedPart) => JSX.Element;
 }
 
-export const createPartsTableColumns = (t: (key: keyof TranslationKeys) => string): TableColumn[] => [
+export const createPartsTableColumns = (
+  t: (key: keyof TranslationKeys) => string
+): TableColumn[] => [
   {
     key: "acr_sku",
     label: "admin.parts.sku",
-    render: (value: any) => (
-      <span className="bg-acr-gray-100 text-acr-gray-800 px-3 py-1.5 rounded-full text-xs font-mono font-medium inline-block min-w-[110px] text-center border border-acr-gray-200">
-        {value}
-      </span>
-    ),
+    render: (value: any) => {
+      const CopyableSKU = () => {
+        const [copied, setCopied] = useState(false);
+
+        const handleCopy = async () => {
+          try {
+            await navigator.clipboard.writeText(value);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          } catch (err) {
+            console.error("Failed to copy SKU:", err);
+          }
+        };
+
+        return (
+          <button
+            onClick={handleCopy}
+            className="bg-acr-gray-100 hover:bg-acr-blue-100 border-2 border-transparent hover:border-acr-blue-300 
+                       px-3 py-1.5 rounded-full text-sm font-mono font-bold text-acr-gray-800 
+                       transition-all duration-200 cursor-pointer flex items-center gap-1.5 min-w-[120px] justify-center
+                       focus:outline-none focus:ring-2 focus:ring-acr-blue-500"
+          >
+            {value}
+            {copied ? (
+              <Check className="w-3 h-3 text-green-600" />
+            ) : (
+              <Copy className="w-3 h-3 opacity-60" />
+            )}
+          </button>
+        );
+      };
+
+      return <CopyableSKU />;
+    },
   },
   {
     key: "part_type",
@@ -29,37 +60,72 @@ export const createPartsTableColumns = (t: (key: keyof TranslationKeys) => strin
     ),
   },
   {
-    key: "vehicle_count",
-    label: "admin.parts.vehicleApplications",
-    render: (value: any) => (
-      <div className="text-sm text-center">
-        <div className="text-acr-gray-900 font-medium text-lg">{value || 0}</div>
-        <div className="text-acr-gray-500 text-xs">
-          {t(value === 1 ? "admin.parts.vehicle" : "admin.parts.vehicles")}
-        </div>
+    key: "specifications",
+    label: "admin.parts.specifications",
+    render: (value: any, part?: EnrichedPart) => (
+      <div className="text-xs space-y-0.5 min-w-[140px]">
+        {part?.position_type && (
+          <div className="flex items-center gap-1">
+            <span className="text-blue-600">📍</span>
+            <span className="text-acr-gray-700">{part.position_type}</span>
+          </div>
+        )}
+        {part?.abs_type && (
+          <div className="flex items-center gap-1">
+            <span className="text-green-600">🔧</span>
+            <span className="text-acr-gray-700">{part.abs_type}</span>
+          </div>
+        )}
+        {part?.drive_type && (
+          <div className="flex items-center gap-1">
+            <span className="text-purple-600">🚗</span>
+            <span className="text-acr-gray-700">{part.drive_type}</span>
+          </div>
+        )}
+        {part?.bolt_pattern && (
+          <div className="flex items-center gap-1">
+            <span className="text-orange-600">⚙️</span>
+            <span className="text-acr-gray-700 font-mono">{part.bolt_pattern}</span>
+          </div>
+        )}
+        {part?.specifications && (
+          <div className="text-acr-gray-500 italic truncate max-w-[120px]" title={part.specifications}>
+            📝 {part.specifications}
+          </div>
+        )}
       </div>
     ),
   },
   {
-    key: "cross_reference_count",
-    label: "admin.parts.crossReferences",
-    render: (value: any) => (
-      <div className="text-sm text-center">
-        <div className="text-acr-gray-900 font-medium text-lg">{value || 0}</div>
-        <div className="text-acr-gray-500 text-xs">
-          {t(value === 1 ? "admin.parts.reference" : "admin.parts.references")}
+    key: "data_summary",
+    label: "admin.parts.dataRelations", 
+    render: (value: any, part?: EnrichedPart) => (
+      <div className="text-xs space-y-1 min-w-[100px]">
+        <div className="flex items-center gap-1">
+          <span className="text-blue-600">🚗</span>
+          <span className="text-acr-gray-900 font-medium">{part?.vehicle_count || 0}</span>
+          <span className="text-acr-gray-500">
+            {t((part?.vehicle_count || 0) === 1 ? "admin.parts.vehicle" : "admin.parts.vehicles")}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-green-600">🔗</span>
+          <span className="text-acr-gray-900 font-medium">{part?.cross_reference_count || 0}</span>
+          <span className="text-acr-gray-500">
+            {t((part?.cross_reference_count || 0) === 1 ? "admin.parts.reference" : "admin.parts.references")}
+          </span>
         </div>
       </div>
     ),
   },
   {
     key: "actions",
-    label: "",
-    render: (value: any, part?: DatabasePartRow) => (
-      <button 
+    // No label needed for actions column
+    render: (value: any, part?: EnrichedPart) => (
+      <button
         onClick={() => {
           // TODO: Navigate to part details page
-          console.log('Navigate to part details:', part?.id);
+          console.log("Navigate to part details:", part?.id);
         }}
         className="text-acr-red-600 hover:text-acr-red-700 text-sm font-medium underline-offset-4 hover:underline transition-colors"
       >
