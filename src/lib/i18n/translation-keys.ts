@@ -43,6 +43,7 @@ export interface TranslationKeys {
   'common.actions.cancel': string;
   'common.actions.delete': string;
   'common.actions.search': string;
+  'common.actions.all': string;
   
   // Common States
   'common.loading': string;
@@ -56,8 +57,27 @@ export interface TranslationKeys {
   'parts.types.disco': string;
   'parts.types.balero': string;
   'parts.types.amortiguador': string;
+  'parts.types.birlos': string;
+  'parts.positions.delantera': string;
   'parts.positions.delantero': string;
+  'parts.positions.trasera': string;
   'parts.positions.trasero': string;
+  
+  // ABS Types
+  'parts.abs.with': string;    // C/ABS -> Con ABS
+  'parts.abs.without': string; // S/ABS -> Sin ABS
+  
+  // Drive Types  
+  'parts.drive.4x2': string;
+  'parts.drive.4x4': string;
+  
+  
+  // Field labels for specs display
+  'parts.labels.position': string;
+  'parts.labels.abs': string;
+  'parts.labels.drive': string;
+  'parts.labels.bolts': string;
+  'parts.labels.noNotes': string;
   
   // Search (legacy - keeping for backward compatibility)
   'search.sku': string;
