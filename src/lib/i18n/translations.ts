@@ -14,8 +14,8 @@ export const translations: Record<
 > = {
   // Admin Header
   "admin.header.title": {
-    en: "Parts Catalog",
-    es: "Catálogo de Piezas",
+    en: "Admin Management",
+    es: "Administración",
   },
   "admin.header.languageToggle": {
     en: "Language",
@@ -30,6 +30,10 @@ export const translations: Record<
   "admin.dashboard.applications": {
     en: "Applications",
     es: "Aplicaciones",
+  },
+  "admin.dashboard.crossReferences": {
+    en: "Cross References",
+    es: "Referencias Cruzadas",
   },
   "admin.dashboard.catalogTitle": {
     en: "Parts Catalog",
@@ -144,6 +148,10 @@ export const translations: Record<
   "common.actions.all": {
     en: "All",
     es: "Todos",
+  },
+  "common.actions.clearFilters": {
+    en: "Clear Filters",
+    es: "Limpiar Filtros",
   },
 
   // Common States

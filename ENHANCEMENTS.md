@@ -52,6 +52,28 @@
 - **Performance metrics**: Search response times, system uptime, error rates
 - **Business reporting**: Monthly usage reports for stakeholders
 
+### Enhanced Dashboard Metrics (Post-MVP)
+**Current Basic Stats**: Total Parts, Cross-References, Vehicle Applications
+
+**Business Intelligence Enhancements**:
+- **Coverage Gap Analysis**: Parts missing cross-references or vehicle applications (actionable insights)
+- **Product Mix Analytics**: Distribution breakdown (e.g., "MAZA: 45%, DISCO: 30%, BALERO: 20%")
+- **Market Coverage Insights**: Vehicle year ranges, popular makes, compatibility gaps
+- **Data Quality Metrics**: Completeness scores for specifications, missing bolt patterns
+- **Update Tracking**: Parts added/modified this month, data freshness indicators
+
+**Customer Success Metrics** (Future Public Site):
+- **Search Success Rate**: Percentage of searches that find relevant results
+- **Popular Search Terms**: What customers actually look for vs. what's available
+- **Cross-Reference Conversion**: How often competitor SKUs lead to ACR sales
+- **Vehicle Search Patterns**: Most queried vehicle makes/models/years
+- **Failed Search Analytics**: Common searches that return no results (opportunity identification)
+
+**Operational Metrics**:
+- **Excel Import Health**: Success rates, error patterns, processing times
+- **API Performance**: Response times by endpoint, error rates
+- **User Behavior**: Peak usage times, most used features, session duration
+
 ### Integration Capabilities
 - **ERP integration**: Connect with existing inventory management systems
 - **Supplier API connections**: Real-time pricing and availability updates
