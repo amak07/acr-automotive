@@ -7,7 +7,7 @@ import {
   DeletePartRequest,
   DatabasePartRow,
   EnrichedPart,
-  PartWithRelations
+  PartWithRelations,
 } from "@/types";
 import {
   querySchema,
@@ -17,9 +17,6 @@ import {
 } from "./schemas";
 import { PostgrestError } from "@supabase/supabase-js";
 import { z } from "zod";
-
-// Types imported from centralized location
-
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -151,7 +148,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-
 export async function POST(request: NextRequest) {
   const body = await request.json();
 
@@ -220,7 +216,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-
 export async function PUT(request: NextRequest) {
   const body = await request.json();
 
@@ -286,7 +281,6 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
-
 
 export async function DELETE(request: NextRequest) {
   const body = await request.json();

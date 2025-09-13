@@ -26,6 +26,19 @@ export function SearchFilters(props: SearchFiltersProps) {
   const { searchTerms, setSearchTerms } = props;
   const { data: filterOptions, isLoading, error } = useFilterOptions();
 
+  const clearAllFilters = () => {
+    setSearchTerms({
+      search: "",
+      part_type: "",
+      position_type: "",
+      abs_type: "",
+      drive_type: "",
+      bolt_pattern: "",
+    });
+  };
+
+  const hasActiveFilters = Object.values(searchTerms).some(value => value !== "");
+
   return (
     <div className="bg-white p-4 rounded-lg border border-acr-gray-200 shadow-sm mb-6 lg:p-6">
       {/* Mobile: Stacked Layout */}
@@ -53,7 +66,7 @@ export function SearchFilters(props: SearchFiltersProps) {
         </div>
 
         {/* Filter Dropdowns */}
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-3 md:grid-cols-3">
           <select
             value={searchTerms.part_type}
             onChange={(e) => setSearchTerms({ ...searchTerms, part_type: e.target.value })}
@@ -115,7 +128,7 @@ export function SearchFilters(props: SearchFiltersProps) {
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-3">
           <select
             value={searchTerms.drive_type}
             onChange={(e) => setSearchTerms({ ...searchTerms, drive_type: e.target.value })}
@@ -156,6 +169,18 @@ export function SearchFilters(props: SearchFiltersProps) {
             ))}
           </select>
         </div>
+
+        {/* Clear Filters Button - Mobile */}
+        {hasActiveFilters && (
+          <div className="pt-2">
+            <button
+              onClick={clearAllFilters}
+              className="w-full py-2 px-4 text-sm text-acr-red-600 bg-acr-red-50 border border-acr-red-200 rounded-lg hover:bg-acr-red-100 transition-colors"
+            >
+              {t("common.actions.clearFilters")}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Desktop: Two-row Layout */}
@@ -320,6 +345,18 @@ export function SearchFilters(props: SearchFiltersProps) {
             </select>
           </div>
         </div>
+
+        {/* Clear Filters Button - Desktop */}
+        {hasActiveFilters && (
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={clearAllFilters}
+              className="py-2 px-6 text-sm text-acr-red-600 bg-acr-red-50 border border-acr-red-200 rounded-lg hover:bg-acr-red-100 transition-colors"
+            >
+              {t("common.actions.clearFilters")}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

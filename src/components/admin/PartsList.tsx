@@ -87,73 +87,47 @@ export function PartsList(props: PartsListProps) {
 
       {/* Mobile Cards View (hidden on desktop) */}
       {!isLoading && !isError && (
-        <div className="lg:hidden space-y-4">
+        <div className="lg:hidden space-y-3">
           {data?.map((part) => (
             <div
               key={part.id}
-              className="bg-white p-4 rounded-lg border border-acr-gray-200"
+              className="bg-white p-3 rounded-lg border border-acr-gray-200"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex gap-3 items-center">
-                  <span className="bg-acr-gray-100 text-acr-gray-800 px-3 py-1.5 rounded-full text-xs font-mono font-medium border border-acr-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex gap-2 items-center">
+                  <span className="bg-acr-gray-100 text-acr-gray-800 px-2 py-1 rounded text-xs font-mono font-medium">
                     {part.acr_sku}
                   </span>
-                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm">
+                  <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
                     {part.part_type}
                   </span>
                 </div>
-                <button className="text-acr-gray-400 hover:text-acr-gray-600">
-                  <MoreVertical className="w-5 h-5" />
-                </button>
-              </div>
-
-              <h3 className="font-semibold text-acr-gray-800 mt-4 mb-3">
-                {part.part_type}
-              </h3>
-
-              <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                <div className="text-center">
-                  <span className="text-acr-gray-500 font-medium block">
-                    {t("admin.parts.vehicleApplications")}
-                  </span>
-                  <div className="text-acr-gray-900 font-medium text-lg mt-1">
-                    {part.vehicle_count || 0}
-                  </div>
-                  <div className="text-acr-gray-500 text-xs">
-                    {t(
-                      part.vehicle_count === 1
-                        ? "admin.parts.vehicle"
-                        : "admin.parts.vehicles"
-                    )}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <span className="text-acr-gray-500 font-medium block">
-                    {t("admin.parts.crossReferences")}
-                  </span>
-                  <div className="text-acr-gray-900 font-medium text-lg mt-1">
-                    {part.cross_reference_count || 0}
-                  </div>
-                  <div className="text-acr-gray-500 text-xs">
-                    {t(
-                      part.cross_reference_count === 1
-                        ? "admin.parts.reference"
-                        : "admin.parts.references"
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-center">
                 <button
                   onClick={() => {
-                    // TODO: Navigate to part details page
                     console.log("Navigate to part details:", part.id);
                   }}
-                  className="text-acr-red-600 hover:text-acr-red-700 text-sm font-medium underline-offset-4 hover:underline transition-colors"
+                  className="text-acr-red-600 hover:text-acr-red-700 text-xs font-medium"
                 >
                   {t("common.actions.view")}
                 </button>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-acr-gray-600">
+                <div className="flex items-center gap-4">
+                  <span>
+                    <span className="font-medium text-acr-gray-900">{part.vehicle_count || 0}</span> VA
+                  </span>
+                  <span>
+                    <span className="font-medium text-acr-gray-900">{part.cross_reference_count || 0}</span> CR
+                  </span>
+                </div>
+                {(part.position_type || part.abs_type || part.drive_type || part.bolt_pattern) && (
+                  <div className="text-xs text-acr-gray-500 truncate max-w-[120px]">
+                    {[part.position_type, part.abs_type, part.drive_type, part.bolt_pattern]
+                      .filter(Boolean)
+                      .join(' • ')}
+                  </div>
+                )}
               </div>
             </div>
           ))}
