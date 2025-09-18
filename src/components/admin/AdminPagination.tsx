@@ -10,6 +10,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "../ui/pagination";
+import { AcrButton } from "@/components/acr";
 
 interface AdminPaginationProps {
   currentPage: number;
@@ -63,37 +64,39 @@ export function AdminPagination({
       {/* Mobile-first pagination */}
       <div className="lg:hidden">
         <div className="flex items-center justify-between w-full max-w-xs gap-4">
-          <button
+          <AcrButton
             onClick={handlePrevious}
             disabled={currentPage === 1}
-            className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-acr-gray-700 bg-white border border-acr-gray-300 rounded-lg hover:bg-acr-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="secondary"
+            size="sm"
+            className="flex items-center gap-1"
           >
             ← Prev
-          </button>
+          </AcrButton>
           
           <div className="flex items-center gap-1">
             {getPageNumbers(true).map((page) => (
-              <button
+              <AcrButton
                 key={page}
                 onClick={() => onPageChange(page)}
-                className={`w-10 h-10 text-sm font-medium rounded-lg ${
-                  page === currentPage
-                    ? "bg-acr-red-600 text-white"
-                    : "text-acr-gray-700 bg-white border border-acr-gray-300 hover:bg-acr-gray-50"
-                }`}
+                variant={page === currentPage ? "primary" : "secondary"}
+                size="sm"
+                className="w-10 h-10 p-0"
               >
                 {page}
-              </button>
+              </AcrButton>
             ))}
           </div>
           
-          <button
+          <AcrButton
             onClick={handleNext}
             disabled={currentPage === totalPages}
-            className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-acr-gray-700 bg-white border border-acr-gray-300 rounded-lg hover:bg-acr-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="secondary"
+            size="sm"
+            className="flex items-center gap-1"
           >
             Next →
-          </button>
+          </AcrButton>
         </div>
         
         <div className="text-xs text-acr-gray-500 text-center mt-2">
