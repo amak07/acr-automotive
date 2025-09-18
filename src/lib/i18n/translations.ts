@@ -153,6 +153,14 @@ export const translations: Record<
     en: "Clear Filters",
     es: "Limpiar Filtros",
   },
+  "common.actions.back": {
+    en: "Back to List",
+    es: "Volver a la Lista",
+  },
+  "common.actions.saving": {
+    en: "Saving...",
+    es: "Guardando...",
+  },
 
   // Common States
   "common.loading": {
@@ -254,6 +262,10 @@ export const translations: Record<
     en: "Bolts",
     es: "Pernos",
   },
+  "parts.labels.boltPattern": {
+    en: "Bolt Pattern",
+    es: "Patrón de Tornillos",
+  },
   "parts.labels.noNotes": {
     en: "No specifications",
     es: "Sin especificaciones",
@@ -275,5 +287,175 @@ export const translations: Record<
   "search.loading": {
     en: "Searching...",
     es: "Buscando...",
+  },
+
+  // Part Details Page
+  "partDetails.breadcrumb.parts": {
+    en: "Parts",
+    es: "Piezas",
+  },
+  "partDetails.status.active": {
+    en: "Active",
+    es: "Activo",
+  },
+  "partDetails.actions.preview": {
+    en: "Preview",
+    es: "Vista Previa",
+  },
+  "partDetails.actions.saveChanges": {
+    en: "Save Changes",
+    es: "Guardar Cambios",
+  },
+  "partDetails.actions.uploadImage": {
+    en: "Upload Image",
+    es: "Subir Imagen",
+  },
+  "partDetails.empty.noApplications": {
+    en: "No vehicle applications",
+    es: "Sin aplicaciones vehiculares",
+  },
+  "partDetails.empty.applicationsDescription": {
+    en: "Add vehicle compatibility information for this part",
+    es: "Agregue información de compatibilidad vehicular para esta pieza",
+  },
+  "partDetails.empty.addFirstApplication": {
+    en: "Add First Application",
+    es: "Agregar Primera Aplicación",
+  },
+  "partDetails.empty.noCrossReferences": {
+    en: "No cross references",
+    es: "Sin referencias cruzadas",
+  },
+  "partDetails.empty.crossReferencesDescription": {
+    en: "Add competitor SKU mappings for this part",
+    es: "Agregue mapeos de SKU de competidores para esta pieza",
+  },
+  "partDetails.empty.addFirstReference": {
+    en: "Add First Reference",
+    es: "Agregar Primera Referencia",
+  },
+  "partDetails.basicInfo.title": {
+    en: "Basic Information",
+    es: "Información Básica",
+  },
+  "partDetails.basicInfo.acrSku": {
+    en: "ACR SKU",
+    es: "SKU ACR",
+  },
+  "partDetails.basicInfo.description": {
+    en: "Description",
+    es: "Descripción",
+  },
+  "partDetails.basicInfo.type": {
+    en: "Type",
+    es: "Tipo",
+  },
+  "partDetails.basicInfo.drive": {
+    en: "Drive",
+    es: "Tracción",
+  },
+  "partDetails.basicInfo.notes": {
+    en: "Notes",
+    es: "Notas",
+  },
+  "partDetails.basicInfo.notesPlaceholder": {
+    en: "Add any additional notes about this part...",
+    es: "Agregue cualquier nota adicional sobre esta pieza...",
+  },
+  "partDetails.basicInfo.skuNote": {
+    en: "SKU cannot be modified after creation",
+    es: "El SKU no puede modificarse después de la creación",
+  },
+  "partDetails.basicInfo.partType": {
+    en: "Part Type",
+    es: "Tipo de Pieza",
+  },
+  "partDetails.basicInfo.position": {
+    en: "Position",
+    es: "Posición",
+  },
+  "partDetails.basicInfo.absType": {
+    en: "ABS Type",
+    es: "Tipo ABS",
+  },
+  "partDetails.basicInfo.boltPattern": {
+    en: "Bolt Pattern",
+    es: "Patrón de Tornillos",
+  },
+  "partDetails.basicInfo.driveType": {
+    en: "Drive Type",
+    es: "Tipo de Tracción",
+  },
+  "partDetails.basicInfo.additionalSpecs": {
+    en: "Additional Specifications",
+    es: "Especificaciones Adicionales",
+  },
+  "partDetails.basicInfo.productImage": {
+    en: "Product Image",
+    es: "Imagen del Producto",
+  },
+  "partDetails.basicInfo.imageUploadText": {
+    en: "Click to upload or drag here",
+    es: "Haga clic para subir o arrastre aquí",
+  },
+  "partDetails.basicInfo.imageFormat": {
+    en: "PNG, JPG up to 10MB",
+    es: "PNG, JPG hasta 10MB",
+  },
+  "partDetails.basicInfo.selectFile": {
+    en: "Select File",
+    es: "Seleccionar Archivo",
+  },
+  "partDetails.basicInfo.productImage": {
+    en: "Product Image",
+    es: "Imagen del Producto",
+  },
+  "partDetails.basicInfo.imageUploadText": {
+    en: "Click to upload or drag here",
+    es: "Haga clic para subir o arrastre aquí",
+  },
+  "partDetails.basicInfo.imageFormat": {
+    en: "PNG, JPG up to 10MB",
+    es: "PNG, JPG hasta 10MB",
+  },
+  "partDetails.vehicleApps.title": {
+    en: "Vehicle Applications",
+    es: "Aplicaciones Vehiculares",
+  },
+  "partDetails.vehicleApps.applications": {
+    en: "applications",
+    es: "aplicaciones",
+  },
+  "partDetails.vehicleApps.addApplication": {
+    en: "Add Application",
+    es: "Agregar Aplicación",
+  },
+  "partDetails.crossRefs.title": {
+    en: "Cross References",
+    es: "Referencias Cruzadas",
+  },
+  "partDetails.crossRefs.references": {
+    en: "references",
+    es: "referencias",
+  },
+  "partDetails.crossRefs.addReference": {
+    en: "Add Reference",
+    es: "Agregar Referencia",
+  },
+  "partDetails.navigation.backToList": {
+    en: "Back to List",
+    es: "Volver a la Lista",
+  },
+  "partDetails.metadata.created": {
+    en: "Created on",
+    es: "Creado el",
+  },
+  "partDetails.metadata.lastModified": {
+    en: "Last modified",
+    es: "Última modificación",
+  },
+  "partDetails.metadata.separator": {
+    en: "•",
+    es: "•",
   },
 };

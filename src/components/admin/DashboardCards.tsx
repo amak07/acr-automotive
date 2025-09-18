@@ -2,6 +2,7 @@
 
 import { useLocale } from "@/contexts/LocaleContext";
 import { useGetAdminStats } from "@/hooks/useAdminStats";
+import { AcrCard } from "@/components/acr";
 import { Bolt, Car, Loader2, Waypoints } from "lucide-react";
 
 export function DashboardCards() {
@@ -37,9 +38,10 @@ export function DashboardCards() {
   return (
     <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3 lg:gap-6">
       {statsCards.map((card, index) => (
-        <div
+        <AcrCard
           key={index}
-          className="bg-white p-4 rounded-lg border border-acr-gray-200 lg:p-5"
+          variant="default"
+          padding="default"
         >
           <div className="flex items-center gap-3">
             {isLoading && (
@@ -87,7 +89,7 @@ export function DashboardCards() {
               </>
             )}
           </div>
-        </div>
+        </AcrCard>
       ))}
     </div>
   );

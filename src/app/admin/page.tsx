@@ -9,11 +9,11 @@ import { useState } from "react";
 export default function AdminPage() {
   const [searchTerms, setSearchTerms] = useState<SearchTerms>({
     search: "",
-    part_type: "",
-    position_type: "",
-    abs_type: "",
-    drive_type: "",
-    bolt_pattern: "",
+    part_type: "__all__",
+    position_type: "__all__",
+    abs_type: "__all__",
+    drive_type: "__all__",
+    bolt_pattern: "__all__",
   });
 
   return (

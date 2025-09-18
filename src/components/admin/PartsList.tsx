@@ -1,19 +1,22 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { MoreVertical, Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { useGetParts } from "@/hooks/useGetParts";
 import { createPartsTableColumns } from "./parts-table-config";
 import { AdminPagination } from "./AdminPagination";
 import { useState } from "react";
 import { SearchTerms } from "./SearchFilters";
 import { useDebounce } from "use-debounce";
+import { useRouter } from "next/navigation";
+import { AcrButton } from "@/components/acr";
 
 type PartsListProps = {
   searchTerms: SearchTerms;
 };
 
 export function PartsList(props: PartsListProps) {
+  const router = useRouter();
   const { t } = useLocale();
   const {
     searchTerms: {
@@ -37,11 +40,11 @@ export function PartsList(props: PartsListProps) {
     offset: (currentPage - 1) * limit,
     sort_by: "acr_sku",
     sort_order: "asc",
-    abs_type,
-    bolt_pattern,
-    drive_type,
-    part_type,
-    position_type,
+    abs_type: abs_type === "__all__" ? "" : abs_type,
+    bolt_pattern: bolt_pattern === "__all__" ? "" : bolt_pattern,
+    drive_type: drive_type === "__all__" ? "" : drive_type,
+    part_type: part_type === "__all__" ? "" : part_type,
+    position_type: position_type === "__all__" ? "" : position_type,
     search: debouncedSearchTerm,
   });
   const data = response?.data;
@@ -55,10 +58,10 @@ export function PartsList(props: PartsListProps) {
         <h2 className="text-lg font-semibold text-acr-gray-800">
           {t("admin.dashboard.catalogTitle")}
         </h2>
-        <button className="bg-acr-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-acr-red-700 transition-colors flex items-center gap-2">
+        <AcrButton variant="primary" size="default">
           <Plus className="w-4 h-4" />
           {t("admin.parts.newButton")}
-        </button>
+        </AcrButton>
       </div>
 
       {/* Loading Spinner */}
@@ -102,30 +105,46 @@ export function PartsList(props: PartsListProps) {
                     {part.part_type}
                   </span>
                 </div>
-                <button
+                <AcrButton
                   onClick={() => {
-                    console.log("Navigate to part details:", part.id);
+                    router.push(`/admin/parts/${part.id}`);
                   }}
-                  className="text-acr-red-600 hover:text-acr-red-700 text-xs font-medium"
+                  variant="link"
+                  size="sm"
+                  className="text-xs h-auto p-0"
                 >
                   {t("common.actions.view")}
-                </button>
+                </AcrButton>
               </div>
 
               <div className="flex items-center justify-between text-xs text-acr-gray-600">
                 <div className="flex items-center gap-4">
                   <span>
-                    <span className="font-medium text-acr-gray-900">{part.vehicle_count || 0}</span> VA
+                    <span className="font-medium text-acr-gray-900">
+                      {part.vehicle_count || 0}
+                    </span>{" "}
+                    VA
                   </span>
                   <span>
-                    <span className="font-medium text-acr-gray-900">{part.cross_reference_count || 0}</span> CR
+                    <span className="font-medium text-acr-gray-900">
+                      {part.cross_reference_count || 0}
+                    </span>{" "}
+                    CR
                   </span>
                 </div>
-                {(part.position_type || part.abs_type || part.drive_type || part.bolt_pattern) && (
+                {(part.position_type ||
+                  part.abs_type ||
+                  part.drive_type ||
+                  part.bolt_pattern) && (
                   <div className="text-xs text-acr-gray-500 truncate max-w-[120px]">
-                    {[part.position_type, part.abs_type, part.drive_type, part.bolt_pattern]
+                    {[
+                      part.position_type,
+                      part.abs_type,
+                      part.drive_type,
+                      part.bolt_pattern,
+                    ]
                       .filter(Boolean)
-                      .join(' • ')}
+                      .join(" • ")}
                   </div>
                 )}
               </div>
@@ -166,7 +185,8 @@ export function PartsList(props: PartsListProps) {
                     <td key={column.key} className="py-3 px-4">
                       {column.render(
                         part[column.key as keyof typeof part],
-                        part
+                        part,
+                        router
                       )}
                     </td>
                   ))}

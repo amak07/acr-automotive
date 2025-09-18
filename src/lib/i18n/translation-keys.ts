@@ -35,6 +35,11 @@ export interface TranslationKeys {
   'admin.parts.dataRelations': string;
   'admin.parts.details': string;
   'admin.parts.pagination': string;
+  'admin.dashboard.crossReferences': string;
+  'common.actions.clearFilters': string;
+  'common.actions.back': string;
+  'common.actions.cancel': string;
+  'common.actions.saving': string;
   
   // Common Actions
   'common.actions.view': string;
@@ -77,6 +82,7 @@ export interface TranslationKeys {
   'parts.labels.abs': string;
   'parts.labels.drive': string;
   'parts.labels.bolts': string;
+  'parts.labels.boltPattern': string;
   'parts.labels.noNotes': string;
   
   // Search (legacy - keeping for backward compatibility)
@@ -84,4 +90,61 @@ export interface TranslationKeys {
   'search.enterSKU': string;
   'search.noResults': string;
   'search.loading': string;
+
+  // Part Details Page
+  'partDetails.breadcrumb.parts': string;
+  'partDetails.status.active': string;
+  'partDetails.actions.preview': string;
+  'partDetails.actions.saveChanges': string;
+  'partDetails.actions.uploadImage': string;
+  'partDetails.empty.noApplications': string;
+  'partDetails.empty.applicationsDescription': string;
+  'partDetails.empty.addFirstApplication': string;
+  'partDetails.empty.noCrossReferences': string;
+  'partDetails.empty.crossReferencesDescription': string;
+  'partDetails.empty.addFirstReference': string;
+  'partDetails.quickStats.applications': string;
+  'partDetails.quickStats.crossReferences': string;
+  'partDetails.applications.title': string;
+  'partDetails.applications.vehicles': string;
+  'partDetails.applications.search': string;
+  'partDetails.applications.add': string;
+  'partDetails.applications.addFirst': string;
+  'partDetails.applications.emptyTitle': string;
+  'partDetails.applications.emptyDescription': string;
+  'partDetails.crossReferences.title': string;
+  'partDetails.crossReferences.references': string;
+  'partDetails.crossReferences.search': string;
+  'partDetails.crossReferences.add': string;
+  'partDetails.crossReferences.addFirst': string;
+  'partDetails.crossReferences.emptyTitle': string;
+  'partDetails.crossReferences.emptyDescription': string;
+  'partDetails.basicInfo.title': string;
+  'partDetails.basicInfo.acrSku': string;
+  'partDetails.basicInfo.description': string;
+  'partDetails.basicInfo.type': string;
+  'partDetails.basicInfo.drive': string;
+  'partDetails.basicInfo.notes': string;
+  'partDetails.basicInfo.notesPlaceholder': string;
+  'partDetails.basicInfo.skuNote': string;
+  'partDetails.basicInfo.partType': string;
+  'partDetails.basicInfo.position': string;
+  'partDetails.basicInfo.absType': string;
+  'partDetails.basicInfo.boltPattern': string;
+  'partDetails.basicInfo.driveType': string;
+  'partDetails.basicInfo.additionalSpecs': string;
+  'partDetails.basicInfo.productImage': string;
+  'partDetails.basicInfo.imageUploadText': string;
+  'partDetails.basicInfo.imageFormat': string;
+  'partDetails.basicInfo.selectFile': string;
+  'partDetails.vehicleApps.title': string;
+  'partDetails.vehicleApps.applications': string;
+  'partDetails.vehicleApps.addApplication': string;
+  'partDetails.crossRefs.title': string;
+  'partDetails.crossRefs.references': string;
+  'partDetails.crossRefs.addReference': string;
+  'partDetails.navigation.backToList': string;
+  'partDetails.metadata.created': string;
+  'partDetails.metadata.lastModified': string;
+  'partDetails.metadata.separator': string;
 }
