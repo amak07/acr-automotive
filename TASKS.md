@@ -16,17 +16,17 @@ _Last Updated: January 18, 2025_
 - **Mobile UX Optimization**: 100% Complete ✅ (Compact cards, responsive pagination, full-width layouts)
 - **Part Details UI**: 100% Complete ✅ (Complete responsive UI with ACR design system consolidation)
 - **ACR Design System**: 100% Complete ✅ (Consolidated raw HTML to ACR components, comprehensive mobile UX)
-- **NEXT FOCUS**: Backend integration for part details functionality
+- **NEXT FOCUS**: Testing complete part details workflow and UI polish
 
-**Current Session State**: Complete Part Details UI with consolidated ACR design system
-- ✅ **ACR Design System Consolidation**: All components use AcrCard, AcrButton, AcrInput patterns
-- ✅ **Part Details Page**: Complete responsive UI with header, basic info, applications, cross-references
-- ✅ **Mobile-First UX**: Optimized layouts for all screen sizes with touch-friendly interactions
-- ✅ **Enhanced Stats Display**: Comprehensive part snapshot with colored icons and 6-column desktop layout
-- ✅ **Complete Translations**: All UI text properly internationalized for Spanish/English
-- ✅ **Metadata Display**: Created/updated dates with relative time formatting
-- ✅ **Professional Polish**: Consistent styling, proper contrast, clean component hierarchy
-- 🎯 **Ready for Backend**: Next session focus on connecting part details to real data
+**Current Session State**: Complete Part Details with React Hook Form Integration
+- ✅ **React Hook Form Integration**: Complete form handling with Controller pattern for Radix UI components
+- ✅ **Enhanced AcrSelect Component**: Built-in loading state support with skeleton rendering
+- ✅ **Config-Driven Form Fields**: Maintainable approach using selectFieldConfigs array
+- ✅ **TanStack Query Mutations**: Proper useUpdatePartById hook with query invalidation
+- ✅ **Form Submission & Error Handling**: Complete async form processing with try/catch patterns
+- ✅ **Loading States**: Save button properly reflects mutation pending state
+- ✅ **Data Consistency**: Query invalidation ensures UI stays synchronized with backend
+- 🎯 **Ready for Testing**: Next session focus on end-to-end testing and polish
 
 ### 🔥 Active Tasks - REVISED PRIORITIES
 
@@ -48,7 +48,8 @@ _Last Updated: January 18, 2025_
 - [x] **TASK-MOBILE-001**: Mobile UX optimization (compact cards, responsive pagination) ✅ COMPLETED
 - [x] **TASK-DETAILS-001**: Part Details Page UI Implementation ✅ COMPLETED
 - [x] **TASK-ACR-CONSOLIDATION**: ACR Design System consolidation ✅ COMPLETED
-- [ ] **TASK-DETAILS-002**: Part Details Backend Integration ⏳ NEXT SESSION
+- [x] **TASK-DETAILS-002**: Part Details Backend Integration ✅ COMPLETED
+- [ ] **TASK-DETAILS-003**: Complete Part Details Testing & Polish ⏳ NEXT SESSION
 
 ### 📋 MVP Development Phases - REVISED
 
@@ -74,7 +75,7 @@ _Last Updated: January 18, 2025_
 
 ## Phase 2: Admin CRUD Interface ✅ 95% COMPLETE
 
-**Status**: All CRUD APIs completed. Complete Part Details UI with ACR design system consolidation finished. Backend integration for part details functionality next.
+**Status**: All CRUD APIs completed. Complete Part Details UI with ACR design system consolidation finished. React Hook Form integration with mutation-based updates completed. Testing and polish next.
 
 ### **TASK-BOOTSTRAP**: Complete One-Time Import ✅ COMPLETED
 
@@ -114,7 +115,7 @@ _Last Updated: January 18, 2025_
   - [x] Create dashboard stats API and connect to cards ✅ COMPLETED
   - [x] Mobile UX optimization (compact cards, responsive pagination) ✅ COMPLETED
   - [x] Part Details UI with ACR design system consolidation ✅ COMPLETED
-  - [ ] Part Details Backend Integration ⏳ NEXT SESSION
+  - [x] Part Details Backend Integration (React Hook Form + TanStack Query mutations) ✅ COMPLETED
   - [ ] Create/Edit Part Form with real-time validation
 
 ### **TASK-CRUD-002**: Vehicle Applications Management ✅ COMPLETED (API Level)
@@ -160,7 +161,50 @@ _Last Updated: January 18, 2025_
   - [ ] Competitor brand auto-detection and manual override
   - [ ] Remove cross-references with confirmation
 
-### **TASK-DETAILS-001**: Part Details Page Implementation ⏳ NEXT SESSION
+### **TASK-DETAILS-002**: Part Details Backend Integration ✅ COMPLETED
+
+**Goal**: Complete React Hook Form integration with TanStack Query mutations for part updates
+
+#### Completed Subtasks:
+
+1. **React Hook Form Integration** ✅ COMPLETED
+   - [x] Fixed TypeScript issues with part details page components
+   - [x] Renamed database types for clarity (EnrichedPart → PartSummary, PartWithRelations → PartWithDetails)
+   - [x] Implemented Controller pattern for Radix UI + React Hook Form integration
+   - [x] Solved race condition between form initialization and filter options loading
+
+2. **Enhanced AcrSelect Component** ✅ COMPLETED
+   - [x] Added native loading state support with `isLoading` prop
+   - [x] Built-in skeleton rendering when data is loading
+   - [x] Maintained backward compatibility with existing select usage
+   - [x] Fixed TypeScript issues with forwardRef and conditional rendering
+
+3. **Config-Driven Form Approach** ✅ COMPLETED
+   - [x] Refactored repetitive select fields into `selectFieldConfigs` array
+   - [x] Reduced 150+ lines of repetitive code to 35 lines with config
+   - [x] Made form fields easy to add/remove/modify through configuration
+   - [x] Maintained type safety with `as const` assertions
+
+4. **TanStack Query Mutations** ✅ COMPLETED
+   - [x] Converted `useUpdatePartById` from useQuery to useMutation
+   - [x] Implemented proper PUT request with JSON body to `/api/admin/parts`
+   - [x] Added query invalidation for both detail view and list view
+   - [x] Proper error handling with mutation states
+
+5. **Form Submission Integration** ✅ COMPLETED
+   - [x] Connected form submission to mutation hook with `mutateAsync()`
+   - [x] Added proper error handling with try/catch patterns
+   - [x] Connected save button loading state to `mutation.isPending`
+   - [x] Fixed textarea Controller integration for specifications field
+
+#### Technical Achievements:
+- **Performance**: Query invalidation ensures instant UI updates after successful saves
+- **UX**: Loading states prevent user confusion during form submission
+- **Maintainability**: Config-driven approach makes adding new fields trivial
+- **Type Safety**: Full TypeScript coverage with no `any` types used
+- **Error Handling**: Comprehensive error boundaries and user feedback
+
+### **TASK-DETAILS-001**: Part Details Page Implementation ⏳ COMPLETED
 
 **Goal**: Create comprehensive part detail pages accessible from "See Details" links
 
