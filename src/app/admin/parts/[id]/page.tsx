@@ -18,6 +18,7 @@ import {
   UpdatePartsParams,
   useUpdatePartById,
 } from "@/hooks/useUpdatePartById";
+import { useToast } from "@/hooks/use-toast";
 
 export interface PartUpdateForm {
   part_type: string;
@@ -38,6 +39,7 @@ export default function PartDetailsPage() {
   });
 
   const updateMutation = useUpdatePartById();
+  const { toast } = useToast();
 
   const {
     handleSubmit,
@@ -79,11 +81,17 @@ export default function PartDetailsPage() {
 
       await updateMutation.mutateAsync(partToUpdate);
 
-      // Success message (you can add a toast notification here)
-      console.log("Part updated successfully!");
+      toast({
+        title: t("common.success"),
+        description: t("partDetails.actions.saveSuccess"),
+        variant: "success" as any,
+      });
     } catch (error) {
-      // Error handling (you can add error toast here)
-      console.error("Failed to update part:", error);
+      toast({
+        title: t("common.error.title"),
+        description: t("partDetails.actions.saveError"),
+        variant: "destructive",
+      });
     }
   };
 

@@ -53,9 +53,8 @@ export function PartDetailsHeader({
     };
   };
 
-  // Prepare all stats data for quick snapshot
-  const allStats = [
-    // Always show counts
+  // Separate counts from specifications for better layout
+  const countStats = [
     {
       label: t("admin.parts.applications"),
       value: vehicleCount.toString(),
@@ -68,7 +67,10 @@ export function PartDetailsHeader({
       icon: 1,
       type: "count",
     },
-    // Part specifications
+  ];
+
+  // Part specifications for 4-column layout
+  const specStats = [
     ...(positionType
       ? [
           {
@@ -111,9 +113,8 @@ export function PartDetailsHeader({
       : []),
   ];
 
-  // For desktop, show all stats in 6 columns. For mobile, show all in list.
-  const desktopStats = allStats.slice(0, 6); // Show up to 6 stats
-  const mobileStats = allStats;
+  // For mobile, combine all stats in list format
+  const mobileStats = [...countStats, ...specStats];
 
   return (
     <AcrCard variant="default" padding="none" className="mb-6 overflow-hidden">
@@ -128,9 +129,12 @@ export function PartDetailsHeader({
             <div className="flex-1">
               <h1 className="text-lg font-bold text-acr-gray-900">{acrSku}</h1>
               {partType && (
-                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
-                  {partType}
-                </span>
+                <p className="text-sm text-acr-gray-600">
+                  <span className="mr-1">{t("partDetails.header.partLabel")}:</span>
+                  <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
+                    {partType}
+                  </span>
+                </p>
               )}
             </div>
           </div>
@@ -167,21 +171,45 @@ export function PartDetailsHeader({
           </div>
         </div>
 
-        {/* Desktop Layout - Original */}
+        {/* Desktop Layout - Redesigned */}
         <div className="hidden lg:flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <div className="w-10 h-10 bg-acr-red-100 rounded-lg flex items-center justify-center">
               <Settings className="w-5 h-5 text-acr-red-600" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-acr-gray-900">{acrSku}</h1>
-              {partType && (
-                <p className="text-sm text-acr-gray-600">
-                  <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
-                    {partType}
-                  </span>
-                </p>
-              )}
+            <div className="flex items-center gap-6">
+              <div>
+                <h1 className="text-xl font-bold text-acr-gray-900">{acrSku}</h1>
+                {partType && (
+                  <p className="text-sm text-acr-gray-600">
+                    <span className="mr-1">{t("partDetails.header.partLabel")}:</span>
+                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
+                      {partType}
+                    </span>
+                  </p>
+                )}
+              </div>
+              {/* Count Stats next to title */}
+              <div className="flex items-center gap-6 pl-6 border-l border-acr-gray-200">
+                {countStats.map((stat, index) => {
+                  const iconConfig = getStatIcon(stat.icon);
+                  return (
+                    <div key={index} className="flex items-center gap-2">
+                      <div
+                        className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}
+                      >
+                        {iconConfig.icon}
+                      </div>
+                      <div>
+                        <div className="text-lg font-semibold text-acr-gray-800">
+                          {stat.value}
+                        </div>
+                        <div className="text-xs text-acr-gray-500">{stat.label}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -197,6 +225,7 @@ export function PartDetailsHeader({
               onClick={onSave}
               disabled={isSaving}
               className="flex items-center gap-2"
+              type="submit"
             >
               {isSaving ? (
                 <>
@@ -214,64 +243,66 @@ export function PartDetailsHeader({
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="px-4 py-4 lg:px-6">
-        {/* Mobile Layout - Vertical List */}
-        <div className="space-y-3 lg:hidden">
-          {mobileStats.map((stat, index) => {
-            const iconConfig = getStatIcon(stat.icon);
-            return (
-              <div key={index} className="flex items-center gap-3">
-                <div
-                  className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}
-                >
-                  {iconConfig.icon}
-                </div>
-                <div>
+      {/* Specifications Section */}
+      {specStats.length > 0 && (
+        <div className="px-4 py-4 lg:px-6 border-t border-acr-gray-200">
+          {/* Mobile Layout - Vertical List */}
+          <div className="space-y-3 lg:hidden">
+            {mobileStats.map((stat, index) => {
+              const iconConfig = getStatIcon(stat.icon);
+              return (
+                <div key={index} className="flex items-center gap-3">
                   <div
-                    className={
-                      stat.type === "count"
-                        ? "text-lg font-semibold text-acr-gray-800"
-                        : "text-sm font-medium text-acr-gray-800 truncate"
-                    }
+                    className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}
                   >
-                    {stat.value}
+                    {iconConfig.icon}
                   </div>
-                  <div className="text-xs text-acr-gray-500">{stat.label}</div>
+                  <div>
+                    <div
+                      className={
+                        stat.type === "count"
+                          ? "text-lg font-semibold text-acr-gray-800"
+                          : "text-sm font-medium text-acr-gray-800 truncate"
+                      }
+                    >
+                      {stat.value}
+                    </div>
+                    <div className="text-xs text-acr-gray-500">{stat.label}</div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
-        {/* Desktop Layout - Grid */}
-        <div className="hidden lg:grid grid-cols-6 gap-4">
-          {desktopStats.map((stat, index) => {
-            const iconConfig = getStatIcon(stat.icon);
-            return (
-              <div key={index} className="flex items-center gap-3">
-                <div
-                  className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}
-                >
-                  {iconConfig.icon}
-                </div>
-                <div>
-                  <div
-                    className={
-                      stat.type === "count"
-                        ? "text-lg font-semibold text-acr-gray-800"
-                        : "text-sm font-medium text-acr-gray-800 truncate"
-                    }
-                  >
-                    {stat.value}
+          {/* Desktop Layout - 4-Column Grid for Specifications */}
+          <div className="hidden lg:block">
+            <div className="flex items-center gap-2 mb-3">
+              <h3 className="text-sm font-medium text-acr-gray-700">{t("partDetails.header.specifications")}</h3>
+              <div className="flex-1 h-px bg-acr-gray-200"></div>
+            </div>
+            <div className="grid grid-cols-4 gap-6">
+              {specStats.map((stat, index) => {
+                const iconConfig = getStatIcon(stat.icon);
+                return (
+                  <div key={index} className="flex items-center gap-3">
+                    <div
+                      className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}
+                    >
+                      {iconConfig.icon}
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-acr-gray-800 truncate">
+                        {stat.value}
+                      </div>
+                      <div className="text-xs text-acr-gray-500">{stat.label}</div>
+                    </div>
                   </div>
-                  <div className="text-xs text-acr-gray-500">{stat.label}</div>
-                </div>
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </AcrCard>
   );
 }

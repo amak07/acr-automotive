@@ -32,19 +32,21 @@ export function PartMetadata({ createdAt, updatedAt }: PartMetadataProps) {
     } else if (diffInDays === 1) {
       return locale === "es" ? "hace 1 día" : "1 day ago";
     } else if (diffInDays < 7) {
-      return locale === "es" ? `hace ${diffInDays} días` : `${diffInDays} days ago`;
+      return locale === "es"
+        ? `hace ${diffInDays} días`
+        : `${diffInDays} days ago`;
     } else if (diffInDays < 30) {
       const weeks = Math.floor(diffInDays / 7);
       return locale === "es"
-        ? `hace ${weeks} semana${weeks > 1 ? 's' : ''}`
-        : `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+        ? `hace ${weeks} semana${weeks > 1 ? "s" : ""}`
+        : `${weeks} week${weeks > 1 ? "s" : ""} ago`;
     } else {
       return formatDate(dateString);
     }
   };
 
   return (
-    <div className="px-4 py-3 border-t border-acr-gray-200 bg-acr-gray-50 lg:px-6">
+    <div className="px-4 py-3 border-t border-acr-gray-200 bg-acr-gray-50 lg:px-6 mb-2">
       <p className="text-xs text-acr-gray-500 text-center">
         {createdAt && (
           <>
@@ -56,7 +58,8 @@ export function PartMetadata({ createdAt, updatedAt }: PartMetadataProps) {
         )}
         {updatedAt && (
           <>
-            {t("partDetails.metadata.lastModified")} {formatRelativeTime(updatedAt)}
+            {t("partDetails.metadata.lastModified")}{" "}
+            {formatRelativeTime(updatedAt)}
           </>
         )}
       </p>

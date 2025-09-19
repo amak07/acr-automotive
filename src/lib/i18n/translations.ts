@@ -179,6 +179,10 @@ export const translations: Record<
     en: "Please try again",
     es: "Por favor, inténtalo de nuevo",
   },
+  "common.error.title": {
+    en: "Error",
+    es: "Error",
+  },
   "common.success": {
     en: "Success",
     es: "Éxito",
@@ -309,6 +313,22 @@ export const translations: Record<
   "partDetails.actions.uploadImage": {
     en: "Upload Image",
     es: "Subir Imagen",
+  },
+  "partDetails.header.partLabel": {
+    en: "Part",
+    es: "Pieza",
+  },
+  "partDetails.header.specifications": {
+    en: "Part Specifications",
+    es: "Especificaciones de la Pieza",
+  },
+  "partDetails.actions.saveSuccess": {
+    en: "Part updated successfully",
+    es: "Pieza actualizada exitosamente",
+  },
+  "partDetails.actions.saveError": {
+    en: "Failed to update part. Please try again.",
+    es: "Error al actualizar la pieza. Inténtalo de nuevo.",
   },
   "partDetails.empty.noApplications": {
     en: "No vehicle applications",
