@@ -53,6 +53,7 @@ export interface TranslationKeys {
   'common.loading': string;
   'common.error': string;
   'common.error.generic': string;
+  'common.error.title': string;
   'common.error.tryAgain': string;
   'common.success': string;
   
@@ -96,6 +97,14 @@ export interface TranslationKeys {
   'partDetails.actions.preview': string;
   'partDetails.actions.saveChanges': string;
   'partDetails.actions.uploadImage': string;
+
+  // Part Details Header
+  'partDetails.header.partLabel': string;
+  'partDetails.header.specifications': string;
+
+  // Part Details Actions
+  'partDetails.actions.saveSuccess': string;
+  'partDetails.actions.saveError': string;
   'partDetails.empty.noApplications': string;
   'partDetails.empty.applicationsDescription': string;
   'partDetails.empty.addFirstApplication': string;
