@@ -1,15 +1,34 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { AcrButton, AcrCard, AcrCardHeader, AcrCardContent } from "@/components/acr";
-import { Link2, Plus, ExternalLink } from "lucide-react";
+import {
+  AcrButton,
+  AcrCard,
+  AcrCardHeader,
+  AcrCardContent,
+} from "@/components/acr";
+import { Link2, Plus, Edit, Trash2 } from "lucide-react";
+
+interface CrossReference {
+  id: string;
+  acr_part_id: string;
+  competitor_sku: string;
+  competitor_brand: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 interface PartCrossReferencesProps {
   crossReferenceCount?: number;
   partId: string;
+  crossReferences?: CrossReference[];
 }
 
-export function PartCrossReferences({ crossReferenceCount = 0, partId }: PartCrossReferencesProps) {
+export function PartCrossReferences({
+  crossReferenceCount = 0,
+  partId,
+  crossReferences = [],
+}: PartCrossReferencesProps) {
   const { t } = useLocale();
 
   return (
@@ -28,7 +47,12 @@ export function PartCrossReferences({ crossReferenceCount = 0, partId }: PartCro
               {crossReferenceCount}
             </span>
           </div>
-          <AcrButton variant="primary" size="default" className="w-full">
+          <AcrButton
+            variant="primary"
+            size="default"
+            className="w-full"
+            type="button"
+          >
             <Plus className="w-4 h-4" />
             Add Reference
           </AcrButton>
@@ -48,7 +72,7 @@ export function PartCrossReferences({ crossReferenceCount = 0, partId }: PartCro
             </span>
           </div>
 
-          <AcrButton variant="primary" size="default">
+          <AcrButton variant="primary" size="default" type="button">
             <Plus className="w-4 h-4" />
             Add Reference
           </AcrButton>
@@ -67,17 +91,141 @@ export function PartCrossReferences({ crossReferenceCount = 0, partId }: PartCro
               <p className="text-sm text-acr-gray-500 mb-4">
                 {t("partDetails.empty.crossReferencesDescription")}
               </p>
-              <AcrButton variant="primary" size="default">
+              <AcrButton variant="primary" size="default" type="button">
                 <Plus className="w-4 h-4 mr-2" />
                 {t("partDetails.empty.addFirstReference")}
               </AcrButton>
             </div>
           </div>
         ) : (
-          // Data state - placeholder for now
+          // Data table
           <div className="space-y-4">
-            <div className="text-sm text-acr-gray-600">
-              Showing {crossReferenceCount} cross references (data interface coming soon)
+            {/* Mobile view - Card layout */}
+            <div className="block lg:hidden space-y-3">
+              {crossReferences.map((ref) => {
+                const brandCode =
+                  ref.competitor_brand?.charAt(0).toUpperCase() || "U";
+                return (
+                  <div
+                    key={ref.id}
+                    className="border border-acr-gray-200 rounded-lg p-3"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`w-6 h-6 rounded text-xs font-medium flex items-center justify-center text-white ${
+                            brandCode === "T"
+                              ? "bg-orange-500"
+                              : brandCode === "M"
+                              ? "bg-purple-500"
+                              : brandCode === "S"
+                              ? "bg-green-500"
+                              : brandCode === "B"
+                              ? "bg-blue-500"
+                              : "bg-gray-500"
+                          }`}
+                        >
+                          {brandCode}
+                        </span>
+                        <span className="font-medium text-acr-gray-900">
+                          {ref.competitor_sku}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <AcrButton variant="secondary" size="sm" type="button">
+                          <Edit className="w-3 h-3" />
+                        </AcrButton>
+                        <AcrButton variant="secondary" size="sm" type="button">
+                          <Trash2 className="w-3 h-3" />
+                        </AcrButton>
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div>
+                        <span className="text-acr-gray-500">
+                          {t("partDetails.crossRefs.mobile.brand")}
+                        </span>{" "}
+                        {ref.competitor_brand || t("common.notSpecified")}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop view - Table layout */}
+            <div className="hidden lg:block">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-acr-gray-200">
+                      <th className="text-left py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
+                        {t("partDetails.crossRefs.table.competitorSku")}
+                      </th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
+                        {t("partDetails.crossRefs.table.brand")}
+                      </th>
+                      <th className="text-right py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
+                        {t("partDetails.crossRefs.table.actions")}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-acr-gray-100">
+                    {crossReferences.map((ref) => {
+                      const brandCode =
+                        ref.competitor_brand?.charAt(0).toUpperCase() || "U";
+                      return (
+                        <tr key={ref.id} className="hover:bg-acr-gray-50">
+                          <td className="py-3 px-4 text-sm font-medium text-acr-gray-900">
+                            {ref.competitor_sku}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`w-6 h-6 rounded text-xs font-medium flex items-center justify-center text-white ${
+                                  brandCode === "T"
+                                    ? "bg-orange-500"
+                                    : brandCode === "M"
+                                    ? "bg-purple-500"
+                                    : brandCode === "S"
+                                    ? "bg-green-500"
+                                    : brandCode === "B"
+                                    ? "bg-blue-500"
+                                    : "bg-gray-500"
+                                }`}
+                              >
+                                {brandCode}
+                              </span>
+                              <span className="text-sm font-medium text-acr-gray-900">
+                                {ref.competitor_brand ||
+                                  t("common.notSpecified")}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <AcrButton
+                                variant="secondary"
+                                size="sm"
+                                type="button"
+                              >
+                                <Edit className="w-3 h-3" />
+                              </AcrButton>
+                              <AcrButton
+                                variant="secondary"
+                                size="sm"
+                                type="button"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </AcrButton>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

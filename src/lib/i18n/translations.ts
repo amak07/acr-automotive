@@ -538,4 +538,52 @@ export const translations: Record<
     en: "•",
     es: "•",
   },
+
+  // Vehicle Applications Table
+  "partDetails.vehicleApps.table.brand": {
+    en: "BRAND",
+    es: "MARCA",
+  },
+  "partDetails.vehicleApps.table.model": {
+    en: "MODEL",
+    es: "MODELO",
+  },
+  "partDetails.vehicleApps.table.yearRange": {
+    en: "YEAR RANGE",
+    es: "RANGO DE AÑOS",
+  },
+  "partDetails.vehicleApps.table.actions": {
+    en: "ACTIONS",
+    es: "ACCIONES",
+  },
+  "partDetails.vehicleApps.mobile.brand": {
+    en: "Brand:",
+    es: "Marca:",
+  },
+  "partDetails.vehicleApps.mobile.model": {
+    en: "Model:",
+    es: "Modelo:",
+  },
+  "partDetails.vehicleApps.mobile.years": {
+    en: "Years:",
+    es: "Años:",
+  },
+
+  // Cross References Table
+  "partDetails.crossRefs.table.competitorSku": {
+    en: "COMPETITOR SKU",
+    es: "SKU COMPETIDOR",
+  },
+  "partDetails.crossRefs.table.brand": {
+    en: "BRAND",
+    es: "MARCA",
+  },
+  "partDetails.crossRefs.table.actions": {
+    en: "ACTIONS",
+    es: "ACCIONES",
+  },
+  "partDetails.crossRefs.mobile.brand": {
+    en: "Brand:",
+    es: "Marca:",
+  },
 };
