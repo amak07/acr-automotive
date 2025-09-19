@@ -39,7 +39,8 @@ export default function PartDetailsPage() {
     id: id,
   });
 
-  const { data: filterOptions, isLoading: filterOptionsLoading } = useFilterOptions();
+  const { data: filterOptions, isLoading: filterOptionsLoading } =
+    useFilterOptions();
 
   const updateMutation = useUpdatePartById();
   const { toast } = useToast();
@@ -84,11 +85,21 @@ export default function PartDetailsPage() {
     try {
       // Convert __unspecified__ back to undefined for API validation
       const partToUpdate: UpdatePartsParams = {
-        part_type: updatedData.part_type.startsWith("__unspecified_") ? undefined : updatedData.part_type,
-        position_type: updatedData.position_type.startsWith("__unspecified_") ? undefined : updatedData.position_type,
-        abs_type: updatedData.abs_type.startsWith("__unspecified_") ? undefined : updatedData.abs_type,
-        drive_type: updatedData.drive_type.startsWith("__unspecified_") ? undefined : updatedData.drive_type,
-        bolt_pattern: updatedData.bolt_pattern.startsWith("__unspecified_") ? undefined : updatedData.bolt_pattern,
+        part_type: updatedData.part_type.startsWith("__unspecified_")
+          ? undefined
+          : updatedData.part_type,
+        position_type: updatedData.position_type.startsWith("__unspecified_")
+          ? undefined
+          : updatedData.position_type,
+        abs_type: updatedData.abs_type.startsWith("__unspecified_")
+          ? undefined
+          : updatedData.abs_type,
+        drive_type: updatedData.drive_type.startsWith("__unspecified_")
+          ? undefined
+          : updatedData.drive_type,
+        bolt_pattern: updatedData.bolt_pattern.startsWith("__unspecified_")
+          ? undefined
+          : updatedData.bolt_pattern,
         specifications: updatedData.specifications || undefined,
         id,
       };
@@ -171,7 +182,11 @@ export default function PartDetailsPage() {
               updatedAt={data.updated_at || undefined}
             />
 
-            <PartBasicInfo data={data} control={control} filterOptions={filterOptions} />
+            <PartBasicInfo
+              data={data}
+              control={control}
+              filterOptions={filterOptions}
+            />
 
             <PartApplications
               vehicleCount={data.vehicle_count || 0}

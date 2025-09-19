@@ -8,6 +8,16 @@ export interface AcrInputProps extends React.ComponentProps<typeof ShadcnInput> 
    * @default "default"
    */
   variant?: "default" | "disabled";
+
+  /**
+   * Error message to display. When provided, input shows error state
+   */
+  error?: string;
+
+  /**
+   * Helper text to display below the input
+   */
+  helperText?: string;
 }
 
 /**
@@ -15,25 +25,47 @@ export interface AcrInputProps extends React.ComponentProps<typeof ShadcnInput> 
  * Built on top of shadcn Input with ACR design standards
  */
 export const AcrInput = React.forwardRef<HTMLInputElement, AcrInputProps>(
-  ({ className, variant = "default", ...props }, ref) => {
+  ({ className, variant = "default", error, helperText, ...props }, ref) => {
+    const hasError = !!error;
+
     return (
-      <ShadcnInput
-        className={cn(
-          // ACR-specific styling overrides
-          "pl-4 pr-4 py-3 h-auto", // ACR spacing standards
-          "border-acr-gray-300 bg-white", // ACR colors
-          "focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent", // ACR focus states
-          "transition-colors duration-200", // Smooth transitions
-          "placeholder:text-acr-gray-400", // ACR placeholder color
-          
-          // Variant styles
-          variant === "disabled" && "bg-acr-gray-50 text-acr-gray-500 cursor-not-allowed",
-          
-          className
+      <div className="w-full">
+        <ShadcnInput
+          className={cn(
+            // ACR-specific styling overrides
+            "pl-4 pr-4 py-3 h-auto", // ACR spacing standards
+
+            // Default border - neutral gray
+            "border-acr-gray-300 bg-white",
+
+            // Error state - red border only when there's an error
+            hasError && "border-red-500 focus:border-red-500 focus:ring-red-500",
+
+            // Focus states - only when no error
+            !hasError && "focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent",
+
+            "transition-colors duration-200", // Smooth transitions
+            "placeholder:text-acr-gray-400", // ACR placeholder color
+
+            // Variant styles
+            variant === "disabled" && "bg-acr-gray-50 text-acr-gray-500 cursor-not-allowed",
+
+            className
+          )}
+          ref={ref}
+          {...props}
+        />
+
+        {/* Helper text or error message */}
+        {(error || helperText) && (
+          <p className={cn(
+            "mt-1 text-xs",
+            hasError ? "text-red-600" : "text-acr-gray-500"
+          )}>
+            {error || helperText}
+          </p>
         )}
-        ref={ref}
-        {...props}
-      />
+      </div>
     );
   }
 );

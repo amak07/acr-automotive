@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { querySchema } from "@/app/api/admin/parts/schemas";
 import { PartWithDetails } from "@/types";
+import { queryKeys } from "./queryKeys";
 
 type UsePartsParams = Pick<z.infer<typeof querySchema>, "id">;
 
@@ -11,7 +12,7 @@ export function useGetPartById(queryParams: UsePartsParams) {
   const { id } = queryParams;
 
   return useQuery<PartWithDetails>({
-    queryKey: ["parts", { id }],
+    queryKey: queryKeys.parts.detail(id),
     queryFn: async () => {
       const url = `/api/admin/parts?id=${queryParams.id}`;
       const response = await fetch(url, {

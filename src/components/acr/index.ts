@@ -14,6 +14,7 @@ export { AcrInput, type AcrInputProps } from "./Input";
 export { AcrSelect, AcrSelectTrigger, AcrSelectContent, AcrSelectItem, type AcrSelectTriggerProps } from "./Select";
 export { AcrTextarea, type AcrTextareaProps } from "./Textarea";
 export { AcrLabel, type AcrLabelProps } from "./Label";
+export { AcrModal, AcrModalFooter, AcrModalBody } from "./AcrModal";
 
 /**
  * Usage Examples:

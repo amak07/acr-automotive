@@ -172,4 +172,20 @@ export interface TranslationKeys {
   'partDetails.crossRefs.table.brand': string;
   'partDetails.crossRefs.table.actions': string;
   'partDetails.crossRefs.mobile.brand': string;
+
+  // Modal Labels
+  'forms.labels.brand': string;
+  'forms.labels.model': string;
+  'forms.labels.startYear': string;
+  'forms.labels.endYear': string;
+  'forms.placeholders.startYear': string;
+  'forms.placeholders.endYear': string;
+  'forms.placeholders.make': string;
+  'forms.placeholders.model': string;
+
+  // Modal Titles and Descriptions
+  'modals.editVehicleApplication.title': string;
+  'modals.editVehicleApplication.description': string;
+  'modals.addVehicleApplication.title': string;
+  'modals.addVehicleApplication.description': string;
 }

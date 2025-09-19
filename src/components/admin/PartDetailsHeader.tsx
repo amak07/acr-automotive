@@ -122,7 +122,9 @@ export function PartDetailsHeader({
               <h1 className="text-lg font-bold text-acr-gray-900">{acrSku}</h1>
               {partType && (
                 <p className="text-sm text-acr-gray-600">
-                  <span className="mr-1">{t("partDetails.header.partLabel")}:</span>
+                  <span className="mr-1">
+                    {t("partDetails.header.partLabel")}:
+                  </span>
                   <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
                     {partType}
                   </span>
@@ -133,7 +135,12 @@ export function PartDetailsHeader({
 
           {/* Mobile Action Buttons */}
           <div className="flex gap-2">
-            <AcrButton variant="secondary" size="sm" className="flex-1" type="button">
+            <AcrButton
+              variant="secondary"
+              size="sm"
+              className="flex-1"
+              type="button"
+            >
               <Eye className="w-4 h-4" />
             </AcrButton>
             <AcrButton
@@ -171,10 +178,14 @@ export function PartDetailsHeader({
             </div>
             <div className="flex items-center gap-6">
               <div>
-                <h1 className="text-xl font-bold text-acr-gray-900">{acrSku}</h1>
+                <h1 className="text-xl font-bold text-acr-gray-900">
+                  {acrSku}
+                </h1>
                 {partType && (
                   <p className="text-sm text-acr-gray-600">
-                    <span className="mr-1">{t("partDetails.header.partLabel")}:</span>
+                    <span className="mr-1">
+                      {t("partDetails.header.partLabel")}:
+                    </span>
                     <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
                       {partType}
                     </span>
@@ -196,7 +207,9 @@ export function PartDetailsHeader({
                         <div className="text-lg font-semibold text-acr-gray-800">
                           {stat.value}
                         </div>
-                        <div className="text-xs text-acr-gray-500">{stat.label}</div>
+                        <div className="text-xs text-acr-gray-500">
+                          {stat.label}
+                        </div>
                       </div>
                     </div>
                   );
@@ -236,7 +249,7 @@ export function PartDetailsHeader({
       </div>
 
       {/* Specifications Section */}
-      {(
+      {
         <div className="px-4 py-4 lg:px-6 border-t border-acr-gray-200">
           {/* Mobile Layout - Vertical List */}
           <div className="space-y-3 lg:hidden">
@@ -259,7 +272,9 @@ export function PartDetailsHeader({
                     >
                       {stat.value}
                     </div>
-                    <div className="text-xs text-acr-gray-500">{stat.label}</div>
+                    <div className="text-xs text-acr-gray-500">
+                      {stat.label}
+                    </div>
                   </div>
                 </div>
               );
@@ -269,7 +284,9 @@ export function PartDetailsHeader({
           {/* Desktop Layout - 4-Column Grid for Specifications */}
           <div className="hidden lg:block">
             <div className="flex items-center gap-2 mb-3">
-              <h3 className="text-sm font-medium text-acr-gray-700">{t("partDetails.header.specifications")}</h3>
+              <h3 className="text-sm font-medium text-acr-gray-700">
+                {t("partDetails.header.specifications")}
+              </h3>
               <div className="flex-1 h-px bg-acr-gray-200"></div>
             </div>
             <div className="grid grid-cols-4 gap-6">
@@ -286,7 +303,9 @@ export function PartDetailsHeader({
                       <div className="text-sm font-medium text-acr-gray-800 truncate">
                         {stat.value}
                       </div>
-                      <div className="text-xs text-acr-gray-500">{stat.label}</div>
+                      <div className="text-xs text-acr-gray-500">
+                        {stat.label}
+                      </div>
                     </div>
                   </div>
                 );
@@ -294,7 +313,7 @@ export function PartDetailsHeader({
             </div>
           </div>
         </div>
-      )}
+      }
     </AcrCard>
   );
 }
