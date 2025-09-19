@@ -157,4 +157,19 @@ export interface TranslationKeys {
   'partDetails.metadata.created': string;
   'partDetails.metadata.lastModified': string;
   'partDetails.metadata.separator': string;
+
+  // Vehicle Applications Table
+  'partDetails.vehicleApps.table.brand': string;
+  'partDetails.vehicleApps.table.model': string;
+  'partDetails.vehicleApps.table.yearRange': string;
+  'partDetails.vehicleApps.table.actions': string;
+  'partDetails.vehicleApps.mobile.brand': string;
+  'partDetails.vehicleApps.mobile.model': string;
+  'partDetails.vehicleApps.mobile.years': string;
+
+  // Cross References Table
+  'partDetails.crossRefs.table.competitorSku': string;
+  'partDetails.crossRefs.table.brand': string;
+  'partDetails.crossRefs.table.actions': string;
+  'partDetails.crossRefs.mobile.brand': string;
 }

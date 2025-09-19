@@ -20,8 +20,24 @@ export type PartSummary = DatabasePartRow & {
 
 // Parts with full relationship data for detail views
 export type PartWithDetails = DatabasePartRow & {
-  vehicle_applications: Array<{ id: string }>;
-  cross_references: Array<{ id: string }>;
+  vehicle_applications: Array<{
+    id: string;
+    part_id: string;
+    make: string;
+    model: string;
+    start_year: number;
+    end_year: number;
+    created_at: string;
+    updated_at: string;
+  }>;
+  cross_references: Array<{
+    id: string;
+    acr_part_id: string;
+    competitor_sku: string;
+    competitor_brand: string | null;
+    created_at: string;
+    updated_at: string;
+  }>;
   vehicle_count?: number;
   cross_reference_count?: number;
 };

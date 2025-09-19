@@ -133,7 +133,7 @@ export function PartDetailsHeader({
 
           {/* Mobile Action Buttons */}
           <div className="flex gap-2">
-            <AcrButton variant="secondary" size="sm" className="flex-1">
+            <AcrButton variant="secondary" size="sm" className="flex-1" type="button">
               <Eye className="w-4 h-4" />
             </AcrButton>
             <AcrButton
@@ -207,7 +207,7 @@ export function PartDetailsHeader({
 
           {/* Desktop Action Buttons */}
           <div className="flex items-center gap-3">
-            <AcrButton variant="secondary" size="default">
+            <AcrButton variant="secondary" size="default" type="button">
               <Eye className="w-4 h-4 mr-2" />
               Preview
             </AcrButton>

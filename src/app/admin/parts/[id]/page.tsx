@@ -176,11 +176,13 @@ export default function PartDetailsPage() {
             <PartApplications
               vehicleCount={data.vehicle_count || 0}
               partId={id}
+              vehicleApplications={data.vehicle_applications || []}
             />
 
             <PartCrossReferences
               crossReferenceCount={data.cross_reference_count || 0}
               partId={id}
+              crossReferences={data.cross_references || []}
             />
 
             <PartDetailsActions />

@@ -1,15 +1,36 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { AcrButton, AcrCard, AcrCardHeader, AcrCardContent } from "@/components/acr";
-import { Car, Plus, Loader2 } from "lucide-react";
+import {
+  AcrButton,
+  AcrCard,
+  AcrCardHeader,
+  AcrCardContent,
+} from "@/components/acr";
+import { Car, Plus, Loader2, Edit, Trash2 } from "lucide-react";
+
+interface VehicleApplication {
+  id: string;
+  part_id: string;
+  make: string;
+  model: string;
+  start_year: number;
+  end_year: number;
+  created_at: string;
+  updated_at: string;
+}
 
 interface PartApplicationsProps {
   vehicleCount?: number;
   partId: string;
+  vehicleApplications?: VehicleApplication[];
 }
 
-export function PartApplications({ vehicleCount = 0, partId }: PartApplicationsProps) {
+export function PartApplications({
+  vehicleCount = 0,
+  partId,
+  vehicleApplications = [],
+}: PartApplicationsProps) {
   const { t } = useLocale();
 
   return (
@@ -28,7 +49,12 @@ export function PartApplications({ vehicleCount = 0, partId }: PartApplicationsP
               {vehicleCount}
             </span>
           </div>
-          <AcrButton variant="primary" size="default" className="w-full">
+          <AcrButton
+            variant="primary"
+            size="default"
+            className="w-full"
+            type="button"
+          >
             <Plus className="w-4 h-4" />
             Add Application
           </AcrButton>
@@ -48,7 +74,7 @@ export function PartApplications({ vehicleCount = 0, partId }: PartApplicationsP
             </span>
           </div>
 
-          <AcrButton variant="primary" size="default">
+          <AcrButton variant="primary" size="default" type="button">
             <Plus className="w-4 h-4" />
             Add Application
           </AcrButton>
@@ -67,17 +93,152 @@ export function PartApplications({ vehicleCount = 0, partId }: PartApplicationsP
               <p className="text-sm text-acr-gray-500 mb-4">
                 {t("partDetails.empty.applicationsDescription")}
               </p>
-              <AcrButton variant="primary" size="default">
+              <AcrButton variant="primary" size="default" type="button">
                 <Plus className="w-4 h-4 mr-2" />
                 {t("partDetails.empty.addFirstApplication")}
               </AcrButton>
             </div>
           </div>
         ) : (
-          // Data state - placeholder for now
+          // Data table
           <div className="space-y-4">
-            <div className="text-sm text-acr-gray-600">
-              Showing {vehicleCount} vehicle applications (data interface coming soon)
+            {/* Mobile view - Card layout */}
+            <div className="block lg:hidden space-y-3">
+              {vehicleApplications.map((app, index) => {
+                const brandCode = app.make.charAt(0).toUpperCase();
+                const yearRange = `${app.start_year}-${app.end_year}`;
+                return (
+                  <div
+                    key={app.id}
+                    className="border border-acr-gray-200 rounded-lg p-3"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`w-6 h-6 rounded text-xs font-medium flex items-center justify-center text-white ${
+                            brandCode === "H"
+                              ? "bg-red-500"
+                              : brandCode === "T"
+                              ? "bg-blue-500"
+                              : brandCode === "N"
+                              ? "bg-gray-500"
+                              : brandCode === "M"
+                              ? "bg-purple-500"
+                              : "bg-green-500"
+                          }`}
+                        >
+                          {brandCode}
+                        </span>
+                        <span className="font-medium text-acr-gray-900">
+                          {app.make}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <AcrButton variant="secondary" size="sm" type="button">
+                          <Edit className="w-3 h-3" />
+                        </AcrButton>
+                        <AcrButton variant="secondary" size="sm" type="button">
+                          <Trash2 className="w-3 h-3" />
+                        </AcrButton>
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div>
+                        <span className="text-acr-gray-500">
+                          {t("partDetails.vehicleApps.mobile.model")}
+                        </span>{" "}
+                        {app.model}
+                      </div>
+                      <div>
+                        <span className="text-acr-gray-500">
+                          {t("partDetails.vehicleApps.mobile.years")}
+                        </span>{" "}
+                        {yearRange}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop view - Table layout */}
+            <div className="hidden lg:block">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-acr-gray-200">
+                      <th className="text-left py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
+                        {t("partDetails.vehicleApps.table.brand")}
+                      </th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
+                        {t("partDetails.vehicleApps.table.model")}
+                      </th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
+                        {t("partDetails.vehicleApps.table.yearRange")}
+                      </th>
+                      <th className="text-right py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
+                        {t("partDetails.vehicleApps.table.actions")}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-acr-gray-100">
+                    {vehicleApplications.map((app) => {
+                      const brandCode = app.make.charAt(0).toUpperCase();
+                      const yearRange = `${app.start_year}-${app.end_year}`;
+                      return (
+                        <tr key={app.id} className="hover:bg-acr-gray-50">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`w-6 h-6 rounded text-xs font-medium flex items-center justify-center text-white ${
+                                  brandCode === "H"
+                                    ? "bg-red-500"
+                                    : brandCode === "T"
+                                    ? "bg-blue-500"
+                                    : brandCode === "N"
+                                    ? "bg-gray-500"
+                                    : brandCode === "M"
+                                    ? "bg-purple-500"
+                                    : "bg-green-500"
+                                }`}
+                              >
+                                {brandCode}
+                              </span>
+                              <span className="text-sm font-medium text-acr-gray-900">
+                                {app.make}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-sm text-acr-gray-900">
+                            {app.model}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-acr-gray-900">
+                            {yearRange}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <AcrButton
+                                variant="secondary"
+                                size="sm"
+                                type="button"
+                              >
+                                <Edit className="w-3 h-3" />
+                              </AcrButton>
+                              <AcrButton
+                                variant="secondary"
+                                size="sm"
+                                type="button"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </AcrButton>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

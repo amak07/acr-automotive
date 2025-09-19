@@ -27,6 +27,7 @@ export function PartDetailsActions({ onSave, isSaving = false }: PartDetailsActi
             variant="secondary"
             size="default"
             className="flex-1"
+            type="button"
           >
             {t("common.actions.cancel")}
           </AcrButton>
@@ -36,6 +37,7 @@ export function PartDetailsActions({ onSave, isSaving = false }: PartDetailsActi
             onClick={onSave}
             disabled={isSaving}
             className="flex-1 flex items-center justify-center gap-2"
+            type="submit"
           >
             {isSaving ? (
               <>
@@ -56,6 +58,7 @@ export function PartDetailsActions({ onSave, isSaving = false }: PartDetailsActi
           size="default"
           onClick={handleBack}
           className="w-full flex items-center justify-center gap-2"
+          type="button"
         >
           <ArrowLeft className="w-4 h-4" />
           {t("common.actions.back")}
@@ -69,6 +72,7 @@ export function PartDetailsActions({ onSave, isSaving = false }: PartDetailsActi
           size="default"
           onClick={handleBack}
           className="flex items-center gap-2"
+          type="button"
         >
           <ArrowLeft className="w-4 h-4" />
           {t("common.actions.back")}
@@ -78,6 +82,7 @@ export function PartDetailsActions({ onSave, isSaving = false }: PartDetailsActi
           <AcrButton
             variant="secondary"
             size="default"
+            type="button"
           >
             {t("common.actions.cancel")}
           </AcrButton>
@@ -87,6 +92,7 @@ export function PartDetailsActions({ onSave, isSaving = false }: PartDetailsActi
             onClick={onSave}
             disabled={isSaving}
             className="flex items-center gap-2"
+            type="submit"
           >
             {isSaving ? (
               <>
