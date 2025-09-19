@@ -69,48 +69,40 @@ export function PartDetailsHeader({
     },
   ];
 
-  // Part specifications for 4-column layout
+  // Helper function to display proper value or "Not Specified"
+  const formatSpecValue = (value: string | undefined | null) => {
+    if (!value || value.startsWith("__unspecified_")) {
+      return t("common.notSpecified");
+    }
+    return value;
+  };
+
+  // Part specifications for 4-column layout - show all specs
   const specStats = [
-    ...(positionType
-      ? [
-          {
-            label: t("partDetails.basicInfo.position"),
-            value: positionType,
-            icon: 2,
-            type: "spec",
-          },
-        ]
-      : []),
-    ...(absType
-      ? [
-          {
-            label: t("parts.labels.abs"),
-            value: absType,
-            icon: 3,
-            type: "spec",
-          },
-        ]
-      : []),
-    ...(driveType
-      ? [
-          {
-            label: t("parts.labels.drive"),
-            value: driveType,
-            icon: 4,
-            type: "spec",
-          },
-        ]
-      : []),
-    ...(boltPattern
-      ? [
-          {
-            label: t("parts.labels.boltPattern"),
-            value: boltPattern,
-            icon: 5,
-            type: "spec",
-          },
-        ]
-      : []),
+    {
+      label: t("partDetails.basicInfo.position"),
+      value: formatSpecValue(positionType),
+      icon: 2,
+      type: "spec",
+    },
+    {
+      label: t("parts.labels.abs"),
+      value: formatSpecValue(absType),
+      icon: 3,
+      type: "spec",
+    },
+    {
+      label: t("parts.labels.drive"),
+      value: formatSpecValue(driveType),
+      icon: 4,
+      type: "spec",
+    },
+    {
+      label: t("parts.labels.boltPattern"),
+      value: formatSpecValue(boltPattern),
+      icon: 5,
+      type: "spec",
+    },
   ];
 
   // For mobile, combine all stats in list format
@@ -244,7 +236,7 @@ export function PartDetailsHeader({
       </div>
 
       {/* Specifications Section */}
-      {specStats.length > 0 && (
+      {(
         <div className="px-4 py-4 lg:px-6 border-t border-acr-gray-200">
           {/* Mobile Layout - Vertical List */}
           <div className="space-y-3 lg:hidden">

@@ -58,6 +58,8 @@ export async function GET(request: NextRequest) {
         ...partData,
         vehicle_applications: vehicleApps || [],
         cross_references: crossRefs || [],
+        vehicle_count: vehicleApps?.length || 0,
+        cross_reference_count: crossRefs?.length || 0,
       };
 
       return Response.json({ data: result });

@@ -56,6 +56,8 @@ export interface TranslationKeys {
   'common.error.title': string;
   'common.error.tryAgain': string;
   'common.success': string;
+  'common.notAvailable': string;
+  'common.notSpecified': string;
   
   // Part Types & Positions
   'parts.types.maza': string;

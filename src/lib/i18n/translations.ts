@@ -187,6 +187,14 @@ export const translations: Record<
     en: "Success",
     es: "Éxito",
   },
+  "common.notAvailable": {
+    en: "N/A",
+    es: "N/D",
+  },
+  "common.notSpecified": {
+    en: "Not Specified",
+    es: "No Especificado",
+  },
 
   // Part Types (Technical terms - keep Spanish originals)
   "parts.types.maza": {
