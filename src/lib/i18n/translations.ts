@@ -334,6 +334,70 @@ export const translations: Record<
     en: "Add First Reference",
     es: "Agregar Primera Referencia",
   },
+  "partDetails.quickStats.applications": {
+    en: "applications",
+    es: "aplicaciones",
+  },
+  "partDetails.quickStats.crossReferences": {
+    en: "cross references",
+    es: "referencias cruzadas",
+  },
+  "partDetails.applications.title": {
+    en: "Vehicle Applications",
+    es: "Aplicaciones Vehiculares",
+  },
+  "partDetails.applications.vehicles": {
+    en: "vehicles",
+    es: "vehículos",
+  },
+  "partDetails.applications.search": {
+    en: "Search applications",
+    es: "Buscar aplicaciones",
+  },
+  "partDetails.applications.add": {
+    en: "Add Application",
+    es: "Agregar Aplicación",
+  },
+  "partDetails.applications.addFirst": {
+    en: "Add First Application",
+    es: "Agregar Primera Aplicación",
+  },
+  "partDetails.applications.emptyTitle": {
+    en: "No vehicle applications",
+    es: "Sin aplicaciones vehiculares",
+  },
+  "partDetails.applications.emptyDescription": {
+    en: "Add vehicle compatibility information for this part",
+    es: "Agregue información de compatibilidad vehicular para esta pieza",
+  },
+  "partDetails.crossReferences.title": {
+    en: "Cross References",
+    es: "Referencias Cruzadas",
+  },
+  "partDetails.crossReferences.references": {
+    en: "references",
+    es: "referencias",
+  },
+  "partDetails.crossReferences.search": {
+    en: "Search references",
+    es: "Buscar referencias",
+  },
+  "partDetails.crossReferences.add": {
+    en: "Add Reference",
+    es: "Agregar Referencia",
+  },
+  "partDetails.crossReferences.addFirst": {
+    en: "Add First Reference",
+    es: "Agregar Primera Referencia",
+  },
+  "partDetails.crossReferences.emptyTitle": {
+    en: "No cross references",
+    es: "Sin referencias cruzadas",
+  },
+  "partDetails.crossReferences.emptyDescription": {
+    en: "Add competitor SKU mappings for this part",
+    es: "Agregue mapeos de SKU de competidores para esta pieza",
+  },
   "partDetails.basicInfo.title": {
     en: "Basic Information",
     es: "Información Básica",
@@ -405,18 +469,6 @@ export const translations: Record<
   "partDetails.basicInfo.selectFile": {
     en: "Select File",
     es: "Seleccionar Archivo",
-  },
-  "partDetails.basicInfo.productImage": {
-    en: "Product Image",
-    es: "Imagen del Producto",
-  },
-  "partDetails.basicInfo.imageUploadText": {
-    en: "Click to upload or drag here",
-    es: "Haga clic para subir o arrastre aquí",
-  },
-  "partDetails.basicInfo.imageFormat": {
-    en: "PNG, JPG up to 10MB",
-    es: "PNG, JPG hasta 10MB",
   },
   "partDetails.vehicleApps.title": {
     en: "Vehicle Applications",

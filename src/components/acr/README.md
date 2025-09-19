@@ -1,319 +1,185 @@
 # ACR Design System
 
-> **Custom component library built on shadcn/ui for ACR Automotive**
+> **Custom component library for ACR Automotive built on shadcn/ui principles**
 
 ## Overview
 
-The ACR Design System is a custom component library built specifically for ACR Automotive, extending shadcn/ui with our own design tokens, patterns, and business requirements. We follow the principle of **component ownership** - copying and customizing components rather than importing external dependencies.
+The ACR Design System is our custom component library built specifically for ACR Automotive's auto parts management interface. It extends shadcn/ui patterns with our own design tokens, business requirements, and Mexican B2B market considerations.
 
-## Design Principles
+## Core Philosophy
 
-### 1. Component Ownership Philosophy
-- **Copy, don't import**: We own all UI components in our codebase
-- **Customizable**: Full control over styling, behavior, and functionality
-- **Maintainable**: No external dependencies for core UI components
-- **Consistent**: Unified design language across the application
+### Component Ownership Strategy
+We follow a **"copy, don't import"** philosophy for UI components:
+- **Full Control**: Own all components in our codebase for maximum customization
+- **No External Dependencies**: Avoid breaking changes from third-party component libraries
+- **Business Alignment**: Tailor components specifically for auto parts management workflows
+- **Maintenance Freedom**: Modify components without upstream constraints
 
-### 2. Mobile-First Responsive Design
-- **Touch-friendly**: 44px minimum touch targets
-- **Responsive**: Mobile-first with desktop enhancements
-- **Accessible**: Proper contrast ratios and keyboard navigation
-- **Performance**: Optimized for tablet use at parts counters
+### Design Decisions
 
-### 3. ACR Branding Integration
-- **Color System**: ACR red primary, professional gray palette
-- **Typography**: Clear hierarchy with proper spacing
-- **Mexican Market**: Designed for Spanish-speaking users
-- **B2B Interface**: Professional styling for business use
+#### Mobile-First Approach
+- **Primary Use Case**: Tablet interfaces at parts counter workstations
+- **Touch Targets**: Minimum 44px for reliable finger interaction
+- **Responsive Strategy**: Mobile-optimized with desktop enhancements
+- **Performance Focus**: Fast loading for business-critical operations
 
-## Component Architecture
+#### Mexican B2B Market Focus
+- **Language**: Spanish-first with English development support
+- **Cultural Considerations**: Professional styling appropriate for Mexican business culture
+- **Industry Standards**: Auto parts terminology and workflow patterns
+- **Business Context**: Distributor and parts counter staff as primary users
 
-### Base Components
+## Design System Architecture
 
-#### AcrButton
-- **Variants**: `primary`, `secondary`, `destructive`, `outline`, `ghost`
-- **Sizes**: `sm`, `default`, `lg`
-- **States**: Normal, hover, focus, disabled, loading
-- **Usage**: All clickable actions throughout the application
+### Component Categories
 
-```tsx
-<AcrButton variant="primary" size="default">
-  Save Changes
-</AcrButton>
-```
+#### Core Interface Components
+- **AcrButton**: Primary interaction element with variants for different action types
+- **AcrCard System**: Content containers with consistent spacing and hierarchy
+- **AcrInput/AcrTextarea**: Text input with validation states and accessibility features
 
-#### AcrInput
-- **Variants**: `default`, `error`, `disabled`
-- **Features**: Built-in validation states, proper focus management
-- **Accessibility**: Label association, error announcements
-- **Usage**: All text input fields
+#### Form Components
+- **AcrSelect**: Dropdown selections with keyboard navigation
+- **AcrLabel**: Proper form control association and accessibility
+- **Validation States**: Consistent error, disabled, and readonly styling
 
-```tsx
-<AcrInput
-  placeholder="Search by ACR SKU..."
-  value={searchTerm}
-  onChange={setSearchTerm}
-/>
-```
+#### Layout Components
+- **Responsive Grid**: Mobile-first layouts with desktop enhancements
+- **Navigation Elements**: Breadcrumbs, pagination, and action buttons
+- **Data Display**: Tables, cards, and stats presentations
 
-#### AcrCard System
-- **Components**: `AcrCard`, `AcrCardHeader`, `AcrCardContent`
-- **Variants**: `default`, `elevated`
-- **Padding**: `none`, `sm`, `default`, `lg`
-- **Usage**: Content containers, forms, data display
+## Visual Design System
 
-```tsx
-<AcrCard variant="default" padding="none">
-  <AcrCardHeader>
-    <h2>Part Details</h2>
-  </AcrCardHeader>
-  <AcrCardContent>
-    <p>Content goes here</p>
-  </AcrCardContent>
-</AcrCard>
-```
+### Color Strategy
+#### Brand Colors
+- **ACR Red**: Primary brand color for actions and emphasis
+- **Professional Gray**: Neutral palette for text, backgrounds, and UI elements
+- **Status Colors**: Semantic colors for success, warning, error, and informational states
 
-### Form Components
+#### Color Usage Philosophy
+- **Conservative Approach**: Prioritize readability and professionalism over visual complexity
+- **Accessibility First**: WCAG AA compliant contrast ratios throughout
+- **Business Context**: Colors appropriate for professional auto parts environment
+- **Semantic Meaning**: Consistent color meanings across all interfaces
 
-#### AcrSelect
-- **Components**: `Root`, `Trigger`, `Content`, `Item`, `Value`
-- **Variants**: `default`, `disabled`
-- **Features**: Keyboard navigation, search functionality
-- **Usage**: Dropdown selections, filters
+## Layout Philosophy
 
-#### AcrTextarea
-- **Features**: Auto-resize, character counting, validation states
-- **Usage**: Notes, descriptions, multi-line input
+### Responsive Strategy
+#### Mobile-First Approach
+- **Primary Design Target**: Start with mobile constraints
+- **Progressive Enhancement**: Add complexity for larger screens
+- **Touch Optimization**: Finger-friendly interactions on tablets
+- **Content Priority**: Most important content accessible on small screens
 
-#### AcrLabel
-- **Features**: Proper association with form controls
-- **Accessibility**: Screen reader support
-- **Usage**: All form field labels
+#### Grid System Decisions
+- **Mobile**: Single-column, stacked layouts for clarity
+- **Tablet**: 2-3 column grids for efficient space usage
+- **Desktop**: Up to 6 columns for comprehensive data display
+- **Breakpoint Strategy**: Focus on `lg:` (1024px+) for desktop layouts
 
-## Color System
+### Content Organization
+#### Information Hierarchy
+- **Card-Based Layout**: Consistent content containers with clear boundaries
+- **Progressive Disclosure**: Complex information revealed through interaction
+- **Scannable Design**: Easy to quickly find relevant information
+- **Action-Oriented**: Clear paths to complete business tasks
 
-### Primary Colors
-- **ACR Red**: `acr-red-50` to `acr-red-900`
-- **Primary**: `#DC2626` (acr-red-600)
-- **Usage**: Primary actions, branding, active states
+## Technical Architecture
 
-### Neutral Colors
-- **ACR Gray**: `acr-gray-50` to `acr-gray-900`
-- **Background**: `acr-gray-100` (page backgrounds)
-- **Text**: `acr-gray-900` (primary text), `acr-gray-600` (secondary)
-- **Borders**: `acr-gray-200` (subtle), `acr-gray-300` (defined)
-
-### Status Colors
-- **Success**: Green palette for confirmations
-- **Warning**: Yellow/orange palette for alerts
-- **Error**: Red palette for errors
-- **Info**: Blue palette for information
-
-### Component-Specific Colors
-- **Stats Icons**: Colored backgrounds for visual hierarchy
-  - Green: Applications (MapPin icon)
-  - Purple: Cross References (Shield icon)
-  - Blue: Position (Zap icon)
-  - Orange: ABS (Settings icon)
-  - Yellow: Drive (Wrench icon)
-  - Cyan: Bolt Pattern (Settings icon)
-
-## Layout Patterns
-
-### Responsive Grid System
-- **Mobile**: Single column, stacked layouts
-- **Tablet**: 2-3 column grids with appropriate breakpoints
-- **Desktop**: Up to 6 column layouts for data display
-
-### Card Layouts
-- **Header**: Title, icons, action buttons
-- **Content**: Form fields, data display, lists
-- **Footer**: Actions, metadata, navigation
-
-### Navigation Patterns
-- **Breadcrumbs**: Hierarchical navigation
-- **Back buttons**: Clear navigation paths
-- **Pagination**: Responsive with page info
-
-## Component Guidelines
-
-### Naming Conventions
-- **Prefix**: All components start with `Acr`
-- **Pascal Case**: `AcrButton`, `AcrCardHeader`
-- **Descriptive**: Clear purpose from name
-
-### File Structure
+### Component Structure
+#### File Organization
 ```
 src/components/acr/
-├── Button.tsx          # AcrButton component
-├── Card.tsx           # AcrCard system
-├── Input.tsx          # AcrInput component
-├── Select.tsx         # AcrSelect system
-├── Textarea.tsx       # AcrTextarea component
-├── Label.tsx          # AcrLabel component
-├── index.ts           # Export all components
-└── README.md          # This documentation
+├── Button.tsx          # Core interaction component
+├── Card.tsx           # Content container system
+├── Input.tsx          # Form input components
+├── Select.tsx         # Dropdown selection system
+├── [other-components]
+├── index.ts           # Central export
+├── README.md          # Architecture documentation
+└── REFERENCE.md       # Developer quick reference
 ```
 
-### Import Pattern
-```tsx
-// Preferred: Named imports from acr folder
-import { AcrButton, AcrCard, AcrInput } from "@/components/acr";
+#### Naming Strategy
+- **Consistent Prefix**: All components use `Acr` prefix for clear identification
+- **Descriptive Names**: Component purpose clear from name
+- **Hierarchical**: Related components grouped (AcrCard, AcrCardHeader, AcrCardContent)
 
-// Individual imports when needed
-import { AcrButton } from "@/components/acr/Button";
-```
+## Implementation Principles
 
-## Usage Examples
+### Development Approach
+#### Component Development Lifecycle
+1. **Business Requirement**: Start with specific auto parts management need
+2. **Mobile Design**: Design for tablet/mobile use first
+3. **Accessibility Review**: Ensure WCAG compliance and keyboard navigation
+4. **Desktop Enhancement**: Add desktop-specific improvements
+5. **Translation Integration**: Ensure all text supports internationalization
 
-### Part Details Header
-```tsx
-<AcrCard variant="default" padding="none">
-  <div className="bg-white px-4 py-4 border-b border-acr-gray-200">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 bg-acr-red-100 rounded-lg flex items-center justify-center">
-          <Settings className="w-5 h-5 text-acr-red-600" />
-        </div>
-        <h1 className="text-xl font-bold text-acr-gray-900">
-          {acrSku}
-        </h1>
-      </div>
-      <AcrButton variant="primary" size="default">
-        Save Changes
-      </AcrButton>
-    </div>
-  </div>
-</AcrCard>
-```
+#### Quality Standards
+- **Type Safety**: Full TypeScript support with strict typing
+- **Accessibility**: Screen reader support and keyboard navigation
+- **Performance**: Optimized for business-critical operations
+- **Maintainability**: Clear component APIs and consistent patterns
 
-### Form Layout
-```tsx
-<AcrCard variant="default">
-  <AcrCardHeader>
-    <h2>Basic Information</h2>
-  </AcrCardHeader>
-  <AcrCardContent>
-    <div className="space-y-4">
-      <div>
-        <AcrLabel htmlFor="sku">ACR SKU</AcrLabel>
-        <AcrInput
-          id="sku"
-          value={data.acr_sku}
-          readOnly
-          className="bg-acr-gray-50"
-        />
-      </div>
-      <div>
-        <AcrLabel htmlFor="type">Part Type</AcrLabel>
-        <AcrSelect.Root value={data.part_type}>
-          <AcrSelect.Trigger>
-            <AcrSelect.Value />
-          </AcrSelect.Trigger>
-          <AcrSelect.Content>
-            <AcrSelect.Item value="maza">MAZA</AcrSelect.Item>
-            <AcrSelect.Item value="disco">Disco de Freno</AcrSelect.Item>
-          </AcrSelect.Content>
-        </AcrSelect.Root>
-      </div>
-    </div>
-  </AcrCardContent>
-</AcrCard>
-```
+## Accessibility Strategy
 
-## Accessibility Features
+### Inclusive Design Approach
+- **Universal Usability**: Components work for all users regardless of ability
+- **Business Context**: Counter staff may have varying technical comfort levels
+- **Keyboard-First**: Complete functionality available without mouse/touch
+- **Screen Reader Support**: Full compatibility with assistive technologies
 
-### Keyboard Navigation
-- **Tab Order**: Logical focus flow
-- **Enter/Space**: Activate buttons and controls
-- **Arrow Keys**: Navigate select options
-- **Escape**: Close modals and dropdowns
+### Implementation Standards
+- **WCAG AA Compliance**: Color contrast and interaction requirements met
+- **Focus Management**: Clear visual indicators and logical tab order
+- **Error Communication**: Accessible error messages and validation feedback
+- **Touch Accessibility**: Minimum 44px touch targets for reliable interaction
 
-### Screen Reader Support
-- **Labels**: Proper association with form controls
-- **ARIA**: Appropriate roles and states
-- **Announcements**: Status changes and errors
-- **Landmarks**: Semantic HTML structure
+## Internationalization Strategy
 
-### Visual Accessibility
-- **Contrast**: WCAG AA compliant color ratios
-- **Focus Indicators**: Clear visual focus states
-- **Touch Targets**: Minimum 44px for mobile
-- **Text Scaling**: Responsive to user font size preferences
+### Language-First Design
+- **Spanish Primary**: Production interface designed for Mexican auto parts market
+- **English Development**: Development and testing in English for efficiency
+- **Cultural Adaptation**: Component text and patterns appropriate for Mexican business culture
+- **Technical Terminology**: Auto parts industry terms preserved in original language when appropriate
 
-## Development Guidelines
+### Implementation Approach
+- **Translation Key Architecture**: All component text uses structured translation keys
+- **Context-Aware**: Component text considers business workflow context
+- **Graceful Fallbacks**: English fallbacks for missing Spanish translations during development
 
-### Component Creation
-1. **Start with shadcn/ui**: Use as base when applicable
-2. **Customize for ACR**: Apply our design tokens and patterns
-3. **Document variants**: Clear API documentation
-4. **Test responsiveness**: Mobile-first validation
-5. **Accessibility audit**: Screen reader and keyboard testing
+## Technical Considerations
 
-### Design Token Usage
-- **Use CSS classes**: Prefer Tailwind utilities over inline styles
-- **Consistent spacing**: Use spacing scale (4px, 8px, 12px, 16px, 24px, 32px)
-- **Color tokens**: Always use ACR color variables
-- **Typography**: Consistent font sizes and line heights
+### Browser Strategy
+- **Modern Browser Focus**: Target current versions of Chrome, Safari, Edge, Firefox
+- **Mobile Priority**: iOS Safari and Chrome Mobile as primary targets
+- **Business Environment**: Optimized for typical business computer and tablet configurations
 
-### Performance Considerations
-- **Tree shaking**: Export only used components
-- **Bundle size**: Monitor component weight
-- **Runtime performance**: Avoid unnecessary re-renders
-- **Loading states**: Provide feedback for async operations
+### Performance Philosophy
+- **Business-Critical Speed**: Fast loading and interaction for parts counter operations
+- **Bundle Efficiency**: Tree-shaking and component-level imports
+- **Memory Management**: Efficient rendering for data-heavy interfaces
+- **Network Optimization**: Minimize requests for business reliability
 
-## Translation Integration
+## Maintenance Approach
 
-### Text Handling
-- **No hardcoded text**: All text uses translation keys
-- **Context aware**: Proper namespace organization
-- **Format support**: Number, date, and currency formatting
-- **Fallbacks**: Graceful degradation for missing translations
+### Evolution Strategy
+- **Usage-Driven Updates**: Component improvements based on actual business usage
+- **Accessibility Audits**: Regular compliance reviews for inclusive design
+- **Performance Monitoring**: Ongoing optimization for business-critical operations
+- **Documentation Currency**: Keep documentation aligned with implementation reality
 
-### Example Usage
-```tsx
-const { t } = useLocale();
-
-<AcrButton variant="primary">
-  {t("common.actions.save")}
-</AcrButton>
-```
-
-## Browser Support
-
-### Target Browsers
-- **Chrome**: 90+ (primary)
-- **Safari**: 14+ (iOS/macOS)
-- **Edge**: 90+ (Windows)
-- **Firefox**: 88+ (fallback)
-
-### Mobile Support
-- **iOS Safari**: 14+
-- **Chrome Mobile**: 90+
-- **Android WebView**: 90+
-
-## Maintenance
-
-### Regular Tasks
-- **Design token updates**: Color and spacing refinements
-- **Accessibility audits**: Quarterly WCAG compliance checks
-- **Performance monitoring**: Bundle size and runtime metrics
-- **User feedback**: Incorporate usability improvements
-
-### Version Management
-- **Breaking changes**: Major version updates
-- **New components**: Minor version updates
-- **Bug fixes**: Patch version updates
-- **Documentation**: Always updated with changes
+### Decision Documentation
+- **Architectural Decisions**: Document major design system choices and rationale
+- **Pattern Evolution**: Track how component patterns evolve with business needs
+- **User Feedback Integration**: Incorporate real user feedback from parts counter staff
 
 ---
 
 ## Getting Started
 
-1. **Import components**: Use named imports from `@/components/acr`
-2. **Follow patterns**: Reference existing component usage
-3. **Test responsiveness**: Verify mobile and desktop layouts
-4. **Check accessibility**: Validate keyboard and screen reader support
-5. **Review with team**: Ensure consistency with design system
+**For Developers**: See `REFERENCE.md` for quick component usage and code examples.
 
-For questions or contributions to the ACR Design System, refer to the project documentation or reach out to the development team.
+**For Stakeholders**: This document outlines our design system philosophy and technical approach for the ACR Automotive interface.
+
+**For Future Development**: All components follow these established patterns and principles for consistency and maintainability.

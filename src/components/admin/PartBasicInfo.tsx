@@ -8,11 +8,11 @@ interface PartBasicInfoProps {
   data: {
     acr_sku?: string;
     part_type?: string;
-    position_type?: string;
-    abs_type?: string;
-    drive_type?: string;
-    bolt_pattern?: string;
-    notes?: string;
+    position_type?: string | null;
+    abs_type?: string | null;
+    drive_type?: string | null;
+    bolt_pattern?: string | null;
+    specifications?: string | null; // This is the notes field
   };
 }
 
@@ -162,7 +162,7 @@ export function PartBasicInfo({ data }: PartBasicInfoProps) {
               </AcrLabel>
               <AcrTextarea
                 id="notes"
-                value={data.notes || ""}
+                value={data.specifications || ""}
                 readOnly
                 rows={4}
                 className="bg-acr-gray-50"

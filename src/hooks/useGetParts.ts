@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AdminPartsQueryParams, EnrichedPart } from "@/types";
+import { AdminPartsQueryParams, PartSummary } from "@/types";
 
 type UsePartsParams = AdminPartsQueryParams;
 
@@ -19,7 +19,7 @@ export function useGetParts(queryParams: UsePartsParams) {
     search,
   } = queryParams;
 
-  return useQuery<{ data: EnrichedPart[]; count: number }>({
+  return useQuery<{ data: PartSummary[]; count: number }>({
     queryKey: [
       "parts",
       {
