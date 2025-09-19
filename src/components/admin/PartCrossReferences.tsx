@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useToast } from "@/hooks/use-toast";
 import {
   AcrButton,
   AcrCard,
@@ -8,6 +10,9 @@ import {
   AcrCardContent,
 } from "@/components/acr";
 import { Link2, Plus, Edit, Trash2 } from "lucide-react";
+import { EditCrossReferenceModal } from "./EditCrossReferenceModal";
+import { AddCrossReferenceModal } from "./AddCrossReferenceModal";
+import { useDeleteCrossReference } from "@/hooks/useDeleteCrossReference";
 
 interface CrossReference {
   id: string;
@@ -30,10 +35,64 @@ export function PartCrossReferences({
   crossReferences = [],
 }: PartCrossReferencesProps) {
   const { t } = useLocale();
+  const { toast } = useToast();
+  const deleteMutation = useDeleteCrossReference();
+
+  const [editModal, setEditModal] = useState<{
+    isOpen: boolean;
+    crossReference: CrossReference | null;
+  }>({
+    isOpen: false,
+    crossReference: null,
+  });
+
+  const [addModal, setAddModal] = useState(false);
+
+  const handleEdit = (crossReference: CrossReference) => {
+    setEditModal({
+      isOpen: true,
+      crossReference,
+    });
+  };
+
+  const handleCloseModal = () => {
+    setEditModal({
+      isOpen: false,
+      crossReference: null,
+    });
+  };
+
+  const handleAdd = () => {
+    setAddModal(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setAddModal(false);
+  };
+
+  const handleDelete = async (crossReference: CrossReference) => {
+    if (window.confirm(`Are you sure you want to delete the cross reference ${crossReference.competitor_sku}${crossReference.competitor_brand ? ` (${crossReference.competitor_brand})` : ''}?`)) {
+      try {
+        await deleteMutation.mutateAsync({ id: crossReference.id });
+
+        toast({
+          title: t("common.success"),
+          description: `${crossReference.competitor_sku}${crossReference.competitor_brand ? ` (${crossReference.competitor_brand})` : ''} deleted successfully`,
+          variant: "success" as any,
+        });
+      } catch (error: any) {
+        toast({
+          title: t("common.error.title"),
+          description: error.error || "Failed to delete cross reference",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   return (
-    <AcrCard variant="default" padding="none" className="mb-6">
-      <AcrCardHeader className="px-4 pt-6 lg:px-6">
+    <AcrCard variant="default" padding="none" className="mb-6" data-testid="part-cross-references-section">
+      <AcrCardHeader className="px-4 pt-6 lg:px-6" data-testid="part-cross-references-header">
         {/* Mobile Layout - Stacked */}
         <div className="block lg:hidden">
           <div className="flex items-center gap-2 mb-4">
@@ -52,6 +111,7 @@ export function PartCrossReferences({
             size="default"
             className="w-full"
             type="button"
+            onClick={handleAdd}
           >
             <Plus className="w-4 h-4" />
             Add Reference
@@ -72,7 +132,7 @@ export function PartCrossReferences({
             </span>
           </div>
 
-          <AcrButton variant="primary" size="default" type="button">
+          <AcrButton variant="primary" size="default" type="button" onClick={handleAdd}>
             <Plus className="w-4 h-4" />
             Add Reference
           </AcrButton>
@@ -91,7 +151,7 @@ export function PartCrossReferences({
               <p className="text-sm text-acr-gray-500 mb-4">
                 {t("partDetails.empty.crossReferencesDescription")}
               </p>
-              <AcrButton variant="primary" size="default" type="button">
+              <AcrButton variant="primary" size="default" type="button" onClick={handleAdd}>
                 <Plus className="w-4 h-4 mr-2" />
                 {t("partDetails.empty.addFirstReference")}
               </AcrButton>
@@ -132,10 +192,21 @@ export function PartCrossReferences({
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <AcrButton variant="secondary" size="sm" type="button">
+                        <AcrButton
+                          variant="secondary"
+                          size="sm"
+                          type="button"
+                          onClick={() => handleEdit(ref)}
+                        >
                           <Edit className="w-3 h-3" />
                         </AcrButton>
-                        <AcrButton variant="secondary" size="sm" type="button">
+                        <AcrButton
+                          variant="secondary"
+                          size="sm"
+                          type="button"
+                          onClick={() => handleDelete(ref)}
+                          disabled={deleteMutation.isPending}
+                        >
                           <Trash2 className="w-3 h-3" />
                         </AcrButton>
                       </div>
@@ -208,6 +279,7 @@ export function PartCrossReferences({
                                 variant="secondary"
                                 size="sm"
                                 type="button"
+                                onClick={() => handleEdit(ref)}
                               >
                                 <Edit className="w-3 h-3" />
                               </AcrButton>
@@ -215,6 +287,8 @@ export function PartCrossReferences({
                                 variant="secondary"
                                 size="sm"
                                 type="button"
+                                onClick={() => handleDelete(ref)}
+                                disabled={deleteMutation.isPending}
                               >
                                 <Trash2 className="w-3 h-3" />
                               </AcrButton>
@@ -230,6 +304,20 @@ export function PartCrossReferences({
           </div>
         )}
       </AcrCardContent>
+
+      {/* Edit Modal */}
+      <EditCrossReferenceModal
+        isOpen={editModal.isOpen}
+        onClose={handleCloseModal}
+        crossReference={editModal.crossReference}
+      />
+
+      {/* Add Modal */}
+      <AddCrossReferenceModal
+        isOpen={addModal}
+        onClose={handleCloseAddModal}
+        partId={partId}
+      />
     </AcrCard>
   );
 }

@@ -109,7 +109,7 @@ export function PartDetailsHeader({
   const mobileStats = [...countStats, ...specStats];
 
   return (
-    <AcrCard variant="default" padding="none" className="mb-6 overflow-hidden">
+    <AcrCard variant="default" padding="none" className="overflow-hidden">
       {/* Header Bar */}
       <div className="bg-white px-4 py-4 border-b border-acr-gray-200 lg:px-6">
         {/* Mobile Layout - Stacked */}

@@ -79,7 +79,7 @@ export function PartApplications({
 
         toast({
           title: t("common.success"),
-          description: "Vehicle application deleted successfully",
+          description: `${application.make} ${application.model} (${application.start_year}-${application.end_year}) deleted successfully`,
           variant: "success" as any,
         });
       } catch (error: any) {
@@ -93,8 +93,8 @@ export function PartApplications({
   };
 
   return (
-    <AcrCard variant="default" padding="none" className="mb-6">
-      <AcrCardHeader className="px-4 pt-6 lg:px-6">
+    <AcrCard variant="default" padding="none" className="mb-6" data-testid="part-applications-section">
+      <AcrCardHeader className="px-4 pt-6 lg:px-6" data-testid="part-applications-header">
         {/* Mobile Layout - Stacked */}
         <div className="block lg:hidden">
           <div className="flex items-center gap-2 mb-4">
@@ -141,10 +141,10 @@ export function PartApplications({
         </div>
       </AcrCardHeader>
 
-      <AcrCardContent className="px-4 pb-6 lg:px-6">
+      <AcrCardContent className="px-4 pb-6 lg:px-6" data-testid="part-applications-content">
         {vehicleCount === 0 ? (
           // Empty state
-          <div className="flex items-center justify-center py-12 border-2 border-dashed border-acr-gray-200 rounded-lg">
+          <div className="flex items-center justify-center py-12 border-2 border-dashed border-acr-gray-200 rounded-lg" data-testid="part-applications-empty-state">
             <div className="text-center">
               <Car className="w-12 h-12 text-acr-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-acr-gray-900 mb-2">
@@ -161,9 +161,9 @@ export function PartApplications({
           </div>
         ) : (
           // Data table
-          <div className="space-y-4">
+          <div className="space-y-4" data-testid="part-applications-table">
             {/* Mobile view - Card layout */}
-            <div className="block lg:hidden space-y-3">
+            <div className="block lg:hidden space-y-3" data-testid="part-applications-mobile-view">
               {vehicleApplications.map((app, index) => {
                 const brandCode = app.make.charAt(0).toUpperCase();
                 const yearRange = `${app.start_year}-${app.end_year}`;
@@ -233,7 +233,7 @@ export function PartApplications({
             </div>
 
             {/* Desktop view - Table layout */}
-            <div className="hidden lg:block">
+            <div className="hidden lg:block" data-testid="part-applications-desktop-view">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>

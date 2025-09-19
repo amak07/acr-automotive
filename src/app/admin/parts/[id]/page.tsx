@@ -157,14 +157,14 @@ export default function PartDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-acr-gray-100">
+    <div className="min-h-screen bg-acr-gray-100" data-testid="part-details-page">
       <AdminHeader />
 
-      <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
+      <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8" data-testid="part-details-main">
         <PartDetailsBreadcrumb acrSku={data?.acr_sku} partId={id} />
 
         {data && !isLoading && filterOptions && !filterOptionsLoading && (
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onSubmit)} data-testid="part-details-form">
             <PartDetailsHeader
               acrSku={data.acr_sku}
               partType={data.part_type}
@@ -200,7 +200,10 @@ export default function PartDetailsPage() {
               crossReferences={data.cross_references || []}
             />
 
-            <PartDetailsActions />
+            <PartDetailsActions
+              isDirty={isDirty}
+              isSaving={updateMutation.isPending}
+            />
           </form>
         )}
       </main>

@@ -161,6 +161,20 @@ export const translations: Record<
     en: "Saving...",
     es: "Guardando...",
   },
+  "common.actions.discard": {
+    en: "Discard Changes",
+    es: "Descartar Cambios",
+  },
+
+  // Confirmation Dialogs
+  "common.confirm.unsavedChanges.title": {
+    en: "Unsaved Changes",
+    es: "Cambios No Guardados",
+  },
+  "common.confirm.unsavedChanges.description": {
+    en: "You have unsaved changes. Are you sure you want to close without saving?",
+    es: "Tienes cambios no guardados. ¿Estás seguro de que quieres cerrar sin guardar?",
+  },
 
   // Common States
   "common.loading": {
@@ -604,6 +618,14 @@ export const translations: Record<
     en: "End Year",
     es: "Año Final",
   },
+  "forms.labels.competitorSku": {
+    en: "Competitor SKU",
+    es: "SKU Competidor",
+  },
+  "forms.labels.competitorBrand": {
+    en: "Competitor Brand",
+    es: "Marca Competidor",
+  },
   "forms.placeholders.startYear": {
     en: "2015",
     es: "2015",
@@ -619,6 +641,14 @@ export const translations: Record<
   "forms.placeholders.model": {
     en: "Enter vehicle model (e.g., CAMRY, CIVIC)",
     es: "Ingrese modelo del vehículo (ej., CAMRY, CIVIC)",
+  },
+  "forms.placeholders.competitorSku": {
+    en: "Enter competitor part number (e.g., 12345-ABC)",
+    es: "Ingrese número de pieza del competidor (ej., 12345-ABC)",
+  },
+  "forms.placeholders.competitorBrand": {
+    en: "Enter competitor brand (optional)",
+    es: "Ingrese marca del competidor (opcional)",
   },
 
   // Modal Titles and Descriptions
@@ -637,5 +667,21 @@ export const translations: Record<
   "modals.addVehicleApplication.description": {
     en: "Add vehicle compatibility information for this part",
     es: "Agregue información de compatibilidad vehicular para esta pieza",
+  },
+  "modals.editCrossReference.title": {
+    en: "Edit Cross Reference",
+    es: "Editar Referencia Cruzada",
+  },
+  "modals.editCrossReference.description": {
+    en: "Update the competitor SKU mapping for this part",
+    es: "Actualice el mapeo de SKU del competidor para esta pieza",
+  },
+  "modals.addCrossReference.title": {
+    en: "Add Cross Reference",
+    es: "Agregar Referencia Cruzada",
+  },
+  "modals.addCrossReference.description": {
+    en: "Add competitor SKU mapping for this part",
+    es: "Agregue mapeo de SKU del competidor para esta pieza",
   },
 };

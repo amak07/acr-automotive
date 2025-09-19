@@ -39,6 +39,11 @@ export interface TranslationKeys {
   'common.actions.clearFilters': string;
   'common.actions.back': string;
   'common.actions.saving': string;
+  'common.actions.discard': string;
+
+  // Confirmation Dialogs
+  'common.confirm.unsavedChanges.title': string;
+  'common.confirm.unsavedChanges.description': string;
 
   // Common Actions
   'common.actions.view': string;
@@ -178,14 +183,22 @@ export interface TranslationKeys {
   'forms.labels.model': string;
   'forms.labels.startYear': string;
   'forms.labels.endYear': string;
+  'forms.labels.competitorSku': string;
+  'forms.labels.competitorBrand': string;
   'forms.placeholders.startYear': string;
   'forms.placeholders.endYear': string;
   'forms.placeholders.make': string;
   'forms.placeholders.model': string;
+  'forms.placeholders.competitorSku': string;
+  'forms.placeholders.competitorBrand': string;
 
   // Modal Titles and Descriptions
   'modals.editVehicleApplication.title': string;
   'modals.editVehicleApplication.description': string;
   'modals.addVehicleApplication.title': string;
   'modals.addVehicleApplication.description': string;
+  'modals.editCrossReference.title': string;
+  'modals.editCrossReference.description': string;
+  'modals.addCrossReference.title': string;
+  'modals.addCrossReference.description': string;
 }

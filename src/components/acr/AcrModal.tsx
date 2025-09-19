@@ -22,6 +22,7 @@ interface AcrModalProps {
   size?: "sm" | "md" | "lg" | "xl";
   showCloseButton?: boolean;
   className?: string;
+  "data-testid"?: string;
 }
 
 const sizeClasses = {
@@ -39,7 +40,8 @@ export function AcrModal({
   children,
   size = "md",
   showCloseButton = true,
-  className
+  className,
+  "data-testid": dataTestId
 }: AcrModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -55,6 +57,7 @@ export function AcrModal({
             sizeClasses[size],
             className
           )}
+          data-testid={dataTestId}
         >
           {/* Header */}
           <DialogHeader className="relative border-b border-acr-gray-200 px-6 py-4">

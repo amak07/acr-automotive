@@ -15,6 +15,7 @@ export { AcrSelect, AcrSelectTrigger, AcrSelectContent, AcrSelectItem, type AcrS
 export { AcrTextarea, type AcrTextareaProps } from "./Textarea";
 export { AcrLabel, type AcrLabelProps } from "./Label";
 export { AcrModal, AcrModalFooter, AcrModalBody } from "./AcrModal";
+export { ConfirmDialog } from "./ConfirmDialog";
 
 /**
  * Usage Examples:
