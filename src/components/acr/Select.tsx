@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export interface AcrSelectTriggerProps
   extends React.ComponentProps<typeof SelectTrigger> {
@@ -91,10 +92,45 @@ export const AcrSelectItem = React.forwardRef<
 
 AcrSelectItem.displayName = "AcrSelectItem";
 
+export interface AcrSelectRootProps
+  extends React.ComponentProps<typeof Select> {
+  /**
+   * Show loading skeleton instead of select
+   * @default false
+   */
+  isLoading?: boolean;
+  /**
+   * Custom skeleton height
+   * @default "h-12"
+   */
+  skeletonHeight?: string;
+}
+
 /**
- * Complete ACR Select component
+ * Enhanced ACR Select Root with loading state support
+ */
+export const AcrSelectRoot: React.FC<AcrSelectRootProps> = ({
+  isLoading = false,
+  skeletonHeight = "h-12",
+  children,
+  ...props
+}) => {
+  if (isLoading) {
+    return <Skeleton className={cn("w-full", skeletonHeight)} />;
+  }
+
+  return (
+    <Select {...props}>
+      {children}
+    </Select>
+  );
+};
+
+/**
+ * Complete ACR Select component with loading support
+ *
  * Usage:
- * <AcrSelect.Root>
+ * <AcrSelect.Root isLoading={isLoadingOptions}>
  *   <AcrSelect.Trigger><AcrSelect.Value /></AcrSelect.Trigger>
  *   <AcrSelect.Content>
  *     <AcrSelect.Item value="item1">Item 1</AcrSelect.Item>
@@ -102,7 +138,7 @@ AcrSelectItem.displayName = "AcrSelectItem";
  * </AcrSelect.Root>
  */
 export const AcrSelect = {
-  Root: Select,
+  Root: AcrSelectRoot,
   Trigger: AcrSelectTrigger,
   Content: AcrSelectContent,
   Item: AcrSelectItem,

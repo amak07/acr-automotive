@@ -34,12 +34,16 @@ export function PartDetailsHeader({
   // Helper function to get icon for stats with colors
   const getStatIcon = (index: number) => {
     const iconConfigs = [
-      { icon: MapPin, bgColor: "bg-green-100", textColor: "text-green-600" },    // Applications
+      { icon: MapPin, bgColor: "bg-green-100", textColor: "text-green-600" }, // Applications
       { icon: Shield, bgColor: "bg-purple-100", textColor: "text-purple-600" }, // Cross Refs
-      { icon: Zap, bgColor: "bg-blue-100", textColor: "text-blue-600" },        // Position
-      { icon: Settings, bgColor: "bg-orange-100", textColor: "text-orange-600" }, // ABS
+      { icon: Zap, bgColor: "bg-blue-100", textColor: "text-blue-600" }, // Position
+      {
+        icon: Settings,
+        bgColor: "bg-orange-100",
+        textColor: "text-orange-600",
+      }, // ABS
       { icon: Wrench, bgColor: "bg-yellow-100", textColor: "text-yellow-600" }, // Drive
-      { icon: Settings, bgColor: "bg-cyan-100", textColor: "text-cyan-600" },   // Bolt Pattern
+      { icon: Settings, bgColor: "bg-cyan-100", textColor: "text-cyan-600" }, // Bolt Pattern
     ];
     const config = iconConfigs[index % iconConfigs.length];
     const IconComponent = config.icon;
@@ -56,39 +60,55 @@ export function PartDetailsHeader({
       label: t("admin.parts.applications"),
       value: vehicleCount.toString(),
       icon: 0,
-      type: "count"
+      type: "count",
     },
     {
       label: t("admin.dashboard.crossReferences"),
       value: crossReferenceCount.toString(),
       icon: 1,
-      type: "count"
+      type: "count",
     },
     // Part specifications
-    ...(positionType ? [{
-      label: t("partDetails.basicInfo.position"),
-      value: positionType,
-      icon: 2,
-      type: "spec"
-    }] : []),
-    ...(absType ? [{
-      label: t("parts.labels.abs"),
-      value: absType,
-      icon: 3,
-      type: "spec"
-    }] : []),
-    ...(driveType ? [{
-      label: t("parts.labels.drive"),
-      value: driveType,
-      icon: 4,
-      type: "spec"
-    }] : []),
-    ...(boltPattern ? [{
-      label: t("parts.labels.boltPattern"),
-      value: boltPattern,
-      icon: 5,
-      type: "spec"
-    }] : []),
+    ...(positionType
+      ? [
+          {
+            label: t("partDetails.basicInfo.position"),
+            value: positionType,
+            icon: 2,
+            type: "spec",
+          },
+        ]
+      : []),
+    ...(absType
+      ? [
+          {
+            label: t("parts.labels.abs"),
+            value: absType,
+            icon: 3,
+            type: "spec",
+          },
+        ]
+      : []),
+    ...(driveType
+      ? [
+          {
+            label: t("parts.labels.drive"),
+            value: driveType,
+            icon: 4,
+            type: "spec",
+          },
+        ]
+      : []),
+    ...(boltPattern
+      ? [
+          {
+            label: t("parts.labels.boltPattern"),
+            value: boltPattern,
+            icon: 5,
+            type: "spec",
+          },
+        ]
+      : []),
   ];
 
   // For desktop, show all stats in 6 columns. For mobile, show all in list.
@@ -106,9 +126,7 @@ export function PartDetailsHeader({
               <Settings className="w-4 h-4 text-acr-red-600" />
             </div>
             <div className="flex-1">
-              <h1 className="text-lg font-bold text-acr-gray-900">
-                {acrSku}
-              </h1>
+              <h1 className="text-lg font-bold text-acr-gray-900">{acrSku}</h1>
               {partType && (
                 <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
                   {partType}
@@ -128,16 +146,21 @@ export function PartDetailsHeader({
               onClick={onSave}
               disabled={isSaving}
               className="flex-1 flex items-center justify-center gap-2"
+              type="submit"
             >
               {isSaving ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span className="hidden sm:inline">{t("common.actions.saving")}</span>
+                  <span className="hidden sm:inline">
+                    {t("common.actions.saving")}
+                  </span>
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t("partDetails.actions.saveChanges")}</span>
+                  <span className="hidden sm:inline">
+                    {t("partDetails.actions.saveChanges")}
+                  </span>
                 </>
               )}
             </AcrButton>
@@ -151,9 +174,7 @@ export function PartDetailsHeader({
               <Settings className="w-5 h-5 text-acr-red-600" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-acr-gray-900">
-                {acrSku}
-              </h1>
+              <h1 className="text-xl font-bold text-acr-gray-900">{acrSku}</h1>
               {partType && (
                 <p className="text-sm text-acr-gray-600">
                   <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
@@ -201,16 +222,22 @@ export function PartDetailsHeader({
             const iconConfig = getStatIcon(stat.icon);
             return (
               <div key={index} className="flex items-center gap-3">
-                <div className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}>
+                <div
+                  className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}
+                >
                   {iconConfig.icon}
                 </div>
                 <div>
-                  <div className={stat.type === "count" ? "text-lg font-semibold text-acr-gray-800" : "text-sm font-medium text-acr-gray-800 truncate"}>
+                  <div
+                    className={
+                      stat.type === "count"
+                        ? "text-lg font-semibold text-acr-gray-800"
+                        : "text-sm font-medium text-acr-gray-800 truncate"
+                    }
+                  >
                     {stat.value}
                   </div>
-                  <div className="text-xs text-acr-gray-500">
-                    {stat.label}
-                  </div>
+                  <div className="text-xs text-acr-gray-500">{stat.label}</div>
                 </div>
               </div>
             );
@@ -223,16 +250,22 @@ export function PartDetailsHeader({
             const iconConfig = getStatIcon(stat.icon);
             return (
               <div key={index} className="flex items-center gap-3">
-                <div className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}>
+                <div
+                  className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}
+                >
                   {iconConfig.icon}
                 </div>
                 <div>
-                  <div className={stat.type === "count" ? "text-lg font-semibold text-acr-gray-800" : "text-sm font-medium text-acr-gray-800 truncate"}>
+                  <div
+                    className={
+                      stat.type === "count"
+                        ? "text-lg font-semibold text-acr-gray-800"
+                        : "text-sm font-medium text-acr-gray-800 truncate"
+                    }
+                  >
                     {stat.value}
                   </div>
-                  <div className="text-xs text-acr-gray-500">
-                    {stat.label}
-                  </div>
+                  <div className="text-xs text-acr-gray-500">{stat.label}</div>
                 </div>
               </div>
             );

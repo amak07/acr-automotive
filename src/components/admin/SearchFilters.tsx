@@ -25,7 +25,7 @@ type SearchFiltersProps = {
 export function SearchFilters(props: SearchFiltersProps) {
   const { t } = useLocale();
   const { searchTerms, setSearchTerms } = props;
-  const { data: filterOptions, isLoading, error } = useFilterOptions();
+  const { data: filterOptions, isLoading } = useFilterOptions();
 
   const clearAllFilters = () => {
     setSearchTerms({
@@ -38,7 +38,9 @@ export function SearchFilters(props: SearchFiltersProps) {
     });
   };
 
-  const hasActiveFilters = Object.values(searchTerms).some(value => value !== "" && value !== "__all__");
+  const hasActiveFilters = Object.values(searchTerms).some(
+    (value) => value !== "" && value !== "__all__"
+  );
 
   return (
     <div className="bg-white p-4 rounded-lg border border-acr-gray-200 shadow-sm mb-6 lg:p-6">
@@ -70,16 +72,25 @@ export function SearchFilters(props: SearchFiltersProps) {
 
         {/* Filter Dropdowns */}
         <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-3 md:grid-cols-3">
-          <AcrSelect.Root 
-            value={searchTerms.part_type} 
-            onValueChange={(value) => setSearchTerms({ ...searchTerms, part_type: value })}
+          <AcrSelect.Root
+            value={searchTerms.part_type}
+            onValueChange={(value) =>
+              setSearchTerms({ ...searchTerms, part_type: value })
+            }
             disabled={isLoading}
           >
-            <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"} className="text-sm">
-              <AcrSelect.Value placeholder={isLoading ? 'Loading...' : t('common.actions.all')} />
+            <AcrSelect.Trigger
+              variant={isLoading ? "disabled" : "default"}
+              className="text-sm"
+            >
+              <AcrSelect.Value
+                placeholder={isLoading ? "Loading..." : t("common.actions.all")}
+              />
             </AcrSelect.Trigger>
             <AcrSelect.Content>
-              <AcrSelect.Item value="__all__">{t('common.actions.all')}</AcrSelect.Item>
+              <AcrSelect.Item value="__all__">
+                {t("common.actions.all")}
+              </AcrSelect.Item>
               {filterOptions?.part_types.map((partType) => (
                 <AcrSelect.Item key={partType} value={partType}>
                   {partType}
@@ -88,16 +99,25 @@ export function SearchFilters(props: SearchFiltersProps) {
             </AcrSelect.Content>
           </AcrSelect.Root>
 
-          <AcrSelect.Root 
-            value={searchTerms.position_type} 
-            onValueChange={(value) => setSearchTerms({ ...searchTerms, position_type: value })}
+          <AcrSelect.Root
+            value={searchTerms.position_type}
+            onValueChange={(value) =>
+              setSearchTerms({ ...searchTerms, position_type: value })
+            }
             disabled={isLoading}
           >
-            <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"} className="text-sm">
-              <AcrSelect.Value placeholder={isLoading ? 'Loading...' : t('common.actions.all')} />
+            <AcrSelect.Trigger
+              variant={isLoading ? "disabled" : "default"}
+              className="text-sm"
+            >
+              <AcrSelect.Value
+                placeholder={isLoading ? "Loading..." : t("common.actions.all")}
+              />
             </AcrSelect.Trigger>
             <AcrSelect.Content>
-              <AcrSelect.Item value="__all__">{t('common.actions.all')}</AcrSelect.Item>
+              <AcrSelect.Item value="__all__">
+                {t("common.actions.all")}
+              </AcrSelect.Item>
               {filterOptions?.position_types.map((position) => (
                 <AcrSelect.Item key={position} value={position}>
                   {position}
@@ -106,16 +126,25 @@ export function SearchFilters(props: SearchFiltersProps) {
             </AcrSelect.Content>
           </AcrSelect.Root>
 
-          <AcrSelect.Root 
-            value={searchTerms.abs_type} 
-            onValueChange={(value) => setSearchTerms({ ...searchTerms, abs_type: value })}
+          <AcrSelect.Root
+            value={searchTerms.abs_type}
+            onValueChange={(value) =>
+              setSearchTerms({ ...searchTerms, abs_type: value })
+            }
             disabled={isLoading}
           >
-            <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"} className="text-sm">
-              <AcrSelect.Value placeholder={isLoading ? 'Loading...' : t('common.actions.all')} />
+            <AcrSelect.Trigger
+              variant={isLoading ? "disabled" : "default"}
+              className="text-sm"
+            >
+              <AcrSelect.Value
+                placeholder={isLoading ? "Loading..." : t("common.actions.all")}
+              />
             </AcrSelect.Trigger>
             <AcrSelect.Content>
-              <AcrSelect.Item value="__all__">{t('common.actions.all')}</AcrSelect.Item>
+              <AcrSelect.Item value="__all__">
+                {t("common.actions.all")}
+              </AcrSelect.Item>
               {filterOptions?.abs_types.map((abs) => (
                 <AcrSelect.Item key={abs} value={abs}>
                   {abs}
@@ -126,16 +155,25 @@ export function SearchFilters(props: SearchFiltersProps) {
         </div>
 
         <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-3">
-          <AcrSelect.Root 
-            value={searchTerms.drive_type} 
-            onValueChange={(value) => setSearchTerms({ ...searchTerms, drive_type: value })}
+          <AcrSelect.Root
+            value={searchTerms.drive_type}
+            onValueChange={(value) =>
+              setSearchTerms({ ...searchTerms, drive_type: value })
+            }
             disabled={isLoading}
           >
-            <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"} className="text-sm">
-              <AcrSelect.Value placeholder={isLoading ? 'Loading...' : t('common.actions.all')} />
+            <AcrSelect.Trigger
+              variant={isLoading ? "disabled" : "default"}
+              className="text-sm"
+            >
+              <AcrSelect.Value
+                placeholder={isLoading ? "Loading..." : t("common.actions.all")}
+              />
             </AcrSelect.Trigger>
             <AcrSelect.Content>
-              <AcrSelect.Item value="__all__">{t('common.actions.all')}</AcrSelect.Item>
+              <AcrSelect.Item value="__all__">
+                {t("common.actions.all")}
+              </AcrSelect.Item>
               {filterOptions?.drive_types.map((drive) => (
                 <AcrSelect.Item key={drive} value={drive}>
                   {drive}
@@ -144,16 +182,25 @@ export function SearchFilters(props: SearchFiltersProps) {
             </AcrSelect.Content>
           </AcrSelect.Root>
 
-          <AcrSelect.Root 
-            value={searchTerms.bolt_pattern} 
-            onValueChange={(value) => setSearchTerms({ ...searchTerms, bolt_pattern: value })}
+          <AcrSelect.Root
+            value={searchTerms.bolt_pattern}
+            onValueChange={(value) =>
+              setSearchTerms({ ...searchTerms, bolt_pattern: value })
+            }
             disabled={isLoading}
           >
-            <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"} className="text-sm">
-              <AcrSelect.Value placeholder={isLoading ? 'Loading...' : t('common.actions.all')} />
+            <AcrSelect.Trigger
+              variant={isLoading ? "disabled" : "default"}
+              className="text-sm"
+            >
+              <AcrSelect.Value
+                placeholder={isLoading ? "Loading..." : t("common.actions.all")}
+              />
             </AcrSelect.Trigger>
             <AcrSelect.Content>
-              <AcrSelect.Item value="__all__">{t('common.actions.all')}</AcrSelect.Item>
+              <AcrSelect.Item value="__all__">
+                {t("common.actions.all")}
+              </AcrSelect.Item>
               {filterOptions?.bolt_patterns.map((pattern) => (
                 <AcrSelect.Item key={pattern} value={pattern}>
                   {pattern}
@@ -206,19 +253,27 @@ export function SearchFilters(props: SearchFiltersProps) {
               )}
             </div>
           </div>
-          
+
           <div className="w-1/3">
             <AcrLabel>{t("admin.search.partType")}</AcrLabel>
-            <AcrSelect.Root 
-              value={searchTerms.part_type} 
-              onValueChange={(value) => setSearchTerms({ ...searchTerms, part_type: value })}
+            <AcrSelect.Root
+              value={searchTerms.part_type}
+              onValueChange={(value) =>
+                setSearchTerms({ ...searchTerms, part_type: value })
+              }
               disabled={isLoading}
             >
               <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"}>
-                <AcrSelect.Value placeholder={isLoading ? 'Loading...' : t('common.actions.all')} />
+                <AcrSelect.Value
+                  placeholder={
+                    isLoading ? "Loading..." : t("common.actions.all")
+                  }
+                />
               </AcrSelect.Trigger>
               <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">{t('common.actions.all')}</AcrSelect.Item>
+                <AcrSelect.Item value="__all__">
+                  {t("common.actions.all")}
+                </AcrSelect.Item>
                 {filterOptions?.part_types.map((partType) => (
                   <AcrSelect.Item key={partType} value={partType}>
                     {partType}
@@ -234,16 +289,24 @@ export function SearchFilters(props: SearchFiltersProps) {
           {/* Position Filter */}
           <div>
             <AcrLabel>{t("admin.search.position")}</AcrLabel>
-            <AcrSelect.Root 
-              value={searchTerms.position_type} 
-              onValueChange={(value) => setSearchTerms({ ...searchTerms, position_type: value })}
+            <AcrSelect.Root
+              value={searchTerms.position_type}
+              onValueChange={(value) =>
+                setSearchTerms({ ...searchTerms, position_type: value })
+              }
               disabled={isLoading}
             >
               <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"}>
-                <AcrSelect.Value placeholder={isLoading ? 'Loading...' : t('common.actions.all')} />
+                <AcrSelect.Value
+                  placeholder={
+                    isLoading ? "Loading..." : t("common.actions.all")
+                  }
+                />
               </AcrSelect.Trigger>
               <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">{t('common.actions.all')}</AcrSelect.Item>
+                <AcrSelect.Item value="__all__">
+                  {t("common.actions.all")}
+                </AcrSelect.Item>
                 {filterOptions?.position_types.map((position) => (
                   <AcrSelect.Item key={position} value={position}>
                     {position}
@@ -256,16 +319,24 @@ export function SearchFilters(props: SearchFiltersProps) {
           {/* ABS Filter */}
           <div>
             <AcrLabel>ABS</AcrLabel>
-            <AcrSelect.Root 
-              value={searchTerms.abs_type} 
-              onValueChange={(value) => setSearchTerms({ ...searchTerms, abs_type: value })}
+            <AcrSelect.Root
+              value={searchTerms.abs_type}
+              onValueChange={(value) =>
+                setSearchTerms({ ...searchTerms, abs_type: value })
+              }
               disabled={isLoading}
             >
               <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"}>
-                <AcrSelect.Value placeholder={isLoading ? 'Loading...' : t('common.actions.all')} />
+                <AcrSelect.Value
+                  placeholder={
+                    isLoading ? "Loading..." : t("common.actions.all")
+                  }
+                />
               </AcrSelect.Trigger>
               <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">{t('common.actions.all')}</AcrSelect.Item>
+                <AcrSelect.Item value="__all__">
+                  {t("common.actions.all")}
+                </AcrSelect.Item>
                 {filterOptions?.abs_types.map((abs) => (
                   <AcrSelect.Item key={abs} value={abs}>
                     {abs}
@@ -278,16 +349,24 @@ export function SearchFilters(props: SearchFiltersProps) {
           {/* Drive Filter */}
           <div>
             <AcrLabel>Drive</AcrLabel>
-            <AcrSelect.Root 
-              value={searchTerms.drive_type} 
-              onValueChange={(value) => setSearchTerms({ ...searchTerms, drive_type: value })}
+            <AcrSelect.Root
+              value={searchTerms.drive_type}
+              onValueChange={(value) =>
+                setSearchTerms({ ...searchTerms, drive_type: value })
+              }
               disabled={isLoading}
             >
               <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"}>
-                <AcrSelect.Value placeholder={isLoading ? 'Loading...' : t('common.actions.all')} />
+                <AcrSelect.Value
+                  placeholder={
+                    isLoading ? "Loading..." : t("common.actions.all")
+                  }
+                />
               </AcrSelect.Trigger>
               <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">{t('common.actions.all')}</AcrSelect.Item>
+                <AcrSelect.Item value="__all__">
+                  {t("common.actions.all")}
+                </AcrSelect.Item>
                 {filterOptions?.drive_types.map((drive) => (
                   <AcrSelect.Item key={drive} value={drive}>
                     {drive}
@@ -300,16 +379,24 @@ export function SearchFilters(props: SearchFiltersProps) {
           {/* Bolt Pattern Filter */}
           <div>
             <AcrLabel>Bolt Pattern</AcrLabel>
-            <AcrSelect.Root 
-              value={searchTerms.bolt_pattern} 
-              onValueChange={(value) => setSearchTerms({ ...searchTerms, bolt_pattern: value })}
+            <AcrSelect.Root
+              value={searchTerms.bolt_pattern}
+              onValueChange={(value) =>
+                setSearchTerms({ ...searchTerms, bolt_pattern: value })
+              }
               disabled={isLoading}
             >
               <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"}>
-                <AcrSelect.Value placeholder={isLoading ? 'Loading...' : t('common.actions.all')} />
+                <AcrSelect.Value
+                  placeholder={
+                    isLoading ? "Loading..." : t("common.actions.all")
+                  }
+                />
               </AcrSelect.Trigger>
               <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">{t('common.actions.all')}</AcrSelect.Item>
+                <AcrSelect.Item value="__all__">
+                  {t("common.actions.all")}
+                </AcrSelect.Item>
                 {filterOptions?.bolt_patterns.map((pattern) => (
                   <AcrSelect.Item key={pattern} value={pattern}>
                     {pattern}

@@ -1,8 +1,20 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { AcrInput, AcrLabel, AcrSelect, AcrTextarea, AcrCard, AcrCardHeader, AcrCardContent, AcrButton } from "@/components/acr";
+import {
+  AcrInput,
+  AcrLabel,
+  AcrSelect,
+  AcrTextarea,
+  AcrCard,
+  AcrCardHeader,
+  AcrCardContent,
+  AcrButton,
+} from "@/components/acr";
 import { Info, Upload } from "lucide-react";
+import { useFilterOptions } from "@/hooks/useFilterOptions";
+import { Control, Controller } from "react-hook-form";
+import { PartUpdateForm } from "@/app/admin/parts/[id]/page";
 
 interface PartBasicInfoProps {
   data: {
@@ -14,10 +26,45 @@ interface PartBasicInfoProps {
     bolt_pattern?: string | null;
     specifications?: string | null; // This is the notes field
   };
+  control: Control<PartUpdateForm>;
 }
 
-export function PartBasicInfo({ data }: PartBasicInfoProps) {
+export function PartBasicInfo({ data, control }: PartBasicInfoProps) {
   const { t } = useLocale();
+  const { data: filterOptions } = useFilterOptions();
+
+  const selectFieldConfigs = [
+    {
+      name: "part_type" as const,
+      label: t("partDetails.basicInfo.partType"),
+      placeholder: "Select part type...",
+      options: filterOptions?.part_types,
+    },
+    {
+      name: "position_type" as const,
+      label: t("partDetails.basicInfo.position"),
+      placeholder: "Select position type...",
+      options: filterOptions?.position_types,
+    },
+    {
+      name: "abs_type" as const,
+      label: t("partDetails.basicInfo.absType"),
+      placeholder: "Select ABS...",
+      options: filterOptions?.abs_types,
+    },
+    {
+      name: "drive_type" as const,
+      label: t("partDetails.basicInfo.driveType"),
+      placeholder: "Select drive type...",
+      options: filterOptions?.drive_types,
+    },
+    {
+      name: "bolt_pattern" as const,
+      label: t("partDetails.basicInfo.boltPattern"),
+      placeholder: "Select bolt pattern...",
+      options: filterOptions?.bolt_patterns,
+    },
+  ];
 
   return (
     <AcrCard variant="default" padding="none" className="mb-6">
@@ -37,136 +84,77 @@ export function PartBasicInfo({ data }: PartBasicInfoProps) {
         <div className="space-y-6 lg:grid lg:grid-cols-3 lg:gap-8 lg:space-y-0">
           {/* Left Column - Form Fields */}
           <div className="lg:col-span-2 space-y-6">
-            {/* ACR SKU */}
-            <div>
-              <AcrLabel htmlFor="acr_sku">
-                {t("partDetails.basicInfo.acrSku")}
-              </AcrLabel>
-              <AcrInput
-                id="acr_sku"
-                value={data.acr_sku || ""}
-                readOnly
-                className="bg-acr-gray-50"
-              />
-              <p className="text-xs text-acr-gray-500 mt-1">
-                {t("partDetails.basicInfo.skuNote")}
-              </p>
-            </div>
-
             {/* Two Column Layout for remaining fields */}
             <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
-          {/* Part Type */}
-          <div>
-            <AcrLabel htmlFor="part_type">
-              {t("partDetails.basicInfo.partType")}
-            </AcrLabel>
-            <AcrSelect.Root value={data.part_type || "__all__"} disabled>
-              <AcrSelect.Trigger variant="disabled">
-                <AcrSelect.Value />
-              </AcrSelect.Trigger>
-              <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">
-                  {t("common.actions.all")}
-                </AcrSelect.Item>
-                <AcrSelect.Item value={data.part_type || ""}>
-                  {data.part_type}
-                </AcrSelect.Item>
-              </AcrSelect.Content>
-            </AcrSelect.Root>
-          </div>
-
-          {/* Position Type */}
-          <div>
-            <AcrLabel htmlFor="position_type">
-              {t("partDetails.basicInfo.position")}
-            </AcrLabel>
-            <AcrSelect.Root value={data.position_type || "__all__"} disabled>
-              <AcrSelect.Trigger variant="disabled">
-                <AcrSelect.Value />
-              </AcrSelect.Trigger>
-              <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">
-                  {t("common.actions.all")}
-                </AcrSelect.Item>
-                {data.position_type && (
-                  <AcrSelect.Item value={data.position_type}>
-                    {data.position_type}
-                  </AcrSelect.Item>
-                )}
-              </AcrSelect.Content>
-            </AcrSelect.Root>
-          </div>
-
-          {/* ABS Type */}
-          <div>
-            <AcrLabel htmlFor="abs_type">
-              ABS {t("partDetails.basicInfo.type")}
-            </AcrLabel>
-            <AcrSelect.Root value={data.abs_type || "__all__"} disabled>
-              <AcrSelect.Trigger variant="disabled">
-                <AcrSelect.Value />
-              </AcrSelect.Trigger>
-              <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">
-                  {t("common.actions.all")}
-                </AcrSelect.Item>
-                {data.abs_type && (
-                  <AcrSelect.Item value={data.abs_type}>
-                    {data.abs_type}
-                  </AcrSelect.Item>
-                )}
-              </AcrSelect.Content>
-            </AcrSelect.Root>
-          </div>
-
-          {/* Drive Type */}
-          <div>
-            <AcrLabel htmlFor="drive_type">
-              {t("partDetails.basicInfo.drive")} {t("partDetails.basicInfo.type")}
-            </AcrLabel>
-            <AcrSelect.Root value={data.drive_type || "__all__"} disabled>
-              <AcrSelect.Trigger variant="disabled">
-                <AcrSelect.Value />
-              </AcrSelect.Trigger>
-              <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">
-                  {t("common.actions.all")}
-                </AcrSelect.Item>
-                {data.drive_type && (
-                  <AcrSelect.Item value={data.drive_type}>
-                    {data.drive_type}
-                  </AcrSelect.Item>
-                )}
-              </AcrSelect.Content>
-            </AcrSelect.Root>
-          </div>
-
-              {/* Bolt Pattern */}
-              <div className="lg:col-span-2">
-                <AcrLabel htmlFor="bolt_pattern">
-                  {t("partDetails.basicInfo.boltPattern")}
+              {/* ACR SKU */}
+              <div>
+                <AcrLabel htmlFor="acr_sku">
+                  {t("partDetails.basicInfo.acrSku")}
                 </AcrLabel>
                 <AcrInput
-                  id="bolt_pattern"
-                  value={data.bolt_pattern || ""}
+                  id="acr_sku"
+                  value={data.acr_sku || ""}
                   readOnly
                   className="bg-acr-gray-50"
                 />
+                <p className="text-xs text-acr-gray-500 mt-1">
+                  {t("partDetails.basicInfo.skuNote")}
+                </p>
               </div>
+
+              {/* Dynamic Select Fields */}
+              {selectFieldConfigs.map((config) => (
+                <div key={config.name}>
+                  <AcrLabel htmlFor={config.name}>{config.label}</AcrLabel>
+                  <Controller
+                    name={config.name}
+                    control={control}
+                    render={({ field }) => (
+                      <AcrSelect.Root
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        isLoading={!config.options}
+                      >
+                        <AcrSelect.Trigger>
+                          <AcrSelect.Value placeholder={config.placeholder} />
+                        </AcrSelect.Trigger>
+                        <AcrSelect.Content>
+                          <AcrSelect.Item value="__unspecified__">
+                            Not Specified
+                          </AcrSelect.Item>
+                          {config.options?.map((item) => (
+                            <AcrSelect.Item
+                              key={item}
+                              value={item || "__empty__"}
+                            >
+                              {item || "Empty"}
+                            </AcrSelect.Item>
+                          ))}
+                        </AcrSelect.Content>
+                      </AcrSelect.Root>
+                    )}
+                  />
+                </div>
+              ))}
             </div>
 
             {/* Notes */}
             <div>
-              <AcrLabel htmlFor="notes">
-                {t("partDetails.basicInfo.notes")}
+              <AcrLabel htmlFor="specifications">
+                {t("partDetails.basicInfo.additionalSpecs")}
               </AcrLabel>
-              <AcrTextarea
-                id="notes"
-                value={data.specifications || ""}
-                readOnly
-                rows={4}
-                className="bg-acr-gray-50"
-                placeholder={t("partDetails.basicInfo.notesPlaceholder")}
+              <Controller
+                name="specifications"
+                control={control}
+                render={({ field }) => (
+                  <AcrTextarea
+                    id="specifications"
+                    value={field.value}
+                    rows={4}
+                    placeholder={t("partDetails.basicInfo.notesPlaceholder")}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
+                )}
               />
             </div>
           </div>
@@ -193,7 +181,9 @@ export function PartBasicInfo({ data }: PartBasicInfoProps) {
               {/* Upload Button */}
               <AcrButton variant="secondary" size="default" className="w-full">
                 <Upload className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">{t("partDetails.basicInfo.selectFile")}</span>
+                <span className="hidden sm:inline">
+                  {t("partDetails.basicInfo.selectFile")}
+                </span>
                 <span className="sm:hidden">Upload</span>
               </AcrButton>
             </div>

@@ -12,6 +12,21 @@ import { PartCrossReferences } from "@/components/admin/PartCrossReferences";
 import { PartMetadata } from "@/components/admin/PartMetadata";
 import { PartDetailsActions } from "@/components/admin/PartDetailsActions";
 import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { useEffect } from "react";
+import {
+  UpdatePartsParams,
+  useUpdatePartById,
+} from "@/hooks/useUpdatePartById";
+
+export interface PartUpdateForm {
+  part_type: string;
+  position_type: string;
+  abs_type: string;
+  drive_type: string;
+  bolt_pattern: string;
+  specifications: string;
+}
 
 export default function PartDetailsPage() {
   const params = useParams();
@@ -21,6 +36,56 @@ export default function PartDetailsPage() {
   const { data, error, isLoading } = useGetPartById({
     id: id,
   });
+
+  const updateMutation = useUpdatePartById();
+
+  const {
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors, isSubmitting, isDirty, isValid },
+  } = useForm<PartUpdateForm>({
+    mode: "onBlur",
+    defaultValues: {
+      part_type: data?.part_type || "__unspecified__",
+      position_type: data?.position_type || "__unspecified__",
+      abs_type: data?.abs_type || "__unspecified__",
+      drive_type: data?.drive_type || "__unspecified__",
+      bolt_pattern: data?.bolt_pattern || "__unspecified__",
+      specifications: data?.specifications || "",
+    },
+  });
+
+  // this is needed to reset the default form values when the data actually loads after init.
+  useEffect(() => {
+    if (data) {
+      reset({
+        part_type: data.part_type || "__unspecified__",
+        position_type: data.position_type || "__unspecified__",
+        abs_type: data.abs_type || "__unspecified__",
+        drive_type: data.drive_type || "__unspecified__",
+        bolt_pattern: data.bolt_pattern || "__unspecified__",
+        specifications: data.specifications || "",
+      });
+    }
+  }, [data, reset]);
+
+  const onSubmit = async (updatedData: PartUpdateForm) => {
+    try {
+      const partToUpdate: UpdatePartsParams = {
+        ...updatedData,
+        id,
+      };
+
+      await updateMutation.mutateAsync(partToUpdate);
+
+      // Success message (you can add a toast notification here)
+      console.log("Part updated successfully!");
+    } catch (error) {
+      // Error handling (you can add error toast here)
+      console.error("Failed to update part:", error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -66,7 +131,7 @@ export default function PartDetailsPage() {
         <PartDetailsBreadcrumb acrSku={data?.acr_sku} partId={id} />
 
         {data && (
-          <>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <PartDetailsHeader
               acrSku={data.acr_sku}
               partType={data.part_type}
@@ -76,6 +141,7 @@ export default function PartDetailsPage() {
               absType={data.abs_type || undefined}
               driveType={data.drive_type || undefined}
               boltPattern={data.bolt_pattern || undefined}
+              isSaving={updateMutation.isPending}
             />
 
             <PartMetadata
@@ -83,11 +149,11 @@ export default function PartDetailsPage() {
               updatedAt={data.updated_at || undefined}
             />
 
-            <PartBasicInfo data={data} />
+            <PartBasicInfo data={data} control={control} />
 
-            <PartApplications 
-              vehicleCount={data.vehicle_count || 0} 
-              partId={id} 
+            <PartApplications
+              vehicleCount={data.vehicle_count || 0}
+              partId={id}
             />
 
             <PartCrossReferences
@@ -96,7 +162,7 @@ export default function PartDetailsPage() {
             />
 
             <PartDetailsActions />
-          </>
+          </form>
         )}
       </main>
     </div>
