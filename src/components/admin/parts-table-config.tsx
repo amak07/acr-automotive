@@ -3,7 +3,7 @@
 import { JSX, useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { TranslationKeys } from "@/lib/i18n/translation-keys";
-import { EnrichedPart } from "@/types";
+import { PartSummary } from "@/types";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 export interface TableColumn {
@@ -11,7 +11,7 @@ export interface TableColumn {
   label?: keyof TranslationKeys;
   render: (
     value: any,
-    part?: EnrichedPart,
+    part?: PartSummary,
     router?: AppRouterInstance
   ) => JSX.Element;
 }
@@ -69,7 +69,7 @@ export const createPartsTableColumns = (
   {
     key: "specifications",
     label: "admin.parts.specifications",
-    render: (value: any, part?: EnrichedPart) => {
+    render: (value: any, part?: PartSummary) => {
       const hasSpecs =
         part?.position_type ||
         part?.abs_type ||
@@ -140,7 +140,7 @@ export const createPartsTableColumns = (
   {
     key: "data_summary",
     label: "admin.parts.dataRelations",
-    render: (value: any, part?: EnrichedPart) => (
+    render: (value: any, part?: PartSummary) => (
       <div className="text-xs space-y-1 min-w-[100px] text-center">
         <div className="flex items-center justify-center gap-1">
           <span className="text-blue-600">🚗</span>
@@ -174,7 +174,7 @@ export const createPartsTableColumns = (
   {
     key: "actions",
     // No label needed for actions column
-    render: (value: any, part?: EnrichedPart, router?: AppRouterInstance) => (
+    render: (value: any, part?: PartSummary, router?: AppRouterInstance) => (
       <button
         onClick={() => {
           if (router) {

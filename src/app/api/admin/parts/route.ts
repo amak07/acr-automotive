@@ -6,8 +6,8 @@ import {
   UpdatePartRequest,
   DeletePartRequest,
   DatabasePartRow,
-  EnrichedPart,
-  PartWithRelations,
+  PartSummary,
+  PartWithDetails,
 } from "@/types";
 import {
   querySchema,
@@ -110,14 +110,14 @@ export async function GET(request: NextRequest) {
         count,
         error: supabaseError,
       }: {
-        data: PartWithRelations[] | null;
+        data: PartWithDetails[] | null;
         count: number | null;
         error: PostgrestError | null;
       } = await query;
 
       if (supabaseError) throw supabaseError;
 
-      const enrichedData: EnrichedPart[] | null =
+      const enrichedData: PartSummary[] | null =
         data?.map((part) => ({
           // Base part properties
           id: part.id,

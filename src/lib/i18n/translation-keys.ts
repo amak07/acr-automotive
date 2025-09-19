@@ -38,9 +38,8 @@ export interface TranslationKeys {
   'admin.dashboard.crossReferences': string;
   'common.actions.clearFilters': string;
   'common.actions.back': string;
-  'common.actions.cancel': string;
   'common.actions.saving': string;
-  
+
   // Common Actions
   'common.actions.view': string;
   'common.actions.edit': string;
