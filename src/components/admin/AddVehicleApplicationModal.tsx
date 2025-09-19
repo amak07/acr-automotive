@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -10,7 +11,8 @@ import {
   AcrModalFooter,
   AcrButton,
   AcrInput,
-  AcrLabel
+  AcrLabel,
+  ConfirmDialog
 } from "@/components/acr";
 import {
   useCreateVehicleApplication,
@@ -39,7 +41,7 @@ export function AddVehicleApplicationModal({
     handleSubmit,
     reset,
     setError,
-    formState: { errors, isValid }
+    formState: { errors, isValid, isDirty }
   } = useForm<CreateVehicleApplicationParams>({
     resolver: zodResolver(createVehicleSchema),
     mode: "onBlur",
@@ -52,13 +54,15 @@ export function AddVehicleApplicationModal({
     }
   });
 
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
   const onSubmit = async (data: CreateVehicleApplicationParams) => {
     try {
       await createMutation.mutateAsync(data);
 
       toast({
         title: t("common.success"),
-        description: "Vehicle application added successfully",
+        description: `${data.make} ${data.model} (${data.start_year}-${data.end_year}) added successfully`,
         variant: "success" as any,
       });
 
@@ -83,6 +87,15 @@ export function AddVehicleApplicationModal({
   };
 
   const handleClose = () => {
+    if (isDirty) {
+      setShowConfirmDialog(true);
+    } else {
+      reset();
+      onClose();
+    }
+  };
+
+  const handleConfirmClose = () => {
     reset();
     onClose();
   };
@@ -95,6 +108,7 @@ export function AddVehicleApplicationModal({
       description={t("modals.addVehicleApplication.description")}
       size="md"
       showCloseButton={true}
+      data-testid="add-vehicle-application-modal"
     >
       <form id="add-vehicle-application-form" onSubmit={handleSubmit(onSubmit)}>
         <AcrModalBody>
@@ -210,6 +224,17 @@ export function AddVehicleApplicationModal({
           )}
         </AcrButton>
       </AcrModalFooter>
+
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        onClose={() => setShowConfirmDialog(false)}
+        onConfirm={handleConfirmClose}
+        title={t("common.confirm.unsavedChanges.title")}
+        description={t("common.confirm.unsavedChanges.description")}
+        confirmText={t("common.actions.discard")}
+        cancelText={t("common.actions.cancel")}
+        variant="warning"
+      />
     </AcrModal>
   );
 }

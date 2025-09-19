@@ -67,8 +67,8 @@ export function PartBasicInfo({ data, control, filterOptions }: PartBasicInfoPro
   ];
 
   return (
-    <AcrCard variant="default" padding="none" className="mb-6">
-      <AcrCardHeader className="px-6 pt-6">
+    <AcrCard variant="default" padding="none" className="mb-6" data-testid="part-basic-info-section">
+      <AcrCardHeader className="px-6 pt-6" data-testid="part-basic-info-header">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
             <Info className="w-4 h-4 text-white" />

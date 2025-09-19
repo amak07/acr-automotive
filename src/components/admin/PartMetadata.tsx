@@ -46,7 +46,7 @@ export function PartMetadata({ createdAt, updatedAt }: PartMetadataProps) {
   };
 
   return (
-    <div className="px-4 py-3 border-t border-acr-gray-200 bg-acr-gray-50 lg:px-6 mb-2">
+    <div className="px-4 py-3 border-t border-acr-gray-200 bg-acr-gray-50 lg:px-6">
       <p className="text-xs text-acr-gray-500 text-center">
         {createdAt && (
           <>
