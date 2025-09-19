@@ -12,9 +12,9 @@ import {
   AcrButton,
 } from "@/components/acr";
 import { Info, Upload } from "lucide-react";
-import { useFilterOptions } from "@/hooks/useFilterOptions";
 import { Control, Controller } from "react-hook-form";
 import { PartUpdateForm } from "@/app/admin/parts/[id]/page";
+import { FilterOptionsResponse } from "@/app/api/admin/filter-options/route";
 
 interface PartBasicInfoProps {
   data: {
@@ -27,42 +27,42 @@ interface PartBasicInfoProps {
     specifications?: string | null; // This is the notes field
   };
   control: Control<PartUpdateForm>;
+  filterOptions: FilterOptionsResponse;
 }
 
-export function PartBasicInfo({ data, control }: PartBasicInfoProps) {
+export function PartBasicInfo({ data, control, filterOptions }: PartBasicInfoProps) {
   const { t } = useLocale();
-  const { data: filterOptions } = useFilterOptions();
 
   const selectFieldConfigs = [
     {
       name: "part_type" as const,
       label: t("partDetails.basicInfo.partType"),
       placeholder: "Select part type...",
-      options: filterOptions?.part_types,
+      options: filterOptions.part_types,
     },
     {
       name: "position_type" as const,
       label: t("partDetails.basicInfo.position"),
       placeholder: "Select position type...",
-      options: filterOptions?.position_types,
+      options: filterOptions.position_types,
     },
     {
       name: "abs_type" as const,
       label: t("partDetails.basicInfo.absType"),
       placeholder: "Select ABS...",
-      options: filterOptions?.abs_types,
+      options: filterOptions.abs_types,
     },
     {
       name: "drive_type" as const,
       label: t("partDetails.basicInfo.driveType"),
       placeholder: "Select drive type...",
-      options: filterOptions?.drive_types,
+      options: filterOptions.drive_types,
     },
     {
       name: "bolt_pattern" as const,
       label: t("partDetails.basicInfo.boltPattern"),
       placeholder: "Select bolt pattern...",
-      options: filterOptions?.bolt_patterns,
+      options: filterOptions.bolt_patterns,
     },
   ];
 
@@ -103,8 +103,8 @@ export function PartBasicInfo({ data, control }: PartBasicInfoProps) {
               </div>
 
               {/* Dynamic Select Fields */}
-              {selectFieldConfigs.map((config) => (
-                <div key={config.name}>
+              {selectFieldConfigs.map((config, index) => (
+                <div key={`${config.name}-${index}`}>
                   <AcrLabel htmlFor={config.name}>{config.label}</AcrLabel>
                   <Controller
                     name={config.name}
@@ -113,18 +113,17 @@ export function PartBasicInfo({ data, control }: PartBasicInfoProps) {
                       <AcrSelect.Root
                         value={field.value}
                         onValueChange={field.onChange}
-                        isLoading={!config.options}
                       >
                         <AcrSelect.Trigger>
                           <AcrSelect.Value placeholder={config.placeholder} />
                         </AcrSelect.Trigger>
                         <AcrSelect.Content>
-                          <AcrSelect.Item value="__unspecified__">
-                            Not Specified
+                          <AcrSelect.Item key={`unspec-${config.name}`} value={`__unspecified_${config.name}__`}>
+                            {t("common.notSpecified")}
                           </AcrSelect.Item>
-                          {config.options?.map((item) => (
+                          {config.options?.map((item: string, itemIndex: number) => (
                             <AcrSelect.Item
-                              key={item}
+                              key={`${config.name}-${item}-${itemIndex}`}
                               value={item || "__empty__"}
                             >
                               {item || "Empty"}

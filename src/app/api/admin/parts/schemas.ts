@@ -28,6 +28,7 @@ export const createPartSchema = z.object({
 
 export const updatePartSchema = createPartSchema
   .omit({ sku_number: true })
+  .partial()
   .extend({ id: z.uuid("PartID is required.") });
 
 export const deletePartSchema = z.object({

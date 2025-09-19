@@ -19,6 +19,7 @@ import {
   useUpdatePartById,
 } from "@/hooks/useUpdatePartById";
 import { useToast } from "@/hooks/use-toast";
+import { useFilterOptions } from "@/hooks/useFilterOptions";
 
 export interface PartUpdateForm {
   part_type: string;
@@ -38,6 +39,8 @@ export default function PartDetailsPage() {
     id: id,
   });
 
+  const { data: filterOptions, isLoading: filterOptionsLoading } = useFilterOptions();
+
   const updateMutation = useUpdatePartById();
   const { toast } = useToast();
 
@@ -49,33 +52,44 @@ export default function PartDetailsPage() {
   } = useForm<PartUpdateForm>({
     mode: "onBlur",
     defaultValues: {
-      part_type: data?.part_type || "__unspecified__",
-      position_type: data?.position_type || "__unspecified__",
-      abs_type: data?.abs_type || "__unspecified__",
-      drive_type: data?.drive_type || "__unspecified__",
-      bolt_pattern: data?.bolt_pattern || "__unspecified__",
-      specifications: data?.specifications || "",
+      part_type: "__unspecified_part_type__",
+      position_type: "__unspecified_position_type__",
+      abs_type: "__unspecified_abs_type__",
+      drive_type: "__unspecified_drive_type__",
+      bolt_pattern: "__unspecified_bolt_pattern__",
+      specifications: "",
     },
   });
 
   // this is needed to reset the default form values when the data actually loads after init.
   useEffect(() => {
-    if (data) {
-      reset({
-        part_type: data.part_type || "__unspecified__",
-        position_type: data.position_type || "__unspecified__",
-        abs_type: data.abs_type || "__unspecified__",
-        drive_type: data.drive_type || "__unspecified__",
-        bolt_pattern: data.bolt_pattern || "__unspecified__",
-        specifications: data.specifications || "",
-      });
+    if (data && !isLoading && filterOptions && !filterOptionsLoading) {
+      const formValues = {
+        part_type: data.part_type ?? "__unspecified_part_type__",
+        position_type: data.position_type ?? "__unspecified_position_type__",
+        abs_type: data.abs_type ?? "__unspecified_abs_type__",
+        drive_type: data.drive_type ?? "__unspecified_drive_type__",
+        bolt_pattern: data.bolt_pattern ?? "__unspecified_bolt_pattern__",
+        specifications: data.specifications ?? "",
+      };
+
+      // Use setTimeout to ensure this happens after other state updates
+      setTimeout(() => {
+        reset(formValues, { keepDirty: false, keepDefaultValues: false });
+      }, 0);
     }
-  }, [data, reset]);
+  }, [data, isLoading, filterOptions, filterOptionsLoading, reset]);
 
   const onSubmit = async (updatedData: PartUpdateForm) => {
     try {
+      // Convert __unspecified__ back to undefined for API validation
       const partToUpdate: UpdatePartsParams = {
-        ...updatedData,
+        part_type: updatedData.part_type.startsWith("__unspecified_") ? undefined : updatedData.part_type,
+        position_type: updatedData.position_type.startsWith("__unspecified_") ? undefined : updatedData.position_type,
+        abs_type: updatedData.abs_type.startsWith("__unspecified_") ? undefined : updatedData.abs_type,
+        drive_type: updatedData.drive_type.startsWith("__unspecified_") ? undefined : updatedData.drive_type,
+        bolt_pattern: updatedData.bolt_pattern.startsWith("__unspecified_") ? undefined : updatedData.bolt_pattern,
+        specifications: updatedData.specifications || undefined,
         id,
       };
 
@@ -138,7 +152,7 @@ export default function PartDetailsPage() {
       <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
         <PartDetailsBreadcrumb acrSku={data?.acr_sku} partId={id} />
 
-        {data && (
+        {data && !isLoading && filterOptions && !filterOptionsLoading && (
           <form onSubmit={handleSubmit(onSubmit)}>
             <PartDetailsHeader
               acrSku={data.acr_sku}
@@ -157,7 +171,7 @@ export default function PartDetailsPage() {
               updatedAt={data.updated_at || undefined}
             />
 
-            <PartBasicInfo data={data} control={control} />
+            <PartBasicInfo data={data} control={control} filterOptions={filterOptions} />
 
             <PartApplications
               vehicleCount={data.vehicle_count || 0}

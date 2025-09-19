@@ -56,22 +56,31 @@ export function PartApplications({ vehicleCount = 0, partId }: PartApplicationsP
       </AcrCardHeader>
 
       <AcrCardContent className="px-4 pb-6 lg:px-6">
-        {/* Loading state for now - will be replaced with actual data later */}
-        <div className="flex items-center justify-center py-12 border-2 border-dashed border-acr-gray-200 rounded-lg">
-          <div className="text-center">
-            <Car className="w-12 h-12 text-acr-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-acr-gray-900 mb-2">
-              {t("partDetails.empty.noApplications")}
-            </h3>
-            <p className="text-sm text-acr-gray-500 mb-4">
-              {t("partDetails.empty.applicationsDescription")}
-            </p>
-            <AcrButton variant="primary" size="default">
-              <Plus className="w-4 h-4 mr-2" />
-              {t("partDetails.empty.addFirstApplication")}
-            </AcrButton>
+        {vehicleCount === 0 ? (
+          // Empty state
+          <div className="flex items-center justify-center py-12 border-2 border-dashed border-acr-gray-200 rounded-lg">
+            <div className="text-center">
+              <Car className="w-12 h-12 text-acr-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-acr-gray-900 mb-2">
+                {t("partDetails.empty.noApplications")}
+              </h3>
+              <p className="text-sm text-acr-gray-500 mb-4">
+                {t("partDetails.empty.applicationsDescription")}
+              </p>
+              <AcrButton variant="primary" size="default">
+                <Plus className="w-4 h-4 mr-2" />
+                {t("partDetails.empty.addFirstApplication")}
+              </AcrButton>
+            </div>
           </div>
-        </div>
+        ) : (
+          // Data state - placeholder for now
+          <div className="space-y-4">
+            <div className="text-sm text-acr-gray-600">
+              Showing {vehicleCount} vehicle applications (data interface coming soon)
+            </div>
+          </div>
+        )}
       </AcrCardContent>
     </AcrCard>
   );
