@@ -1,13 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useToast } from "@/hooks/use-toast";
 import {
   AcrButton,
   AcrCard,
   AcrCardHeader,
   AcrCardContent,
 } from "@/components/acr";
-import { Car, Plus, Loader2, Edit, Trash2 } from "lucide-react";
+import { Car, Plus, Edit, Trash2 } from "lucide-react";
+import { EditVehicleApplicationModal } from "./EditVehicleApplicationModal";
+import { AddVehicleApplicationModal } from "./AddVehicleApplicationModal";
+import { useDeleteVehicleApplication } from "@/hooks/useDeleteVehicleApplication";
 
 interface VehicleApplication {
   id: string;
@@ -32,6 +37,60 @@ export function PartApplications({
   vehicleApplications = [],
 }: PartApplicationsProps) {
   const { t } = useLocale();
+  const { toast } = useToast();
+  const deleteMutation = useDeleteVehicleApplication();
+
+  const [editModal, setEditModal] = useState<{
+    isOpen: boolean;
+    application: VehicleApplication | null;
+  }>({
+    isOpen: false,
+    application: null,
+  });
+
+  const [addModal, setAddModal] = useState(false);
+
+  const handleEdit = (application: VehicleApplication) => {
+    setEditModal({
+      isOpen: true,
+      application,
+    });
+  };
+
+  const handleCloseModal = () => {
+    setEditModal({
+      isOpen: false,
+      application: null,
+    });
+  };
+
+  const handleAdd = () => {
+    setAddModal(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setAddModal(false);
+  };
+
+  const handleDelete = async (application: VehicleApplication) => {
+    if (window.confirm(`Are you sure you want to delete the application for ${application.make} ${application.model} (${application.start_year}-${application.end_year})?`)) {
+      try {
+        await deleteMutation.mutateAsync({ id: application.id });
+
+        toast({
+          title: t("common.success"),
+          description: "Vehicle application deleted successfully",
+          variant: "success" as any,
+        });
+      } catch (error: any) {
+        toast({
+          title: t("common.error.title"),
+          description: error.error || "Failed to delete vehicle application",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   return (
     <AcrCard variant="default" padding="none" className="mb-6">
@@ -54,6 +113,7 @@ export function PartApplications({
             size="default"
             className="w-full"
             type="button"
+            onClick={handleAdd}
           >
             <Plus className="w-4 h-4" />
             Add Application
@@ -74,7 +134,7 @@ export function PartApplications({
             </span>
           </div>
 
-          <AcrButton variant="primary" size="default" type="button">
+          <AcrButton variant="primary" size="default" type="button" onClick={handleAdd}>
             <Plus className="w-4 h-4" />
             Add Application
           </AcrButton>
@@ -93,7 +153,7 @@ export function PartApplications({
               <p className="text-sm text-acr-gray-500 mb-4">
                 {t("partDetails.empty.applicationsDescription")}
               </p>
-              <AcrButton variant="primary" size="default" type="button">
+              <AcrButton variant="primary" size="default" type="button" onClick={handleAdd}>
                 <Plus className="w-4 h-4 mr-2" />
                 {t("partDetails.empty.addFirstApplication")}
               </AcrButton>
@@ -134,10 +194,21 @@ export function PartApplications({
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <AcrButton variant="secondary" size="sm" type="button">
+                        <AcrButton
+                          variant="secondary"
+                          size="sm"
+                          type="button"
+                          onClick={() => handleEdit(app)}
+                        >
                           <Edit className="w-3 h-3" />
                         </AcrButton>
-                        <AcrButton variant="secondary" size="sm" type="button">
+                        <AcrButton
+                          variant="secondary"
+                          size="sm"
+                          type="button"
+                          onClick={() => handleDelete(app)}
+                          disabled={deleteMutation.isPending}
+                        >
                           <Trash2 className="w-3 h-3" />
                         </AcrButton>
                       </div>
@@ -221,6 +292,7 @@ export function PartApplications({
                                 variant="secondary"
                                 size="sm"
                                 type="button"
+                                onClick={() => handleEdit(app)}
                               >
                                 <Edit className="w-3 h-3" />
                               </AcrButton>
@@ -228,6 +300,8 @@ export function PartApplications({
                                 variant="secondary"
                                 size="sm"
                                 type="button"
+                                onClick={() => handleDelete(app)}
+                                disabled={deleteMutation.isPending}
                               >
                                 <Trash2 className="w-3 h-3" />
                               </AcrButton>
@@ -243,6 +317,20 @@ export function PartApplications({
           </div>
         )}
       </AcrCardContent>
+
+      {/* Edit Modal */}
+      <EditVehicleApplicationModal
+        isOpen={editModal.isOpen}
+        onClose={handleCloseModal}
+        application={editModal.application}
+      />
+
+      {/* Add Modal */}
+      <AddVehicleApplicationModal
+        isOpen={addModal}
+        onClose={handleCloseAddModal}
+        partId={partId}
+      />
     </AcrCard>
   );
 }

@@ -586,4 +586,56 @@ export const translations: Record<
     en: "Brand:",
     es: "Marca:",
   },
+
+  // Modal Labels
+  "forms.labels.brand": {
+    en: "Brand",
+    es: "Marca",
+  },
+  "forms.labels.model": {
+    en: "Model",
+    es: "Modelo",
+  },
+  "forms.labels.startYear": {
+    en: "Start Year",
+    es: "Año Inicial",
+  },
+  "forms.labels.endYear": {
+    en: "End Year",
+    es: "Año Final",
+  },
+  "forms.placeholders.startYear": {
+    en: "2015",
+    es: "2015",
+  },
+  "forms.placeholders.endYear": {
+    en: "2020",
+    es: "2020",
+  },
+  "forms.placeholders.make": {
+    en: "Enter vehicle make (e.g., TOYOTA, HONDA)",
+    es: "Ingrese marca del vehículo (ej., TOYOTA, HONDA)",
+  },
+  "forms.placeholders.model": {
+    en: "Enter vehicle model (e.g., CAMRY, CIVIC)",
+    es: "Ingrese modelo del vehículo (ej., CAMRY, CIVIC)",
+  },
+
+  // Modal Titles and Descriptions
+  "modals.editVehicleApplication.title": {
+    en: "Edit Vehicle Application",
+    es: "Editar Aplicación Vehicular",
+  },
+  "modals.editVehicleApplication.description": {
+    en: "Update the vehicle compatibility information for this part",
+    es: "Actualice la información de compatibilidad vehicular para esta pieza",
+  },
+  "modals.addVehicleApplication.title": {
+    en: "Add Vehicle Application",
+    es: "Agregar Aplicación Vehicular",
+  },
+  "modals.addVehicleApplication.description": {
+    en: "Add vehicle compatibility information for this part",
+    es: "Agregue información de compatibilidad vehicular para esta pieza",
+  },
 };
