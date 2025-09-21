@@ -13,7 +13,9 @@
     "test:ci": "jest --ci --coverage --watchAll=false",
     "test:full": "npm run type-check && npm test",
     "bootstrap": "tsx scripts/bootstrap-import.ts",
-    "bootstrap:test": "cross-env NODE_ENV=test tsx scripts/bootstrap-import.ts"
+    "bootstrap:test": "cross-env NODE_ENV=test tsx scripts/bootstrap-import.ts",
+    "check-prod": "tsx scripts/check-production.ts",
+    "clear-prod": "tsx scripts/clear-production.ts"
   },
   "keywords": [
     "auto-parts",
