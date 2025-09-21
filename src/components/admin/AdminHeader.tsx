@@ -4,7 +4,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { AcrLogo } from "@/components/ui/AcrLogo";
 
 export function AdminHeader() {
-  const { locale, setLocale, isDevMode, t } = useLocale();
+  const { locale, setLocale, t } = useLocale();
 
   return (
     <header className="bg-white border-b border-acr-gray-200">
@@ -17,19 +17,31 @@ export function AdminHeader() {
             </h1>
           </div>
 
-          {/* Language Toggle - Only in Development */}
-          {isDevMode && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-acr-gray-500">DEV</span>
-              <button
-                onClick={() => setLocale(locale === "en" ? "es" : "en")}
-                className="px-2 py-1 text-sm font-medium bg-acr-gray-100 hover:bg-acr-gray-200 rounded transition-colors"
-                title={t("admin.header.languageToggle")}
-              >
-                {locale.toUpperCase()}
-              </button>
-            </div>
-          )}
+          {/* Language Toggle */}
+          <div className="flex items-center bg-acr-gray-50 rounded-lg p-1 border">
+            <button
+              onClick={() => setLocale("en")}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+                locale === "en"
+                  ? "bg-white text-acr-blue-600 shadow-sm"
+                  : "text-acr-gray-600 hover:text-acr-gray-800 hover:bg-acr-gray-100"
+              }`}
+              title="Switch to English"
+            >
+              EN
+            </button>
+            <button
+              onClick={() => setLocale("es")}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+                locale === "es"
+                  ? "bg-white text-acr-blue-600 shadow-sm"
+                  : "text-acr-gray-600 hover:text-acr-gray-800 hover:bg-acr-gray-100"
+              }`}
+              title="Cambiar a Español"
+            >
+              ES
+            </button>
+          </div>
         </div>
       </div>
     </header>
