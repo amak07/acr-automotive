@@ -7,13 +7,16 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-import dotenv from "dotenv";
+// Note: In production (Vercel), environment variables are automatically loaded
+// Only load dotenv for local development and testing
+if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
+  const dotenv = require('dotenv');
 
-// Load test environment if NODE_ENV is set to test
-if (process.env.NODE_ENV === 'test') {
-  dotenv.config({ path: '.env.test' });
-} else {
-  dotenv.config();
+  if (process.env.NODE_ENV === 'test') {
+    dotenv.config({ path: '.env.test' });
+  } else {
+    dotenv.config();
+  }
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
