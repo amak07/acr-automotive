@@ -1,44 +1,75 @@
-# Test Scripts
+# ACR Automotive Production Scripts
 
-## PRECIOS Import Pipeline Test
+Management scripts for ACR Automotive production database operations.
 
-Tests the complete Excel → Database workflow with real PRECIOS data using isolated test schema.
+## Available Scripts
 
-### Setup Required:
+### `bootstrap-import.ts` - Complete Data Import
+Imports all data from Excel files into production database.
 
-**First time setup** - Run test schema SQL in Supabase:
-1. Go to Supabase SQL Editor
-2. Copy and run contents of `src/lib/supabase/test-schema.sql`
-3. This creates isolated `test` schema separate from production
-
-### Usage:
-
+**Usage:**
 ```bash
-# Run the full E2E test (default)
-npx tsx scripts/test-precios-import.ts
+# Import to production (uses .env)
+npm run bootstrap
 
-# Clear test schema tables only
-npx tsx scripts/test-precios-import.ts cleanup
+# Import to test environment (uses .env.test)
+npm run bootstrap:test
 ```
 
-### What the test does:
+**What it does:**
+1. **PRECIOS Import** - 865 parts + 6,408 cross-references
+2. **CATALOGACION Import** - 2,304 vehicle applications + part details
+3. **Data Validation** - Handles duplicates, long SKUs, orphaned data
+4. **Complete Workflow** - Ready-to-use production database
 
-1. **Test Schema Verification** - Ensures test schema is accessible
-2. **Excel Loading** - Loads real PRECIOS Excel file (105KB)
-3. **Excel Parsing** - Uses streamlined PreciosParser with console logging
-4. **Database Import** - Complete import pipeline with duplicate handling
-5. **Data Verification** - Confirms successful import
+**Expected Results:**
+- 865 parts in production
+- 6,408 cross-references (after deduplication)
+- 2,304 vehicle applications
+- 13 orphaned SKUs (documented)
 
-### Actual Results:
+### `check-production.ts` - Database Status
+Checks current production database state.
 
-- **865 parts imported** to `test.parts` table
-- **9,400 cross-references imported** to `test.cross_references` table
-- **Duplicate handling and long SKU filtering** (>50 chars)
-- **Processing time <200ms**
+**Usage:**
+```bash
+npx tsx scripts/check-production.ts
+```
 
-### Safety Features:
+**Shows:**
+- Record counts for all tables
+- Sample data preview
+- Empty vs populated status
 
-- ✅ **Test Schema Isolation** - Uses `test` schema, never affects production
-- ✅ **Automatic Cleanup** - Clears test tables before each run
-- ✅ **Duplicate Handling** - Gracefully handles data entry errors
-- ✅ **Long SKU Filtering** - Skips problematic data until Excel normalization
+### `clear-production.ts` - Database Reset
+**⚠️ WARNING:** Removes ALL production data!
+
+**Usage:**
+```bash
+npx tsx scripts/clear-production.ts
+```
+
+**Clears:**
+- All parts, cross-references, vehicle applications
+- Proper cascade order (children first)
+- Prepares for fresh import
+
+## Production Workflow
+
+### Initial Setup
+1. **Database Schema** - Run `schema.sql` in Supabase SQL Editor
+2. **Environment** - Configure `.env` with production Supabase credentials
+3. **Bootstrap** - Run `npm run bootstrap` to populate database
+
+### Ongoing Management
+1. **Check Status** - `npx tsx scripts/check-production.ts`
+2. **Clear Data** - `npx tsx scripts/clear-production.ts` (if needed)
+3. **Re-import** - `npm run bootstrap` (for fresh data)
+
+## Safety Features
+
+- ✅ **Environment Separation** - Production (.env) vs Test (.env.test)
+- ✅ **Data Validation** - Skips invalid/problematic data
+- ✅ **Transaction Safety** - Rollback on errors
+- ✅ **Duplicate Handling** - Automatic deduplication
+- ✅ **Error Reporting** - Clear status messages and summaries
