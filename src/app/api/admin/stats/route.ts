@@ -15,13 +15,6 @@ export type AdminStatsApiResponse = {
 
 export async function GET() {
   try {
-    // Debug logging for Vercel
-    console.log('Environment check:', {
-      nodeEnv: process.env.NODE_ENV,
-      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...',
-    });
     const [
       { count: totalPartsCount, error: partError },
       { count: totalVehiclesCount, error: vaError },
