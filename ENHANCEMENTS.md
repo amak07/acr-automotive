@@ -36,6 +36,20 @@
 - **Custom Export Templates**: Pre-configured export formats for different business needs
 - **Scheduled Exports**: Automated daily/weekly exports for external systems
 
+### Competitive Intelligence & Automation
+- **Automated Cross-Reference Monitoring**: ⭐ **GAME-CHANGING FEATURE** - Web scraping system to keep cross-references current
+- **Baleros-Bisa Integration**: Scrape competitor part pages to discover new cross-references automatically
+- **Manual Part Mapping Phase**: Admin interface to link ACR parts to competitor product detail pages (one-time setup)
+- **URL Management System**: Track and manage competitor product URLs (e.g., baleros-bisa.com/producto-automotrices/MAZA/2)
+- **Periodic Monitoring**: Scheduled cloud jobs (daily/weekly) to check mapped competitor pages for changes
+- **Change Detection Engine**: Compare current vs. previous scrape data to identify new/removed cross-references
+- **Admin Approval Workflow**: Dashboard showing detected changes requiring Humberto's approval before applying
+- **Competitor SKU Validation**: Cross-reference new findings with existing database to prevent duplicates
+- **Scraping Infrastructure**: Headless browser automation, anti-detection measures, respectful rate limiting
+- **Data Quality Assurance**: Confidence scoring for scraped data, flagging anomalies for manual review
+- **Multi-Competitor Support**: Extensible system to monitor additional competitor websites beyond Baleros-Bisa
+- **Historical Tracking**: Audit trail of all cross-reference changes discovered through automation
+
 ### Search Interface Polish
 - **Advanced filters**: Filter by part specifications (ABS type, bolt pattern, etc.)
 - **Visual part browser**: Grid view with part images and quick specs
@@ -188,9 +202,10 @@
 
 ### Phase 4: Medium Term Improvements
 1. **Authentication system** - Required for production scaling
-2. **Mobile PWA** - Expand usage to field technicians
-3. **Advanced search filters** - Enhance user experience
-4. **API rate limiting** - Security and stability
+2. **Automated cross-reference monitoring** - Competitive intelligence automation
+3. **Mobile PWA** - Expand usage to field technicians
+4. **Advanced search filters** - Enhance user experience
+5. **API rate limiting** - Security and stability
 
 ### Phase 5: Long Term Strategic  
 1. **AI-powered recommendations** - Competitive differentiation
