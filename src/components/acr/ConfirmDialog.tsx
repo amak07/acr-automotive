@@ -43,9 +43,6 @@ export function ConfirmDialog({
       showCloseButton={false}
       data-testid="confirm-dialog"
     >
-      <AcrModalBody>
-      </AcrModalBody>
-
       <AcrModalFooter>
         <AcrButton
           type="button"

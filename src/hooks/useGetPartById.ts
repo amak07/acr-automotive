@@ -12,7 +12,8 @@ export function useGetPartById(queryParams: UsePartsParams) {
   const { id } = queryParams;
 
   return useQuery<PartWithDetails>({
-    queryKey: queryKeys.parts.detail(id),
+    queryKey: queryKeys.parts.detail(id || ""),
+    enabled: !!id, // Only run query if id exists
     queryFn: async () => {
       const url = `/api/admin/parts?id=${queryParams.id}`;
       const response = await fetch(url, {

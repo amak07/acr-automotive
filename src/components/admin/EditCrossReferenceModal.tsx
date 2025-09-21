@@ -25,7 +25,7 @@ interface CrossReference {
   id: string;
   acr_part_id: string;
   competitor_sku: string;
-  competitor_brand?: string;
+  competitor_brand: string | null;
   created_at: string;
   updated_at: string;
 }
