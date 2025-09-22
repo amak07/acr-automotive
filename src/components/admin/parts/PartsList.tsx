@@ -4,7 +4,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { Plus, Loader2 } from "lucide-react";
 import { useGetParts } from "@/hooks";
 import { createPartsTableColumns } from "./parts-table-config";
-import { AdminPagination } from "./AdminPagination";
+import { AdminPagination } from "../layout/AdminPagination";
 import { useState } from "react";
 import { SearchTerms } from "./SearchFilters";
 import { useDebounce } from "use-debounce";

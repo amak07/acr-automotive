@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { PublicSearchTerms } from "./PublicSearchFilters";
+import { PublicSearchTerms } from "../search/PublicSearchFilters";
 
 type PublicPartsListProps = {
   searchTerms: PublicSearchTerms;

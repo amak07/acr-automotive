@@ -1,9 +1,9 @@
 "use client";
 
-import { AdminHeader } from "@/components/admin/AdminHeader";
-import { DashboardCards } from "@/components/admin/DashboardCards";
-import { SearchFilters, SearchTerms } from "@/components/admin/SearchFilters";
-import { PartsList } from "@/components/admin/PartsList";
+import { AdminHeader } from "@/components/admin/layout/AdminHeader";
+import { DashboardCards } from "@/components/admin/dashboard/DashboardCards";
+import { SearchFilters, SearchTerms } from "@/components/admin/parts/SearchFilters";
+import { PartsList } from "@/components/admin/parts/PartsList";
 import { useState } from "react";
 
 export default function AdminPage() {
