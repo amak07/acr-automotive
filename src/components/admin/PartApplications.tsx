@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import {
   AcrButton,
   AcrCard,
@@ -12,7 +12,7 @@ import {
 import { Car, Plus, Edit, Trash2 } from "lucide-react";
 import { EditVehicleApplicationModal } from "./EditVehicleApplicationModal";
 import { AddVehicleApplicationModal } from "./AddVehicleApplicationModal";
-import { useDeleteVehicleApplication } from "@/hooks/useDeleteVehicleApplication";
+import { useDeleteVehicleApplication } from "@/hooks";
 
 interface VehicleApplication {
   id: string;

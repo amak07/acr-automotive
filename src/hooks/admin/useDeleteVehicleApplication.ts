@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { deleteVehicleSchema } from "@/app/api/admin/vehicles/zod-schemas";
-import { queryKeys } from "./queryKeys";
+import { queryKeys } from "@/hooks";
 
 export type DeleteVehicleApplicationParams = z.infer<typeof deleteVehicleSchema>;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetPartById } from "@/hooks/useGetPartById";
+import { useGetPartById } from "@/hooks";
 import { useParams } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
 import { AdminHeader } from "@/components/admin/AdminHeader";
@@ -17,9 +17,9 @@ import { useEffect } from "react";
 import {
   UpdatePartsParams,
   useUpdatePartById,
-} from "@/hooks/useUpdatePartById";
-import { useToast } from "@/hooks/use-toast";
-import { useFilterOptions } from "@/hooks/useFilterOptions";
+} from "@/hooks";
+import { useToast } from "@/hooks";
+import { useFilterOptions } from "@/hooks";
 
 export interface PartUpdateForm {
   part_type: string;

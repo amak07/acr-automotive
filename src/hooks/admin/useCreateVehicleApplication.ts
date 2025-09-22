@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { createVehicleSchema } from "@/app/api/admin/vehicles/zod-schemas";
-import { queryKeys } from "./queryKeys";
+import { queryKeys } from "@/hooks";
 
 export type CreateVehicleApplicationParams = z.infer<typeof createVehicleSchema>;
 

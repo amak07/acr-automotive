@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale } from "@/contexts/LocaleContext";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import {
   AcrModal,
   AcrModalBody,
@@ -18,7 +18,7 @@ import {
   useCreateCrossReference,
   mapCreateCrossReferenceErrors,
   CreateCrossReferenceParams
-} from "@/hooks/useCreateCrossReference";
+} from "@/hooks";
 import { createCrossRefSchema } from "@/app/api/admin/cross-references/zod-schemas";
 
 interface AddCrossReferenceModalProps {

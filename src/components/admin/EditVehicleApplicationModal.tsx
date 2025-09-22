@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale } from "@/contexts/LocaleContext";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import {
   AcrModal,
   AcrModalBody,
@@ -18,7 +18,7 @@ import {
   useUpdateVehicleApplication,
   mapVehicleApplicationErrors,
   UpdateVehicleApplicationParams
-} from "@/hooks/useUpdateVehicleApplication";
+} from "@/hooks";
 import { updateVehicleSchema } from "@/app/api/admin/vehicles/zod-schemas";
 
 interface VehicleApplication {

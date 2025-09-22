@@ -69,6 +69,16 @@
 - **Comparison mode**: Side-by-side part specification comparison
 - **Mobile-first redesign**: Optimize for smartphone usage at parts counters
 
+### Baleros-Bisa Inspired UX Features (Future)
+- **Right Sidebar**: ⭐ **BALEROS-BISA PATTERN** - Category navigation sidebar with expandable sections (MAZAS, FRENOS, etc.) and quick search functionality
+- **Category Quick Search**: Small search input in sidebar for product-specific searches
+- **Category Filters**: Expandable category lists with part counts (e.g., "BALATA (760)", "BALERO CILINDRICO (11)")
+- **Floating Action Buttons**: ⭐ **CUSTOMER COMMUNICATION** - Fixed position email and WhatsApp contact buttons for instant customer support
+- **Professional Contact Integration**: Direct links to ACR sales team, technical support, and general inquiries
+- **Multi-Channel Support**: Email, WhatsApp, phone integration for different customer preferences
+- **Contact Page**: Dedicated contact page with company information, location, business hours
+- **About/Company Pages**: Professional company profile, history, specializations (MAZAS expertise)
+
 ## 🔐 Security & Authentication
 
 ### User Management System
