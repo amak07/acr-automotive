@@ -9,7 +9,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "../ui/pagination";
+} from "../../ui/pagination";
 import { AcrButton } from "@/components/acr";
 
 interface AdminPaginationProps {

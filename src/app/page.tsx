@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { PublicHeader } from "@/components/public/PublicHeader";
+import { PublicHeader } from "@/components/public/layout/PublicHeader";
 import {
   PublicSearchFilters,
   PublicSearchTerms,
-} from "@/components/public/PublicSearchFilters";
-import { PublicPartsList } from "@/components/public/PublicPartsList";
+} from "@/components/public/search/PublicSearchFilters";
+import { PublicPartsList } from "@/components/public/parts/PublicPartsList";
 
 export default function HomePage() {
   const [searchTerms, setSearchTerms] = useState<PublicSearchTerms>({
