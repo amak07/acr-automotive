@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { updateCrossRefSchema } from "@/app/api/admin/cross-references/zod-schemas";
-import { queryKeys } from "./queryKeys";
+import { createCrossRefSchema } from "@/app/api/admin/cross-references/zod-schemas";
+import { queryKeys } from "@/hooks";
 
-export type UpdateCrossReferenceParams = z.infer<typeof updateCrossRefSchema>;
+export type CreateCrossReferenceParams = z.infer<typeof createCrossRefSchema>;
 
-export type UpdateCrossReferenceError = {
+export type CreateCrossReferenceError = {
   error: string;
   issues?: Array<{
     field: string;
@@ -13,17 +13,17 @@ export type UpdateCrossReferenceError = {
   }>;
 };
 
-export function useUpdateCrossReference() {
+export function useCreateCrossReference() {
   const queryClient = useQueryClient();
 
   return useMutation<
     { data: any },
-    UpdateCrossReferenceError,
-    UpdateCrossReferenceParams
+    CreateCrossReferenceError,
+    CreateCrossReferenceParams
   >({
-    mutationFn: async (params: UpdateCrossReferenceParams) => {
+    mutationFn: async (params: CreateCrossReferenceParams) => {
       const response = await fetch("/api/admin/cross-references", {
-        method: "PUT",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -42,22 +42,16 @@ export function useUpdateCrossReference() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.parts.all,
       });
-
-      // Optionally update the cache directly for immediate UI update
-      queryClient.setQueryData(
-        queryKeys.crossReferences.detail(variables.id),
-        data
-      );
     },
     onError: (error) => {
-      console.error("Failed to update cross reference:", error);
+      console.error("Failed to create cross reference:", error);
     },
   });
 }
 
 // Helper function to extract form errors from API response
-export function mapCrossReferenceErrors(
-  error: UpdateCrossReferenceError
+export function mapCreateCrossReferenceErrors(
+  error: CreateCrossReferenceError
 ): Record<string, string> {
   const fieldErrors: Record<string, string> = {};
 

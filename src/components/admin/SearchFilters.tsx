@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { Search, XCircleIcon } from "lucide-react";
 import { AdminPartsQueryParams } from "@/types";
-import { useFilterOptions } from "@/hooks/useFilterOptions";
+import { useFilterOptions } from "@/hooks";
 import { AcrInput, AcrButton, AcrSelect, AcrLabel } from "@/components/acr";
 
 export type SearchTerms = Pick<

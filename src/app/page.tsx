@@ -1,11 +1,34 @@
-export default function Home() {
+"use client";
+
+import { useState } from "react";
+import { PublicHeader } from "@/components/public/PublicHeader";
+import {
+  PublicSearchFilters,
+  PublicSearchTerms,
+} from "@/components/public/PublicSearchFilters";
+import { PublicPartsList } from "@/components/public/PublicPartsList";
+
+export default function HomePage() {
+  const [searchTerms, setSearchTerms] = useState<PublicSearchTerms>({
+    make: "",
+    model: "",
+    year: "",
+    sku_term: "",
+  });
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm">
-        <h1 className="text-4xl font-bold">ACR Automotive</h1>
-        <p className="mt-4 text-xl">Auto Parts Cross-Reference Search System</p>
-        <p className="mt-2 text-lg text-gray-600">Next.js 15 with TypeScript and Supabase</p>
-      </div>
-    </main>
-  )
+    <div className="min-h-screen bg-acr-gray-100">
+      <PublicHeader />
+
+      <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
+        <PublicSearchFilters
+          searchTerms={searchTerms}
+          setSearchTerms={setSearchTerms}
+        />
+        <div className="mt-8">
+          <PublicPartsList searchTerms={searchTerms} />
+        </div>
+      </main>
+    </div>
+  );
 }

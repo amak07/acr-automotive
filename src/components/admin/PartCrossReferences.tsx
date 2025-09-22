@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import {
   AcrButton,
   AcrCard,
@@ -12,7 +12,7 @@ import {
 import { Link2, Plus, Edit, Trash2 } from "lucide-react";
 import { EditCrossReferenceModal } from "./EditCrossReferenceModal";
 import { AddCrossReferenceModal } from "./AddCrossReferenceModal";
-import { useDeleteCrossReference } from "@/hooks/useDeleteCrossReference";
+import { useDeleteCrossReference } from "@/hooks";
 
 interface CrossReference {
   id: string;

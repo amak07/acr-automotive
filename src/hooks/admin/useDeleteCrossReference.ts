@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { deleteCrossRefSchema } from "@/app/api/admin/cross-references/zod-schemas";
-import { queryKeys } from "./queryKeys";
+import { queryKeys } from "@/hooks";
 
 export type DeleteCrossReferenceParams = z.infer<typeof deleteCrossRefSchema>;
 

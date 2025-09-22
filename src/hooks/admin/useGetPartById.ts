@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { querySchema } from "@/app/api/admin/parts/schemas";
 import { PartWithDetails } from "@/types";
-import { queryKeys } from "./queryKeys";
+import { queryKeys } from "@/hooks";
 
 type UsePartsParams = Pick<z.infer<typeof querySchema>, "id">;
 

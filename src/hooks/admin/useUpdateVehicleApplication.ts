@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { createCrossRefSchema } from "@/app/api/admin/cross-references/zod-schemas";
-import { queryKeys } from "./queryKeys";
+import { updateVehicleSchema } from "@/app/api/admin/vehicles/zod-schemas";
+import { queryKeys } from "@/hooks";
 
-export type CreateCrossReferenceParams = z.infer<typeof createCrossRefSchema>;
+export type UpdateVehicleApplicationParams = z.infer<typeof updateVehicleSchema>;
 
-export type CreateCrossReferenceError = {
+export type UpdateVehicleApplicationError = {
   error: string;
   issues?: Array<{
     field: string;
@@ -13,17 +13,17 @@ export type CreateCrossReferenceError = {
   }>;
 };
 
-export function useCreateCrossReference() {
+export function useUpdateVehicleApplication() {
   const queryClient = useQueryClient();
 
   return useMutation<
     { data: any },
-    CreateCrossReferenceError,
-    CreateCrossReferenceParams
+    UpdateVehicleApplicationError,
+    UpdateVehicleApplicationParams
   >({
-    mutationFn: async (params: CreateCrossReferenceParams) => {
-      const response = await fetch("/api/admin/cross-references", {
-        method: "POST",
+    mutationFn: async (params: UpdateVehicleApplicationParams) => {
+      const response = await fetch("/api/admin/vehicles", {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -42,16 +42,22 @@ export function useCreateCrossReference() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.parts.all,
       });
+
+      // Optionally update the cache directly for immediate UI update
+      queryClient.setQueryData(
+        queryKeys.vehicleApplications.detail(variables.id),
+        data
+      );
     },
     onError: (error) => {
-      console.error("Failed to create cross reference:", error);
+      console.error("Failed to update vehicle application:", error);
     },
   });
 }
 
 // Helper function to extract form errors from API response
-export function mapCreateCrossReferenceErrors(
-  error: CreateCrossReferenceError
+export function mapVehicleApplicationErrors(
+  error: UpdateVehicleApplicationError
 ): Record<string, string> {
   const fieldErrors: Record<string, string> = {};
 

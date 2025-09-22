@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { useGetAdminStats } from "@/hooks/useAdminStats";
+import { useGetAdminStats } from "@/hooks";
 import { AcrCard } from "@/components/acr";
 import { Bolt, Car, Loader2, Waypoints } from "lucide-react";
 
