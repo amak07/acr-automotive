@@ -10,14 +10,8 @@ import {
 } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  SkeletonCard,
-  SkeletonTableHeader,
-  SkeletonTableContent,
-  SkeletonText,
-  SkeletonTitle,
-  SkeletonBadge
-} from "@/components/ui/skeleton";
+import { SkeletonPublicPartDetails } from "@/components/ui/skeleton";
+import { PageError } from "@/components/ui/error-states";
 import { useEffect, useState } from "react";
 
 type PartWithRelations = DatabasePartRow & {
@@ -59,126 +53,30 @@ export function PublicPartDetails({
   }, [part?.id, t]);
 
   if (isLoading) {
-    return (
-      <div className="max-w-4xl mx-auto space-y-4">
-        {/* Breadcrumb skeleton */}
-        <SkeletonText width="32" />
-
-        {/* Main content skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Product image skeleton */}
-          <Card className="md:col-span-1">
-            <CardContent className="p-4">
-              <SkeletonText className="aspect-square rounded-lg" />
-            </CardContent>
-          </Card>
-
-          {/* Part details skeleton */}
-          <Card className="md:col-span-2">
-            <CardContent className="p-4">
-              {/* Header skeleton */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <SkeletonTitle className="mb-2" />
-                  <SkeletonText width="24" />
-                </div>
-                <SkeletonBadge />
-              </div>
-
-              {/* Specifications table skeleton */}
-              <SkeletonCard>
-                <SkeletonTableHeader>
-                  <SkeletonText width="24" className="mx-auto" />
-                </SkeletonTableHeader>
-                <SkeletonTableContent className="space-y-2">
-                  <SkeletonText width="full" />
-                  <SkeletonText width="3/4" />
-                  <SkeletonText width="1/2" />
-                  <SkeletonText width="2/3" />
-                </SkeletonTableContent>
-              </SkeletonCard>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Applications and References skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Applications skeleton */}
-          <Card>
-            <CardContent className="p-4">
-              <SkeletonCard>
-                <SkeletonTableHeader>
-                  <SkeletonText width="20" className="mx-auto" />
-                </SkeletonTableHeader>
-                <SkeletonTableContent className="space-y-2">
-                  <SkeletonText width="full" />
-                  <SkeletonText width="4/5" />
-                </SkeletonTableContent>
-              </SkeletonCard>
-            </CardContent>
-          </Card>
-
-          {/* References skeleton */}
-          <Card>
-            <CardContent className="p-4">
-              <SkeletonCard>
-                <SkeletonTableHeader>
-                  <SkeletonText width="20" className="mx-auto" />
-                </SkeletonTableHeader>
-                <SkeletonTableContent className="space-y-2">
-                  <SkeletonText width="3/4" />
-                  <SkeletonText width="1/2" />
-                  <SkeletonText width="2/3" />
-                </SkeletonTableContent>
-              </SkeletonCard>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+    return <SkeletonPublicPartDetails />;
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <div className="text-red-600 mb-2">
-          <Package className="w-12 h-12 mx-auto mb-2" />
-        </div>
-        <h3 className="text-lg font-semibold text-red-800 mb-2">
-          {t("public.partDetails.errorTitle")}
-        </h3>
-        <p className="text-red-600 text-sm mb-4">
-          {t("public.partDetails.errorMessage")}
-        </p>
-        <Link
-          href={(backLink || "/") as any}
-          className="inline-flex items-center text-acr-blue-600 hover:text-acr-blue-800 underline"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          {backText || t("public.partDetails.backToSearch")}
-        </Link>
-      </div>
+      <PageError
+        title={t("public.partDetails.errorTitle")}
+        message={t("public.partDetails.errorMessage")}
+        icon={<Package className="w-12 h-12 mx-auto mb-2" />}
+        backLink={backLink || "/"}
+        backText={backText || t("public.partDetails.backToSearch")}
+      />
     );
   }
 
   if (!part) {
     return (
-      <div className="text-center py-12">
-        <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">
-          {t("public.partDetails.notFound")}
-        </h3>
-        <p className="text-gray-600 text-sm mb-4">
-          {t("public.partDetails.notFoundMessage")}
-        </p>
-        <Link
-          href={(backLink || "/") as any}
-          className="inline-flex items-center text-acr-blue-600 hover:text-acr-blue-800 underline"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          {backText || t("public.partDetails.backToSearch")}
-        </Link>
-      </div>
+      <PageError
+        title={t("public.partDetails.notFound")}
+        message={t("public.partDetails.notFoundMessage")}
+        icon={<Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />}
+        backLink={backLink || "/"}
+        backText={backText || t("public.partDetails.backToSearch")}
+      />
     );
   }
 

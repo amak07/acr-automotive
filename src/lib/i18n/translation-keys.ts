@@ -7,6 +7,7 @@ export interface TranslationKeys {
   // Admin Header
   'admin.header.title': string;
   'admin.header.languageToggle': string;
+  'admin.header.viewPublic': string;
   
   // Admin Dashboard
   'admin.dashboard.totalParts': string;

@@ -5,6 +5,7 @@ import { useGetAdminStats } from "@/hooks";
 import { AcrCard } from "@/components/acr";
 import { Bolt, Car, Waypoints } from "lucide-react";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
+import { InlineError } from "@/components/ui/error-states";
 
 export function DashboardCards() {
   const { t, locale } = useLocale();
@@ -56,16 +57,10 @@ export function DashboardCards() {
             )}
 
             {isError && (
-              <div className="flex items-center justify-center w-full py-6">
-                <div className="text-center">
-                  <p className="text-xs text-red-600 mb-1">
-                    {t("common.error.generic")}
-                  </p>
-                  <p className="text-xs text-acr-gray-500">
-                    {t("common.error.tryAgain")}
-                  </p>
-                </div>
-              </div>
+              <InlineError
+                title={t("common.error.generic")}
+                message={t("common.error.tryAgain")}
+              />
             )}
 
             {!isLoading && !isError && (

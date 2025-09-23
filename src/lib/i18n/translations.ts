@@ -21,6 +21,10 @@ export const translations: Record<
     en: "Language",
     es: "Idioma",
   },
+  "admin.header.viewPublic": {
+    en: "View Public Site",
+    es: "Ver Sitio Público",
+  },
 
   // Admin Dashboard
   "admin.dashboard.totalParts": {
