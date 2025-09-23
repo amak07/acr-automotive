@@ -6,25 +6,25 @@ import { AcrButton } from "@/components/acr/Button";
 import { AcrSelect } from "@/components/acr/Select";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useVehicleOptions } from "@/hooks";
+import { DEFAULT_PUBLIC_SEARCH_TERMS } from "@/app/constants";
 
 export type PublicSearchTerms = {
+  limit: number;
+  offset: number;
   // Vehicle search
   make: string;
   model: string;
   year: string;
   // ACR Sku or Competitor Sku cross reference lookup
   sku_term: string;
-  limit: number;
-  offset: number;
 };
 
 type PublicSearchFiltersProps = {
-  searchTerms: PublicSearchTerms;
   setSearchTerms: Dispatch<SetStateAction<PublicSearchTerms>>;
 };
 
 export function PublicSearchFilters(props: PublicSearchFiltersProps) {
-  const { searchTerms, setSearchTerms } = props;
+  const { setSearchTerms } = props;
   const { t } = useLocale();
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const { data, isLoading, error } = useVehicleOptions();
@@ -34,21 +34,24 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
   const [years, setYears] = useState<number[] | undefined>();
 
   // selected options for SearchTerms.
-  const [selectedMake, setSelectedMake] = useState<string>();
-  const [selectedModel, setSelectedModel] = useState<string>();
-  const [selectedYear, setSelectedYear] = useState<string>();
+  const [selectedMake, setSelectedMake] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
+
+  // for SKU term lookup
+  const [skuTerm, setSkuTerm] = useState<string>("");
 
   useEffect(() => {
-    if (selectedMake) {
-      setModels(data?.models[selectedMake]);
+    if (selectedMake && data?.models) {
+      setModels(data.models[selectedMake]);
     }
-  }, [selectedMake]);
+  }, [selectedMake, data?.models]);
 
   useEffect(() => {
-    if (selectedModel) {
-      setYears(data?.years[`${selectedMake}-${selectedModel}`]);
+    if (selectedModel && selectedMake && data?.years) {
+      setYears(data.years[`${selectedMake}-${selectedModel}`]);
     }
-  }, [selectedModel]);
+  }, [selectedModel, selectedMake, data?.years]);
 
   const handleVehicleSearch = () => {
     if (selectedMake && selectedModel && selectedYear) {
@@ -63,6 +66,19 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
     }
   };
 
+  const handleSkuTermSearch = () => {
+    if (skuTerm) {
+      setSearchTerms({
+        offset: 0,
+        limit: 15,
+        sku_term: skuTerm,
+        make: "",
+        model: "",
+        year: "",
+      });
+    }
+  };
+
   // Show error state if vehicle options failed to load
   if (error) {
     return (
@@ -70,12 +86,26 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
         <div className="bg-white p-3 rounded-lg border border-red-300 shadow-md lg:p-4">
           <div className="text-center py-8">
             <div className="text-red-600 mb-2">
-              <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              <svg
+                className="w-12 h-12 mx-auto mb-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-red-800 mb-2">Unable to Load Vehicle Options</h3>
-            <p className="text-red-600 text-sm">Please try refreshing the page or contact support if the problem persists.</p>
+            <h3 className="text-lg font-semibold text-red-800 mb-2">
+              {t("public.search.errorTitle")}
+            </h3>
+            <p className="text-red-600 text-sm">
+              {t("public.search.errorMessage")}
+            </p>
           </div>
         </div>
       </div>
@@ -96,15 +126,19 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             value={selectedMake}
             onValueChange={(value) => {
               setSelectedMake(value);
-              setSelectedModel(undefined);
-              setSelectedYear(undefined);
+              setSelectedModel("");
+              setSelectedYear("");
             }}
             isLoading={isLoading}
           >
             <AcrSelect.Trigger className="w-full h-12">
-              <AcrSelect.Value placeholder={
-                isLoading ? t("public.search.loadingOptions") : t("public.search.make")
-              } />
+              <AcrSelect.Value
+                placeholder={
+                  isLoading
+                    ? t("public.search.loadingOptions")
+                    : t("public.search.make")
+                }
+              />
             </AcrSelect.Trigger>
             <AcrSelect.Content>
               {data?.makes.map((make) => (
@@ -119,28 +153,31 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             value={selectedModel}
             onValueChange={(value) => {
               setSelectedModel(value);
-              setSelectedYear(undefined);
+              setSelectedYear("");
             }}
             disabled={!selectedMake || isLoading}
             isLoading={isLoading && !selectedMake}
           >
             <AcrSelect.Trigger className="w-full h-12">
-              <AcrSelect.Value placeholder={
-                !selectedMake
-                  ? t("public.search.selectMakeFirst")
-                  : isLoading
-                    ? t("public.search.loadingOptions")
-                    : models?.length === 0
-                      ? t("public.search.noModelsAvailable")
-                      : t("public.search.model")
-              } />
+              <AcrSelect.Value
+                placeholder={
+                  !selectedMake
+                    ? t("public.search.selectMakeFirst")
+                    : isLoading
+                      ? t("public.search.loadingOptions")
+                      : models?.length === 0
+                        ? t("public.search.noModelsAvailable")
+                        : t("public.search.model")
+                }
+              />
             </AcrSelect.Trigger>
             <AcrSelect.Content>
-              {selectedMake && models?.map((model) => (
-                <AcrSelect.Item key={model} value={model}>
-                  {model}
-                </AcrSelect.Item>
-              ))}
+              {selectedMake &&
+                models?.map((model) => (
+                  <AcrSelect.Item key={model} value={model}>
+                    {model}
+                  </AcrSelect.Item>
+                ))}
             </AcrSelect.Content>
           </AcrSelect.Root>
 
@@ -151,31 +188,36 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             isLoading={isLoading && !selectedModel}
           >
             <AcrSelect.Trigger className="w-full h-12">
-              <AcrSelect.Value placeholder={
-                !selectedModel
-                  ? t("public.search.selectModelFirst")
-                  : isLoading
-                    ? t("public.search.loadingOptions")
-                    : years?.length === 0
-                      ? t("public.search.noYearsAvailable")
-                      : t("public.search.year")
-              } />
+              <AcrSelect.Value
+                placeholder={
+                  !selectedModel
+                    ? t("public.search.selectModelFirst")
+                    : isLoading
+                      ? t("public.search.loadingOptions")
+                      : years?.length === 0
+                        ? t("public.search.noYearsAvailable")
+                        : t("public.search.year")
+                }
+              />
             </AcrSelect.Trigger>
             <AcrSelect.Content>
-              {selectedModel && years?.map((year) => (
-                <AcrSelect.Item key={year} value={year.toString()}>
-                  {year}
-                </AcrSelect.Item>
-              ))}
+              {selectedModel &&
+                years?.map((year) => (
+                  <AcrSelect.Item key={year} value={year.toString()}>
+                    {year}
+                  </AcrSelect.Item>
+                ))}
             </AcrSelect.Content>
           </AcrSelect.Root>
 
           <AcrButton
             className="w-full h-12 mt-2"
             onClick={handleVehicleSearch}
-            disabled={!selectedMake || !selectedModel || !selectedYear || isLoading}
+            disabled={
+              !selectedMake || !selectedModel || !selectedYear || isLoading
+            }
           >
-            {isLoading ? t("public.search.loadingOptions") : t("public.search.button")}
+            {t("public.search.button")}
           </AcrButton>
         </div>
 
@@ -185,15 +227,19 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             value={selectedMake}
             onValueChange={(value) => {
               setSelectedMake(value);
-              setSelectedModel(undefined);
-              setSelectedYear(undefined);
+              setSelectedModel("");
+              setSelectedYear("");
             }}
             isLoading={isLoading}
           >
             <AcrSelect.Trigger className="flex-1">
-              <AcrSelect.Value placeholder={
-                isLoading ? t("public.search.loadingOptions") : t("public.search.make")
-              } />
+              <AcrSelect.Value
+                placeholder={
+                  isLoading
+                    ? t("public.search.loadingOptions")
+                    : t("public.search.make")
+                }
+              />
             </AcrSelect.Trigger>
             <AcrSelect.Content>
               {data?.makes.map((make) => (
@@ -208,28 +254,31 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             value={selectedModel}
             onValueChange={(value) => {
               setSelectedModel(value);
-              setSelectedYear(undefined);
+              setSelectedYear("");
             }}
             disabled={!selectedMake || isLoading}
             isLoading={isLoading && !selectedMake}
           >
             <AcrSelect.Trigger className="flex-1">
-              <AcrSelect.Value placeholder={
-                !selectedMake
-                  ? t("public.search.selectMakeFirst")
-                  : isLoading
-                    ? t("public.search.loadingOptions")
-                    : models?.length === 0
-                      ? t("public.search.noModelsAvailable")
-                      : t("public.search.model")
-              } />
+              <AcrSelect.Value
+                placeholder={
+                  !selectedMake
+                    ? t("public.search.selectMakeFirst")
+                    : isLoading
+                      ? t("public.search.loadingOptions")
+                      : models?.length === 0
+                        ? t("public.search.noModelsAvailable")
+                        : t("public.search.model")
+                }
+              />
             </AcrSelect.Trigger>
             <AcrSelect.Content>
-              {selectedMake && models?.map((model) => (
-                <AcrSelect.Item key={model} value={model}>
-                  {model}
-                </AcrSelect.Item>
-              ))}
+              {selectedMake &&
+                models?.map((model) => (
+                  <AcrSelect.Item key={model} value={model}>
+                    {model}
+                  </AcrSelect.Item>
+                ))}
             </AcrSelect.Content>
           </AcrSelect.Root>
 
@@ -240,31 +289,36 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             isLoading={isLoading && !selectedModel}
           >
             <AcrSelect.Trigger className="flex-1">
-              <AcrSelect.Value placeholder={
-                !selectedModel
-                  ? t("public.search.selectModelFirst")
-                  : isLoading
-                    ? t("public.search.loadingOptions")
-                    : years?.length === 0
-                      ? t("public.search.noYearsAvailable")
-                      : t("public.search.year")
-              } />
+              <AcrSelect.Value
+                placeholder={
+                  !selectedModel
+                    ? t("public.search.selectModelFirst")
+                    : isLoading
+                      ? t("public.search.loadingOptions")
+                      : years?.length === 0
+                        ? t("public.search.noYearsAvailable")
+                        : t("public.search.year")
+                }
+              />
             </AcrSelect.Trigger>
             <AcrSelect.Content>
-              {selectedModel && years?.map((year) => (
-                <AcrSelect.Item key={year} value={year.toString()}>
-                  {year}
-                </AcrSelect.Item>
-              ))}
+              {selectedModel &&
+                years?.map((year) => (
+                  <AcrSelect.Item key={year} value={year.toString()}>
+                    {year}
+                  </AcrSelect.Item>
+                ))}
             </AcrSelect.Content>
           </AcrSelect.Root>
 
           <AcrButton
             className="whitespace-nowrap h-auto py-3"
             onClick={handleVehicleSearch}
-            disabled={!selectedMake || !selectedModel || !selectedYear || isLoading}
+            disabled={
+              !selectedMake || !selectedModel || !selectedYear || isLoading
+            }
           >
-            {isLoading ? t("public.search.loadingOptions") : t("public.search.button")}
+            {t("public.search.button")}
           </AcrButton>
         </div>
 
@@ -272,7 +326,7 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
         <div className="mt-3 flex justify-end">
           <button
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-acr-gray-600 hover:text-acr-red-600 transition-colors"
+            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-acr-blue-600 hover:text-acr-blue-800 underline hover:no-underline transition-all duration-200"
           >
             <span>
               {showAdvancedFilters
@@ -306,26 +360,14 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-acr-gray-500 w-4 h-4" />
                 <input
                   type="text"
-                  value={searchTerms.sku_term}
-                  onChange={(e) =>
-                    setSearchTerms({
-                      ...searchTerms,
-                      sku_term: e.target.value,
-                      offset: 0,
-                    })
-                  }
+                  value={skuTerm}
+                  onChange={(e) => setSkuTerm(e.target.value)}
                   placeholder={t("public.search.skuPlaceholder")}
                   className="w-full h-12 pl-10 pr-4 py-3 border border-acr-gray-400 rounded-lg focus:outline-none focus:border-acr-red-500 placeholder:text-acr-gray-500 transition-colors duration-200"
                 />
-                {searchTerms.sku_term && (
+                {skuTerm && (
                   <button
-                    onClick={() =>
-                      setSearchTerms({
-                        ...searchTerms,
-                        sku_term: "",
-                        offset: 0,
-                      })
-                    }
+                    onClick={() => setSkuTerm("")}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-acr-gray-400 hover:text-acr-gray-600"
                   >
                     <XCircleIcon className="w-4 h-4" />
@@ -333,7 +375,11 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                 )}
               </div>
 
-              <AcrButton className="w-full h-12">
+              <AcrButton
+                className="w-full h-12"
+                onClick={handleSkuTermSearch}
+                disabled={!skuTerm}
+              >
                 {t("public.search.button")}
               </AcrButton>
             </div>
@@ -344,26 +390,19 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-acr-gray-500 w-4 h-4" />
                 <input
                   type="text"
-                  value={searchTerms.sku_term}
-                  onChange={(e) =>
-                    setSearchTerms({
-                      ...searchTerms,
-                      sku_term: e.target.value,
-                      offset: 0,
-                    })
-                  }
+                  value={skuTerm}
+                  onChange={(e) => setSkuTerm(e.target.value)}
                   placeholder={t("public.search.skuPlaceholder")}
                   className="w-full pl-10 pr-4 py-3 border border-acr-gray-400 rounded-lg focus:outline-none focus:border-acr-red-500 placeholder:text-acr-gray-500 transition-colors duration-200"
                 />
-                {searchTerms.sku_term && (
+                {skuTerm && (
                   <button
-                    onClick={() =>
+                    onClick={() => {
                       setSearchTerms({
-                        ...searchTerms,
-                        sku_term: "",
-                        offset: 0,
-                      })
-                    }
+                        ...DEFAULT_PUBLIC_SEARCH_TERMS,
+                      });
+                      setSkuTerm("");
+                    }}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-acr-gray-400 hover:text-acr-gray-600"
                   >
                     <XCircleIcon className="w-4 h-4" />
@@ -371,7 +410,11 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                 )}
               </div>
 
-              <AcrButton className="whitespace-nowrap h-auto py-3">
+              <AcrButton
+                className="whitespace-nowrap h-auto py-3"
+                onClick={handleSkuTermSearch}
+                disabled={!skuTerm}
+              >
                 {t("public.search.button")}
               </AcrButton>
             </div>

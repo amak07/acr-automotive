@@ -12,14 +12,14 @@ import {
   AcrButton,
   AcrInput,
   AcrLabel,
-  ConfirmDialog
+  ConfirmDialog,
 } from "@/components/acr";
+import { useUpdateVehicleApplication } from "@/hooks";
+import { updateVehicleSchema } from "@/lib/schemas";
 import {
-  useUpdateVehicleApplication,
   mapVehicleApplicationErrors,
-  UpdateVehicleApplicationParams
-} from "@/hooks";
-import { updateVehicleSchema } from "@/app/api/admin/vehicles/zod-schemas";
+  UpdateVehicleApplicationParams,
+} from "@/hooks/admin/useUpdateVehicleApplication";
 
 interface VehicleApplication {
   id: string;
@@ -41,7 +41,7 @@ interface EditVehicleApplicationModalProps {
 export function EditVehicleApplicationModal({
   isOpen,
   onClose,
-  application
+  application,
 }: EditVehicleApplicationModalProps) {
   const { t } = useLocale();
   const { toast } = useToast();
@@ -52,7 +52,7 @@ export function EditVehicleApplicationModal({
     handleSubmit,
     reset,
     setError,
-    formState: { errors, isValid, isDirty }
+    formState: { errors, isValid, isDirty },
   } = useForm<UpdateVehicleApplicationParams>({
     resolver: zodResolver(updateVehicleSchema),
     mode: "onBlur",
@@ -61,8 +61,8 @@ export function EditVehicleApplicationModal({
       make: "",
       model: "",
       start_year: 2000,
-      end_year: 2000
-    }
+      end_year: 2000,
+    },
   });
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -75,7 +75,7 @@ export function EditVehicleApplicationModal({
         make: application.make,
         model: application.model,
         start_year: application.start_year,
-        end_year: application.end_year
+        end_year: application.end_year,
       });
     }
   }, [application, isOpen, reset]);
@@ -98,7 +98,7 @@ export function EditVehicleApplicationModal({
       Object.entries(fieldErrors).forEach(([field, message]) => {
         setError(field as keyof UpdateVehicleApplicationParams, {
           type: "server",
-          message
+          message,
         });
       });
 
@@ -136,14 +136,15 @@ export function EditVehicleApplicationModal({
       showCloseButton={true}
       data-testid="edit-vehicle-application-modal"
     >
-      <form id="edit-vehicle-application-form" onSubmit={handleSubmit(onSubmit)}>
+      <form
+        id="edit-vehicle-application-form"
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <AcrModalBody>
           <div className="grid grid-cols-1 gap-4">
             {/* Make Field */}
             <div>
-              <AcrLabel required>
-                {t("forms.labels.brand")}
-              </AcrLabel>
+              <AcrLabel required>{t("forms.labels.brand")}</AcrLabel>
               <Controller
                 name="make"
                 control={control}
@@ -160,9 +161,7 @@ export function EditVehicleApplicationModal({
 
             {/* Model Field */}
             <div>
-              <AcrLabel required>
-                {t("forms.labels.model")}
-              </AcrLabel>
+              <AcrLabel required>{t("forms.labels.model")}</AcrLabel>
               <Controller
                 name="model"
                 control={control}
@@ -191,7 +190,9 @@ export function EditVehicleApplicationModal({
                       min="1900"
                       max="2030"
                       value={field.value || ""}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                       placeholder={t("forms.placeholders.startYear")}
                       error={errors.start_year?.message}
                       helperText={errors.start_year?.message}
@@ -212,7 +213,9 @@ export function EditVehicleApplicationModal({
                       min="1900"
                       max="2030"
                       value={field.value || ""}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                       placeholder={t("forms.placeholders.endYear")}
                       error={errors.end_year?.message}
                       helperText={errors.end_year?.message}

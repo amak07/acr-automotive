@@ -12,14 +12,13 @@ import {
   AcrButton,
   AcrInput,
   AcrLabel,
-  ConfirmDialog
+  ConfirmDialog,
 } from "@/components/acr";
+import { useCreateCrossReference } from "@/hooks";
+import { createCrossRefSchema, CreateCrossReferenceParams } from "@/lib/schemas";
 import {
-  useCreateCrossReference,
   mapCreateCrossReferenceErrors,
-  CreateCrossReferenceParams
-} from "@/hooks";
-import { createCrossRefSchema } from "@/app/api/admin/cross-references/zod-schemas";
+} from "@/hooks/admin/useCreateCrossReference";
 
 interface AddCrossReferenceModalProps {
   isOpen: boolean;
@@ -30,7 +29,7 @@ interface AddCrossReferenceModalProps {
 export function AddCrossReferenceModal({
   isOpen,
   onClose,
-  partId
+  partId,
 }: AddCrossReferenceModalProps) {
   const { t } = useLocale();
   const { toast } = useToast();
@@ -41,15 +40,15 @@ export function AddCrossReferenceModal({
     handleSubmit,
     reset,
     setError,
-    formState: { errors, isValid, isDirty }
+    formState: { errors, isValid, isDirty },
   } = useForm<CreateCrossReferenceParams>({
     resolver: zodResolver(createCrossRefSchema),
     mode: "onBlur",
     defaultValues: {
       acr_part_id: partId,
       competitor_sku: "",
-      competitor_brand: ""
-    }
+      competitor_brand: "",
+    },
   });
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -60,7 +59,7 @@ export function AddCrossReferenceModal({
 
       toast({
         title: t("common.success"),
-        description: `${data.competitor_sku}${data.competitor_brand ? ` (${data.competitor_brand})` : ''} added successfully`,
+        description: `${data.competitor_sku}${data.competitor_brand ? ` (${data.competitor_brand})` : ""} added successfully`,
         variant: "success" as any,
       });
 
@@ -72,7 +71,7 @@ export function AddCrossReferenceModal({
       Object.entries(fieldErrors).forEach(([field, message]) => {
         setError(field as keyof CreateCrossReferenceParams, {
           type: "server",
-          message
+          message,
         });
       });
 
@@ -113,9 +112,7 @@ export function AddCrossReferenceModal({
           <div className="grid grid-cols-1 gap-4">
             {/* Competitor SKU Field */}
             <div>
-              <AcrLabel required>
-                {t("forms.labels.competitorSku")}
-              </AcrLabel>
+              <AcrLabel required>{t("forms.labels.competitorSku")}</AcrLabel>
               <Controller
                 name="competitor_sku"
                 control={control}
@@ -132,9 +129,7 @@ export function AddCrossReferenceModal({
 
             {/* Competitor Brand Field */}
             <div>
-              <AcrLabel>
-                {t("forms.labels.competitorBrand")}
-              </AcrLabel>
+              <AcrLabel>{t("forms.labels.competitorBrand")}</AcrLabel>
               <Controller
                 name="competitor_brand"
                 control={control}
