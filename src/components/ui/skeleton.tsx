@@ -463,6 +463,90 @@ function SkeletonDashboardCards({
   )
 }
 
+// Public Page Skeletons
+function SkeletonPublicPartDetails({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn("max-w-4xl mx-auto space-y-4", className)} {...props}>
+      {/* Breadcrumb skeleton */}
+      <SkeletonText width="32" />
+
+      {/* Main content skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Product image skeleton */}
+        <div className="md:col-span-1 bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md">
+          <div className="p-4">
+            <SkeletonText className="aspect-square rounded-lg" />
+          </div>
+        </div>
+
+        {/* Part details skeleton */}
+        <div className="md:col-span-2 bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md">
+          <div className="p-4">
+            {/* Header skeleton */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <SkeletonTitle className="mb-2" />
+                <SkeletonText width="24" />
+              </div>
+              <SkeletonBadge />
+            </div>
+
+            {/* Specifications table skeleton */}
+            <SkeletonCard>
+              <SkeletonTableHeader>
+                <SkeletonText width="24" className="mx-auto" />
+              </SkeletonTableHeader>
+              <SkeletonTableContent className="space-y-2">
+                <SkeletonText width="full" />
+                <SkeletonText width="3/4" />
+                <SkeletonText width="1/2" />
+                <SkeletonText width="2/3" />
+              </SkeletonTableContent>
+            </SkeletonCard>
+          </div>
+        </div>
+      </div>
+
+      {/* Applications and References skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Applications skeleton */}
+        <div className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md">
+          <div className="p-4">
+            <SkeletonCard>
+              <SkeletonTableHeader>
+                <SkeletonText width="20" className="mx-auto" />
+              </SkeletonTableHeader>
+              <SkeletonTableContent className="space-y-2">
+                <SkeletonText width="full" />
+                <SkeletonText width="4/5" />
+              </SkeletonTableContent>
+            </SkeletonCard>
+          </div>
+        </div>
+
+        {/* References skeleton */}
+        <div className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md">
+          <div className="p-4">
+            <SkeletonCard>
+              <SkeletonTableHeader>
+                <SkeletonText width="20" className="mx-auto" />
+              </SkeletonTableHeader>
+              <SkeletonTableContent className="space-y-2">
+                <SkeletonText width="3/4" />
+                <SkeletonText width="1/2" />
+                <SkeletonText width="2/3" />
+              </SkeletonTableContent>
+            </SkeletonCard>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export {
   Skeleton,
   SkeletonCard,
@@ -477,5 +561,6 @@ export {
   SkeletonAdminPartDetails,
   SkeletonAdminPartsList,
   SkeletonDashboardCard,
-  SkeletonDashboardCards
+  SkeletonDashboardCards,
+  SkeletonPublicPartDetails
 }

@@ -14,9 +14,7 @@ import { PartDetailsActions } from "@/components/admin/part-details/PartDetailsA
 import { SkeletonAdminPartDetails } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
-import {
-  useUpdatePartById,
-} from "@/hooks";
+import { useUpdatePartById } from "@/hooks";
 import { useToast } from "@/hooks";
 import { useFilterOptions } from "@/hooks";
 import { UpdatePartsParams } from "@/hooks/admin/useUpdatePartById";
@@ -49,7 +47,7 @@ export default function PartDetailsPage() {
     handleSubmit,
     control,
     reset,
-    formState: { errors, isSubmitting, isDirty, isValid },
+    formState: { isDirty },
   } = useForm<PartUpdateForm>({
     mode: "onBlur",
     defaultValues: {
@@ -152,14 +150,23 @@ export default function PartDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-acr-gray-100" data-testid="part-details-page">
+    <div
+      className="min-h-screen bg-acr-gray-100"
+      data-testid="part-details-page"
+    >
       <AdminHeader />
 
-      <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8" data-testid="part-details-main">
+      <main
+        className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8"
+        data-testid="part-details-main"
+      >
         <PartDetailsBreadcrumb acrSku={data?.acr_sku} partId={id} />
 
         {data && !isLoading && filterOptions && !filterOptionsLoading && (
-          <form onSubmit={handleSubmit(onSubmit)} data-testid="part-details-form">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            data-testid="part-details-form"
+          >
             <PartDetailsHeader
               acrSku={data.acr_sku}
               partType={data.part_type}

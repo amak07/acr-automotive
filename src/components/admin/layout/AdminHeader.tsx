@@ -2,6 +2,8 @@
 
 import { useLocale } from "@/contexts/LocaleContext";
 import { AcrLogo } from "@/components/ui/AcrLogo";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 
 export function AdminHeader() {
   const { locale, setLocale, t } = useLocale();
@@ -17,8 +19,18 @@ export function AdminHeader() {
             </h1>
           </div>
 
-          {/* Language Toggle */}
-          <div className="flex items-center bg-acr-gray-50 rounded-lg p-1 border">
+          <div className="flex items-center gap-4">
+            {/* View Public Site Link */}
+            <Link
+              href="/"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-acr-gray-600 hover:text-acr-blue-600 hover:bg-acr-gray-50 rounded-md transition-all duration-200"
+            >
+              <ExternalLink className="w-4 h-4" />
+              {t("admin.header.viewPublic")}
+            </Link>
+
+            {/* Language Toggle */}
+            <div className="flex items-center bg-acr-gray-50 rounded-lg p-1 border">
             <button
               onClick={() => setLocale("en")}
               className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
@@ -41,6 +53,7 @@ export function AdminHeader() {
             >
               ES
             </button>
+            </div>
           </div>
         </div>
       </div>
