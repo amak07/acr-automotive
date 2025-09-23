@@ -21,7 +21,7 @@ export const AcrTextarea = React.forwardRef<HTMLTextAreaElement, AcrTextareaProp
         className={cn(
           // ACR-specific styling overrides
           "pl-4 pr-4 py-3 min-h-[100px]", // ACR spacing standards
-          "border-acr-gray-300 bg-white", // ACR colors
+          "border-acr-gray-400 bg-white", // ACR colors
           "focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent", // ACR focus states
           "transition-colors duration-200", // Smooth transitions
           "placeholder:text-acr-gray-400", // ACR placeholder color

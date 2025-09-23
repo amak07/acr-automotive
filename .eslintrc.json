@@ -1,0 +1,28 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "next/core-web-vitals"
+  ],
+  "rules": {
+    "prefer-const": "error",
+    "no-var": "error",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
+  "overrides": [
+    {
+      "files": ["supabase/functions/**/*.ts"],
+      "env": {
+        "browser": false,
+        "node": false
+      },
+      "globals": {
+        "Deno": "readonly"
+      }
+    }
+  ]
+}

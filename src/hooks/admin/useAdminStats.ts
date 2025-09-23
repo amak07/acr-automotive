@@ -1,5 +1,6 @@
 import { AdminStats, AdminStatsApiResponse } from "@/app/api/admin/stats/route";
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/hooks/common/queryKeys";
 
 async function fetchAdminStats(): Promise<AdminStats> {
   const response = await fetch("/api/admin/stats");
@@ -19,7 +20,7 @@ async function fetchAdminStats(): Promise<AdminStats> {
 
 export function useGetAdminStats() {
   return useQuery({
-    queryKey: ["admin-stats"],
+    queryKey: queryKeys.admin.stats(),
     queryFn: fetchAdminStats,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,

@@ -29,13 +29,14 @@ export const AcrSelectTrigger = React.forwardRef<
     className={cn(
       // ACR-specific styling overrides
       "pl-4 pr-3 py-3 h-auto", // ACR spacing standards
-      "border-acr-gray-300 bg-white", // ACR colors
+      "border-acr-gray-400 bg-white", // ACR colors
       "focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent", // ACR focus states
       "transition-colors duration-200", // Smooth transitions
-      "data-[placeholder]:text-acr-gray-400", // ACR placeholder color
+      "data-[placeholder]:text-acr-gray-500", // ACR placeholder color - darker
 
-      // Custom dropdown arrow styling
-      "[&>svg]:w-4 [&>svg]:h-4 [&>svg]:opacity-60",
+      // Custom dropdown arrow styling - force darker color with higher specificity
+      "[&>*[data-radix-select-icon]]:!text-acr-gray-500 [&>*[data-radix-select-icon]]:!opacity-100",
+      "[&_svg]:!text-acr-gray-500 [&_svg]:!opacity-100",
 
       // Variant styles
       variant === "disabled" &&
