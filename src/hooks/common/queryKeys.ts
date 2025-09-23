@@ -50,6 +50,7 @@ export const queryKeys = {
       all: () => [...queryKeys.public.all, "parts"] as const,
       list: (filters: Record<string, any>) => [...queryKeys.public.parts.all(), "list", { filters }] as const,
     },
+    partBySku: (sku: string) => [...queryKeys.public.all, "part", sku] as const,
     vehicleOptions: () => [...queryKeys.public.all, "vehicle-options"] as const,
   },
 } as const;

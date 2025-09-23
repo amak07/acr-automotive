@@ -9,6 +9,59 @@ export async function GET(request: NextRequest) {
   const rawParams = Object.fromEntries(searchParams.entries());
 
   try {
+    // Handle get by ID first
+    if (rawParams.id) {
+      // Query 1: Get the part
+      const { data: partData, error: partError } = await supabase
+        .from("parts")
+        .select("*")
+        .eq("id", rawParams.id)
+        .single();
+
+      if (partError) {
+        if (partError.code === 'PGRST116') {
+          return Response.json(
+            {
+              success: false,
+              error: "Part not found",
+              timestamp: new Date().toISOString()
+            },
+            { status: 404 }
+          );
+        }
+        throw partError;
+      }
+
+      // Query 2: Get vehicle applications
+      const { data: vehicleApps, error: vehicleError } = await supabase
+        .from("vehicle_applications")
+        .select("*")
+        .eq("part_id", rawParams.id);
+
+      if (vehicleError) throw vehicleError;
+
+      // Query 3: Get cross-references
+      const { data: crossRefs, error: crossError } = await supabase
+        .from("cross_references")
+        .select("*")
+        .eq("acr_part_id", rawParams.id);
+
+      if (crossError) throw crossError;
+
+      // Combine the results
+      const result = {
+        ...partData,
+        vehicle_applications: vehicleApps || [],
+        cross_references: crossRefs || [],
+      };
+
+      return Response.json({
+        success: true,
+        data: result,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     const params: PublicSearchParams = publicSearchSchema.parse(rawParams);
 
     // Default: return all parts if no search parameters

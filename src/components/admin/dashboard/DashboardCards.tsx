@@ -3,7 +3,8 @@
 import { useLocale } from "@/contexts/LocaleContext";
 import { useGetAdminStats } from "@/hooks";
 import { AcrCard } from "@/components/acr";
-import { Bolt, Car, Loader2, Waypoints } from "lucide-react";
+import { Bolt, Car, Waypoints } from "lucide-react";
+import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 
 export function DashboardCards() {
   const { t, locale } = useLocale();
@@ -46,16 +47,10 @@ export function DashboardCards() {
           <div className="flex items-center gap-3">
             {isLoading && (
               <>
-                <div className="w-8 h-8 bg-acr-gray-100 rounded-md flex items-center justify-center lg:w-10 lg:h-10">
-                  <Loader2 className="w-4 h-4 animate-spin text-acr-red-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-xl font-semibold text-acr-gray-800 lg:text-2xl">
-                    --
-                  </div>
-                  <div className="text-xs text-acr-gray-500 lg:text-sm">
-                    {t("common.loading")}
-                  </div>
+                <Skeleton className="w-8 h-8 rounded-md lg:w-10 lg:h-10" />
+                <div className="flex-1 space-y-2">
+                  <SkeletonText width="16" className="h-6 lg:h-8" />
+                  <SkeletonText width="24" className="h-3 lg:h-4" />
                 </div>
               </>
             )}

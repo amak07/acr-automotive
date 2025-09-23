@@ -3,6 +3,7 @@
 import { useLocale } from "@/contexts/LocaleContext";
 import { AcrButton, AcrCard } from "@/components/acr";
 import { Settings, Eye, Save, MapPin, Shield, Zap, Wrench } from "lucide-react";
+import Link from "next/link";
 
 interface PartDetailsHeaderProps {
   acrSku: string;
@@ -15,6 +16,7 @@ interface PartDetailsHeaderProps {
   boltPattern?: string;
   onSave?: () => void;
   isSaving?: boolean;
+  partId?: string;
 }
 
 export function PartDetailsHeader({
@@ -28,6 +30,7 @@ export function PartDetailsHeader({
   boltPattern,
   onSave,
   isSaving = false,
+  partId,
 }: PartDetailsHeaderProps) {
   const { t } = useLocale();
 
@@ -135,14 +138,17 @@ export function PartDetailsHeader({
 
           {/* Mobile Action Buttons */}
           <div className="flex gap-2">
-            <AcrButton
-              variant="secondary"
-              size="sm"
-              className="flex-1"
-              type="button"
-            >
-              <Eye className="w-4 h-4" />
-            </AcrButton>
+            <Link href={partId ? `/parts/${partId}?from=admin` : "#"} className="flex-1">
+              <AcrButton
+                variant="secondary"
+                size="sm"
+                className="w-full"
+                type="button"
+                disabled={!partId}
+              >
+                <Eye className="w-4 h-4" />
+              </AcrButton>
+            </Link>
             <AcrButton
               variant="primary"
               size="sm"
@@ -220,10 +226,17 @@ export function PartDetailsHeader({
 
           {/* Desktop Action Buttons */}
           <div className="flex items-center gap-3">
-            <AcrButton variant="secondary" size="default" type="button">
-              <Eye className="w-4 h-4 mr-2" />
-              Preview
-            </AcrButton>
+            <Link href={partId ? `/parts/${partId}?from=admin` : "#"}>
+              <AcrButton
+                variant="secondary"
+                size="default"
+                type="button"
+                disabled={!partId}
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                {t("partDetails.actions.preview")}
+              </AcrButton>
+            </Link>
             <AcrButton
               variant="primary"
               size="default"

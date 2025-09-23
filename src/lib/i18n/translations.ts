@@ -802,4 +802,94 @@ export const translations: Record<
     en: "There was an error searching for parts. Please try again or contact support if the problem persists.",
     es: "Hubo un error al buscar refacciones. Intente nuevamente o contacte al soporte si el problema persiste.",
   },
+
+  // Public Part Details
+  "public.partDetails.errorTitle": {
+    en: "Part Not Found",
+    es: "Refacción No Encontrada",
+  },
+  "public.partDetails.errorMessage": {
+    en: "The part you're looking for could not be found or may have been removed.",
+    es: "La refacción que busca no se pudo encontrar o puede haber sido eliminada.",
+  },
+  "public.partDetails.backToSearch": {
+    en: "Back to Search",
+    es: "Volver a Búsqueda",
+  },
+  "public.partDetails.backToAdmin": {
+    en: "Back to Admin",
+    es: "Volver a Admin",
+  },
+  "public.partDetails.notFound": {
+    en: "Part Not Found",
+    es: "Refacción No Encontrada",
+  },
+  "public.partDetails.notFoundMessage": {
+    en: "We couldn't find a part with that SKU. Please check the part number and try again.",
+    es: "No pudimos encontrar una refacción con ese SKU. Verifique el número de parte e intente nuevamente.",
+  },
+  "public.partDetails.company": {
+    en: "Professional automotive parts for the Mexican market",
+    es: "Refacciones automotrices profesionales para el mercado mexicano",
+  },
+  "public.partDetails.specifications": {
+    en: "Specifications",
+    es: "Especificaciones",
+  },
+  "public.partDetails.division": {
+    en: "Division",
+    es: "División",
+  },
+  "public.partDetails.automotive": {
+    en: "Automotive",
+    es: "Automotriz",
+  },
+  "public.partDetails.brand": {
+    en: "Brand",
+    es: "Marca",
+  },
+  "public.partDetails.class": {
+    en: "Class",
+    es: "Clase",
+  },
+  "public.partDetails.position": {
+    en: "Position",
+    es: "Posición",
+  },
+  "public.partDetails.abs": {
+    en: "ABS",
+    es: "ABS",
+  },
+  "public.partDetails.drive": {
+    en: "Drive",
+    es: "Tracción",
+  },
+  "public.partDetails.bolts": {
+    en: "Bolt Pattern",
+    es: "Patrón de Tornillos",
+  },
+  "public.partDetails.observations": {
+    en: "Observations",
+    es: "Observaciones",
+  },
+  "public.partDetails.companyDescription": {
+    en: "ACR Automotive specializes in high-quality automotive parts with a focus on wheel hubs, brake components, and drivetrain parts for the Mexican automotive aftermarket.",
+    es: "ACR Automotriz se especializa en refacciones automotrices de alta calidad con enfoque en mazas, componentes de frenos y partes del tren motriz para el mercado de refacciones mexicano.",
+  },
+  "public.partDetails.applications": {
+    en: "Vehicle Applications",
+    es: "Aplicaciones Vehiculares",
+  },
+  "public.partDetails.applicationsPlaceholder": {
+    en: "Vehicle compatibility information will be displayed here when available.",
+    es: "La información de compatibilidad vehicular se mostrará aquí cuando esté disponible.",
+  },
+  "public.partDetails.references": {
+    en: "Cross References",
+    es: "Referencias Cruzadas",
+  },
+  "public.partDetails.referencesPlaceholder": {
+    en: "Competitor part number cross-references will be displayed here when available.",
+    es: "Las referencias cruzadas de números de parte de competidores se mostrarán aquí cuando estén disponibles.",
+  },
 };
