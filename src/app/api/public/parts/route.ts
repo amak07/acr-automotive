@@ -2,18 +2,7 @@ import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import { DatabasePartRow } from "@/types";
 import { PostgrestError } from "@supabase/supabase-js";
-import { z } from "zod";
-
-export const publicSearchSchema = z.object({
-  make: z.string().optional(),
-  model: z.string().optional(),
-  year: z.string().optional(),
-  sku_term: z.string().optional(),
-  limit: z.coerce.number().default(15),
-  offset: z.coerce.number().default(0),
-});
-
-export type PublicSearchParams = z.infer<typeof publicSearchSchema>;
+import { publicSearchSchema, PublicSearchParams } from "@/lib/schemas/public";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

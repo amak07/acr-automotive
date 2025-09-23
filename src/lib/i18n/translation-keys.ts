@@ -222,6 +222,8 @@ export interface TranslationKeys {
   'public.search.noModelsAvailable': string;
   'public.search.noYearsAvailable': string;
   'public.search.loadingOptions': string;
+  'public.search.errorTitle': string;
+  'public.search.errorMessage': string;
 
   // Public Parts List
   'public.parts.loading': string;
@@ -231,4 +233,6 @@ export interface TranslationKeys {
   'public.parts.viewDetails': string;
   'public.parts.brand': string;
   'public.parts.tempMessage': string;
+  'public.parts.errorTitle': string;
+  'public.parts.errorMessage': string;
 }

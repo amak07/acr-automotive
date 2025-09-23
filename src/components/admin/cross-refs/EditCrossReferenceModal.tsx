@@ -12,14 +12,14 @@ import {
   AcrButton,
   AcrInput,
   AcrLabel,
-  ConfirmDialog
+  ConfirmDialog,
 } from "@/components/acr";
+import { useUpdateCrossReference } from "@/hooks";
 import {
-  useUpdateCrossReference,
-  mapCrossReferenceErrors,
-  UpdateCrossReferenceParams
-} from "@/hooks";
-import { updateCrossRefSchema } from "@/app/api/admin/cross-references/zod-schemas";
+  UpdateCrossReferenceParams,
+  updateCrossRefSchema,
+} from "@/lib/schemas";
+import { mapCrossReferenceErrors } from "@/hooks/admin/useUpdateCrossReference";
 
 interface CrossReference {
   id: string;
@@ -39,7 +39,7 @@ interface EditCrossReferenceModalProps {
 export function EditCrossReferenceModal({
   isOpen,
   onClose,
-  crossReference
+  crossReference,
 }: EditCrossReferenceModalProps) {
   const { t } = useLocale();
   const { toast } = useToast();
@@ -50,15 +50,15 @@ export function EditCrossReferenceModal({
     handleSubmit,
     reset,
     setError,
-    formState: { errors, isValid, isDirty }
+    formState: { errors, isValid, isDirty },
   } = useForm<UpdateCrossReferenceParams>({
     resolver: zodResolver(updateCrossRefSchema),
     mode: "onBlur",
     defaultValues: {
       id: "",
       competitor_sku: "",
-      competitor_brand: ""
-    }
+      competitor_brand: "",
+    },
   });
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -69,7 +69,7 @@ export function EditCrossReferenceModal({
       reset({
         id: crossReference.id,
         competitor_sku: crossReference.competitor_sku,
-        competitor_brand: crossReference.competitor_brand || ""
+        competitor_brand: crossReference.competitor_brand || "",
       });
     }
   }, [crossReference, isOpen, reset]);
@@ -80,7 +80,7 @@ export function EditCrossReferenceModal({
 
       toast({
         title: t("common.success"),
-        description: `${data.competitor_sku}${data.competitor_brand ? ` (${data.competitor_brand})` : ''} updated successfully`,
+        description: `${data.competitor_sku}${data.competitor_brand ? ` (${data.competitor_brand})` : ""} updated successfully`,
         variant: "success" as any,
       });
 
@@ -92,7 +92,7 @@ export function EditCrossReferenceModal({
       Object.entries(fieldErrors).forEach(([field, message]) => {
         setError(field as keyof UpdateCrossReferenceParams, {
           type: "server",
-          message
+          message,
         });
       });
 
@@ -135,9 +135,7 @@ export function EditCrossReferenceModal({
           <div className="grid grid-cols-1 gap-4">
             {/* Competitor SKU Field */}
             <div>
-              <AcrLabel required>
-                {t("forms.labels.competitorSku")}
-              </AcrLabel>
+              <AcrLabel required>{t("forms.labels.competitorSku")}</AcrLabel>
               <Controller
                 name="competitor_sku"
                 control={control}
@@ -154,9 +152,7 @@ export function EditCrossReferenceModal({
 
             {/* Competitor Brand Field */}
             <div>
-              <AcrLabel>
-                {t("forms.labels.competitorBrand")}
-              </AcrLabel>
+              <AcrLabel>{t("forms.labels.competitorBrand")}</AcrLabel>
               <Controller
                 name="competitor_brand"
                 control={control}

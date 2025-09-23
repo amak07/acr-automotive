@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/hooks/common/queryKeys";
-import { PublicSearchParams } from "@/app/api/public/parts/route";
 import { DatabasePartRow } from "@/types";
+import { PublicSearchParams } from "@/lib/schemas";
 
 type UsePartsParams = PublicSearchParams;
 

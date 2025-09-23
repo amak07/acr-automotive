@@ -756,6 +756,14 @@ export const translations: Record<
     en: "Loading options...",
     es: "Cargando opciones...",
   },
+  "public.search.errorTitle": {
+    en: "Unable to Load Vehicle Options",
+    es: "No se Pueden Cargar las Opciones de Vehículos",
+  },
+  "public.search.errorMessage": {
+    en: "Please try refreshing the page or contact support if the problem persists.",
+    es: "Intente actualizar la página o contacte al soporte si el problema persiste.",
+  },
 
   // Public Parts List
   "public.parts.loading": {
@@ -785,5 +793,13 @@ export const translations: Record<
   "public.parts.tempMessage": {
     en: "Showing sample data. API integration is pending.",
     es: "Mostrando datos de ejemplo. La integración con la API está pendiente.",
+  },
+  "public.parts.errorTitle": {
+    en: "Unable to Load Parts",
+    es: "No se Pueden Cargar las Refacciones",
+  },
+  "public.parts.errorMessage": {
+    en: "There was an error searching for parts. Please try again or contact support if the problem persists.",
+    es: "Hubo un error al buscar refacciones. Intente nuevamente o contacte al soporte si el problema persiste.",
   },
 };

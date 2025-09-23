@@ -12,14 +12,14 @@ import {
   AcrButton,
   AcrInput,
   AcrLabel,
-  ConfirmDialog
+  ConfirmDialog,
 } from "@/components/acr";
+import { useCreateVehicleApplication } from "@/hooks";
 import {
-  useCreateVehicleApplication,
-  mapCreateVehicleApplicationErrors,
-  CreateVehicleApplicationParams
-} from "@/hooks";
-import { createVehicleSchema } from "@/app/api/admin/vehicles/zod-schemas";
+  CreateVehicleApplicationParams,
+  createVehicleSchema,
+} from "@/lib/schemas";
+import { mapCreateVehicleApplicationErrors } from "@/hooks/admin/useCreateVehicleApplication";
 
 interface AddVehicleApplicationModalProps {
   isOpen: boolean;
@@ -30,7 +30,7 @@ interface AddVehicleApplicationModalProps {
 export function AddVehicleApplicationModal({
   isOpen,
   onClose,
-  partId
+  partId,
 }: AddVehicleApplicationModalProps) {
   const { t } = useLocale();
   const { toast } = useToast();
@@ -41,7 +41,7 @@ export function AddVehicleApplicationModal({
     handleSubmit,
     reset,
     setError,
-    formState: { errors, isValid, isDirty }
+    formState: { errors, isValid, isDirty },
   } = useForm<CreateVehicleApplicationParams>({
     resolver: zodResolver(createVehicleSchema),
     mode: "onBlur",
@@ -50,8 +50,8 @@ export function AddVehicleApplicationModal({
       make: "",
       model: "",
       start_year: 2020,
-      end_year: 2025
-    }
+      end_year: 2025,
+    },
   });
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -74,7 +74,7 @@ export function AddVehicleApplicationModal({
       Object.entries(fieldErrors).forEach(([field, message]) => {
         setError(field as keyof CreateVehicleApplicationParams, {
           type: "server",
-          message
+          message,
         });
       });
 
@@ -115,9 +115,7 @@ export function AddVehicleApplicationModal({
           <div className="grid grid-cols-1 gap-4">
             {/* Make Field */}
             <div>
-              <AcrLabel required>
-                {t("forms.labels.brand")}
-              </AcrLabel>
+              <AcrLabel required>{t("forms.labels.brand")}</AcrLabel>
               <Controller
                 name="make"
                 control={control}
@@ -134,9 +132,7 @@ export function AddVehicleApplicationModal({
 
             {/* Model Field */}
             <div>
-              <AcrLabel required>
-                {t("forms.labels.model")}
-              </AcrLabel>
+              <AcrLabel required>{t("forms.labels.model")}</AcrLabel>
               <Controller
                 name="model"
                 control={control}
@@ -165,7 +161,9 @@ export function AddVehicleApplicationModal({
                       min="1900"
                       max="2030"
                       value={field.value || ""}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                       placeholder={t("forms.placeholders.startYear")}
                       error={errors.start_year?.message}
                       helperText={errors.start_year?.message}
@@ -186,7 +184,9 @@ export function AddVehicleApplicationModal({
                       min="1900"
                       max="2030"
                       value={field.value || ""}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                       placeholder={t("forms.placeholders.endYear")}
                       error={errors.end_year?.message}
                       helperText={errors.end_year?.message}
@@ -200,11 +200,7 @@ export function AddVehicleApplicationModal({
       </form>
 
       <AcrModalFooter>
-        <AcrButton
-          type="button"
-          variant="secondary"
-          onClick={handleClose}
-        >
+        <AcrButton type="button" variant="secondary" onClick={handleClose}>
           {t("common.actions.cancel")}
         </AcrButton>
         <AcrButton
