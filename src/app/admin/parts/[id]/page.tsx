@@ -17,6 +17,7 @@ import { useEffect } from "react";
 import { useUpdatePartById } from "@/hooks";
 import { useToast } from "@/hooks";
 import { useFilterOptions } from "@/hooks";
+import { withAdminAuth } from "@/components/admin/auth/withAdminAuth";
 import { UpdatePartsParams } from "@/hooks/admin/useUpdatePartById";
 
 export interface PartUpdateForm {
@@ -28,7 +29,7 @@ export interface PartUpdateForm {
   specifications: string;
 }
 
-export default function PartDetailsPage() {
+function PartDetailsPage() {
   const params = useParams();
   const { t } = useLocale();
   const id = params.id as string;
@@ -213,3 +214,6 @@ export default function PartDetailsPage() {
     </div>
   );
 }
+
+// Export the wrapped component with admin authentication
+export default withAdminAuth(PartDetailsPage);
