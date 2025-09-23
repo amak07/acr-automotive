@@ -1,8 +1,9 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import { DatabasePartRow } from "@/types";
 import { useLocale } from "@/contexts/LocaleContext";
+import { SkeletonPartsGrid } from "@/components/ui/skeleton";
 
 type PublicPartsListProps = {
   partsData: DatabasePartRow[];
@@ -17,12 +18,7 @@ export function PublicPartsList(props: PublicPartsListProps) {
   const { t } = useLocale();
 
   if (isDataLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-acr-red-600" />
-        <span className="ml-2 text-acr-gray-600">{t("public.parts.loading")}</span>
-      </div>
-    );
+    return <SkeletonPartsGrid count={6} />;
   }
 
   return (
@@ -52,10 +48,10 @@ export function PublicPartsList(props: PublicPartsListProps) {
       <div className="max-w-3xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {partsData.map((part) => (
-            <div
+            <Link
               key={part.id}
-              className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg hover:border-acr-gray-400 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:ring-offset-2 group relative flex flex-col"
-              tabIndex={0}
+              href={`/parts/${part.id}`}
+              className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg hover:border-acr-gray-400 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:ring-offset-2 group relative flex flex-col block"
             >
               {/* Image Container - Baleros-Bisa Style */}
               <div className="relative overflow-hidden p-4">
@@ -96,7 +92,7 @@ export function PublicPartsList(props: PublicPartsListProps) {
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

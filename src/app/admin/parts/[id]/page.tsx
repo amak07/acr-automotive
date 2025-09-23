@@ -11,7 +11,7 @@ import { PartApplications } from "@/components/admin/vehicle-apps/PartApplicatio
 import { PartCrossReferences } from "@/components/admin/cross-refs/PartCrossReferences";
 import { PartMetadata } from "@/components/admin/part-details/PartMetadata";
 import { PartDetailsActions } from "@/components/admin/part-details/PartDetailsActions";
-import { Loader2 } from "lucide-react";
+import { SkeletonAdminPartDetails } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import {
@@ -125,12 +125,7 @@ export default function PartDetailsPage() {
       <div className="min-h-screen bg-acr-gray-100">
         <AdminHeader />
         <div className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
-          <div className="flex items-center justify-center py-12">
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-acr-red-600" />
-              <p className="text-sm text-acr-gray-500">{t("common.loading")}</p>
-            </div>
-          </div>
+          <SkeletonAdminPartDetails />
         </div>
       </div>
     );
@@ -175,6 +170,7 @@ export default function PartDetailsPage() {
               driveType={data.drive_type || undefined}
               boltPattern={data.bolt_pattern || undefined}
               isSaving={updateMutation.isPending}
+              partId={id}
             />
 
             <PartMetadata

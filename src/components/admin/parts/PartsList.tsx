@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useGetParts } from "@/hooks";
 import { createPartsTableColumns } from "./parts-table-config";
 import { AdminPagination } from "../layout/AdminPagination";
@@ -10,6 +10,7 @@ import { SearchTerms } from "./SearchFilters";
 import { useDebounce } from "use-debounce";
 import { useRouter } from "next/navigation";
 import { AcrButton } from "@/components/acr";
+import { SkeletonAdminPartsList } from "@/components/ui/skeleton";
 
 type PartsListProps = {
   searchTerms: SearchTerms;
@@ -64,15 +65,8 @@ export function PartsList(props: PartsListProps) {
         </AcrButton>
       </div>
 
-      {/* Loading Spinner */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-acr-red-600" />
-            <p className="text-sm text-acr-gray-500">{t("common.loading")}</p>
-          </div>
-        </div>
-      )}
+      {/* Loading State */}
+      {isLoading && <SkeletonAdminPartsList />}
 
       {/* Error State */}
       {isError && (

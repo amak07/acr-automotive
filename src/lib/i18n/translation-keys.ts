@@ -235,4 +235,28 @@ export interface TranslationKeys {
   'public.parts.tempMessage': string;
   'public.parts.errorTitle': string;
   'public.parts.errorMessage': string;
+
+  // Public Part Details
+  'public.partDetails.errorTitle': string;
+  'public.partDetails.errorMessage': string;
+  'public.partDetails.backToSearch': string;
+  'public.partDetails.backToAdmin': string;
+  'public.partDetails.notFound': string;
+  'public.partDetails.notFoundMessage': string;
+  'public.partDetails.company': string;
+  'public.partDetails.specifications': string;
+  'public.partDetails.division': string;
+  'public.partDetails.automotive': string;
+  'public.partDetails.brand': string;
+  'public.partDetails.class': string;
+  'public.partDetails.position': string;
+  'public.partDetails.abs': string;
+  'public.partDetails.drive': string;
+  'public.partDetails.bolts': string;
+  'public.partDetails.observations': string;
+  'public.partDetails.companyDescription': string;
+  'public.partDetails.applications': string;
+  'public.partDetails.applicationsPlaceholder': string;
+  'public.partDetails.references': string;
+  'public.partDetails.referencesPlaceholder': string;
 }
