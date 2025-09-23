@@ -29,7 +29,7 @@ export function PublicPartsList(props: PublicPartsListProps) {
     <div>
       {/* Parts Count Display */}
       <div className="max-w-3xl mx-auto mb-4">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <p className="text-sm text-acr-gray-600 font-medium">
             {partsCount > 0 ? (
               partsCount === 1 ?

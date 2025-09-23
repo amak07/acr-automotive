@@ -217,6 +217,11 @@ export interface TranslationKeys {
   'public.search.advancedFilters': string;
   'public.search.showAdvanced': string;
   'public.search.hideAdvanced': string;
+  'public.search.selectMakeFirst': string;
+  'public.search.selectModelFirst': string;
+  'public.search.noModelsAvailable': string;
+  'public.search.noYearsAvailable': string;
+  'public.search.loadingOptions': string;
 
   // Public Parts List
   'public.parts.loading': string;

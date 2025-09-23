@@ -736,6 +736,26 @@ export const translations: Record<
     en: "Hide part number search",
     es: "Ocultar búsqueda por número",
   },
+  "public.search.selectMakeFirst": {
+    en: "Please select a make first",
+    es: "Primero seleccione una marca",
+  },
+  "public.search.selectModelFirst": {
+    en: "Please select a model first",
+    es: "Primero seleccione un modelo",
+  },
+  "public.search.noModelsAvailable": {
+    en: "No models available for this make",
+    es: "No hay modelos disponibles para esta marca",
+  },
+  "public.search.noYearsAvailable": {
+    en: "No years available for this model",
+    es: "No hay años disponibles para este modelo",
+  },
+  "public.search.loadingOptions": {
+    en: "Loading options...",
+    es: "Cargando opciones...",
+  },
 
   // Public Parts List
   "public.parts.loading": {
