@@ -4,9 +4,10 @@ import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 import { DashboardCards } from "@/components/admin/dashboard/DashboardCards";
 import { SearchFilters, SearchTerms } from "@/components/admin/parts/SearchFilters";
 import { PartsList } from "@/components/admin/parts/PartsList";
+import { withAdminAuth } from "@/components/admin/auth/withAdminAuth";
 import { useState } from "react";
 
-export default function AdminPage() {
+function AdminPage() {
   const [searchTerms, setSearchTerms] = useState<SearchTerms>({
     search: "",
     part_type: "__all__",
@@ -31,3 +32,6 @@ export default function AdminPage() {
     </div>
   );
 }
+
+// Export the wrapped component with admin authentication
+export default withAdminAuth(AdminPage);

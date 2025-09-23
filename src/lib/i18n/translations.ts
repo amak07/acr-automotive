@@ -301,23 +301,6 @@ export const translations: Record<
     es: "Sin especificaciones",
   },
 
-  // Search (legacy - keeping for backward compatibility)
-  "search.sku": {
-    en: "Search by SKU",
-    es: "Búsqueda por SKU",
-  },
-  "search.enterSKU": {
-    en: "Enter part number or SKU",
-    es: "Ingrese número de pieza o SKU",
-  },
-  "search.noResults": {
-    en: "No parts found",
-    es: "No se encontraron piezas",
-  },
-  "search.loading": {
-    en: "Searching...",
-    es: "Buscando...",
-  },
 
   // Part Details Page
   "partDetails.breadcrumb.parts": {
@@ -770,10 +753,6 @@ export const translations: Record<
   },
 
   // Public Parts List
-  "public.parts.loading": {
-    en: "Loading parts...",
-    es: "Cargando refacciones...",
-  },
   "public.parts.showingRange": {
     en: "Showing {{start}}-{{end}} of {{total}} parts",
     es: "Mostrando {{start}}-{{end}} de {{total}} refacciones",
@@ -793,10 +772,6 @@ export const translations: Record<
   "public.parts.brand": {
     en: "ACR Automotive",
     es: "Automotriz ACR",
-  },
-  "public.parts.tempMessage": {
-    en: "Showing sample data. API integration is pending.",
-    es: "Mostrando datos de ejemplo. La integración con la API está pendiente.",
   },
   "public.parts.errorTitle": {
     en: "Unable to Load Parts",
@@ -832,29 +807,13 @@ export const translations: Record<
     en: "We couldn't find a part with that SKU. Please check the part number and try again.",
     es: "No pudimos encontrar una refacción con ese SKU. Verifique el número de parte e intente nuevamente.",
   },
-  "public.partDetails.company": {
-    en: "Professional automotive parts for the Mexican market",
-    es: "Refacciones automotrices profesionales para el mercado mexicano",
-  },
   "public.partDetails.specifications": {
     en: "Specifications",
     es: "Especificaciones",
   },
-  "public.partDetails.division": {
-    en: "Division",
-    es: "División",
-  },
-  "public.partDetails.automotive": {
-    en: "Automotive",
-    es: "Automotriz",
-  },
   "public.partDetails.brand": {
     en: "Brand",
     es: "Marca",
-  },
-  "public.partDetails.class": {
-    en: "Class",
-    es: "Clase",
   },
   "public.partDetails.position": {
     en: "Position",
@@ -871,14 +830,6 @@ export const translations: Record<
   "public.partDetails.bolts": {
     en: "Bolt Pattern",
     es: "Patrón de Tornillos",
-  },
-  "public.partDetails.observations": {
-    en: "Observations",
-    es: "Observaciones",
-  },
-  "public.partDetails.companyDescription": {
-    en: "ACR Automotive specializes in high-quality automotive parts with a focus on wheel hubs, brake components, and drivetrain parts for the Mexican automotive aftermarket.",
-    es: "ACR Automotriz se especializa en refacciones automotrices de alta calidad con enfoque en mazas, componentes de frenos y partes del tren motriz para el mercado de refacciones mexicano.",
   },
   "public.partDetails.applications": {
     en: "Vehicle Applications",

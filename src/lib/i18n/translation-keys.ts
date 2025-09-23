@@ -93,11 +93,6 @@ export interface TranslationKeys {
   'parts.labels.boltPattern': string;
   'parts.labels.noNotes': string;
   
-  // Search (legacy - keeping for backward compatibility)
-  'search.sku': string;
-  'search.enterSKU': string;
-  'search.noResults': string;
-  'search.loading': string;
 
   // Part Details Page
   'partDetails.breadcrumb.parts': string;
@@ -227,13 +222,11 @@ export interface TranslationKeys {
   'public.search.errorMessage': string;
 
   // Public Parts List
-  'public.parts.loading': string;
   'public.parts.showingRange': string;
   'public.parts.showingRangeSingle': string;
   'public.parts.noResults': string;
   'public.parts.viewDetails': string;
   'public.parts.brand': string;
-  'public.parts.tempMessage': string;
   'public.parts.errorTitle': string;
   'public.parts.errorMessage': string;
 
@@ -244,18 +237,12 @@ export interface TranslationKeys {
   'public.partDetails.backToAdmin': string;
   'public.partDetails.notFound': string;
   'public.partDetails.notFoundMessage': string;
-  'public.partDetails.company': string;
   'public.partDetails.specifications': string;
-  'public.partDetails.division': string;
-  'public.partDetails.automotive': string;
   'public.partDetails.brand': string;
-  'public.partDetails.class': string;
   'public.partDetails.position': string;
   'public.partDetails.abs': string;
   'public.partDetails.drive': string;
   'public.partDetails.bolts': string;
-  'public.partDetails.observations': string;
-  'public.partDetails.companyDescription': string;
   'public.partDetails.applications': string;
   'public.partDetails.applicationsPlaceholder': string;
   'public.partDetails.references': string;

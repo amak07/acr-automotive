@@ -3,10 +3,17 @@
 import { useLocale } from "@/contexts/LocaleContext";
 import { AcrLogo } from "@/components/ui/AcrLogo";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function AdminHeader() {
   const { locale, setLocale, t } = useLocale();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("admin-authenticated");
+    router.push("/");
+  };
 
   return (
     <header className="bg-white border-b border-acr-gray-200">
@@ -28,6 +35,16 @@ export function AdminHeader() {
               <ExternalLink className="w-4 h-4" />
               {t("admin.header.viewPublic")}
             </Link>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-all duration-200"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
 
             {/* Language Toggle */}
             <div className="flex items-center bg-acr-gray-50 rounded-lg p-1 border">
