@@ -15,11 +15,11 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import {
-  UpdatePartsParams,
   useUpdatePartById,
 } from "@/hooks";
 import { useToast } from "@/hooks";
 import { useFilterOptions } from "@/hooks";
+import { UpdatePartsParams } from "@/hooks/admin/useUpdatePartById";
 
 export interface PartUpdateForm {
   part_type: string;

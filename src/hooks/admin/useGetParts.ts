@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { AdminPartsQueryParams, PartSummary } from "@/types";
+import { queryKeys } from "@/hooks/common/queryKeys";
 
 type UsePartsParams = AdminPartsQueryParams;
 
@@ -20,21 +21,18 @@ export function useGetParts(queryParams: UsePartsParams) {
   } = queryParams;
 
   return useQuery<{ data: PartSummary[]; count: number }>({
-    queryKey: [
-      "parts",
-      {
-        limit,
-        offset,
-        sort_by,
-        sort_order,
-        abs_type,
-        bolt_pattern,
-        drive_type,
-        part_type,
-        position_type,
-        search,
-      },
-    ],
+    queryKey: queryKeys.parts.list({
+      limit,
+      offset,
+      sort_by,
+      sort_order,
+      abs_type,
+      bolt_pattern,
+      drive_type,
+      part_type,
+      position_type,
+      search,
+    }),
     queryFn: async () => {
       const searchParams = new URLSearchParams();
 

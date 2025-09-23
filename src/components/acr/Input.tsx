@@ -36,7 +36,7 @@ export const AcrInput = React.forwardRef<HTMLInputElement, AcrInputProps>(
             "pl-4 pr-4 py-3 h-auto", // ACR spacing standards
 
             // Default border - neutral gray
-            "border-acr-gray-300 bg-white",
+            "border-acr-gray-400 bg-white",
 
             // Error state - red border only when there's an error
             hasError && "border-red-500 focus:border-red-500 focus:ring-red-500",

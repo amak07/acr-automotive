@@ -9,6 +9,8 @@ export const publicSearchSchema = z.object({
   model: z.string().optional(),
   year: z.string().optional(),
   sku_term: z.string().optional(),
+  limit: z.coerce.number().default(15),
+  offset: z.coerce.number().default(0),
 });
 
 export type PublicSearchParams = z.infer<typeof publicSearchSchema>;
@@ -22,7 +24,11 @@ export async function GET(request: NextRequest) {
 
     // Default: return all parts if no search parameters
     if (!params.make && !params.model && !params.year && !params.sku_term) {
-      let query = supabase.from("parts").select(`*`, { count: "exact" });
+      let query = supabase
+        .from("parts")
+        .select(`*`, { count: "exact" })
+        .not("part_type", "eq", "PENDING") // remove any unready parts.
+        .range(params.offset, params.offset + params.limit - 1);
 
       const {
         data,
@@ -41,22 +47,26 @@ export async function GET(request: NextRequest) {
 
     // SKU search using RPC
     if (params.sku_term) {
-      const { data, error: rpcError } = await supabase.rpc("search_by_sku", {
+      const { data: allData, error: rpcError } = await supabase.rpc("search_by_sku", {
         search_sku: params.sku_term,
       });
 
       if (rpcError) throw rpcError;
 
+      // Apply pagination to RPC results
+      const totalCount = allData?.length || 0;
+      const paginatedData = allData?.slice(params.offset, params.offset + params.limit) || [];
+
       return Response.json({
-        data,
-        count: data?.length || 0,
+        data: paginatedData,
+        count: totalCount,
         search_type: "sku",
       });
     }
 
     // Vehicle search using RPC
     if (params.make && params.model && params.year) {
-      const { data, error: rpcError } = await supabase.rpc(
+      const { data: allData, error: rpcError } = await supabase.rpc(
         "search_by_vehicle",
         {
           make: params.make,
@@ -67,9 +77,13 @@ export async function GET(request: NextRequest) {
 
       if (rpcError) throw rpcError;
 
+      // Apply pagination to RPC results
+      const totalCount = allData?.length || 0;
+      const paginatedData = allData?.slice(params.offset, params.offset + params.limit) || [];
+
       return Response.json({
-        data,
-        count: data?.length || 0,
+        data: paginatedData,
+        count: totalCount,
         search_type: "vehicle",
       });
     }

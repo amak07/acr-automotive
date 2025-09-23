@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/hooks/common/queryKeys";
 import type { FilterOptionsResponse } from "@/app/api/admin/filter-options/route";
 
 interface FilterOptionsApiResponse {
@@ -26,7 +27,7 @@ async function fetchFilterOptions(): Promise<FilterOptionsResponse> {
 
 export function useFilterOptions() {
   return useQuery({
-    queryKey: ["filter-options"],
+    queryKey: queryKeys.admin.filterOptions(),
     queryFn: fetchFilterOptions,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,

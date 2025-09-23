@@ -100,7 +100,10 @@ export function AdminPagination({
         </div>
         
         <div className="text-xs text-acr-gray-500 text-center mt-2">
-          Showing {(currentPage - 1) * limit + 1}-{Math.min(currentPage * limit, total)} of {total} parts
+          {t("admin.parts.pagination")
+            .replace("{{start}}", ((currentPage - 1) * limit + 1).toString())
+            .replace("{{end}}", Math.min(currentPage * limit, total).toString())
+            .replace("{{total}}", total.toString())}
         </div>
       </div>
 
@@ -155,7 +158,10 @@ export function AdminPagination({
         </Pagination>
 
         <div className="text-sm text-acr-gray-500 text-center mt-3">
-          Showing {(currentPage - 1) * limit + 1}-{Math.min(currentPage * limit, total)} of {total} parts
+          {t("admin.parts.pagination")
+            .replace("{{start}}", ((currentPage - 1) * limit + 1).toString())
+            .replace("{{end}}", Math.min(currentPage * limit, total).toString())
+            .replace("{{total}}", total.toString())}
         </div>
       </div>
     </div>

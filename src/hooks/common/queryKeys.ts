@@ -40,6 +40,17 @@ export const queryKeys = {
     all: ["admin"] as const,
     parts: () => [...queryKeys.admin.all, "parts"] as const,
     stats: () => [...queryKeys.admin.all, "stats"] as const,
+    filterOptions: () => [...queryKeys.admin.all, "filter-options"] as const,
+  },
+
+  // Public
+  public: {
+    all: ["public"] as const,
+    parts: {
+      all: () => [...queryKeys.public.all, "parts"] as const,
+      list: (filters: Record<string, any>) => [...queryKeys.public.parts.all(), "list", { filters }] as const,
+    },
+    vehicleOptions: () => [...queryKeys.public.all, "vehicle-options"] as const,
   },
 } as const;
 

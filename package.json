@@ -79,6 +79,7 @@
     "cross-env": "^10.0.0",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
+    "prettier": "^3.6.2",
     "tsx": "^4.19.2"
   }
 }

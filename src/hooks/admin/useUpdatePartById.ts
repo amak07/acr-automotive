@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { updatePartSchema } from "@/app/api/admin/parts/schemas";
 import { DatabasePartRow } from "@/types";
+import { queryKeys } from "@/hooks/common/queryKeys";
 
 export type UpdatePartsParams = z.infer<typeof updatePartSchema>;
 
@@ -30,11 +31,11 @@ export function useUpdatePartById() {
     onSuccess: (data, variables) => {
       // Invalidate and refetch the part details data
       queryClient.invalidateQueries({
-        queryKey: ["parts", { id: variables.id }]
+        queryKey: queryKeys.parts.detail(variables.id)
       });
       // Also invalidate the parts list so it shows updated data
       queryClient.invalidateQueries({
-        queryKey: ["admin", "parts"]
+        queryKey: queryKeys.admin.parts()
       });
     },
   });

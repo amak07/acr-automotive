@@ -1,5 +1,6 @@
 import { VehicleOptionsResponse } from "@/app/api/public/vehicle-options/route";
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/hooks/common/queryKeys";
 
 interface VehicleOptionsApiResponse {
   success: boolean;
@@ -26,7 +27,7 @@ async function fetchVehicleOptions(): Promise<VehicleOptionsResponse> {
 
 export function useVehicleOptions() {
   return useQuery({
-    queryKey: ["vehicle-options"],
+    queryKey: queryKeys.public.vehicleOptions(),
     queryFn: fetchVehicleOptions,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,

@@ -201,4 +201,29 @@ export interface TranslationKeys {
   'modals.editCrossReference.description': string;
   'modals.addCrossReference.title': string;
   'modals.addCrossReference.description': string;
+
+  // Public Interface
+  'public.header.title': string;
+  'public.header.admin': string;
+
+  // Public Search
+  'public.search.make': string;
+  'public.search.model': string;
+  'public.search.year': string;
+  'public.search.skuPlaceholder': string;
+  'public.search.button': string;
+  'public.search.vehicleSearchTitle': string;
+  'public.search.skuSearchTitle': string;
+  'public.search.advancedFilters': string;
+  'public.search.showAdvanced': string;
+  'public.search.hideAdvanced': string;
+
+  // Public Parts List
+  'public.parts.loading': string;
+  'public.parts.showingRange': string;
+  'public.parts.showingRangeSingle': string;
+  'public.parts.noResults': string;
+  'public.parts.viewDetails': string;
+  'public.parts.brand': string;
+  'public.parts.tempMessage': string;
 }

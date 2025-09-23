@@ -684,4 +684,86 @@ export const translations: Record<
     en: "Add competitor SKU mapping for this part",
     es: "Agregue mapeo de SKU del competidor para esta pieza",
   },
+
+  // Public Interface
+  "public.header.title": {
+    en: "Product Catalogue",
+    es: "Catálogo de Productos",
+  },
+  "public.header.admin": {
+    en: "Admin",
+    es: "Admin",
+  },
+
+  // Public Search
+  "public.search.make": {
+    en: "Select Make",
+    es: "Seleccionar Marca",
+  },
+  "public.search.model": {
+    en: "Select Model",
+    es: "Seleccionar Modelo",
+  },
+  "public.search.year": {
+    en: "Select Year",
+    es: "Seleccionar Año",
+  },
+  "public.search.skuPlaceholder": {
+    en: "Enter part number (e.g., MOC-123, DEL-456)",
+    es: "Ingrese número de parte (ej: MOC-123, DEL-456)",
+  },
+  "public.search.button": {
+    en: "Search",
+    es: "Buscar",
+  },
+  "public.search.vehicleSearchTitle": {
+    en: "Vehicle Search",
+    es: "Búsqueda por Vehículo",
+  },
+  "public.search.skuSearchTitle": {
+    en: "Part Number Search",
+    es: "Búsqueda por Número de Parte",
+  },
+  "public.search.advancedFilters": {
+    en: "Advanced Filters",
+    es: "Filtros Avanzados",
+  },
+  "public.search.showAdvanced": {
+    en: "Or search by part number",
+    es: "O buscar por número de parte",
+  },
+  "public.search.hideAdvanced": {
+    en: "Hide part number search",
+    es: "Ocultar búsqueda por número",
+  },
+
+  // Public Parts List
+  "public.parts.loading": {
+    en: "Loading parts...",
+    es: "Cargando refacciones...",
+  },
+  "public.parts.showingRange": {
+    en: "Showing {{start}}-{{end}} of {{total}} parts",
+    es: "Mostrando {{start}}-{{end}} de {{total}} refacciones",
+  },
+  "public.parts.showingRangeSingle": {
+    en: "Showing {{start}}-{{end}} of {{total}} part",
+    es: "Mostrando {{start}}-{{end}} de {{total}} refacción",
+  },
+  "public.parts.noResults": {
+    en: "No parts found",
+    es: "No se encontraron refacciones",
+  },
+  "public.parts.viewDetails": {
+    en: "View details",
+    es: "Ver detalles",
+  },
+  "public.parts.brand": {
+    en: "ACR Automotive",
+    es: "Automotriz ACR",
+  },
+  "public.parts.tempMessage": {
+    en: "Showing sample data. API integration is pending.",
+    es: "Mostrando datos de ejemplo. La integración con la API está pendiente.",
+  },
 };
