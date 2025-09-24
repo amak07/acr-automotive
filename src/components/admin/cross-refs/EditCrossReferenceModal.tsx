@@ -84,6 +84,8 @@ export function EditCrossReferenceModal({
         variant: "success" as any,
       });
 
+      // Reset the form to clear isDirty state before closing
+      reset();
       onClose();
     } catch (error: any) {
       // Map API errors to form fields

@@ -169,6 +169,18 @@ export const translations: Record<
     en: "Discard Changes",
     es: "Descartar Cambios",
   },
+  "common.actions.select": {
+    en: "Select...",
+    es: "Seleccionar...",
+  },
+  "common.actions.creating": {
+    en: "Creating...",
+    es: "Creando...",
+  },
+  "common.actions.createPart": {
+    en: "Create Part",
+    es: "Crear Pieza",
+  },
 
   // Confirmation Dialogs
   "common.confirm.unsavedChanges.title": {

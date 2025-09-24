@@ -13,7 +13,7 @@ import {
 } from "@/components/acr";
 import { Info, Upload } from "lucide-react";
 import { Control, Controller } from "react-hook-form";
-import { PartUpdateForm } from "@/app/admin/parts/[id]/page";
+import { PartFormData } from "@/components/admin/parts/PartFormContainer";
 import { FilterOptionsResponse } from "@/app/api/admin/filter-options/route";
 
 interface PartBasicInfoProps {
@@ -26,11 +26,17 @@ interface PartBasicInfoProps {
     bolt_pattern?: string | null;
     specifications?: string | null; // This is the notes field
   };
-  control: Control<PartUpdateForm>;
-  filterOptions: FilterOptionsResponse;
+  control: Control<PartFormData>;
+  filterOptions: FilterOptionsResponse | undefined;
+  isCreateMode?: boolean;
 }
 
-export function PartBasicInfo({ data, control, filterOptions }: PartBasicInfoProps) {
+export function PartBasicInfo({
+  data,
+  control,
+  filterOptions,
+  isCreateMode,
+}: PartBasicInfoProps) {
   const { t } = useLocale();
 
   const selectFieldConfigs = [
@@ -38,36 +44,41 @@ export function PartBasicInfo({ data, control, filterOptions }: PartBasicInfoPro
       name: "part_type" as const,
       label: t("partDetails.basicInfo.partType"),
       placeholder: "Select part type...",
-      options: filterOptions.part_types,
+      options: filterOptions?.part_types,
     },
     {
       name: "position_type" as const,
       label: t("partDetails.basicInfo.position"),
       placeholder: "Select position type...",
-      options: filterOptions.position_types,
+      options: filterOptions?.position_types,
     },
     {
       name: "abs_type" as const,
       label: t("partDetails.basicInfo.absType"),
       placeholder: "Select ABS...",
-      options: filterOptions.abs_types,
+      options: filterOptions?.abs_types,
     },
     {
       name: "drive_type" as const,
       label: t("partDetails.basicInfo.driveType"),
       placeholder: "Select drive type...",
-      options: filterOptions.drive_types,
+      options: filterOptions?.drive_types,
     },
     {
       name: "bolt_pattern" as const,
       label: t("partDetails.basicInfo.boltPattern"),
       placeholder: "Select bolt pattern...",
-      options: filterOptions.bolt_patterns,
+      options: filterOptions?.bolt_patterns,
     },
   ];
 
   return (
-    <AcrCard variant="default" padding="none" className="mb-6" data-testid="part-basic-info-section">
+    <AcrCard
+      variant="default"
+      padding="none"
+      className="mb-6"
+      data-testid="part-basic-info-section"
+    >
       <AcrCardHeader className="px-6 pt-6" data-testid="part-basic-info-header">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
@@ -86,21 +97,50 @@ export function PartBasicInfo({ data, control, filterOptions }: PartBasicInfoPro
           <div className="lg:col-span-2 space-y-6">
             {/* Two Column Layout for remaining fields */}
             <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
-              {/* ACR SKU */}
-              <div>
-                <AcrLabel htmlFor="acr_sku">
-                  {t("partDetails.basicInfo.acrSku")}
-                </AcrLabel>
-                <AcrInput
-                  id="acr_sku"
-                  value={data.acr_sku || ""}
-                  readOnly
-                  className="bg-acr-gray-50"
-                />
-                <p className="text-xs text-acr-gray-500 mt-1">
-                  {t("partDetails.basicInfo.skuNote")}
-                </p>
-              </div>
+              {/* ACR SKU - Edit Mode (Read-only) */}
+              {!isCreateMode && (
+                <div>
+                  <AcrLabel htmlFor="acr_sku">
+                    {t("partDetails.basicInfo.acrSku")}
+                  </AcrLabel>
+                  <AcrInput
+                    id="acr_sku"
+                    value={data.acr_sku || ""}
+                    readOnly
+                    className="bg-acr-gray-50"
+                  />
+                  <p className="text-xs text-acr-gray-500 mt-1">
+                    {t("partDetails.basicInfo.skuNote")}
+                  </p>
+                </div>
+              )}
+
+              {/* SKU Number - Create Mode (Editable) */}
+              {isCreateMode && (
+                <div>
+                  <AcrLabel htmlFor="sku_number">
+                    {t("partDetails.basicInfo.acrSku")}
+                  </AcrLabel>
+                  <Controller
+                    name="sku_number"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="relative">
+                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-acr-gray-600 font-medium pointer-events-none">
+                          ACR
+                        </div>
+                        <AcrInput
+                          id="sku_number"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          placeholder="12345"
+                          className="pl-16 pr-4 py-3 h-auto border-acr-gray-400 bg-white placeholder:text-acr-gray-500 focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent transition-colors duration-200"
+                        />
+                      </div>
+                    )}
+                  />
+                </div>
+              )}
 
               {/* Dynamic Select Fields */}
               {selectFieldConfigs.map((config, index) => (
@@ -118,17 +158,22 @@ export function PartBasicInfo({ data, control, filterOptions }: PartBasicInfoPro
                           <AcrSelect.Value placeholder={config.placeholder} />
                         </AcrSelect.Trigger>
                         <AcrSelect.Content>
-                          <AcrSelect.Item key={`unspec-${config.name}`} value={`__unspecified_${config.name}__`}>
-                            {t("common.notSpecified")}
+                          <AcrSelect.Item
+                            key={`unspec-${config.name}`}
+                            value={`__unspecified_${config.name}__`}
+                          >
+                            {isCreateMode ? t("common.actions.select") : t("common.notSpecified")}
                           </AcrSelect.Item>
-                          {config.options?.map((item: string, itemIndex: number) => (
-                            <AcrSelect.Item
-                              key={`${config.name}-${item}-${itemIndex}`}
-                              value={item || "__empty__"}
-                            >
-                              {item || "Empty"}
-                            </AcrSelect.Item>
-                          ))}
+                          {config.options?.map(
+                            (item: string, itemIndex: number) => (
+                              <AcrSelect.Item
+                                key={`${config.name}-${item}-${itemIndex}`}
+                                value={item || "__empty__"}
+                              >
+                                {item || "Empty"}
+                              </AcrSelect.Item>
+                            )
+                          )}
                         </AcrSelect.Content>
                       </AcrSelect.Root>
                     )}

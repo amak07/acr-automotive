@@ -10,13 +10,27 @@ interface PartDetailsActionsProps {
   onSave?: () => void;
   isSaving?: boolean;
   isDirty?: boolean;
+  mode?: 'create' | 'edit';
 }
 
-export function PartDetailsActions({ onSave, isSaving = false, isDirty = false }: PartDetailsActionsProps) {
+export function PartDetailsActions({ onSave, isSaving = false, isDirty = false, mode = 'edit' }: PartDetailsActionsProps) {
   const { t } = useLocale();
   const router = useRouter();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingAction, setPendingAction] = useState<'back' | null>(null);
+
+
+  // Get contextual button text based on mode
+  const getButtonText = () => {
+    if (isSaving) {
+      return mode === 'create' ? t("common.actions.creating") : t("common.actions.saving");
+    }
+    return mode === 'create' ? t("common.actions.createPart") : t("partDetails.actions.saveChanges");
+  };
+
+  const getShortButtonText = () => {
+    return mode === 'create' ? "Create" : "Save";
+  };
 
   const handleBack = () => {
     if (isDirty) {
@@ -49,13 +63,13 @@ export function PartDetailsActions({ onSave, isSaving = false, isDirty = false }
           {isSaving ? (
             <>
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span className="hidden sm:inline">{t("common.actions.saving")}</span>
+              <span className="hidden sm:inline">{getButtonText()}</span>
             </>
           ) : (
             <>
               <Save className="w-4 h-4" />
-              <span className="hidden sm:inline">{t("partDetails.actions.saveChanges")}</span>
-              <span className="sm:hidden">Save</span>
+              <span className="hidden sm:inline">{getButtonText()}</span>
+              <span className="sm:hidden">{getShortButtonText()}</span>
             </>
           )}
         </AcrButton>
@@ -95,12 +109,12 @@ export function PartDetailsActions({ onSave, isSaving = false, isDirty = false }
           {isSaving ? (
             <>
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              {t("common.actions.saving")}
+              {getButtonText()}
             </>
           ) : (
             <>
               <Save className="w-4 h-4" />
-              {t("partDetails.actions.saveChanges")}
+              {getButtonText()}
             </>
           )}
         </AcrButton>

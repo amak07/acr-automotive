@@ -6,7 +6,7 @@ import { Settings, Eye, Save, MapPin, Shield, Zap, Wrench } from "lucide-react";
 import Link from "next/link";
 
 interface PartDetailsHeaderProps {
-  acrSku: string;
+  acrSku?: string;
   partType?: string;
   vehicleCount?: number;
   crossReferenceCount?: number;
@@ -14,7 +14,6 @@ interface PartDetailsHeaderProps {
   absType?: string;
   driveType?: string;
   boltPattern?: string;
-  onSave?: () => void;
   isSaving?: boolean;
   partId?: string;
 }
@@ -28,7 +27,6 @@ export function PartDetailsHeader({
   absType,
   driveType,
   boltPattern,
-  onSave,
   isSaving = false,
   partId,
 }: PartDetailsHeaderProps) {
@@ -138,7 +136,10 @@ export function PartDetailsHeader({
 
           {/* Mobile Action Buttons */}
           <div className="flex gap-2">
-            <Link href={partId ? `/parts/${partId}?from=admin` : "#"} className="flex-1">
+            <Link
+              href={partId ? `/parts/${partId}?from=admin` : "#"}
+              className="flex-1"
+            >
               <AcrButton
                 variant="secondary"
                 size="sm"
@@ -152,10 +153,10 @@ export function PartDetailsHeader({
             <AcrButton
               variant="primary"
               size="sm"
-              onClick={onSave}
               disabled={isSaving}
               className="flex-1 flex items-center justify-center gap-2"
               type="submit"
+              form="part-form"
             >
               {isSaving ? (
                 <>
@@ -240,10 +241,10 @@ export function PartDetailsHeader({
             <AcrButton
               variant="primary"
               size="default"
-              onClick={onSave}
               disabled={isSaving}
               className="flex items-center gap-2"
               type="submit"
+              form="part-form"
             >
               {isSaving ? (
                 <>
