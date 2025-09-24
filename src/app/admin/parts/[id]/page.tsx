@@ -3,31 +3,17 @@
 import { useGetPartById } from "@/hooks";
 import { useParams } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
-import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 import { PartDetailsBreadcrumb } from "@/components/admin/layout/PartDetailsBreadcrumb";
 import { PartDetailsHeader } from "@/components/admin/part-details/PartDetailsHeader";
-import { PartBasicInfo } from "@/components/admin/part-details/PartBasicInfo";
-import { PartApplications } from "@/components/admin/vehicle-apps/PartApplications";
-import { PartCrossReferences } from "@/components/admin/cross-refs/PartCrossReferences";
 import { PartMetadata } from "@/components/admin/part-details/PartMetadata";
-import { PartDetailsActions } from "@/components/admin/part-details/PartDetailsActions";
-import { SkeletonAdminPartDetails } from "@/components/ui/skeleton";
-import { useForm } from "react-hook-form";
-import { useEffect } from "react";
 import { useUpdatePartById } from "@/hooks";
 import { useToast } from "@/hooks";
-import { useFilterOptions } from "@/hooks";
 import { withAdminAuth } from "@/components/admin/auth/withAdminAuth";
 import { UpdatePartsParams } from "@/hooks/admin/useUpdatePartById";
-
-export interface PartUpdateForm {
-  part_type: string;
-  position_type: string;
-  abs_type: string;
-  drive_type: string;
-  bolt_pattern: string;
-  specifications: string;
-}
+import {
+  PartFormContainer,
+  PartFormData,
+} from "@/components/admin/parts/PartFormContainer";
 
 function PartDetailsPage() {
   const params = useParams();
@@ -38,49 +24,10 @@ function PartDetailsPage() {
     id: id,
   });
 
-  const { data: filterOptions, isLoading: filterOptionsLoading } =
-    useFilterOptions();
-
   const updateMutation = useUpdatePartById();
   const { toast } = useToast();
 
-  const {
-    handleSubmit,
-    control,
-    reset,
-    formState: { isDirty },
-  } = useForm<PartUpdateForm>({
-    mode: "onBlur",
-    defaultValues: {
-      part_type: "__unspecified_part_type__",
-      position_type: "__unspecified_position_type__",
-      abs_type: "__unspecified_abs_type__",
-      drive_type: "__unspecified_drive_type__",
-      bolt_pattern: "__unspecified_bolt_pattern__",
-      specifications: "",
-    },
-  });
-
-  // this is needed to reset the default form values when the data actually loads after init.
-  useEffect(() => {
-    if (data && !isLoading && filterOptions && !filterOptionsLoading) {
-      const formValues = {
-        part_type: data.part_type ?? "__unspecified_part_type__",
-        position_type: data.position_type ?? "__unspecified_position_type__",
-        abs_type: data.abs_type ?? "__unspecified_abs_type__",
-        drive_type: data.drive_type ?? "__unspecified_drive_type__",
-        bolt_pattern: data.bolt_pattern ?? "__unspecified_bolt_pattern__",
-        specifications: data.specifications ?? "",
-      };
-
-      // Use setTimeout to ensure this happens after other state updates
-      setTimeout(() => {
-        reset(formValues, { keepDirty: false, keepDefaultValues: false });
-      }, 0);
-    }
-  }, [data, isLoading, filterOptions, filterOptionsLoading, reset]);
-
-  const onSubmit = async (updatedData: PartUpdateForm) => {
+  const onSubmit = async (updatedData: PartFormData) => {
     try {
       // Convert __unspecified__ back to undefined for API validation
       const partToUpdate: UpdatePartsParams = {
@@ -119,99 +66,33 @@ function PartDetailsPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-acr-gray-100">
-        <AdminHeader />
-        <div className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
-          <SkeletonAdminPartDetails />
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-acr-gray-100">
-        <AdminHeader />
-        <div className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <p className="text-sm text-red-600 mb-2">
-                {t("common.error.generic")}
-              </p>
-              <p className="text-xs text-acr-gray-500">
-                {t("common.error.tryAgain")}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div
-      className="min-h-screen bg-acr-gray-100"
-      data-testid="part-details-page"
+    <PartFormContainer
+      mode="edit"
+      partData={data}
+      onSubmit={onSubmit}
+      isSubmitting={updateMutation.isPending}
+      isLoading={isLoading}
+      error={error}
     >
-      <AdminHeader />
-
-      <main
-        className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8"
-        data-testid="part-details-main"
-      >
-        <PartDetailsBreadcrumb acrSku={data?.acr_sku} partId={id} />
-
-        {data && !isLoading && filterOptions && !filterOptionsLoading && (
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            data-testid="part-details-form"
-          >
-            <PartDetailsHeader
-              acrSku={data.acr_sku}
-              partType={data.part_type}
-              vehicleCount={data.vehicle_count || 0}
-              crossReferenceCount={data.cross_reference_count || 0}
-              positionType={data.position_type || undefined}
-              absType={data.abs_type || undefined}
-              driveType={data.drive_type || undefined}
-              boltPattern={data.bolt_pattern || undefined}
-              isSaving={updateMutation.isPending}
-              partId={id}
-            />
-
-            <PartMetadata
-              createdAt={data.created_at || undefined}
-              updatedAt={data.updated_at || undefined}
-            />
-
-            <PartBasicInfo
-              data={data}
-              control={control}
-              filterOptions={filterOptions}
-            />
-
-            <PartApplications
-              vehicleCount={data.vehicle_count || 0}
-              partId={id}
-              vehicleApplications={data.vehicle_applications || []}
-            />
-
-            <PartCrossReferences
-              crossReferenceCount={data.cross_reference_count || 0}
-              partId={id}
-              crossReferences={data.cross_references || []}
-            />
-
-            <PartDetailsActions
-              isDirty={isDirty}
-              isSaving={updateMutation.isPending}
-            />
-          </form>
-        )}
-      </main>
-    </div>
+      <PartDetailsBreadcrumb acrSku={data?.acr_sku} partId={id} />
+      <PartDetailsHeader
+        acrSku={data?.acr_sku}
+        partType={data?.part_type}
+        vehicleCount={data?.vehicle_count || 0}
+        crossReferenceCount={data?.cross_reference_count || 0}
+        positionType={data?.position_type || undefined}
+        absType={data?.abs_type || undefined}
+        driveType={data?.drive_type || undefined}
+        boltPattern={data?.bolt_pattern || undefined}
+        isSaving={updateMutation.isPending}
+        partId={id}
+      />
+      <PartMetadata
+        createdAt={data?.created_at || undefined}
+        updatedAt={data?.updated_at || undefined}
+      />
+    </PartFormContainer>
   );
 }
 

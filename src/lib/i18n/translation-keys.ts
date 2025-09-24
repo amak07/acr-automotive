@@ -41,6 +41,9 @@ export interface TranslationKeys {
   'common.actions.back': string;
   'common.actions.saving': string;
   'common.actions.discard': string;
+  'common.actions.select': string;
+  'common.actions.creating': string;
+  'common.actions.createPart': string;
 
   // Confirmation Dialogs
   'common.confirm.unsavedChanges.title': string;

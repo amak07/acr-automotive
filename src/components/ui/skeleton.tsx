@@ -547,6 +547,118 @@ function SkeletonPublicPartDetails({
   )
 }
 
+// Part Form Skeleton that matches the actual form layout
+function SkeletonPartForm({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn("space-y-6", className)} {...props}>
+      {/* Basic Information Card */}
+      <div className="bg-white border border-acr-gray-200 rounded-lg">
+        {/* Card Header */}
+        <div className="px-6 pt-6 pb-0">
+          <div className="flex items-center gap-2 mb-6">
+            <Skeleton className="w-6 h-6 rounded-full" />
+            <SkeletonText width="32" className="h-5" />
+          </div>
+        </div>
+
+        {/* Card Content */}
+        <div className="px-4 pb-6 lg:px-6">
+          <div className="space-y-6 lg:grid lg:grid-cols-3 lg:gap-8 lg:space-y-0">
+            {/* Left Column - Form Fields (2 columns) */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
+                {/* Form fields skeleton */}
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <SkeletonText width="20" className="h-4" />
+                    <Skeleton className="h-12 w-full rounded-md border border-acr-gray-400" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Notes section */}
+              <div className="space-y-2">
+                <SkeletonText width="32" className="h-4" />
+                <Skeleton className="h-24 w-full rounded-md border border-acr-gray-400" />
+              </div>
+            </div>
+
+            {/* Right Column - Image Upload */}
+            <div className="lg:col-span-1 space-y-2">
+              <SkeletonText width="24" className="h-4" />
+              <div className="border-2 border-dashed border-acr-gray-300 rounded-lg p-6">
+                <div className="text-center space-y-2">
+                  <Skeleton className="w-12 h-12 mx-auto rounded" />
+                  <SkeletonText width="48" className="h-4 mx-auto" />
+                  <SkeletonText width="32" className="h-3 mx-auto" />
+                  <Skeleton className="h-8 w-24 mx-auto rounded-md" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Vehicle Applications Card */}
+      <div className="bg-white border border-acr-gray-200 rounded-lg">
+        <div className="px-6 pt-6 pb-0">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Skeleton className="w-6 h-6 rounded-full" />
+              <SkeletonText width="36" className="h-5" />
+              <Skeleton className="w-8 h-6 rounded-full" />
+            </div>
+            <Skeleton className="h-8 w-32 rounded-md" />
+          </div>
+        </div>
+
+        <div className="px-6 pb-6">
+          {/* Empty state skeleton */}
+          <div className="text-center py-8 space-y-3">
+            <Skeleton className="w-12 h-12 mx-auto rounded" />
+            <SkeletonText width="40" className="h-4 mx-auto" />
+            <SkeletonText width="56" className="h-3 mx-auto" />
+            <Skeleton className="h-8 w-36 mx-auto rounded-md" />
+          </div>
+        </div>
+      </div>
+
+      {/* Cross References Card */}
+      <div className="bg-white border border-acr-gray-200 rounded-lg">
+        <div className="px-6 pt-6 pb-0">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Skeleton className="w-6 h-6 rounded-full" />
+              <SkeletonText width="32" className="h-5" />
+              <Skeleton className="w-8 h-6 rounded-full" />
+            </div>
+            <Skeleton className="h-8 w-32 rounded-md" />
+          </div>
+        </div>
+
+        <div className="px-6 pb-6">
+          {/* Empty state skeleton */}
+          <div className="text-center py-8 space-y-3">
+            <Skeleton className="w-12 h-12 mx-auto rounded" />
+            <SkeletonText width="36" className="h-4 mx-auto" />
+            <SkeletonText width="48" className="h-3 mx-auto" />
+            <Skeleton className="h-8 w-32 mx-auto rounded-md" />
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-between pt-4">
+        <Skeleton className="h-10 w-32 rounded-md" />
+        <Skeleton className="h-10 w-28 rounded-md" />
+      </div>
+    </div>
+  )
+}
+
 export {
   Skeleton,
   SkeletonCard,
@@ -562,5 +674,6 @@ export {
   SkeletonAdminPartsList,
   SkeletonDashboardCard,
   SkeletonDashboardCards,
-  SkeletonPublicPartDetails
+  SkeletonPublicPartDetails,
+  SkeletonPartForm
 }

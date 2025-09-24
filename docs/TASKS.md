@@ -72,10 +72,12 @@ _Last Updated: September 23, 2025_
 ## 🚀 Active Development Areas
 
 ### High Priority
-- [ ] **Spanish Translation**: Complete production translation using existing i18n system
 - [ ] **Image Management System**: Complete part image upload/management functionality via Supabase Storage
 - [ ] **Add New Part Interface**: Ensure complete "Create New Part" functionality in admin interface
 - [ ] **Enhancement Planning**: Review and prioritize features from ENHANCEMENTS.md roadmap
+
+### Awaiting Stakeholder Input
+- [ ] **Spanish Translation**: Complete production translation using existing i18n system (requires Humberto's review for translation requirements)
 
 ### Admin Interface Completion
 - [ ] **Image Upload/Management**: Admin interface for part images (upload, replace, delete)

@@ -63,7 +63,9 @@ export function AddCrossReferenceModal({
         variant: "success" as any,
       });
 
-      handleClose();
+      // Reset the form to clear isDirty state before closing
+      reset();
+      onClose();
     } catch (error: any) {
       // Map API errors to form fields
       const fieldErrors = mapCreateCrossReferenceErrors(error);

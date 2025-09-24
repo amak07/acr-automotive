@@ -53,13 +53,21 @@ export function PartsList(props: PartsListProps) {
   const totalPages = Math.ceil(total / limit);
   const tableColumns = createPartsTableColumns(t);
 
+  const handleAddNewPartNavigation = () => {
+    router.push("/admin/parts/add-new-part" as any);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-acr-gray-800">
           {t("admin.dashboard.catalogTitle")}
         </h2>
-        <AcrButton variant="primary" size="default">
+        <AcrButton
+          variant="primary"
+          size="default"
+          onClick={handleAddNewPartNavigation}
+        >
           <Plus className="w-4 h-4" />
           {t("admin.parts.newButton")}
         </AcrButton>
@@ -101,7 +109,7 @@ export function PartsList(props: PartsListProps) {
                 </div>
                 <AcrButton
                   onClick={() => {
-                    router.push(`/admin/parts/${part.id}`);
+                    router.push(`/admin/parts/${part.id}` as any);
                   }}
                   variant="link"
                   size="sm"
