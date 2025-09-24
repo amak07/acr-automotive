@@ -25,12 +25,14 @@ ACR Automotive solves a critical problem in the auto parts industry: **cross-ref
 
 ### Built With
 
-- **Frontend**: Next.js 15 with App Router, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15.4.4 with App Router, React 19.1.0, TypeScript 5.8.3
 - **Backend**: Next.js API Routes, Supabase PostgreSQL
 - **Database**: Supabase with Row Level Security
-- **Storage**: Supabase Storage for images and Excel files
-- **State Management**: TanStack Query + Zustand
-- **UI Components**: shadcn/ui (owned components, not external dependencies)
+- **Storage**: Supabase Storage for images and file uploads
+- **State Management**: TanStack Query 5.0 + React Context
+- **UI Components**: shadcn/ui + custom ACR design system (owned components)
+- **Styling**: Tailwind CSS 3.4.17 with custom design tokens
+- **Forms**: React Hook Form 7.61.1 + Zod 4.0.17 validation
 - **Deployment**: Vercel with Supabase integration
 
 ### Architecture Highlights
@@ -95,17 +97,21 @@ ACR Automotive solves a critical problem in the auto parts industry: **cross-ref
 
 ## 📋 Available Scripts
 
-| Command                 | Description                            |
-| ----------------------- | -------------------------------------- |
-| `npm run dev`           | Start development server               |
-| `npm run build`         | Build for production                   |
-| `npm run start`         | Start production server                |
-| `npm run lint`          | Run ESLint                             |
-| `npm run type-check`    | Run TypeScript type checking           |
-| `npm test`              | Run test suite                         |
-| `npm run test:watch`    | Run tests in watch mode                |
-| `npm run test:coverage` | Run tests with coverage                |
-| `npm run test:full`     | TypeScript check + tests (recommended) |
+| Command                  | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `npm run dev`            | Start development server                       |
+| `npm run build`          | Build for production                           |
+| `npm run start`          | Start production server                        |
+| `npm run lint`           | Run ESLint                                     |
+| `npm run type-check`     | Run TypeScript type checking                   |
+| `npm test`               | Run test suite                                 |
+| `npm run test:watch`     | Run tests in watch mode                        |
+| `npm run test:coverage`  | Run tests with coverage                        |
+| `npm run test:full`      | TypeScript check + tests (recommended)        |
+| `npm run bootstrap`      | One-time data import from Excel (completed)   |
+| `npm run bootstrap:test` | Test bootstrap import with development data    |
+| `npm run check-prod`     | Check production database status               |
+| `npm run clear-prod`     | Clear production database (use with caution)  |
 
 ## 🗄️ Database Schema
 
@@ -113,14 +119,16 @@ The application uses a streamlined 3-table design optimized for auto parts data:
 
 ```sql
 -- Main parts catalog
-parts (acr_sku, competitor_sku, part_type, position, specifications, image_url, ...)
+parts (acr_sku, part_type, position, abs_type, bolt_pattern, drive_type, specifications, image_url, ...)
 
 -- Vehicle compatibility
-vehicle_applications (part_id, make, model, year_range)
+vehicle_applications (part_id, make, model, start_year, end_year)
 
 -- Cross-reference mapping
 cross_references (acr_part_id, competitor_sku, competitor_brand)
 ```
+
+**Complete Schema**: See `src/lib/supabase/schema.sql` for full table definitions and indexes.
 
 ### Key Design Decisions
 
@@ -149,18 +157,23 @@ Intelligent SKU matching with multiple strategies:
 
 ## 📊 Data Management
 
-### Bootstrap Import (One-Time)
+### Data Import System
 
 - **PRECIOS Import**: 865 parts with 7,530 cross-references ✅ Complete
-- **CATALOGACION Import**: Vehicle applications and part details ⏳ In Progress
-- **Data Quality**: 80% coverage target achieved, remaining handled via admin interface
+- **CATALOGACION Import**: 2,304 vehicle applications and part details ✅ Complete
+- **Production Database**: Fully populated with real data ✅ Complete
+- **Data Quality**: Bootstrap import handles duplicates and validates data integrity
+- **Ongoing Management**: Admin interface for all future data changes
 
-### Admin CRUD Interface
+### Admin Interface
 
-- **Parts Management**: Create, read, update, delete parts with full validation
-- **Vehicle Applications**: Add/remove vehicle compatibility per part
-- **Cross-References**: Manage competitor SKU mappings
+- **Complete Parts Management**: CRUD operations with form validation and error handling
+- **Vehicle Applications**: Add/remove vehicle compatibility per part with duplicate prevention
+- **Cross-References**: Manage competitor SKU mappings with brand validation
 - **Image Management**: Upload and organize part photos via Supabase Storage
+- **Dashboard Analytics**: Part counts, data quality metrics, and system statistics
+- **Search & Filtering**: Advanced filtering and pagination for large datasets
+- **MVP Authentication**: Password-protected admin access with session management
 
 ### Performance
 
@@ -204,40 +217,101 @@ npm run test:full
 ```
 src/
 ├── app/                     # Next.js App Router
-│   ├── (public)/           # Public search interface
-│   ├── admin/              # Admin panel
-│   └── api/                # Backend API routes
+│   ├── admin/              # Password-protected admin panel
+│   │   └── parts/[id]/     # Part detail pages
+│   ├── parts/[id]/         # Public part detail pages
+│   ├── api/                # Backend API routes
+│   │   ├── admin/          # Admin CRUD operations
+│   │   └── public/         # Public search APIs
+│   ├── layout.tsx          # Root layout with providers
+│   └── providers.tsx       # React Query & context providers
 ├── components/             # React components
 │   ├── ui/                 # shadcn/ui base components
-│   ├── search/             # Search interface
-│   ├── admin/              # Admin features
-│   └── parts/              # Part display
+│   ├── acr/                # Custom ACR design system
+│   ├── admin/              # Admin interface components
+│   └── public/             # Public interface components
 ├── lib/                    # Core utilities
-│   ├── supabase/           # Database client
-│   ├── excel/              # Excel parsing with conflict detection
-│   ├── search/             # Search algorithms
+│   ├── supabase/           # Database client & utilities
+│   ├── excel/              # Excel parsing (bootstrap only)
+│   ├── schemas/            # Zod validation schemas
 │   └── i18n/               # Translation system
 ├── hooks/                  # Custom React hooks
+│   ├── admin/              # Admin-specific hooks
+│   └── public/             # Public interface hooks
 ├── types/                  # TypeScript definitions
-└── __tests__/              # Test files
+├── contexts/               # React contexts (i18n)
+└── docs/                   # Project documentation
 ```
 
-## 🚀 Deployment
+## 🚀 Deployment Status
 
-### Production Deployment (Vercel + Supabase)
+### Production Environment ✅ DEPLOYED
 
-1. **Deploy to Vercel**
+- **Platform**: Vercel with automatic deployments from main branch
+- **Database**: Supabase Cloud with production data
+- **Status**: Fully operational with complete parts catalog
+- **Authentication**: MVP password protection (ADMIN_PASSWORD environment variable)
+- **Performance**: Sub-300ms search response times maintained
 
+### Environment Configuration
+
+**Required Environment Variables:**
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+ADMIN_PASSWORD=your_admin_password
+NODE_ENV=production
+```
+
+### Local Development Setup
+
+1. **Clone and install dependencies**
    ```bash
-   npm run build
-   vercel --prod
+   git clone <repository-url>
+   cd acr-automotive
+   npm install
    ```
 
-2. **Configure environment variables**
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - Set `NODE_ENV=production`
-   - Configure other environment variables from `.env.example`
-     #   a c r - a u t o m o t i v e 
-      
-      
+2. **Configure environment**
+   ```bash
+   cp .env.example .env.local
+   # Add your Supabase credentials
+   ```
+
+3. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+## 📚 Documentation
+
+- **`docs/PLANNING.md`** - Technical architecture and implementation strategy
+- **`docs/TASKS.md`** - Development roadmap and current priorities
+- **`docs/ENHANCEMENTS.md`** - Future improvements and enhancement roadmap
+- **`docs/TESTING.md`** - Testing strategy and guidelines
+- **`docs/CLAUDE.md`** - Development standards and patterns
+- **`src/components/acr/README.md`** - ACR Design System documentation
+
+## 🎯 Project Status
+
+**Current Phase**: ✅ **Production Ready**
+
+- ✅ **Phase 1**: Database foundation and Excel import system (Complete)
+- ✅ **Phase 2**: Admin CRUD interface and parts management (Complete)
+- ✅ **Phase 3**: Public search interface (vehicle + SKU search) (Complete)
+- ✅ **Phase 4**: Production deployment and optimization (Complete)
+- 🎯 **Phase 5**: Spanish translation and final polish (In Progress)
+
+### Key Achievements
+
+- **Production-ready application** deployed to Vercel
+- **Complete parts catalog** with 865+ parts and 7,530+ cross-references
+- **Full admin interface** for ongoing parts management
+- **Dual search system** (vehicle and SKU-based)
+- **Mobile-responsive design** optimized for tablets
+- **Sub-300ms search performance** maintained
+- **Comprehensive documentation** for future development
+
+---
+
+**Built for the Mexican auto parts market** • **Professional B2B focus** • **Interview-ready codebase**
