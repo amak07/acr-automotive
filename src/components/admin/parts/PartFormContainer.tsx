@@ -87,6 +87,7 @@ export function PartFormContainer({
       <div className="min-h-screen bg-acr-gray-100">
         <AdminHeader />
         <div className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
+          {children}
           <SkeletonPartForm />
         </div>
       </div>

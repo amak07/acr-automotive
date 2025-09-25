@@ -1,14 +1,21 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
+import { SkeletonPartMetadata } from "@/components/ui/skeleton";
 
 interface PartMetadataProps {
   createdAt?: string;
   updatedAt?: string;
+  isLoading?: boolean;
 }
 
-export function PartMetadata({ createdAt, updatedAt }: PartMetadataProps) {
+export function PartMetadata({ createdAt, updatedAt, isLoading = false }: PartMetadataProps) {
   const { t, locale } = useLocale();
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return <SkeletonPartMetadata />;
+  }
 
   if (!createdAt && !updatedAt) return null;
 

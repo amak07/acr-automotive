@@ -22,7 +22,7 @@ export function AdminHeader() {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <header className="bg-white border-b border-acr-gray-200">
+    <header className={cn("border-b border-acr-gray-200 transition-colors", isMobileMenuOpen ? "bg-acr-gray-50" : "bg-white")}>
       <div className="px-4 py-3 max-w-md mx-auto lg:max-w-6xl lg:px-8 lg:py-4">
         <div className="flex items-center justify-between">
           {/* Left side - Logo and Title */}
