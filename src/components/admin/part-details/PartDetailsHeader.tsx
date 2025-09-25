@@ -4,6 +4,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { AcrButton, AcrCard } from "@/components/acr";
 import { Settings, Eye, Save, MapPin, Shield, Zap, Wrench } from "lucide-react";
 import Link from "next/link";
+import { SkeletonPartDetailsHeader } from "@/components/ui/skeleton";
 
 interface PartDetailsHeaderProps {
   acrSku?: string;
@@ -16,6 +17,7 @@ interface PartDetailsHeaderProps {
   boltPattern?: string;
   isSaving?: boolean;
   partId?: string;
+  isLoading?: boolean;
 }
 
 export function PartDetailsHeader({
@@ -29,6 +31,7 @@ export function PartDetailsHeader({
   boltPattern,
   isSaving = false,
   partId,
+  isLoading = false,
 }: PartDetailsHeaderProps) {
   const { t } = useLocale();
 
@@ -108,6 +111,11 @@ export function PartDetailsHeader({
 
   // For mobile, combine all stats in list format
   const mobileStats = [...countStats, ...specStats];
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return <SkeletonPartDetailsHeader />;
+  }
 
   return (
     <AcrCard variant="default" padding="none" className="overflow-hidden">

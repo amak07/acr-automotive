@@ -87,10 +87,12 @@ function PartDetailsPage() {
         boltPattern={data?.bolt_pattern || undefined}
         isSaving={updateMutation.isPending}
         partId={id}
+        isLoading={isLoading}
       />
       <PartMetadata
         createdAt={data?.created_at || undefined}
         updatedAt={data?.updated_at || undefined}
+        isLoading={isLoading}
       />
     </PartFormContainer>
   );

@@ -659,6 +659,111 @@ function SkeletonPartForm({
   )
 }
 
+// PartDetailsHeader Skeleton
+function SkeletonPartDetailsHeader({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn("bg-white rounded-lg border border-acr-gray-200 overflow-hidden", className)} {...props}>
+      {/* Header bar */}
+      <div className="px-4 py-4 border-b border-acr-gray-200 lg:px-6">
+        {/* Mobile Layout */}
+        <div className="block lg:hidden">
+          <div className="flex items-center gap-3 mb-4">
+            <Skeleton className="w-8 h-8 rounded-lg" />
+            <div className="flex-1 space-y-2">
+              <SkeletonText width="32" className="h-5" />
+              <SkeletonText width="20" className="h-4" />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-10 flex-1 rounded-md" />
+            <Skeleton className="h-10 flex-1 rounded-md" />
+          </div>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden lg:flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Skeleton className="w-10 h-10 rounded-lg" />
+            <div className="flex items-center gap-6">
+              <div className="space-y-2">
+                <SkeletonText width="32" className="h-6" />
+                <SkeletonText width="24" className="h-4" />
+              </div>
+              <div className="flex items-center gap-6 pl-6 border-l border-acr-gray-200">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <Skeleton className="w-8 h-8 rounded-md" />
+                    <div className="space-y-1">
+                      <SkeletonText width="8" className="h-5" />
+                      <SkeletonText width="16" className="h-3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-10 w-24 rounded-md" />
+            <Skeleton className="h-10 w-32 rounded-md" />
+          </div>
+        </div>
+      </div>
+
+      {/* Specifications section */}
+      <div className="px-4 py-4 lg:px-6 border-t border-acr-gray-200">
+        {/* Mobile Layout */}
+        <div className="space-y-3 lg:hidden">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton className="w-8 h-8 rounded-md" />
+              <div className="space-y-1">
+                <SkeletonText width="20" className="h-4" />
+                <SkeletonText width="16" className="h-3" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden lg:block">
+          <div className="flex items-center gap-2 mb-3">
+            <SkeletonText width="24" className="h-4" />
+            <div className="flex-1 h-px bg-acr-gray-200"></div>
+          </div>
+          <div className="grid grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="w-8 h-8 rounded-md" />
+                <div className="space-y-1">
+                  <SkeletonText width="20" className="h-4" />
+                  <SkeletonText width="16" className="h-3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// PartMetadata Skeleton
+function SkeletonPartMetadata({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn("px-4 py-3 border-t border-acr-gray-200 bg-acr-gray-50 lg:px-6", className)} {...props}>
+      <div className="text-center">
+        <SkeletonText width="56" className="h-3 mx-auto" />
+      </div>
+    </div>
+  );
+}
+
 export {
   Skeleton,
   SkeletonCard,
@@ -675,5 +780,7 @@ export {
   SkeletonDashboardCard,
   SkeletonDashboardCards,
   SkeletonPublicPartDetails,
-  SkeletonPartForm
+  SkeletonPartForm,
+  SkeletonPartDetailsHeader,
+  SkeletonPartMetadata
 }
