@@ -181,6 +181,10 @@ export const translations: Record<
     en: "Create Part",
     es: "Crear Pieza",
   },
+  "common.search": {
+    en: "Search...",
+    es: "Buscar...",
+  },
 
   // Confirmation Dialogs
   "common.confirm.unsavedChanges.title": {
@@ -224,6 +228,20 @@ export const translations: Record<
   "common.notSpecified": {
     en: "Not Specified",
     es: "No Especificado",
+  },
+
+  // ComboBox Component
+  "comboBox.noResults": {
+    en: "No results found.",
+    es: "No se encontraron resultados.",
+  },
+  "comboBox.noMatchesAddNew": {
+    en: "No matches found. Type to add \"{{value}}\"",
+    es: "No se encontraron coincidencias. Escriba para agregar \"{{value}}\"",
+  },
+  "comboBox.addValue": {
+    en: "Add \"{{value}}\"",
+    es: "Agregar \"{{value}}\"",
   },
 
   // Part Types (Technical terms - keep Spanish originals)

@@ -44,6 +44,7 @@ export interface TranslationKeys {
   'common.actions.select': string;
   'common.actions.creating': string;
   'common.actions.createPart': string;
+  'common.search': string;
 
   // Confirmation Dialogs
   'common.confirm.unsavedChanges.title': string;
@@ -67,7 +68,12 @@ export interface TranslationKeys {
   'common.success': string;
   'common.notAvailable': string;
   'common.notSpecified': string;
-  
+
+  // ComboBox Component
+  'comboBox.noResults': string;
+  'comboBox.noMatchesAddNew': string;
+  'comboBox.addValue': string;
+
   // Part Types & Positions
   'parts.types.maza': string;
   'parts.types.disco': string;

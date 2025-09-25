@@ -12,6 +12,7 @@ export { AcrButton, type AcrButtonProps, acrButtonVariants } from "./Button";
 export { AcrCard, AcrCardHeader, AcrCardContent, type AcrCardProps, acrCardVariants } from "./Card";
 export { AcrInput, type AcrInputProps } from "./Input";
 export { AcrSelect, AcrSelectTrigger, AcrSelectContent, AcrSelectItem, type AcrSelectTriggerProps } from "./Select";
+export { AcrComboBox, type AcrComboBoxProps, type AcrComboBoxOption } from "./ComboBox";
 export { AcrTextarea, type AcrTextareaProps } from "./Textarea";
 export { AcrLabel, type AcrLabelProps } from "./Label";
 export { AcrModal, AcrModalFooter, AcrModalBody } from "./AcrModal";
