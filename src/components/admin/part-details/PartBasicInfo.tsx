@@ -4,12 +4,12 @@ import { useLocale } from "@/contexts/LocaleContext";
 import {
   AcrInput,
   AcrLabel,
-  AcrSelect,
   AcrTextarea,
   AcrCard,
   AcrCardHeader,
   AcrCardContent,
   AcrButton,
+  AcrComboBox,
 } from "@/components/acr";
 import { Info, Upload } from "lucide-react";
 import { Control, Controller } from "react-hook-form";
@@ -150,32 +150,29 @@ export function PartBasicInfo({
                     name={config.name}
                     control={control}
                     render={({ field }) => (
-                      <AcrSelect.Root
+                      <AcrComboBox
                         value={field.value}
                         onValueChange={field.onChange}
-                      >
-                        <AcrSelect.Trigger>
-                          <AcrSelect.Value placeholder={config.placeholder} />
-                        </AcrSelect.Trigger>
-                        <AcrSelect.Content>
-                          <AcrSelect.Item
-                            key={`unspec-${config.name}`}
-                            value={`__unspecified_${config.name}__`}
-                          >
-                            {isCreateMode ? t("common.actions.select") : t("common.notSpecified")}
-                          </AcrSelect.Item>
-                          {config.options?.map(
-                            (item: string, itemIndex: number) => (
-                              <AcrSelect.Item
-                                key={`${config.name}-${item}-${itemIndex}`}
-                                value={item || "__empty__"}
-                              >
-                                {item || "Empty"}
-                              </AcrSelect.Item>
-                            )
-                          )}
-                        </AcrSelect.Content>
-                      </AcrSelect.Root>
+                        options={[
+                          // Add "Not Specified" option for null/undefined values
+                          {
+                            label: isCreateMode
+                              ? t("common.actions.select")
+                              : t("common.notSpecified"),
+                            value: `__unspecified_${config.name}__`,
+                          },
+                          // Add all the actual options
+                          ...(config.options?.map((option) => ({
+                            label: option,
+                            value: option,
+                          })) || []),
+                        ]}
+                        placeholder={config.placeholder}
+                        allowCustomValue
+                        onCreateValue={async (value: string) => {
+                          field.onChange(value);
+                        }}
+                      />
                     )}
                   />
                 </div>
