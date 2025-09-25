@@ -96,59 +96,80 @@ export function PartsList(props: PartsListProps) {
           {data?.map((part) => (
             <div
               key={part.id}
-              className="bg-white p-3 rounded-lg border border-acr-gray-200"
+              onClick={() => {
+                router.push(`/admin/parts/${part.id}` as any);
+              }}
+              className="bg-white rounded-lg border border-acr-gray-200 overflow-hidden hover:shadow-md hover:border-acr-gray-300 transition-all duration-200 cursor-pointer active:scale-[0.98]"
             >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex gap-2 items-center">
-                  <span className="bg-acr-gray-100 text-acr-gray-800 px-2 py-1 rounded text-xs font-mono font-medium">
-                    {part.acr_sku}
-                  </span>
-                  <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
-                    {part.part_type}
-                  </span>
+              {/* Card Header */}
+              <div className="p-4 pb-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-acr-red-50 text-acr-red-700 px-3 py-1.5 rounded-md text-sm font-mono font-semibold">
+                      {part.acr_sku}
+                    </span>
+                    <span className="bg-acr-gray-100 text-acr-gray-700 px-2 py-1 rounded text-xs font-medium">
+                      {part.part_type}
+                    </span>
+                  </div>
                 </div>
-                <AcrButton
-                  onClick={() => {
-                    router.push(`/admin/parts/${part.id}` as any);
-                  }}
-                  variant="link"
-                  size="sm"
-                  className="text-xs h-auto p-0"
-                >
-                  {t("common.actions.view")}
-                </AcrButton>
+
+                {/* Stats Row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-acr-gray-900">
+                        {part.vehicle_count || 0}
+                      </div>
+                      <div className="text-xs text-acr-gray-500 uppercase tracking-wider">
+                        {t("admin.parts.vehicles")}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-acr-gray-900">
+                        {part.cross_reference_count || 0}
+                      </div>
+                      <div className="text-xs text-acr-gray-500 uppercase tracking-wider">
+                        {t("admin.parts.references")}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Specifications */}
+                  {(part.position_type ||
+                    part.abs_type ||
+                    part.drive_type ||
+                    part.bolt_pattern) && (
+                    <div className="text-right">
+                      <div className="text-xs text-acr-gray-500 leading-relaxed">
+                        {[
+                          part.position_type,
+                          part.abs_type,
+                          part.drive_type,
+                          part.bolt_pattern,
+                        ]
+                          .filter(Boolean)
+                          .map((spec, index) => (
+                            <div key={index}>{spec}</div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-acr-gray-600">
-                <div className="flex items-center gap-4">
-                  <span>
-                    <span className="font-medium text-acr-gray-900">
-                      {part.vehicle_count || 0}
-                    </span>{" "}
-                    VA
+              {/* Action Area */}
+              <div className="bg-acr-gray-50 px-4 py-3 border-t border-acr-gray-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-acr-gray-700">
+                    {t("common.actions.view")}
                   </span>
-                  <span>
-                    <span className="font-medium text-acr-gray-900">
-                      {part.cross_reference_count || 0}
-                    </span>{" "}
-                    CR
-                  </span>
-                </div>
-                {(part.position_type ||
-                  part.abs_type ||
-                  part.drive_type ||
-                  part.bolt_pattern) && (
-                  <div className="text-xs text-acr-gray-500 truncate max-w-[120px]">
-                    {[
-                      part.position_type,
-                      part.abs_type,
-                      part.drive_type,
-                      part.bolt_pattern,
-                    ]
-                      .filter(Boolean)
-                      .join(" • ")}
+                  <div className="w-5 h-5 rounded-full bg-acr-red-500 flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           ))}
