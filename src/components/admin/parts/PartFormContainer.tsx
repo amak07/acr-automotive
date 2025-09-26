@@ -17,6 +17,7 @@ export interface PartFormData {
   drive_type: string;
   bolt_pattern: string;
   specifications: string;
+  image_url?: string; // Image URL for part photos
   sku_number?: string; // Only for create mode
 }
 
@@ -73,6 +74,7 @@ export function PartFormContainer({
         drive_type: partData.drive_type ?? "__unspecified_drive_type__",
         bolt_pattern: partData.bolt_pattern ?? "__unspecified_bolt_pattern__",
         specifications: partData.specifications ?? "",
+        image_url: partData.image_url ?? "",
       };
 
       setTimeout(() => {

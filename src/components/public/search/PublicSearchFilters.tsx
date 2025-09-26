@@ -3,7 +3,7 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Search, XCircleIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { AcrButton } from "@/components/acr/Button";
-import { AcrSelect } from "@/components/acr/Select";
+import { AcrComboBox } from "@/components/acr/ComboBox";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useVehicleOptions } from "@/hooks";
 import { CardError } from "@/components/ui/error-states";
@@ -103,93 +103,88 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
 
         {/* Mobile & Tablet: Stacked Layout */}
         <div className="md:hidden space-y-3">
-          <AcrSelect.Root
+          <AcrComboBox
             value={selectedMake}
             onValueChange={(value) => {
               setSelectedMake(value);
               setSelectedModel("");
               setSelectedYear("");
             }}
+            options={
+              isLoading
+                ? []
+                : data?.makes.map((make) => ({
+                    label: make,
+                    value: make,
+                  })) || []
+            }
+            placeholder={
+              isLoading
+                ? t("public.search.loadingOptions")
+                : t("public.search.make")
+            }
+            searchPlaceholder="Search makes..."
+            allowCustomValue={false}
             isLoading={isLoading}
-          >
-            <AcrSelect.Trigger className="w-full h-12">
-              <AcrSelect.Value
-                placeholder={
-                  isLoading
-                    ? t("public.search.loadingOptions")
-                    : t("public.search.make")
-                }
-              />
-            </AcrSelect.Trigger>
-            <AcrSelect.Content>
-              {data?.makes.map((make) => (
-                <AcrSelect.Item key={make} value={make}>
-                  {make}
-                </AcrSelect.Item>
-              ))}
-            </AcrSelect.Content>
-          </AcrSelect.Root>
+            className="w-full h-12"
+          />
 
-          <AcrSelect.Root
+          <AcrComboBox
             value={selectedModel}
             onValueChange={(value) => {
               setSelectedModel(value);
               setSelectedYear("");
             }}
+            options={
+              !selectedMake || isLoading
+                ? []
+                : models?.map((model) => ({
+                    label: model,
+                    value: model,
+                  })) || []
+            }
+            placeholder={
+              !selectedMake
+                ? t("public.search.selectMakeFirst")
+                : isLoading
+                  ? t("public.search.loadingOptions")
+                  : models?.length === 0
+                    ? t("public.search.noModelsAvailable")
+                    : t("public.search.model")
+            }
+            searchPlaceholder="Search models..."
+            allowCustomValue={false}
             disabled={!selectedMake || isLoading}
             isLoading={isLoading && !selectedMake}
-          >
-            <AcrSelect.Trigger className="w-full h-12">
-              <AcrSelect.Value
-                placeholder={
-                  !selectedMake
-                    ? t("public.search.selectMakeFirst")
-                    : isLoading
-                      ? t("public.search.loadingOptions")
-                      : models?.length === 0
-                        ? t("public.search.noModelsAvailable")
-                        : t("public.search.model")
-                }
-              />
-            </AcrSelect.Trigger>
-            <AcrSelect.Content>
-              {selectedMake &&
-                models?.map((model) => (
-                  <AcrSelect.Item key={model} value={model}>
-                    {model}
-                  </AcrSelect.Item>
-                ))}
-            </AcrSelect.Content>
-          </AcrSelect.Root>
+            className="w-full h-12"
+          />
 
-          <AcrSelect.Root
+          <AcrComboBox
             value={selectedYear}
             onValueChange={(value) => setSelectedYear(value)}
+            options={
+              !selectedModel || isLoading
+                ? []
+                : years?.map((year) => ({
+                    label: year.toString(),
+                    value: year.toString(),
+                  })) || []
+            }
+            placeholder={
+              !selectedModel
+                ? t("public.search.selectModelFirst")
+                : isLoading
+                  ? t("public.search.loadingOptions")
+                  : years?.length === 0
+                    ? t("public.search.noYearsAvailable")
+                    : t("public.search.year")
+            }
+            searchPlaceholder="Search years..."
+            allowCustomValue={false}
             disabled={!selectedModel || isLoading}
             isLoading={isLoading && !selectedModel}
-          >
-            <AcrSelect.Trigger className="w-full h-12">
-              <AcrSelect.Value
-                placeholder={
-                  !selectedModel
-                    ? t("public.search.selectModelFirst")
-                    : isLoading
-                      ? t("public.search.loadingOptions")
-                      : years?.length === 0
-                        ? t("public.search.noYearsAvailable")
-                        : t("public.search.year")
-                }
-              />
-            </AcrSelect.Trigger>
-            <AcrSelect.Content>
-              {selectedModel &&
-                years?.map((year) => (
-                  <AcrSelect.Item key={year} value={year.toString()}>
-                    {year}
-                  </AcrSelect.Item>
-                ))}
-            </AcrSelect.Content>
-          </AcrSelect.Root>
+            className="w-full h-12"
+          />
 
           <AcrButton
             className="w-full h-12 mt-2"
@@ -204,93 +199,88 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
 
         {/* Desktop: Horizontal Layout */}
         <div className="hidden md:flex md:items-center md:gap-4">
-          <AcrSelect.Root
+          <AcrComboBox
             value={selectedMake}
             onValueChange={(value) => {
               setSelectedMake(value);
               setSelectedModel("");
               setSelectedYear("");
             }}
+            options={
+              isLoading
+                ? []
+                : data?.makes.map((make) => ({
+                    label: make,
+                    value: make,
+                  })) || []
+            }
+            placeholder={
+              isLoading
+                ? t("public.search.loadingOptions")
+                : t("public.search.make")
+            }
+            searchPlaceholder="Search makes..."
+            allowCustomValue={false}
             isLoading={isLoading}
-          >
-            <AcrSelect.Trigger className="flex-1">
-              <AcrSelect.Value
-                placeholder={
-                  isLoading
-                    ? t("public.search.loadingOptions")
-                    : t("public.search.make")
-                }
-              />
-            </AcrSelect.Trigger>
-            <AcrSelect.Content>
-              {data?.makes.map((make) => (
-                <AcrSelect.Item key={make} value={make}>
-                  {make}
-                </AcrSelect.Item>
-              ))}
-            </AcrSelect.Content>
-          </AcrSelect.Root>
+            className="flex-1"
+          />
 
-          <AcrSelect.Root
+          <AcrComboBox
             value={selectedModel}
             onValueChange={(value) => {
               setSelectedModel(value);
               setSelectedYear("");
             }}
+            options={
+              !selectedMake || isLoading
+                ? []
+                : models?.map((model) => ({
+                    label: model,
+                    value: model,
+                  })) || []
+            }
+            placeholder={
+              !selectedMake
+                ? t("public.search.selectMakeFirst")
+                : isLoading
+                  ? t("public.search.loadingOptions")
+                  : models?.length === 0
+                    ? t("public.search.noModelsAvailable")
+                    : t("public.search.model")
+            }
+            searchPlaceholder="Search models..."
+            allowCustomValue={false}
             disabled={!selectedMake || isLoading}
             isLoading={isLoading && !selectedMake}
-          >
-            <AcrSelect.Trigger className="flex-1">
-              <AcrSelect.Value
-                placeholder={
-                  !selectedMake
-                    ? t("public.search.selectMakeFirst")
-                    : isLoading
-                      ? t("public.search.loadingOptions")
-                      : models?.length === 0
-                        ? t("public.search.noModelsAvailable")
-                        : t("public.search.model")
-                }
-              />
-            </AcrSelect.Trigger>
-            <AcrSelect.Content>
-              {selectedMake &&
-                models?.map((model) => (
-                  <AcrSelect.Item key={model} value={model}>
-                    {model}
-                  </AcrSelect.Item>
-                ))}
-            </AcrSelect.Content>
-          </AcrSelect.Root>
+            className="flex-1"
+          />
 
-          <AcrSelect.Root
+          <AcrComboBox
             value={selectedYear}
             onValueChange={(value) => setSelectedYear(value)}
+            options={
+              !selectedModel || isLoading
+                ? []
+                : years?.map((year) => ({
+                    label: year.toString(),
+                    value: year.toString(),
+                  })) || []
+            }
+            placeholder={
+              !selectedModel
+                ? t("public.search.selectModelFirst")
+                : isLoading
+                  ? t("public.search.loadingOptions")
+                  : years?.length === 0
+                    ? t("public.search.noYearsAvailable")
+                    : t("public.search.year")
+            }
+            searchPlaceholder="Search years..."
+            allowCustomValue={false}
             disabled={!selectedModel || isLoading}
             isLoading={isLoading && !selectedModel}
-          >
-            <AcrSelect.Trigger className="flex-1">
-              <AcrSelect.Value
-                placeholder={
-                  !selectedModel
-                    ? t("public.search.selectModelFirst")
-                    : isLoading
-                      ? t("public.search.loadingOptions")
-                      : years?.length === 0
-                        ? t("public.search.noYearsAvailable")
-                        : t("public.search.year")
-                }
-              />
-            </AcrSelect.Trigger>
-            <AcrSelect.Content>
-              {selectedModel &&
-                years?.map((year) => (
-                  <AcrSelect.Item key={year} value={year.toString()}>
-                    {year}
-                  </AcrSelect.Item>
-                ))}
-            </AcrSelect.Content>
-          </AcrSelect.Root>
+            className="flex-1"
+          />
 
           <AcrButton
             className="whitespace-nowrap h-auto py-3"

@@ -36,6 +36,12 @@ export interface TranslationKeys {
   'admin.parts.dataRelations': string;
   'admin.parts.details': string;
   'admin.parts.pagination': string;
+  'admin.parts.noVehicleApplications': string;
+  'admin.parts.addVehicleApplication': string;
+  'admin.parts.noCrossReferences': string;
+  'admin.parts.addCrossReference': string;
+  'admin.parts.deleteVehicleApplicationError': string;
+  'admin.parts.deleteCrossReferenceError': string;
   'admin.dashboard.crossReferences': string;
   'common.actions.clearFilters': string;
   'common.actions.back': string;
@@ -229,6 +235,9 @@ export interface TranslationKeys {
   'public.search.loadingOptions': string;
   'public.search.errorTitle': string;
   'public.search.errorMessage': string;
+  'public.search.searchMakes': string;
+  'public.search.searchModels': string;
+  'public.search.searchYears': string;
 
   // Public Parts List
   'public.parts.showingRange': string;

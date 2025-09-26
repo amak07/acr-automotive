@@ -8,6 +8,8 @@ import {
   AcrCard,
   AcrCardHeader,
   AcrCardContent,
+  AcrTable,
+  AcrTableColumn,
 } from "@/components/acr";
 import { Car, Plus, Edit, Trash2 } from "lucide-react";
 import { EditVehicleApplicationModal } from "./EditVehicleApplicationModal";
@@ -91,6 +93,81 @@ export function PartApplications({
       }
     }
   };
+
+  // AcrTable columns configuration
+  const vehicleApplicationColumns: AcrTableColumn<VehicleApplication>[] = [
+    {
+      key: "make",
+      label: t("partDetails.vehicleApps.table.brand"),
+      render: (value: any, application?: VehicleApplication) => {
+        const brandCode = application?.make.charAt(0).toUpperCase() || "U";
+        return (
+          <div className="flex items-center gap-2">
+            <span
+              className={`w-6 h-6 rounded text-xs font-medium flex items-center justify-center text-white ${
+                brandCode === "H"
+                  ? "bg-red-500"
+                  : brandCode === "T"
+                  ? "bg-blue-500"
+                  : brandCode === "N"
+                  ? "bg-gray-500"
+                  : brandCode === "M"
+                  ? "bg-purple-500"
+                  : "bg-green-500"
+              }`}
+            >
+              {brandCode}
+            </span>
+            <span className="text-sm font-medium text-acr-gray-900">
+              {application?.make}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "model",
+      label: t("partDetails.vehicleApps.table.model"),
+      render: (value: any) => (
+        <span className="text-sm text-acr-gray-900">{value}</span>
+      ),
+    },
+    {
+      key: "year_range",
+      label: t("partDetails.vehicleApps.table.yearRange"),
+      render: (value: any, application?: VehicleApplication) => (
+        <span className="text-sm text-acr-gray-900">
+          {`${application?.start_year}-${application?.end_year}`}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: t("partDetails.vehicleApps.table.actions"),
+      className: "text-right",
+      render: (value: any, application?: VehicleApplication) => (
+        <div className="flex items-center justify-end gap-1">
+          <AcrButton
+            variant="secondary"
+            size="sm"
+            type="button"
+            onClick={() => application && handleEdit(application)}
+          >
+            <Edit className="w-3 h-3" />
+          </AcrButton>
+          <AcrButton
+            variant="secondary"
+            size="sm"
+            type="button"
+            onClick={() => application && handleDelete(application)}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="w-3 h-3" />
+          </AcrButton>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <AcrCard variant="default" padding="none" className="mb-6" data-testid="part-applications-section">
@@ -232,87 +309,18 @@ export function PartApplications({
               })}
             </div>
 
-            {/* Desktop view - Table layout */}
+            {/* Desktop view - AcrTable */}
             <div className="hidden lg:block" data-testid="part-applications-desktop-view">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-acr-gray-200">
-                      <th className="text-left py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
-                        {t("partDetails.vehicleApps.table.brand")}
-                      </th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
-                        {t("partDetails.vehicleApps.table.model")}
-                      </th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
-                        {t("partDetails.vehicleApps.table.yearRange")}
-                      </th>
-                      <th className="text-right py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
-                        {t("partDetails.vehicleApps.table.actions")}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-acr-gray-100">
-                    {vehicleApplications.map((app) => {
-                      const brandCode = app.make.charAt(0).toUpperCase();
-                      const yearRange = `${app.start_year}-${app.end_year}`;
-                      return (
-                        <tr key={app.id} className="hover:bg-acr-gray-50">
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`w-6 h-6 rounded text-xs font-medium flex items-center justify-center text-white ${
-                                  brandCode === "H"
-                                    ? "bg-red-500"
-                                    : brandCode === "T"
-                                    ? "bg-blue-500"
-                                    : brandCode === "N"
-                                    ? "bg-gray-500"
-                                    : brandCode === "M"
-                                    ? "bg-purple-500"
-                                    : "bg-green-500"
-                                }`}
-                              >
-                                {brandCode}
-                              </span>
-                              <span className="text-sm font-medium text-acr-gray-900">
-                                {app.make}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4 text-sm text-acr-gray-900">
-                            {app.model}
-                          </td>
-                          <td className="py-3 px-4 text-sm text-acr-gray-900">
-                            {yearRange}
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <AcrButton
-                                variant="secondary"
-                                size="sm"
-                                type="button"
-                                onClick={() => handleEdit(app)}
-                              >
-                                <Edit className="w-3 h-3" />
-                              </AcrButton>
-                              <AcrButton
-                                variant="secondary"
-                                size="sm"
-                                type="button"
-                                onClick={() => handleDelete(app)}
-                                disabled={deleteMutation.isPending}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </AcrButton>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <AcrTable
+                data={vehicleApplications}
+                columns={vehicleApplicationColumns}
+                emptyMessage={
+                  <div className="text-center py-8">
+                    <p className="text-acr-gray-500 mb-2">No vehicle applications found</p>
+                    <p className="text-xs text-acr-gray-400">Add a vehicle application to get started</p>
+                  </div>
+                }
+              />
             </div>
           </div>
         )}

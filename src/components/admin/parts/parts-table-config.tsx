@@ -5,6 +5,7 @@ import { Copy, Check } from "lucide-react";
 import { TranslationKeys } from "@/lib/i18n/translation-keys";
 import { PartSummary } from "@/types";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { AcrTableColumn } from "@/components/acr";
 
 export interface TableColumn {
   key: string;
@@ -16,12 +17,17 @@ export interface TableColumn {
   ) => JSX.Element;
 }
 
-export const createPartsTableColumns = (
-  t: (key: keyof TranslationKeys) => string
-): TableColumn[] => [
+
+/**
+ * Creates AcrTable column configuration for the parts list
+ */
+export const createAcrPartsTableColumns = (
+  t: (key: keyof TranslationKeys) => string,
+  router?: AppRouterInstance
+): AcrTableColumn<PartSummary>[] => [
   {
     key: "acr_sku",
-    label: "admin.parts.sku",
+    label: t("admin.parts.sku"),
     render: (value: any) => {
       const CopyableSKU = () => {
         const [copied, setCopied] = useState(false);
@@ -39,8 +45,8 @@ export const createPartsTableColumns = (
         return (
           <button
             onClick={handleCopy}
-            className="bg-acr-gray-100 hover:bg-acr-blue-100 border-2 border-transparent hover:border-acr-blue-300 
-                       px-3 py-1.5 rounded-full text-sm font-mono font-bold text-acr-gray-800 
+            className="bg-acr-gray-100 hover:bg-acr-blue-100 border-2 border-transparent hover:border-acr-blue-300
+                       px-3 py-1.5 rounded-full text-sm font-mono font-bold text-acr-gray-800
                        transition-all duration-200 cursor-pointer flex items-center gap-1.5 min-w-[120px] justify-center
                        focus:outline-none focus:ring-2 focus:ring-acr-blue-500"
           >
@@ -59,7 +65,7 @@ export const createPartsTableColumns = (
   },
   {
     key: "part_type",
-    label: "admin.search.partType",
+    label: t("admin.search.partType"),
     render: (value: any) => (
       <span className="text-sm font-medium text-acr-gray-900">
         {value || ""}
@@ -68,7 +74,7 @@ export const createPartsTableColumns = (
   },
   {
     key: "specifications",
-    label: "admin.parts.specifications",
+    label: t("admin.parts.specifications"),
     render: (value: any, part?: PartSummary) => {
       const hasSpecs =
         part?.position_type ||
@@ -139,7 +145,7 @@ export const createPartsTableColumns = (
   },
   {
     key: "data_summary",
-    label: "admin.parts.dataRelations",
+    label: t("admin.parts.dataRelations"),
     render: (value: any, part?: PartSummary) => (
       <div className="text-xs space-y-1 min-w-[100px] text-center">
         <div className="flex items-center justify-center gap-1">
@@ -173,8 +179,8 @@ export const createPartsTableColumns = (
   },
   {
     key: "actions",
-    // No label needed for actions column
-    render: (value: any, part?: PartSummary, router?: AppRouterInstance) => (
+    label: "",
+    render: (value: any, part?: PartSummary) => (
       <button
         onClick={() => {
           if (router) {

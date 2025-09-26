@@ -29,7 +29,7 @@ export const AcrSelectTrigger = React.forwardRef<
     className={cn(
       // ACR-specific styling overrides
       "pl-4 pr-3 py-3 h-auto", // ACR spacing standards
-      "border-acr-gray-400 bg-white", // ACR colors
+      "border-acr-gray-400 bg-white hover:border-acr-red-300 hover:bg-transparent", // ACR colors with hover
       "focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent", // ACR focus states
       "transition-colors duration-200", // Smooth transitions
       "data-[placeholder]:text-acr-gray-500", // ACR placeholder color - darker

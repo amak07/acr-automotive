@@ -8,6 +8,8 @@ import {
   AcrCard,
   AcrCardHeader,
   AcrCardContent,
+  AcrTable,
+  AcrTableColumn,
 } from "@/components/acr";
 import { Link2, Plus, Edit, Trash2 } from "lucide-react";
 import { EditCrossReferenceModal } from "./EditCrossReferenceModal";
@@ -89,6 +91,74 @@ export function PartCrossReferences({
       }
     }
   };
+
+  // AcrTable columns configuration
+  const crossReferenceColumns: AcrTableColumn<CrossReference>[] = [
+    {
+      key: "competitor_sku",
+      label: t("partDetails.crossRefs.table.competitorSku"),
+      render: (value: any, crossRef?: CrossReference) => {
+        const brandCode = crossRef?.competitor_brand?.charAt(0).toUpperCase() || "U";
+        return (
+          <div className="flex items-center gap-2">
+            <span
+              className={`w-6 h-6 rounded text-xs font-medium flex items-center justify-center text-white ${
+                brandCode === "T"
+                  ? "bg-orange-500"
+                  : brandCode === "M"
+                  ? "bg-purple-500"
+                  : brandCode === "S"
+                  ? "bg-green-500"
+                  : brandCode === "B"
+                  ? "bg-blue-500"
+                  : "bg-gray-500"
+              }`}
+            >
+              {brandCode}
+            </span>
+            <span className="text-sm font-medium text-acr-gray-900">
+              {crossRef?.competitor_sku}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "competitor_brand",
+      label: t("partDetails.crossRefs.table.brand"),
+      render: (value: any, crossRef?: CrossReference) => (
+        <span className="text-sm text-acr-gray-900">
+          {crossRef?.competitor_brand || t("common.notSpecified")}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: t("partDetails.crossRefs.table.actions"),
+      className: "text-right",
+      render: (value: any, crossRef?: CrossReference) => (
+        <div className="flex items-center justify-end gap-1">
+          <AcrButton
+            variant="secondary"
+            size="sm"
+            type="button"
+            onClick={() => crossRef && handleEdit(crossRef)}
+          >
+            <Edit className="w-3 h-3" />
+          </AcrButton>
+          <AcrButton
+            variant="secondary"
+            size="sm"
+            type="button"
+            onClick={() => crossRef && handleDelete(crossRef)}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="w-3 h-3" />
+          </AcrButton>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <AcrCard variant="default" padding="none" className="mb-6" data-testid="part-cross-references-section">
@@ -224,82 +294,18 @@ export function PartCrossReferences({
               })}
             </div>
 
-            {/* Desktop view - Table layout */}
+            {/* Desktop view - AcrTable */}
             <div className="hidden lg:block">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-acr-gray-200">
-                      <th className="text-left py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
-                        {t("partDetails.crossRefs.table.competitorSku")}
-                      </th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
-                        {t("partDetails.crossRefs.table.brand")}
-                      </th>
-                      <th className="text-right py-3 px-4 text-xs font-medium text-acr-gray-500 uppercase tracking-wider">
-                        {t("partDetails.crossRefs.table.actions")}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-acr-gray-100">
-                    {crossReferences.map((ref) => {
-                      const brandCode =
-                        ref.competitor_brand?.charAt(0).toUpperCase() || "U";
-                      return (
-                        <tr key={ref.id} className="hover:bg-acr-gray-50">
-                          <td className="py-3 px-4 text-sm font-medium text-acr-gray-900">
-                            {ref.competitor_sku}
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`w-6 h-6 rounded text-xs font-medium flex items-center justify-center text-white ${
-                                  brandCode === "T"
-                                    ? "bg-orange-500"
-                                    : brandCode === "M"
-                                    ? "bg-purple-500"
-                                    : brandCode === "S"
-                                    ? "bg-green-500"
-                                    : brandCode === "B"
-                                    ? "bg-blue-500"
-                                    : "bg-gray-500"
-                                }`}
-                              >
-                                {brandCode}
-                              </span>
-                              <span className="text-sm font-medium text-acr-gray-900">
-                                {ref.competitor_brand ||
-                                  t("common.notSpecified")}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <AcrButton
-                                variant="secondary"
-                                size="sm"
-                                type="button"
-                                onClick={() => handleEdit(ref)}
-                              >
-                                <Edit className="w-3 h-3" />
-                              </AcrButton>
-                              <AcrButton
-                                variant="secondary"
-                                size="sm"
-                                type="button"
-                                onClick={() => handleDelete(ref)}
-                                disabled={deleteMutation.isPending}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </AcrButton>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <AcrTable
+                data={crossReferences}
+                columns={crossReferenceColumns}
+                emptyMessage={
+                  <div className="text-center py-8">
+                    <p className="text-acr-gray-500 mb-2">No cross references found</p>
+                    <p className="text-xs text-acr-gray-400">Add a cross reference to get started</p>
+                  </div>
+                }
+              />
             </div>
           </div>
         )}

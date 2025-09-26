@@ -25,6 +25,7 @@ export const createPartSchema = z.object({
   bolt_pattern: z.string().max(50).optional(),
   drive_type: z.string().max(50).optional(),
   specifications: z.string().optional(),
+  image_url: z.string().url().optional(),
 });
 
 export const updatePartSchema = createPartSchema

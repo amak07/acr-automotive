@@ -9,7 +9,7 @@ import type {
 } from "src/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 5000
+const TOAST_REMOVE_DELAY = 4000
 
 type ToasterToast = ToastProps & {
   id: string
@@ -163,6 +163,11 @@ function toast({ ...props }: Toast) {
       },
     },
   })
+
+  // Auto-dismiss after delay regardless of focus
+  setTimeout(() => {
+    dismiss()
+  }, TOAST_REMOVE_DELAY - 1000) // Dismiss 1s before removal for smooth animation
 
   return {
     id: id,

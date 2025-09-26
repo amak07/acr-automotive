@@ -29,6 +29,7 @@ export interface AcrComboBoxProps {
   onValueChange: (value: string) => void;
   options: AcrComboBoxOption[] | undefined;
   placeholder?: string;
+  searchPlaceholder?: string;
   allowCustomValue?: boolean;
   onCreateValue?: (value: string) => Promise<void>;
   disabled?: boolean;
@@ -46,6 +47,7 @@ export const AcrComboBox = React.forwardRef<
       onValueChange,
       options = [],
       placeholder = "Select option...",
+      searchPlaceholder,
       allowCustomValue = false,
       onCreateValue,
       disabled = false,
@@ -108,7 +110,7 @@ export const AcrComboBox = React.forwardRef<
               className={cn(
                 // ACR-specific styling overrides
                 "pl-4 pr-3 py-3 h-auto w-full", // ACR spacing standards
-                "border-acr-gray-400 bg-white", // ACR colors
+                "border-acr-gray-400 bg-white hover:border-acr-red-300 hover:bg-transparent", // ACR colors with hover
                 "focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent", // ACR focus states
                 "transition-colors duration-200", // Smooth transitions
                 "data-[placeholder]:text-acr-gray-500", // ACR placeholder color - darker
@@ -143,7 +145,7 @@ export const AcrComboBox = React.forwardRef<
           >
             <Command>
               <CommandInput
-                placeholder={t("common.search")}
+                placeholder={searchPlaceholder || t("common.search")}
                 value={searchValue}
                 onValueChange={setSearchValue}
               />
