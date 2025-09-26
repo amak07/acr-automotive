@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Package } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useLocale } from "@/contexts/LocaleContext";
 import {
   DatabasePartRow,
@@ -98,11 +99,13 @@ export function PublicPartDetails({
         {/* Product Image - Smaller */}
         <Card className="md:col-span-1">
           <CardContent className="p-4">
-            <div className="aspect-square bg-gray-50 rounded-lg flex items-center justify-center">
-              <img
+            <div className="aspect-square bg-gray-50 rounded-lg flex items-center justify-center relative">
+              <Image
                 src="/part-placeholder.webp"
                 alt={`${part.part_type} ${part.acr_sku}`}
-                className="max-w-full max-h-full object-contain"
+                fill
+                style={{ objectFit: "contain" }}
+                sizes="(max-width: 768px) 100vw, 33vw"
               />
             </div>
           </CardContent>
