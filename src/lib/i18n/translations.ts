@@ -608,6 +608,24 @@ export const translations: Record<
     es: "Referencias Cruzadas",
   },
 
+  // Pagination
+  "pagination.previous": {
+    en: "Previous",
+    es: "Anterior",
+  },
+  "pagination.next": {
+    en: "Next",
+    es: "Siguiente",
+  },
+  "pagination.previousShort": {
+    en: "← Prev",
+    es: "← Ant",
+  },
+  "pagination.nextShort": {
+    en: "Next →",
+    es: "Sig →",
+  },
+
 
   // Modal Labels
   "forms.labels.brand": {
