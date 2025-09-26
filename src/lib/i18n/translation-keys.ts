@@ -11,14 +11,12 @@ export interface TranslationKeys {
   
   // Admin Dashboard
   'admin.dashboard.totalParts': string;
-  'admin.dashboard.applications': string;
   'admin.dashboard.catalogTitle': string;
   
   // Admin Search & Filters
   'admin.search.placeholder': string;
   'admin.search.partType': string;
   'admin.search.position': string;
-  'admin.search.button': string;
   
   // Admin Parts List
   'admin.parts.newButton': string;
@@ -27,12 +25,12 @@ export interface TranslationKeys {
   'admin.parts.abs': string;
   'admin.parts.specifications': string;
   'admin.parts.applications': string;
+  'admin.parts.crossReferences': string;
   'admin.parts.vehicles': string;
   'admin.parts.vehicle': string;
   'admin.parts.references': string;
   'admin.parts.reference': string;
   'admin.parts.vehicleApplications': string;
-  'admin.parts.crossReferences': string;
   'admin.parts.dataRelations': string;
   'admin.parts.details': string;
   'admin.parts.pagination': string;
@@ -42,7 +40,6 @@ export interface TranslationKeys {
   'admin.parts.addCrossReference': string;
   'admin.parts.deleteVehicleApplicationError': string;
   'admin.parts.deleteCrossReferenceError': string;
-  'admin.dashboard.crossReferences': string;
   'common.actions.clearFilters': string;
   'common.actions.back': string;
   'common.actions.saving': string;
@@ -163,31 +160,27 @@ export interface TranslationKeys {
   'partDetails.basicInfo.imageUploadText': string;
   'partDetails.basicInfo.imageFormat': string;
   'partDetails.basicInfo.selectFile': string;
-  'partDetails.vehicleApps.title': string;
-  'partDetails.vehicleApps.applications': string;
-  'partDetails.vehicleApps.addApplication': string;
-  'partDetails.crossRefs.title': string;
-  'partDetails.crossRefs.references': string;
-  'partDetails.crossRefs.addReference': string;
   'partDetails.navigation.backToList': string;
   'partDetails.metadata.created': string;
   'partDetails.metadata.lastModified': string;
   'partDetails.metadata.separator': string;
 
-  // Vehicle Applications Table
+  // Table Headers for Vehicle Applications
   'partDetails.vehicleApps.table.brand': string;
   'partDetails.vehicleApps.table.model': string;
   'partDetails.vehicleApps.table.yearRange': string;
   'partDetails.vehicleApps.table.actions': string;
-  'partDetails.vehicleApps.mobile.brand': string;
   'partDetails.vehicleApps.mobile.model': string;
   'partDetails.vehicleApps.mobile.years': string;
 
-  // Cross References Table
+  // Table Headers for Cross References
   'partDetails.crossRefs.table.competitorSku': string;
   'partDetails.crossRefs.table.brand': string;
   'partDetails.crossRefs.table.actions': string;
   'partDetails.crossRefs.mobile.brand': string;
+
+  // Dashboard Cross References (legacy)
+  'admin.dashboard.crossReferences': string;
 
   // Modal Labels
   'forms.labels.brand': string;
@@ -222,7 +215,6 @@ export interface TranslationKeys {
   'public.search.model': string;
   'public.search.year': string;
   'public.search.skuPlaceholder': string;
-  'public.search.button': string;
   'public.search.vehicleSearchTitle': string;
   'public.search.skuSearchTitle': string;
   'public.search.advancedFilters': string;

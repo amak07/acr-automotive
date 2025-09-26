@@ -193,7 +193,7 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
               !selectedMake || !selectedModel || !selectedYear || isLoading
             }
           >
-            {t("public.search.button")}
+            {t("common.actions.search")}
           </AcrButton>
         </div>
 
@@ -289,7 +289,7 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
               !selectedMake || !selectedModel || !selectedYear || isLoading
             }
           >
-            {t("public.search.button")}
+            {t("common.actions.search")}
           </AcrButton>
         </div>
 
@@ -351,7 +351,7 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                 onClick={handleSkuTermSearch}
                 disabled={!skuTerm}
               >
-                {t("public.search.button")}
+                {t("common.actions.search")}
               </AcrButton>
             </div>
 
@@ -386,7 +386,7 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                 onClick={handleSkuTermSearch}
                 disabled={!skuTerm}
               >
-                {t("public.search.button")}
+                {t("common.actions.search")}
               </AcrButton>
             </div>
           </div>
