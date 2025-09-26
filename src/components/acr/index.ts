@@ -19,6 +19,10 @@ export { AcrModal, AcrModalFooter, AcrModalBody } from "./AcrModal";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { AcrTooltip, type AcrTooltipProps } from "./Tooltip";
 export { AcrTable, type AcrTableProps, type AcrTableColumn } from "./Table";
+export { AcrDirtyIndicator, type AcrDirtyIndicatorProps } from "./DirtyIndicator";
+export { AcrFormField, type AcrFormFieldProps } from "./FormField";
+export { AcrPrefixInput, type AcrPrefixInputProps } from "./PrefixInput";
+export { AcrImageUpload, type AcrImageUploadProps } from "./ImageUpload";
 
 /**
  * Usage Examples:

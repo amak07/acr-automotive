@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { DatabasePartRow } from "@/types";
 import { useLocale } from "@/contexts/LocaleContext";
 import { SkeletonPartsGrid } from "@/components/ui/skeleton";
@@ -54,11 +55,14 @@ export function PublicPartsList(props: PublicPartsListProps) {
               className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg hover:border-acr-gray-400 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:ring-offset-2 group relative flex flex-col block"
             >
               {/* Image Container - Baleros-Bisa Style */}
-              <div className="relative overflow-hidden p-4">
-                <img
+              <div className="relative overflow-hidden p-4 h-48">
+                <Image
                   src="/part-placeholder.webp"
                   alt={`${part.part_type} ${part.acr_sku}`}
-                  className="w-full h-40 object-contain bg-white transition-transform duration-200 group-hover:scale-105"
+                  fill
+                  style={{ objectFit: "contain" }}
+                  className="bg-white transition-transform duration-200 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
 
                 {/* Hover Overlay - Baleros-Bisa Style */}

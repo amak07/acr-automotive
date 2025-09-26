@@ -123,6 +123,30 @@ export const translations: Record<
     en: "Showing {{start}}-{{end}} of {{total}} parts",
     es: "Mostrando {{start}}-{{end}} de {{total}} piezas",
   },
+  "admin.parts.noVehicleApplications": {
+    en: "No vehicle applications",
+    es: "Sin aplicaciones vehiculares",
+  },
+  "admin.parts.addVehicleApplication": {
+    en: "Add Vehicle Application",
+    es: "Agregar Aplicación Vehicular",
+  },
+  "admin.parts.noCrossReferences": {
+    en: "No cross references",
+    es: "Sin referencias cruzadas",
+  },
+  "admin.parts.addCrossReference": {
+    en: "Add Cross Reference",
+    es: "Agregar Referencia Cruzada",
+  },
+  "admin.parts.deleteVehicleApplicationError": {
+    en: "Failed to delete vehicle application",
+    es: "Error al eliminar aplicación vehicular",
+  },
+  "admin.parts.deleteCrossReferenceError": {
+    en: "Failed to delete cross reference",
+    es: "Error al eliminar referencia cruzada",
+  },
 
   // Common Actions
   "common.actions.view": {
@@ -780,6 +804,18 @@ export const translations: Record<
   "public.search.errorMessage": {
     en: "Please try refreshing the page or contact support if the problem persists.",
     es: "Intente actualizar la página o contacte al soporte si el problema persiste.",
+  },
+  "public.search.searchMakes": {
+    en: "Search makes...",
+    es: "Buscar marcas...",
+  },
+  "public.search.searchModels": {
+    en: "Search models...",
+    es: "Buscar modelos...",
+  },
+  "public.search.searchYears": {
+    en: "Search years...",
+    es: "Buscar años...",
   },
 
   // Public Parts List
