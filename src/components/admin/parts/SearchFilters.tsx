@@ -235,7 +235,7 @@ export function SearchFilters(props: SearchFiltersProps) {
         {/* Top Row: Search (2/3) + Part Type (1/3) */}
         <div className="flex gap-4 items-end">
           <div className="flex-1 relative">
-            <AcrLabel>{t("admin.search.button")}</AcrLabel>
+            <AcrLabel>{t("common.actions.search")}</AcrLabel>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-acr-gray-400 w-4 h-4 pointer-events-none" />
               <AcrInput

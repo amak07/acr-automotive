@@ -31,14 +31,6 @@ export const translations: Record<
     en: "Total Parts",
     es: "Total Piezas",
   },
-  "admin.dashboard.applications": {
-    en: "Applications",
-    es: "Aplicaciones",
-  },
-  "admin.dashboard.crossReferences": {
-    en: "Cross References",
-    es: "Referencias Cruzadas",
-  },
   "admin.dashboard.catalogTitle": {
     en: "Parts Catalog",
     es: "Catálogo de Piezas",
@@ -56,10 +48,6 @@ export const translations: Record<
   "admin.search.position": {
     en: "Position",
     es: "Posición",
-  },
-  "admin.search.button": {
-    en: "Search",
-    es: "Buscar",
   },
 
   // Admin Parts List
@@ -87,6 +75,10 @@ export const translations: Record<
     en: "Applications",
     es: "Aplicaciones",
   },
+  "admin.parts.crossReferences": {
+    en: "Cross References",
+    es: "Referencias Cruzadas",
+  },
   "admin.parts.vehicles": {
     en: "vehicles",
     es: "vehículos",
@@ -106,10 +98,6 @@ export const translations: Record<
   "admin.parts.vehicleApplications": {
     en: "Vehicle Applications",
     es: "Aplicaciones de Vehículos",
-  },
-  "admin.parts.crossReferences": {
-    en: "Cross References",
-    es: "Referencias Cruzadas",
   },
   "admin.parts.dataRelations": {
     en: "Data & Relations",
@@ -553,30 +541,6 @@ export const translations: Record<
     en: "Select File",
     es: "Seleccionar Archivo",
   },
-  "partDetails.vehicleApps.title": {
-    en: "Vehicle Applications",
-    es: "Aplicaciones Vehiculares",
-  },
-  "partDetails.vehicleApps.applications": {
-    en: "applications",
-    es: "aplicaciones",
-  },
-  "partDetails.vehicleApps.addApplication": {
-    en: "Add Application",
-    es: "Agregar Aplicación",
-  },
-  "partDetails.crossRefs.title": {
-    en: "Cross References",
-    es: "Referencias Cruzadas",
-  },
-  "partDetails.crossRefs.references": {
-    en: "references",
-    es: "referencias",
-  },
-  "partDetails.crossRefs.addReference": {
-    en: "Add Reference",
-    es: "Agregar Referencia",
-  },
   "partDetails.navigation.backToList": {
     en: "Back to List",
     es: "Volver a la Lista",
@@ -594,7 +558,7 @@ export const translations: Record<
     es: "•",
   },
 
-  // Vehicle Applications Table
+  // Table Headers for Vehicle Applications
   "partDetails.vehicleApps.table.brand": {
     en: "BRAND",
     es: "MARCA",
@@ -611,10 +575,6 @@ export const translations: Record<
     en: "ACTIONS",
     es: "ACCIONES",
   },
-  "partDetails.vehicleApps.mobile.brand": {
-    en: "Brand:",
-    es: "Marca:",
-  },
   "partDetails.vehicleApps.mobile.model": {
     en: "Model:",
     es: "Modelo:",
@@ -624,7 +584,7 @@ export const translations: Record<
     es: "Años:",
   },
 
-  // Cross References Table
+  // Table Headers for Cross References
   "partDetails.crossRefs.table.competitorSku": {
     en: "COMPETITOR SKU",
     es: "SKU COMPETIDOR",
@@ -641,6 +601,13 @@ export const translations: Record<
     en: "Brand:",
     es: "Marca:",
   },
+
+  // Dashboard Cross References (legacy)
+  "admin.dashboard.crossReferences": {
+    en: "Cross References",
+    es: "Referencias Cruzadas",
+  },
+
 
   // Modal Labels
   "forms.labels.brand": {
@@ -752,10 +719,6 @@ export const translations: Record<
   "public.search.skuPlaceholder": {
     en: "Enter part number (e.g., MOC-123, DEL-456)",
     es: "Ingrese número de parte (ej: MOC-123, DEL-456)",
-  },
-  "public.search.button": {
-    en: "Search",
-    es: "Buscar",
   },
   "public.search.vehicleSearchTitle": {
     en: "Vehicle Search",
