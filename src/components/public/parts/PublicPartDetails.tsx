@@ -36,15 +36,11 @@ export function PublicPartDetails({
   const [backText, setBackText] = useState<string>("");
 
   useEffect(() => {
-    // Check if we came from admin by looking at the referrer or using a URL parameter
+    // Only use the explicit URL parameter to determine if we came from admin
     const urlParams = new URLSearchParams(window.location.search);
     const fromAdmin = urlParams.get('from') === 'admin';
 
-    // Also check document referrer as backup
-    const referrer = document.referrer;
-    const cameFromAdmin = fromAdmin || referrer.includes('/admin/parts/');
-
-    if (cameFromAdmin && part?.id) {
+    if (fromAdmin && part?.id) {
       setBackLink(`/admin/parts/${part.id}`);
       setBackText(t("public.partDetails.backToAdmin"));
     } else {

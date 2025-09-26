@@ -3,7 +3,7 @@
 import { useLocale } from "@/contexts/LocaleContext";
 import { Plus } from "lucide-react";
 import {  createAcrPartsTableColumns } from "./parts-table-config";
-import { AdminPagination } from "../layout/AdminPagination";
+import { AcrPagination } from "@/components/acr";
 import { SearchTerms } from "./SearchFilters";
 import { useRouter } from "next/navigation";
 import { AcrButton, AcrTable } from "@/components/acr";
@@ -179,7 +179,7 @@ export function PartsList(props: PartsListProps) {
 
       {/* Pagination */}
       {!partsLoading && !partsError && (
-        <AdminPagination
+        <AcrPagination
           currentPage={currentPage}
           totalPages={totalPages}
           total={partsTotal}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AcrSelect, AcrButton } from "@/components/acr";
 
 interface MainSearchBarProps {
   onSearch: (results: any[]) => void;
@@ -80,80 +81,87 @@ export function MainSearchBar({ onSearch }: MainSearchBarProps) {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             {/* Clase (Part Type) */}
             <div>
-              <select
-                value={clase}
-                onChange={(e) => setClase(e.target.value)}
-                className="w-full bg-white text-black rounded-full h-14 px-4 text-center font-medium border-0 focus:ring-2 focus:ring-acr-red-500"
-              >
-                <option value="">Clase</option>
-                {mockClases.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <AcrSelect.Root value={clase} onValueChange={setClase}>
+                <AcrSelect.Trigger className="w-full bg-white text-black rounded-full h-14 px-4 text-center font-medium border-0 focus:ring-2 focus:ring-acr-red-500">
+                  <AcrSelect.Value placeholder="Clase" />
+                </AcrSelect.Trigger>
+                <AcrSelect.Content>
+                  {mockClases.map((option) => (
+                    <AcrSelect.Item key={option.value} value={option.value}>
+                      {option.label}
+                    </AcrSelect.Item>
+                  ))}
+                </AcrSelect.Content>
+              </AcrSelect.Root>
             </div>
 
             {/* Automotriz (Make) */}
             <div>
-              <select
+              <AcrSelect.Root
                 value={automotriz}
-                onChange={(e) => {
-                  setAutomotriz(e.target.value);
+                onValueChange={(value) => {
+                  setAutomotriz(value);
                   setModelo(""); // Reset dependent dropdown
                 }}
-                className="w-full bg-white text-black rounded-full h-14 px-4 text-center font-medium border-0 focus:ring-2 focus:ring-acr-red-500"
               >
-                <option value="">Automotriz</option>
-                {mockAutomotriz.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                <AcrSelect.Trigger className="w-full bg-white text-black rounded-full h-14 px-4 text-center font-medium border-0 focus:ring-2 focus:ring-acr-red-500">
+                  <AcrSelect.Value placeholder="Automotriz" />
+                </AcrSelect.Trigger>
+                <AcrSelect.Content>
+                  {mockAutomotriz.map((option) => (
+                    <AcrSelect.Item key={option.value} value={option.value}>
+                      {option.label}
+                    </AcrSelect.Item>
+                  ))}
+                </AcrSelect.Content>
+              </AcrSelect.Root>
             </div>
 
             {/* Modelo */}
             <div>
-              <select
+              <AcrSelect.Root
                 value={modelo}
-                onChange={(e) => setModelo(e.target.value)}
+                onValueChange={setModelo}
                 disabled={!automotriz}
-                className="w-full bg-white text-black rounded-full h-14 px-4 text-center font-medium border-0 focus:ring-2 focus:ring-acr-red-500 disabled:bg-gray-100 disabled:text-gray-400"
               >
-                <option value="">Modelo</option>
-                {availableModelos.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                <AcrSelect.Trigger className="w-full bg-white text-black rounded-full h-14 px-4 text-center font-medium border-0 focus:ring-2 focus:ring-acr-red-500 disabled:bg-gray-100 disabled:text-gray-400">
+                  <AcrSelect.Value placeholder="Modelo" />
+                </AcrSelect.Trigger>
+                <AcrSelect.Content>
+                  {availableModelos.map((option) => (
+                    <AcrSelect.Item key={option.value} value={option.value}>
+                      {option.label}
+                    </AcrSelect.Item>
+                  ))}
+                </AcrSelect.Content>
+              </AcrSelect.Root>
             </div>
 
             {/* Año */}
             <div>
-              <select
-                value={ano}
-                onChange={(e) => setAno(e.target.value)}
-                className="w-full bg-white text-black rounded-full h-14 px-4 text-center font-medium border-0 focus:ring-2 focus:ring-acr-red-500"
-              >
-                <option value="">Año</option>
-                {mockAnos.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <AcrSelect.Root value={ano} onValueChange={setAno}>
+                <AcrSelect.Trigger className="w-full bg-white text-black rounded-full h-14 px-4 text-center font-medium border-0 focus:ring-2 focus:ring-acr-red-500">
+                  <AcrSelect.Value placeholder="Año" />
+                </AcrSelect.Trigger>
+                <AcrSelect.Content>
+                  {mockAnos.map((option) => (
+                    <AcrSelect.Item key={option.value} value={option.value}>
+                      {option.label}
+                    </AcrSelect.Item>
+                  ))}
+                </AcrSelect.Content>
+              </AcrSelect.Root>
             </div>
 
             {/* Search Button */}
             <div>
-              <button
+              <AcrButton
                 onClick={handleSearch}
-                className="w-full bg-acr-red-600 hover:bg-acr-red-700 text-white font-bold py-4 px-8 rounded-full h-14 transition-colors uppercase tracking-wide"
+                variant="primary"
+                className="w-full rounded-full h-14 uppercase tracking-wide font-bold"
               >
                 BUSCAR
-              </button>
+              </AcrButton>
             </div>
           </div>
         </div>
