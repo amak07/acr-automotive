@@ -8,10 +8,10 @@ import {
   PaginationEllipsis,
   PaginationItem,
   PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
 } from "../ui/pagination";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AcrButton } from "./Button";
+import { cn } from "@/lib/utils";
 
 export interface AcrPaginationProps {
   /**
@@ -143,7 +143,7 @@ export const AcrPagination = React.forwardRef<HTMLDivElement, AcrPaginationProps
               size={size}
               className="flex items-center gap-1"
             >
-              ← Prev
+              {t("pagination.previousShort")}
             </AcrButton>
 
             <div className="flex items-center gap-1">
@@ -167,7 +167,7 @@ export const AcrPagination = React.forwardRef<HTMLDivElement, AcrPaginationProps
               size={size}
               className="flex items-center gap-1"
             >
-              Next →
+              {t("pagination.nextShort")}
             </AcrButton>
           </div>
 
@@ -183,14 +183,20 @@ export const AcrPagination = React.forwardRef<HTMLDivElement, AcrPaginationProps
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious
+                <PaginationLink
                   onClick={handlePrevious}
-                  className={
+                  size="default"
+                  className={cn(
+                    "gap-1 pl-2.5 cursor-pointer",
                     currentPage === 1
                       ? "pointer-events-none opacity-50"
                       : "cursor-pointer"
-                  }
-                />
+                  )}
+                  aria-label="Go to previous page"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>{t("pagination.previous")}</span>
+                </PaginationLink>
               </PaginationItem>
 
               {getPageNumbers(false).map((page) => (
@@ -216,14 +222,20 @@ export const AcrPagination = React.forwardRef<HTMLDivElement, AcrPaginationProps
               )}
 
               <PaginationItem>
-                <PaginationNext
+                <PaginationLink
                   onClick={handleNext}
-                  className={
+                  size="default"
+                  className={cn(
+                    "gap-1 pr-2.5 cursor-pointer",
                     currentPage === totalPages
                       ? "pointer-events-none opacity-50"
                       : "cursor-pointer"
-                  }
-                />
+                  )}
+                  aria-label="Go to next page"
+                >
+                  <span>{t("pagination.next")}</span>
+                  <ChevronRight className="h-4 w-4" />
+                </PaginationLink>
               </PaginationItem>
             </PaginationContent>
           </Pagination>

@@ -182,6 +182,12 @@ export interface TranslationKeys {
   // Dashboard Cross References (legacy)
   'admin.dashboard.crossReferences': string;
 
+  // Pagination
+  'pagination.previous': string;
+  'pagination.next': string;
+  'pagination.previousShort': string;
+  'pagination.nextShort': string;
+
   // Modal Labels
   'forms.labels.brand': string;
   'forms.labels.model': string;
