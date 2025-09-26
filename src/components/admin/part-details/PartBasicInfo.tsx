@@ -14,7 +14,7 @@ import {
   AcrImageUpload,
 } from "@/components/acr";
 import { Info } from "lucide-react";
-import { Control, Controller, useFormContext } from "react-hook-form";
+import { Control, Controller } from "react-hook-form";
 import { PartFormData } from "@/components/admin/parts/PartFormContainer";
 import { FilterOptionsResponse } from "@/app/api/admin/filter-options/route";
 import { useFormState } from "react-hook-form";
@@ -82,7 +82,6 @@ export function PartBasicInfo({
   const { t } = useLocale();
   const { toast } = useToast();
   const { dirtyFields } = useFormState({ control });
-  const { setValue } = useFormContext<PartFormData>();
 
   // Helper function to check if field is dirty
   const isFieldDirty = (fieldName: keyof PartFormData) => {
@@ -233,10 +232,7 @@ export function PartBasicInfo({
                 render={({ field }) => (
                   <AcrImageUpload
                     value={field.value}
-                    onValueChange={(url) => {
-                      field.onChange(url);
-                      setValue("image_url", url || "");
-                    }}
+                    onValueChange={field.onChange}
                     onSuccess={() => {
                       toast({
                         title: t("common.success"),

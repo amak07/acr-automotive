@@ -7,7 +7,7 @@ import {
   PublicSearchTerms,
 } from "@/components/public/search/PublicSearchFilters";
 import { PublicPartsList } from "@/components/public/parts/PublicPartsList";
-import { AdminPagination } from "@/components/admin/layout/AdminPagination";
+import { AcrPagination } from "@/components/acr";
 import { usePublicParts } from "@/hooks";
 import { useLocale } from "@/contexts/LocaleContext";
 import { CardError } from "@/components/ui/error-states";
@@ -60,7 +60,7 @@ export default function HomePage() {
           />
           {data && data.count > searchTerms.limit && (
             <div className="mt-8">
-              <AdminPagination
+              <AcrPagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 total={data.count}
