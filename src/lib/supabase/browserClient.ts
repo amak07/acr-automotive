@@ -1,11 +1,11 @@
 /**
- * Supabase Client Configuration
+ * Supabase BROWSER/SRR Client Configuration
  *
  * This file configures the Supabase client for ACR Automotive.
- * Supabase provides database, authentication, and storage services.
+ * This client is specifically designed to work the Next.js client-side.
  */
 
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 // Note: In production (Vercel), environment variables are automatically loaded
 // Only load dotenv for local development and testing
@@ -27,11 +27,16 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 /**
- * Supabase Client Instance
+ * Supabase BROWSER/SRR Client Instance
  *
- * This client is used for all database operations:
- * - Parts catalog management
- * - Vehicle applications
- * - Cross-reference lookups
+ * This client is used for all STORAGE operations:
+ * - Image storage operations
  */
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
+
+export const supabaseBrowser = createClient();

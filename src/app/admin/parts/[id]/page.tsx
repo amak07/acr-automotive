@@ -47,6 +47,7 @@ function PartDetailsPage() {
           ? undefined
           : updatedData.bolt_pattern,
         specifications: updatedData.specifications || undefined,
+        image_url: updatedData.image_url || undefined,
         id,
       };
 

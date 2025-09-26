@@ -17,6 +17,8 @@ export { AcrTextarea, type AcrTextareaProps } from "./Textarea";
 export { AcrLabel, type AcrLabelProps } from "./Label";
 export { AcrModal, AcrModalFooter, AcrModalBody } from "./AcrModal";
 export { ConfirmDialog } from "./ConfirmDialog";
+export { AcrTooltip, type AcrTooltipProps } from "./Tooltip";
+export { AcrTable, type AcrTableProps, type AcrTableColumn } from "./Table";
 
 /**
  * Usage Examples:

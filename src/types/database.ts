@@ -5,12 +5,16 @@ export type DatabasePart = Database["public"]["Tables"]["parts"]["Insert"];
 export type DatabasePartRow = Database["public"]["Tables"]["parts"]["Row"];
 
 // Types for database operations - Cross References
-export type DatabaseCrossRef = Database["public"]["Tables"]["cross_references"]["Insert"];
-export type DatabaseCrossRefRow = Database["public"]["Tables"]["cross_references"]["Row"];
+export type DatabaseCrossRef =
+  Database["public"]["Tables"]["cross_references"]["Insert"];
+export type DatabaseCrossRefRow =
+  Database["public"]["Tables"]["cross_references"]["Row"];
 
 // Types for database operations - Vehicle Applications
-export type DatabaseVehicleApp = Database["public"]["Tables"]["vehicle_applications"]["Insert"];
-export type DatabaseVehicleAppRow = Database["public"]["Tables"]["vehicle_applications"]["Row"];
+export type DatabaseVehicleApp =
+  Database["public"]["Tables"]["vehicle_applications"]["Insert"];
+export type DatabaseVehicleAppRow =
+  Database["public"]["Tables"]["vehicle_applications"]["Row"];
 
 // Parts with summary counts for list views
 export type PartSummary = DatabasePartRow & {

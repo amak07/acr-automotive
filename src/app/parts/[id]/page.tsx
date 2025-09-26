@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useParams } from "next/navigation";
 import { PublicHeader } from "@/components/public/layout/PublicHeader";
 import { PublicPartDetails } from "@/components/public/parts/PublicPartDetails";
@@ -17,11 +16,7 @@ export default function PublicPartDetailsPage() {
       <PublicHeader />
 
       <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
-        <PublicPartDetails
-          part={part}
-          isLoading={isLoading}
-          error={error}
-        />
+        <PublicPartDetails part={part} isLoading={isLoading} error={error} />
       </main>
     </div>
   );

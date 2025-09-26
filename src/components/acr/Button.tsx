@@ -13,22 +13,26 @@ const acrButtonVariants = cva(
     variants: {
       variant: {
         // Primary ACR red button
-        primary: "bg-acr-red-600 text-white shadow hover:bg-acr-red-700 active:bg-acr-red-800",
-        
+        primary:
+          "bg-acr-red-600 text-white shadow hover:bg-acr-red-700 active:bg-acr-red-800",
+
         // Secondary outlined button
-        secondary: "border border-acr-gray-300 bg-white text-acr-gray-700 shadow-sm hover:bg-acr-gray-50 active:bg-acr-gray-100",
-        
+        secondary:
+          "border border-acr-gray-300 bg-white text-acr-gray-700 shadow-sm hover:bg-acr-gray-50 active:bg-acr-gray-100",
+
         // Destructive red button for dangerous actions
-        destructive: "bg-red-600 text-white shadow hover:bg-red-700 active:bg-red-800",
-        
+        destructive:
+          "bg-red-600 text-white shadow hover:bg-red-700 active:bg-red-800",
+
         // Ghost button for subtle actions
         ghost: "text-acr-gray-700 hover:bg-acr-gray-100 active:bg-acr-gray-200",
-        
+
         // Link-style button
         link: "text-acr-red-600 underline-offset-4 hover:underline hover:text-acr-red-700",
-        
+
         // Success button
-        success: "bg-green-600 text-white shadow hover:bg-green-700 active:bg-green-800",
+        success:
+          "bg-green-600 text-white shadow hover:bg-green-700 active:bg-green-800",
       },
       size: {
         sm: "h-8 px-3 text-xs",
@@ -56,16 +60,17 @@ export interface AcrButtonProps
 /**
  * ACR-branded button component with consistent styling
  * Built on top of shadcn Button with ACR design standards
- * 
+ *
  * @example
  * <AcrButton variant="primary">Save Changes</AcrButton>
  * <AcrButton variant="secondary" size="sm">Cancel</AcrButton>
  */
 export const AcrButton = React.forwardRef<HTMLButtonElement, AcrButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  ({ className, variant, size, type = "button", ...props }, ref) => {
     return (
       <ShadcnButton
         className={cn(acrButtonVariants({ variant, size }), className)}
+        type={type}
         ref={ref}
         {...props}
       />

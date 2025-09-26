@@ -163,6 +163,7 @@ export async function POST(request: NextRequest) {
       drive_type,
       position_type,
       specifications,
+      image_url,
     } = params;
     const acr_sku = `ACR${sku_number}`;
     const {
@@ -179,6 +180,7 @@ export async function POST(request: NextRequest) {
           drive_type,
           position_type,
           specifications,
+          image_url,
         })
         .select();
 
@@ -230,6 +232,7 @@ export async function PUT(request: NextRequest) {
       drive_type,
       position_type,
       specifications,
+      image_url,
       id,
     } = params;
     const {
@@ -247,6 +250,7 @@ export async function PUT(request: NextRequest) {
         drive_type,
         position_type,
         specifications,
+        image_url,
       })
       .eq("id", id)
       .select();

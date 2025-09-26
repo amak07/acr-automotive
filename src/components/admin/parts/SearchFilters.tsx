@@ -6,6 +6,7 @@ import { Search, XCircleIcon } from "lucide-react";
 import { AdminPartsQueryParams } from "@/types";
 import { useFilterOptions } from "@/hooks";
 import { AcrInput, AcrButton, AcrSelect, AcrLabel } from "@/components/acr";
+import { SearchFiltersSkeleton } from "./SearchFiltersSkeleton";
 
 export type SearchTerms = Pick<
   AdminPartsQueryParams,
@@ -41,6 +42,11 @@ export function SearchFilters(props: SearchFiltersProps) {
   const hasActiveFilters = Object.values(searchTerms).some(
     (value) => value !== "" && value !== "__all__"
   );
+
+  // Show skeleton when filter options are loading
+  if (isLoading) {
+    return <SearchFiltersSkeleton />;
+  }
 
   return (
     <div className="bg-white p-4 rounded-lg border border-acr-gray-200 shadow-sm mb-6 lg:p-6">
