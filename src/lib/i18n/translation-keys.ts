@@ -11,6 +11,7 @@ export interface TranslationKeys {
   
   // Admin Dashboard
   'admin.dashboard.totalParts': string;
+  'admin.dashboard.applications': string;
   'admin.dashboard.catalogTitle': string;
   
   // Admin Search & Filters

@@ -398,7 +398,7 @@ export default function DesignSystemPage() {
                   Form Components
                 </h3>
                 <p className="acr-body-small text-acr-gray-600">
-                  Bold styling inspired by Coca-Cola's design system
+                  Bold styling inspired by Coca-Cola&apos;s design system
                 </p>
               </AcrCardHeader>
               <AcrCardContent>
