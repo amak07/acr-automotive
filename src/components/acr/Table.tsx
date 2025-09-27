@@ -100,7 +100,7 @@ export function AcrTable<T = any>({
           <table className="w-full caption-bottom text-sm">
             {showHeader && (
               <thead className="[&_tr]:border-b">
-                <tr className="border-b transition-colors hover:bg-muted/50">
+                <tr className="border-b transition-colors hover:bg-acr-red-50">
                   {columns.map((column, index) => (
                     <th
                       key={`header-skeleton-${index}`}
@@ -119,7 +119,7 @@ export function AcrTable<T = any>({
               {Array.from({ length: loadingRows }).map((_, rowIndex) => (
                 <tr
                   key={`skeleton-row-${rowIndex}`}
-                  className="border-b transition-colors"
+                  className="border-b transition-colors hover:bg-acr-red-50"
                 >
                   {columns.map((column, colIndex) => (
                     <td
@@ -183,7 +183,7 @@ export function AcrTable<T = any>({
       <Table>
         {showHeader && (
           <TableHeader>
-            <TableRow className="border-acr-gray-200 hover:bg-acr-gray-50">
+            <TableRow className="border-acr-gray-200 hover:bg-acr-red-50">
               {columns.map((column, index) => (
                 <TableHead
                   key={`header-${column.key}-${index}`}
@@ -208,8 +208,8 @@ export function AcrTable<T = any>({
               <TableRow
                 key={`row-${index}`}
                 className={cn(
-                  "border-acr-gray-200 hover:bg-acr-gray-50 transition-colors duration-200",
-                  onRowClick && "cursor-pointer hover:bg-acr-red-50",
+                  "border-acr-gray-200 hover:bg-acr-red-50 transition-colors duration-200",
+                  onRowClick && "cursor-pointer",
                   computedRowClassName
                 )}
                 onClick={() => onRowClick?.(item, index)}
