@@ -69,10 +69,10 @@ export function DashboardCards() {
                   <card.icon />
                 </div>
                 <div className="flex-1">
-                  <div className="text-xl font-semibold text-acr-gray-800 lg:text-2xl">
+                  <div className="acr-heading-5 text-acr-gray-800">
                     {formatNumber(card.count)}
                   </div>
-                  <div className="text-xs text-acr-gray-500 lg:text-sm">
+                  <div className="acr-caption text-acr-gray-500">
                     {t(card.cardTitle as any)}
                   </div>
                 </div>

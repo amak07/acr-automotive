@@ -4,12 +4,6 @@ import { cn } from "@/lib/utils";
 
 export interface AcrInputProps extends React.ComponentProps<typeof ShadcnInput> {
   /**
-   * Visual variant of the input
-   * @default "default"
-   */
-  variant?: "default" | "disabled";
-
-  /**
    * Error message to display. When provided, input shows error state
    */
   error?: string;
@@ -25,41 +19,58 @@ export interface AcrInputProps extends React.ComponentProps<typeof ShadcnInput> 
  * Built on top of shadcn Input with ACR design standards
  */
 export const AcrInput = React.forwardRef<HTMLInputElement, AcrInputProps>(
-  ({ className, variant = "default", error, helperText, ...props }, ref) => {
+  ({ className, error, helperText, readOnly, ...props }, ref) => {
     const hasError = !!error;
 
     return (
       <div className="w-full">
         <ShadcnInput
           className={cn(
-            // ACR-specific styling overrides
-            "pl-4 pr-4 py-3 h-auto", // ACR spacing standards
+            // Base input structure
+            "h-auto transition-colors duration-200",
 
-            // Default border - neutral gray with hover effect
-            "border-acr-gray-400 bg-white hover:border-acr-red-300",
+            // ACR chunky styling (Coca-Cola inspired)
+            "px-6 py-4 font-medium",
+            "border-black bg-white text-black placeholder:text-acr-gray-700",
 
-            // Error state - red border only when there's an error
-            hasError && "border-red-500 focus:border-red-500 focus:ring-red-500",
+            // Hover state
+            "hover:border-gray-600 hover:shadow-[0_0_0_2px_rgba(0,0,0,0.24)]",
 
-            // Focus states - only when no error
-            !hasError && "focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent",
+            // Focus state - normal (need !important to override shadcn base styles)
+            !hasError && [
+              "focus:!outline-2 focus:!outline-black focus:!outline-offset-2",
+              "focus:!border-black focus:!ring-0",
+              "focus-visible:!outline-2 focus-visible:!outline-black focus-visible:!outline-offset-2",
+              "focus-visible:!ring-0"
+            ],
 
-            "transition-colors duration-200", // Smooth transitions
-            "placeholder:text-acr-gray-400", // ACR placeholder color
+            // Error state
+            hasError && [
+              "!border-red-600",
+              "focus:!border-red-600 focus:!outline-2 focus:!outline-red-600 focus:!outline-offset-2",
+              "focus-visible:!outline-2 focus-visible:!outline-red-600 focus-visible:!outline-offset-2",
+              "focus-visible:!ring-0"
+            ],
 
-            // Variant styles
-            variant === "disabled" && "bg-acr-gray-50 text-acr-gray-500 cursor-not-allowed",
+            // Readonly state
+            readOnly && [
+              "bg-acr-gray-50 text-acr-gray-700",
+              "border-acr-gray-300",
+              "cursor-default",
+              "hover:!border-acr-gray-300 hover:!shadow-none"
+            ],
 
             className
           )}
           ref={ref}
+          readOnly={readOnly}
           {...props}
         />
 
         {/* Helper text or error message */}
         {(error || helperText) && (
           <p className={cn(
-            "mt-1 text-xs",
+            "mt-1 acr-caption",
             hasError ? "text-red-600" : "text-acr-gray-500"
           )}>
             {error || helperText}

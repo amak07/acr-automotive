@@ -44,7 +44,7 @@ export function PartsList(props: PartsListProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-acr-gray-800">
+        <h2 className="acr-heading-5 text-acr-gray-800">
           {t("admin.dashboard.catalogTitle")}
         </h2>
         <AcrButton
@@ -90,10 +90,10 @@ export function PartsList(props: PartsListProps) {
               <div className="p-4 pb-3">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="bg-acr-red-50 text-acr-red-700 px-3 py-1.5 rounded-md text-sm font-mono font-semibold">
+                    <span className="bg-acr-red-50 text-acr-red-700 px-3 py-1.5 rounded-md acr-body-small font-mono font-semibold">
                       {part.acr_sku}
                     </span>
-                    <span className="bg-acr-gray-100 text-acr-gray-700 px-2 py-1 rounded text-xs font-medium">
+                    <span className="bg-acr-gray-100 text-acr-gray-700 px-2 py-1 rounded acr-caption">
                       {part.part_type}
                     </span>
                   </div>
@@ -103,7 +103,7 @@ export function PartsList(props: PartsListProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="text-center">
-                      <div className="text-lg font-bold text-acr-gray-900">
+                      <div className="acr-heading-6 text-acr-gray-900">
                         {part.vehicle_count || 0}
                       </div>
                       <div className="text-xs text-acr-gray-500 uppercase tracking-wider">
@@ -111,7 +111,7 @@ export function PartsList(props: PartsListProps) {
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-bold text-acr-gray-900">
+                      <div className="acr-heading-6 text-acr-gray-900">
                         {part.cross_reference_count || 0}
                       </div>
                       <div className="text-xs text-acr-gray-500 uppercase tracking-wider">
@@ -146,7 +146,7 @@ export function PartsList(props: PartsListProps) {
               {/* Action Area */}
               <div className="bg-acr-gray-50 px-4 py-3 border-t border-acr-gray-100">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-acr-gray-700">
+                  <span className="acr-body-small font-medium text-acr-gray-700">
                     {t("common.actions.view")}
                   </span>
                   <div className="w-5 h-5 rounded-full bg-acr-red-500 flex items-center justify-center">

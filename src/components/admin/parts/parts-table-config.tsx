@@ -85,7 +85,7 @@ export const createAcrPartsTableColumns = (
 
       if (!hasSpecs) {
         return (
-          <div className="text-xs min-w-[140px] text-center text-acr-gray-400 italic py-2">
+          <div className="text-xs min-w-[140px] text-left text-acr-gray-400 italic py-2">
             {t("parts.labels.noNotes")}
           </div>
         );
@@ -146,9 +146,10 @@ export const createAcrPartsTableColumns = (
   {
     key: "data_summary",
     label: t("admin.parts.dataRelations"),
+    headerClassName: "text-left",
     render: (value: any, part?: PartSummary) => (
-      <div className="text-xs space-y-1 min-w-[100px] text-center">
-        <div className="flex items-center justify-center gap-1">
+      <div className="text-xs space-y-1 min-w-[100px] text-left">
+        <div className="flex items-center justify-start gap-1">
           <span className="text-blue-600">🚗</span>
           <span className="text-acr-gray-900 font-medium">
             {part?.vehicle_count || 0}
@@ -161,7 +162,7 @@ export const createAcrPartsTableColumns = (
             )}
           </span>
         </div>
-        <div className="flex items-center justify-center gap-1">
+        <div className="flex items-center justify-start gap-1">
           <span className="text-green-600">🔗</span>
           <span className="text-acr-gray-900 font-medium">
             {part?.cross_reference_count || 0}

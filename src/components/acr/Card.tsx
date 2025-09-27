@@ -6,19 +6,20 @@ import { cva, type VariantProps } from "class-variance-authority";
  * ACR Card variants with brand-specific styling
  */
 const acrCardVariants = cva(
-  "bg-white rounded-lg border shadow-sm overflow-hidden",
+  "bg-white rounded-xl border overflow-hidden transition-all duration-300",
   {
     variants: {
       variant: {
-        default: "border-acr-gray-200",
-        elevated: "border-acr-gray-200 shadow-md",
-        outlined: "border-acr-gray-300",
+        default: "border-acr-gray-200 shadow-sm hover:shadow-md",
+        elevated: "border-acr-gray-200 shadow-lg hover:shadow-xl",
+        outlined: "border-acr-gray-300 shadow-none hover:shadow-sm hover:border-acr-gray-400",
+        featured: "border-acr-red-200 bg-gradient-to-br from-white to-acr-red-50/30 shadow-md hover:shadow-lg",
       },
       padding: {
         none: "",
-        sm: "p-4",
-        default: "p-4 lg:p-5",
-        lg: "p-6",
+        sm: "p-5",
+        default: "p-6 lg:p-7",
+        lg: "p-8",
       },
     },
     defaultVariants: {
@@ -69,7 +70,7 @@ export const AcrCardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("mb-6", className)}
+    className={cn("mb-7", className)}
     {...props}
   />
 ));

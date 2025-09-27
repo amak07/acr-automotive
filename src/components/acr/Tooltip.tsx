@@ -61,7 +61,7 @@ export const AcrTooltipInfo: React.FC<{
   <TooltipProvider delayDuration={400}>
     <Tooltip>
       <TooltipTrigger asChild>
-        <Info className={cn("w-4 h-4 text-acr-red-500 hover:text-acr-red-600 cursor-help transition-colors", className)} />
+        <Info className={cn("w-4 h-4 text-acr-red-500 hover:text-acr-red-600 cursor-help transition-colors shrink-0", className)} />
       </TooltipTrigger>
       <TooltipContent
         side={side}
@@ -69,7 +69,7 @@ export const AcrTooltipInfo: React.FC<{
         className={cn(
           // ACR-specific styling
           "bg-acr-gray-900 text-white border-acr-gray-700",
-          "text-xs font-medium",
+          "acr-caption",
           "px-3 py-2",
           "max-w-xs",
           "shadow-lg"
@@ -97,7 +97,7 @@ const AcrTooltipComponent = React.forwardRef<
         className={cn(
           // ACR-specific styling
           "bg-acr-gray-900 text-white border-acr-gray-700",
-          "text-xs font-medium",
+          "acr-caption",
           "px-3 py-2",
           "max-w-xs",
           "shadow-lg",

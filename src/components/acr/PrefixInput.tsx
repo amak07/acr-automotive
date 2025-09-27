@@ -50,7 +50,7 @@ export const AcrPrefixInput = React.forwardRef<HTMLInputElement, AcrPrefixInputP
           <div
             className={cn(
               "absolute left-4 top-1/2 transform -translate-y-1/2",
-              "text-acr-gray-600 font-medium pointer-events-none z-10",
+              "text-acr-gray-600 acr-body pointer-events-none z-10",
               "select-none", // Prevent text selection
               prefixClassName
             )}

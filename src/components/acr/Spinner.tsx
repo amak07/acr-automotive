@@ -190,7 +190,7 @@ export const AcrLoadingOverlay = React.forwardRef<
       >
         <AcrSpinner {...spinnerProps} />
         {text && (
-          <p className="mt-2 text-sm text-acr-gray-600 font-medium">{text}</p>
+          <p className="mt-2 acr-body-small text-acr-gray-600">{text}</p>
         )}
       </div>
     );

@@ -39,7 +39,7 @@ export const AcrDirtyIndicator = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+          "inline-flex items-center px-2 py-0.5 rounded-full acr-caption",
           "bg-acr-red-100 text-acr-red-700 border border-acr-red-200",
           className
         )}

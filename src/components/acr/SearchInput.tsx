@@ -57,28 +57,28 @@ export interface AcrSearchInputProps extends Omit<AcrInputProps, "type" | "size"
 
 const sizeClasses = {
   sm: {
-    container: "h-8",
-    input: "h-8 text-sm",
+    container: "h-auto",
+    input: "h-auto acr-body-small py-2",
     icon: "w-3 h-3",
-    padding: (iconPosition: "left" | "right") => iconPosition === "left" ? "pl-8 pr-3" : "pl-3 pr-8",
+    padding: (iconPosition: "left" | "right") => iconPosition === "left" ? "!pl-8 !pr-3" : "!pl-3 !pr-8",
     iconPosition: (iconPosition: "left" | "right") => iconPosition === "left" ? "left-2.5" : "right-2.5",
     clearPosition: "right-2.5",
   },
   default: {
-    container: "h-12",
-    input: "h-12",
+    container: "h-auto",
+    input: "h-auto py-4",
     icon: "w-4 h-4",
-    padding: (iconPosition: "left" | "right") => iconPosition === "left" ? "pl-10 pr-4" : "pl-4 pr-10",
-    iconPosition: (iconPosition: "left" | "right") => iconPosition === "left" ? "left-3" : "right-3",
-    clearPosition: "right-3",
+    padding: (iconPosition: "left" | "right") => iconPosition === "left" ? "!pl-12 !pr-6" : "!pl-6 !pr-12",
+    iconPosition: (iconPosition: "left" | "right") => iconPosition === "left" ? "left-4" : "right-4",
+    clearPosition: "right-4",
   },
   lg: {
-    container: "h-14",
-    input: "h-14 text-lg",
+    container: "h-auto",
+    input: "h-auto acr-body-large py-5",
     icon: "w-5 h-5",
-    padding: (iconPosition: "left" | "right") => iconPosition === "left" ? "pl-12 pr-5" : "pl-5 pr-12",
-    iconPosition: (iconPosition: "left" | "right") => iconPosition === "left" ? "left-3.5" : "right-3.5",
-    clearPosition: "right-3.5",
+    padding: (iconPosition: "left" | "right") => iconPosition === "left" ? "!pl-14 !pr-7" : "!pl-7 !pr-14",
+    iconPosition: (iconPosition: "left" | "right") => iconPosition === "left" ? "left-5" : "right-5",
+    clearPosition: "right-5",
   },
 } as const;
 
@@ -145,9 +145,9 @@ export const AcrSearchInput = React.forwardRef<HTMLInputElement, AcrSearchInputP
           className={cn(
             sizeConfig.input,
             sizeConfig.padding(iconPosition),
-            // Adjust padding when clear button is shown
-            showClearButton && iconPosition === "left" && "pr-10",
-            showClearButton && iconPosition === "right" && "pl-10",
+            // Adjust padding when clear button is shown - need more space for chunky styling
+            showClearButton && iconPosition === "left" && "!pr-12",
+            showClearButton && iconPosition === "right" && "!pl-12",
             className
           )}
           {...props}

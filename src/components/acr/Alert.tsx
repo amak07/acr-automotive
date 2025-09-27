@@ -6,7 +6,7 @@ import { LucideIcon, AlertCircle, CheckCircle, XCircle, Info, AlertTriangle } fr
 import { cva, type VariantProps } from "class-variance-authority";
 
 const alertVariants = cva(
-  "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+  "relative w-full rounded-lg border px-4 py-3 acr-body-small [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
   {
     variants: {
       variant: {
@@ -118,19 +118,19 @@ export const AcrAlert = React.forwardRef<HTMLDivElement, AcrAlertProps>(
 
         <div className="flex-1">
           {title && (
-            <h5 className="mb-1 font-medium leading-none tracking-tight">
+            <h5 className="mb-1 acr-body-small leading-none tracking-tight">
               {title}
             </h5>
           )}
 
           {description && (
-            <div className="text-sm opacity-90">
+            <div className="acr-body-small opacity-90">
               {description}
             </div>
           )}
 
           {children && !description && (
-            <div className="text-sm opacity-90">
+            <div className="acr-body-small opacity-90">
               {children}
             </div>
           )}

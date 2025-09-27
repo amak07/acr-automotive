@@ -2,10 +2,9 @@
 
 import { Dispatch, SetStateAction } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { Search, XCircleIcon } from "lucide-react";
 import { AdminPartsQueryParams } from "@/types";
 import { useFilterOptions } from "@/hooks";
-import { AcrInput, AcrButton, AcrSelect, AcrLabel } from "@/components/acr";
+import { AcrButton, AcrSelect, AcrLabel, AcrSearchInput } from "@/components/acr";
 import { SearchFiltersSkeleton } from "./SearchFiltersSkeleton";
 
 export type SearchTerms = Pick<
@@ -53,28 +52,15 @@ export function SearchFilters(props: SearchFiltersProps) {
       {/* Mobile: Stacked Layout */}
       <div className="lg:hidden space-y-4">
         {/* Search Input */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-acr-gray-400 w-4 h-4 pointer-events-none" />
-          <AcrInput
-            type="text"
-            placeholder={t("admin.search.placeholder")}
-            value={searchTerms.search}
-            onChange={(e) =>
-              setSearchTerms({ ...searchTerms, search: e.target.value })
-            }
-            className="pl-10 pr-10 text-sm"
-          />
-          {searchTerms.search && (
-            <AcrButton
-              onClick={() => setSearchTerms({ ...searchTerms, search: "" })}
-              variant="ghost"
-              size="sm"
-              className="absolute right-3 top-1/2 -translate-y-1/2 h-auto w-auto p-0 text-acr-gray-400 hover:text-acr-gray-600"
-            >
-              <XCircleIcon className="w-4 h-4" />
-            </AcrButton>
-          )}
-        </div>
+        <AcrSearchInput
+          placeholder={t("admin.search.placeholder")}
+          value={searchTerms.search}
+          onChange={(e) =>
+            setSearchTerms({ ...searchTerms, search: e.target.value })
+          }
+          size="default"
+          className="text-sm"
+        />
 
         {/* Filter Dropdowns */}
         <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-3 md:grid-cols-3">
@@ -236,28 +222,14 @@ export function SearchFilters(props: SearchFiltersProps) {
         <div className="flex gap-4 items-end">
           <div className="flex-1 relative">
             <AcrLabel>{t("common.actions.search")}</AcrLabel>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-acr-gray-400 w-4 h-4 pointer-events-none" />
-              <AcrInput
-                type="text"
-                placeholder={t("admin.search.placeholder")}
-                value={searchTerms.search}
-                onChange={(e) =>
-                  setSearchTerms({ ...searchTerms, search: e.target.value })
-                }
-                className="pl-10 pr-10"
-              />
-              {searchTerms.search && (
-                <AcrButton
-                  onClick={() => setSearchTerms({ ...searchTerms, search: "" })}
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-auto w-auto p-0 text-acr-gray-400 hover:text-acr-gray-600"
-                >
-                  <XCircleIcon className="w-4 h-4" />
-                </AcrButton>
-              )}
-            </div>
+            <AcrSearchInput
+              placeholder={t("admin.search.placeholder")}
+              value={searchTerms.search}
+              onChange={(e) =>
+                setSearchTerms({ ...searchTerms, search: e.target.value })
+              }
+              size="default"
+            />
           </div>
 
           <div className="w-1/3">

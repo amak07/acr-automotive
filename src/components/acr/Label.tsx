@@ -21,7 +21,7 @@ export const AcrLabel = React.forwardRef<
     <ShadcnLabel
       className={cn(
         // ACR-specific styling
-        "block text-sm font-medium text-acr-gray-700 mb-2",
+        "block acr-body-small text-acr-gray-700 mb-2",
         className
       )}
       ref={ref}

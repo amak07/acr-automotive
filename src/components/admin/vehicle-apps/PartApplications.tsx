@@ -118,7 +118,7 @@ export function PartApplications({
             >
               {brandCode}
             </span>
-            <span className="text-sm font-medium text-acr-gray-900">
+            <span className="acr-body-small font-medium text-acr-gray-900">
               {application?.make}
             </span>
           </div>
@@ -145,6 +145,7 @@ export function PartApplications({
       key: "actions",
       label: t("partDetails.vehicleApps.table.actions"),
       className: "text-right",
+      headerClassName: "text-right",
       render: (value: any, application?: VehicleApplication) => (
         <div className="flex items-center justify-end gap-1">
           <AcrButton
@@ -178,10 +179,10 @@ export function PartApplications({
             <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
               <Car className="w-4 h-4 text-white" />
             </div>
-            <h2 className="text-base font-semibold text-acr-gray-900">
+            <h2 className="acr-heading-6 text-acr-gray-900">
               {t("admin.parts.vehicleApplications")}
             </h2>
-            <span className="bg-acr-gray-100 text-acr-gray-700 px-2 py-1 rounded-full text-xs font-medium">
+            <span className="bg-acr-gray-100 text-acr-gray-700 px-2 py-1 rounded-full acr-caption">
               {vehicleCount}
             </span>
           </div>
@@ -203,10 +204,10 @@ export function PartApplications({
             <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
               <Car className="w-4 h-4 text-white" />
             </div>
-            <h2 className="text-lg font-semibold text-acr-gray-900">
+            <h2 className="acr-heading-6 text-acr-gray-900">
               {t("admin.parts.vehicleApplications")}
             </h2>
-            <span className="bg-acr-gray-100 text-acr-gray-700 px-2 py-1 rounded-full text-xs font-medium">
+            <span className="bg-acr-gray-100 text-acr-gray-700 px-2 py-1 rounded-full acr-caption">
               {vehicleCount} {t("admin.parts.vehicles")}
             </span>
           </div>
@@ -224,7 +225,7 @@ export function PartApplications({
           <div className="flex items-center justify-center py-12 border-2 border-dashed border-acr-gray-200 rounded-lg" data-testid="part-applications-empty-state">
             <div className="text-center">
               <Car className="w-12 h-12 text-acr-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-acr-gray-900 mb-2">
+              <h3 className="acr-heading-6 text-acr-gray-900 mb-2">
                 {t("partDetails.empty.noApplications")}
               </h3>
               <p className="text-sm text-acr-gray-500 mb-4">

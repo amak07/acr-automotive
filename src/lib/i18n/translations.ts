@@ -31,6 +31,10 @@ export const translations: Record<
     en: "Total Parts",
     es: "Total Piezas",
   },
+  "admin.dashboard.applications": {
+    en: "Vehicle Applications",
+    es: "Aplicaciones Vehiculares",
+  },
   "admin.dashboard.catalogTitle": {
     en: "Parts Catalog",
     es: "Catálogo de Piezas",

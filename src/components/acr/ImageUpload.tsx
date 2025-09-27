@@ -224,7 +224,7 @@ export const AcrImageUpload = React.forwardRef<HTMLDivElement, AcrImageUploadPro
             // Drag states
             isDragOver && !disabled
               ? "border-acr-red-500 bg-acr-red-50"
-              : "border-acr-gray-300 hover:border-acr-red-300",
+              : "border-acr-gray-300 hover:border-black",
             className
           )}
           onDragOver={handleDragOver}
@@ -258,10 +258,10 @@ export const AcrImageUpload = React.forwardRef<HTMLDivElement, AcrImageUploadPro
                   <div className="w-12 h-12 lg:w-16 lg:h-16 bg-acr-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Upload className="w-6 h-6 lg:w-8 lg:h-8 text-acr-gray-400" />
                   </div>
-                  <p className="text-xs lg:text-sm text-acr-gray-600 mb-2">
+                  <p className="acr-caption lg:acr-body-small text-acr-gray-600 mb-2">
                     {isDragOver ? dragText : placeholderText}
                   </p>
-                  <p className="text-xs text-acr-gray-500">{formatText}</p>
+                  <p className="acr-caption text-acr-gray-500">{formatText}</p>
                 </>
               )}
             </div>

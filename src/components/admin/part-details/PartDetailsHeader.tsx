@@ -128,7 +128,7 @@ export function PartDetailsHeader({
               <Settings className="w-4 h-4 text-acr-red-600" />
             </div>
             <div className="flex-1">
-              <h1 className="text-lg font-bold text-acr-gray-900">{acrSku}</h1>
+              <h3 className="acr-heading-6 text-acr-gray-900">{acrSku}</h3>
               {partType && (
                 <p className="text-sm text-acr-gray-600">
                   <span className="mr-1">
@@ -193,9 +193,9 @@ export function PartDetailsHeader({
             </div>
             <div className="flex items-center gap-6">
               <div>
-                <h1 className="text-xl font-bold text-acr-gray-900">
+                <h3 className="acr-heading-6 text-acr-gray-900">
                   {acrSku}
-                </h1>
+                </h3>
                 {partType && (
                   <p className="text-sm text-acr-gray-600">
                     <span className="mr-1">
@@ -219,7 +219,7 @@ export function PartDetailsHeader({
                         {iconConfig.icon}
                       </div>
                       <div>
-                        <div className="text-lg font-semibold text-acr-gray-800">
+                        <div className="acr-heading-5 text-acr-gray-800">
                           {stat.value}
                         </div>
                         <div className="text-xs text-acr-gray-500">
@@ -288,8 +288,8 @@ export function PartDetailsHeader({
                     <div
                       className={
                         stat.type === "count"
-                          ? "text-lg font-semibold text-acr-gray-800"
-                          : "text-sm font-medium text-acr-gray-800 truncate"
+                          ? "acr-heading-5 text-acr-gray-800"
+                          : "acr-body-small font-medium text-acr-gray-800 truncate"
                       }
                     >
                       {stat.value}
@@ -306,7 +306,7 @@ export function PartDetailsHeader({
           {/* Desktop Layout - 4-Column Grid for Specifications */}
           <div className="hidden lg:block">
             <div className="flex items-center gap-2 mb-3">
-              <h3 className="text-sm font-medium text-acr-gray-700">
+              <h3 className="acr-body-small font-medium text-acr-gray-700">
                 {t("partDetails.header.specifications")}
               </h3>
               <div className="flex-1 h-px bg-acr-gray-200"></div>
@@ -322,7 +322,7 @@ export function PartDetailsHeader({
                       {iconConfig.icon}
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-acr-gray-800 truncate">
+                      <div className="acr-body-small font-medium text-acr-gray-800 truncate">
                         {stat.value}
                       </div>
                       <div className="text-xs text-acr-gray-500">

@@ -3,11 +3,7 @@ import { Textarea as ShadcnTextarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 export interface AcrTextareaProps extends React.ComponentProps<typeof ShadcnTextarea> {
-  /**
-   * Visual variant of the textarea
-   * @default "default"
-   */
-  variant?: "default" | "disabled";
+  // No variants - single consistent styling
 }
 
 /**
@@ -15,21 +11,23 @@ export interface AcrTextareaProps extends React.ComponentProps<typeof ShadcnText
  * Built on top of shadcn Textarea with ACR design standards
  */
 export const AcrTextarea = React.forwardRef<HTMLTextAreaElement, AcrTextareaProps>(
-  ({ className, variant = "default", ...props }, ref) => {
+  ({ className, ...props }, ref) => {
     return (
       <ShadcnTextarea
         className={cn(
           // ACR-specific styling overrides
           "pl-4 pr-4 py-3 min-h-[100px]", // ACR spacing standards
-          "border-acr-gray-400 bg-white hover:border-acr-red-300", // ACR colors with hover
-          "focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent", // ACR focus states
           "transition-colors duration-200", // Smooth transitions
-          "placeholder:text-acr-gray-400", // ACR placeholder color
           "resize-none", // Prevent resizing for consistency
-          
-          // Variant styles
-          variant === "disabled" && "bg-acr-gray-50 text-acr-gray-500 cursor-not-allowed",
-          
+
+          // Coca-Cola chunky style - only variant
+          "!border-black !border !bg-white !text-black",
+          "hover:!border-gray-600 hover:!shadow-[0_0_0_2px_rgba(0,0,0,0.24)]", // Coca-Cola hover
+          "focus:!outline-2 focus:!outline-black focus:!outline-offset-2 focus:!border-black focus:!ring-0",
+          "!placeholder:text-acr-gray-700",
+          "!px-6 !py-4", // Extra padding but keep normal radius
+          "!font-medium", // Slightly bolder text
+
           className
         )}
         ref={ref}
