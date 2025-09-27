@@ -28,7 +28,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
@@ -65,5 +65,50 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Coca-Cola inspired typography utilities */
+  .acr-heading-1 {
+    @apply text-4xl md:text-6xl font-bold tracking-headline leading-heading;
+  }
+
+  .acr-heading-2 {
+    @apply text-3xl md:text-5xl font-bold tracking-headline leading-heading;
+  }
+
+  .acr-heading-3 {
+    @apply text-2xl md:text-4xl font-bold tracking-tighter leading-heading;
+  }
+
+  .acr-heading-4 {
+    @apply text-xl md:text-3xl font-bold tracking-tighter leading-tight;
+  }
+
+  .acr-heading-5 {
+    @apply text-lg md:text-2xl font-bold tracking-tight leading-tight;
+  }
+
+  .acr-heading-6 {
+    @apply text-base md:text-xl font-bold tracking-tight leading-tight;
+  }
+
+  .acr-body-large {
+    @apply text-lg font-normal leading-normal;
+  }
+
+  .acr-body {
+    @apply text-base font-normal leading-normal;
+  }
+
+  .acr-body-small {
+    @apply text-sm font-normal leading-normal;
+  }
+
+  .acr-caption {
+    @apply text-xs font-medium leading-tight;
+  }
+
+  .acr-action-text {
+    @apply text-base font-semibold tracking-tight;
   }
 }

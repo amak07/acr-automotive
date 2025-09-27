@@ -95,6 +95,63 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "12px", // Coca-Cola inspired rounded corners
+        "2xl": "16px",
+        "3xl": "20px",
+      },
+      letterSpacing: {
+        tighter: "-0.02em", // Coca-Cola inspired tight letter spacing
+        tight: "-0.01em",
+        "extra-tight": "-0.03em", // For large headings
+        "headline": "-0.015em", // Coca-Cola -1.5px equivalent
+      },
+      fontSize: {
+        // Coca-Cola inspired typography scale
+        'xs': '0.75rem',     // 12px
+        'sm': '0.875rem',    // 14px
+        'base': '1rem',      // 16px
+        'lg': '1.125rem',    // 18px
+        'xl': '1.25rem',     // 20px
+        '2xl': '1.5rem',     // 24px
+        '3xl': '1.875rem',   // 30px
+        '4xl': '2.25rem',    // 36px
+        '5xl': '3rem',       // 48px - Coca-Cola mobile max
+        '6xl': '3.75rem',    // 60px
+        '7xl': '4.5rem',     // 72px
+        '8xl': '6rem',       // 96px - Coca-Cola desktop max
+      },
+      lineHeight: {
+        // Coca-Cola inspired tight line heights
+        'extra-tight': '1.1',
+        'heading': '1.16',   // Coca-Cola heading ratio
+        'tight': '1.25',
+        'normal': '1.5',
+        'relaxed': '1.625',
+      },
+      fontFamily: {
+        // Coca-Cola inspired font stack with Noto Sans as primary
+        'sans': [
+          'var(--font-noto-sans)',
+          'Noto Sans',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica Neue',
+          'Arial',
+          'sans-serif',
+        ],
+        'mono': [
+          'SF Mono',
+          'Monaco',
+          'Inconsolata',
+          'Roboto Mono',
+          'Consolas',
+          'Liberation Mono',
+          'Menlo',
+          'Courier',
+          'monospace',
+        ],
       },
     },
   },

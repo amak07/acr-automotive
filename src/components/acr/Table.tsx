@@ -97,15 +97,15 @@ export function AcrTable<T = any>({
     return (
       <div className={cn("w-full", className)}>
         <div className="relative w-full overflow-auto">
-          <table className="w-full caption-bottom text-sm">
+          <table className="w-full caption-bottom acr-body-small">
             {showHeader && (
               <thead className="[&_tr]:border-b">
-                <tr className="border-b transition-colors hover:bg-acr-red-50">
+                <tr className="border-b transition-colors hover:bg-gray-100">
                   {columns.map((column, index) => (
                     <th
                       key={`header-skeleton-${index}`}
                       className={cn(
-                        "h-10 px-4 text-left align-middle font-medium text-acr-gray-600",
+                        "h-10 px-4 text-left align-middle acr-body-small text-acr-gray-600",
                         column.headerClassName
                       )}
                     >
@@ -119,7 +119,7 @@ export function AcrTable<T = any>({
               {Array.from({ length: loadingRows }).map((_, rowIndex) => (
                 <tr
                   key={`skeleton-row-${rowIndex}`}
-                  className="border-b transition-colors hover:bg-acr-red-50"
+                  className="border-b transition-colors hover:bg-gray-100"
                 >
                   {columns.map((column, colIndex) => (
                     <td
@@ -143,7 +143,7 @@ export function AcrTable<T = any>({
     return (
       <div className={cn("w-full", className)}>
         <div className="relative w-full overflow-auto">
-          <table className="w-full caption-bottom text-sm">
+          <table className="w-full caption-bottom acr-body-small">
             {showHeader && (
               <thead className="[&_tr]:border-b">
                 <tr className="border-b transition-colors">
@@ -151,7 +151,7 @@ export function AcrTable<T = any>({
                     <th
                       key={`empty-header-${index}`}
                       className={cn(
-                        "h-10 px-4 text-left align-middle font-medium text-acr-gray-600 bg-acr-gray-50",
+                        "h-10 px-4 text-left align-middle acr-body-small text-acr-gray-600 bg-acr-gray-50",
                         column.headerClassName
                       )}
                     >
@@ -165,7 +165,7 @@ export function AcrTable<T = any>({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="h-24 text-center text-acr-gray-500 italic"
+                  className="h-24 text-center acr-body text-acr-gray-500 italic"
                 >
                   {emptyMessage}
                 </td>
@@ -183,12 +183,12 @@ export function AcrTable<T = any>({
       <Table>
         {showHeader && (
           <TableHeader>
-            <TableRow className="border-acr-gray-200 hover:bg-acr-red-50">
+            <TableRow className="border-acr-gray-200 hover:bg-gray-100">
               {columns.map((column, index) => (
                 <TableHead
                   key={`header-${column.key}-${index}`}
                   className={cn(
-                    "h-12 px-4 text-left align-middle font-semibold text-acr-gray-700 bg-acr-gray-50",
+                    "h-12 px-4 text-left align-middle acr-body-small text-acr-gray-700 bg-acr-gray-50",
                     column.headerClassName
                   )}
                 >
@@ -208,7 +208,7 @@ export function AcrTable<T = any>({
               <TableRow
                 key={`row-${index}`}
                 className={cn(
-                  "border-acr-gray-200 hover:bg-acr-red-50 transition-colors duration-200",
+                  "border-acr-gray-200 hover:bg-gray-100 transition-colors duration-200",
                   onRowClick && "cursor-pointer",
                   computedRowClassName
                 )}
@@ -218,7 +218,7 @@ export function AcrTable<T = any>({
                   <TableCell
                     key={`cell-${index}-${column.key}-${colIndex}`}
                     className={cn(
-                      "p-4 align-middle text-acr-gray-900",
+                      "p-4 align-middle acr-body text-acr-gray-900",
                       column.className
                     )}
                   >

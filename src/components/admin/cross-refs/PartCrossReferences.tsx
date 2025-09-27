@@ -136,6 +136,7 @@ export function PartCrossReferences({
       key: "actions",
       label: t("partDetails.crossRefs.table.actions"),
       className: "text-right",
+      headerClassName: "text-right",
       render: (value: any, crossRef?: CrossReference) => (
         <div className="flex items-center justify-end gap-1">
           <AcrButton
@@ -169,7 +170,7 @@ export function PartCrossReferences({
             <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
               <Link2 className="w-4 h-4 text-white" />
             </div>
-            <h2 className="text-base font-semibold text-acr-gray-900">
+            <h2 className="acr-heading-6 text-acr-gray-900">
               {t("admin.parts.crossReferences")}
             </h2>
             <span className="bg-acr-gray-100 text-acr-gray-700 px-2 py-1 rounded-full text-xs font-medium">
@@ -194,7 +195,7 @@ export function PartCrossReferences({
             <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
               <Link2 className="w-4 h-4 text-white" />
             </div>
-            <h2 className="text-lg font-semibold text-acr-gray-900">
+            <h2 className="acr-heading-6 text-acr-gray-900">
               {t("admin.parts.crossReferences")}
             </h2>
             <span className="bg-acr-gray-100 text-acr-gray-700 px-2 py-1 rounded-full text-xs font-medium">
@@ -215,7 +216,7 @@ export function PartCrossReferences({
           <div className="flex items-center justify-center py-12 border-2 border-dashed border-acr-gray-200 rounded-lg">
             <div className="text-center">
               <Link2 className="w-12 h-12 text-acr-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-acr-gray-900 mb-2">
+              <h3 className="acr-heading-6 text-acr-gray-900 mb-2">
                 {t("partDetails.empty.noCrossReferences")}
               </h3>
               <p className="text-sm text-acr-gray-500 mb-4">

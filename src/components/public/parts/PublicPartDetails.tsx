@@ -9,7 +9,7 @@ import {
   DatabaseVehicleAppRow,
   DatabaseCrossRefRow,
 } from "@/types";
-import { Card, CardContent } from "@/components/ui/card";
+import { AcrCard, AcrCardContent } from "@/components/acr/Card";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonPublicPartDetails } from "@/components/ui/skeleton";
 import { PageError } from "@/components/ui/error-states";
@@ -93,8 +93,8 @@ export function PublicPartDetails({
       {/* Main Content - Compact Layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Product Image - Smaller */}
-        <Card className="md:col-span-1">
-          <CardContent className="p-4">
+        <AcrCard variant="elevated" padding="sm" className="md:col-span-1">
+          <AcrCardContent>
             <div className="aspect-square bg-gray-50 rounded-lg flex items-center justify-center relative">
               <Image
                 src="/part-placeholder.webp"
@@ -104,12 +104,12 @@ export function PublicPartDetails({
                 sizes="(max-width: 768px) 100vw, 33vw"
               />
             </div>
-          </CardContent>
-        </Card>
+          </AcrCardContent>
+        </AcrCard>
 
         {/* Part Details - Baleros-Bisa Style */}
-        <Card className="md:col-span-2">
-          <CardContent className="p-4">
+        <AcrCard variant="featured" padding="default" className="md:col-span-2">
+          <AcrCardContent>
             {/* Header with SKU and Badge */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -189,14 +189,14 @@ export function PublicPartDetails({
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </AcrCardContent>
+        </AcrCard>
       </div>
 
       {/* Applications and References - Baleros-Bisa Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardContent className="p-4">
+        <AcrCard variant="default">
+          <AcrCardContent>
             <div className="border border-acr-gray-200 rounded">
               <div className="bg-acr-gray-50 border-b border-acr-gray-200 px-3 py-2">
                 <h4 className="text-sm font-semibold text-acr-gray-900 text-center">
@@ -220,11 +220,11 @@ export function PublicPartDetails({
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </AcrCardContent>
+        </AcrCard>
 
-        <Card>
-          <CardContent className="p-4">
+        <AcrCard variant="default">
+          <AcrCardContent>
             <div className="border border-acr-gray-200 rounded">
               <div className="bg-acr-gray-50 border-b border-acr-gray-200 px-3 py-2">
                 <h4 className="text-sm font-semibold text-acr-gray-900 text-center">
@@ -250,8 +250,8 @@ export function PublicPartDetails({
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </AcrCardContent>
+        </AcrCard>
       </div>
     </div>
   );

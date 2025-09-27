@@ -84,9 +84,15 @@ export const AcrFormField = React.forwardRef<HTMLDivElement, AcrFormFieldProps>(
         {/* Label with dirty indicator and suffix */}
         <AcrLabel htmlFor={htmlFor} required={required}>
           <div className="flex items-center gap-2">
-            <span>{label}</span>
+            <span className="relative">
+              {label}
+              {labelSuffix && (
+                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2">
+                  {labelSuffix}
+                </div>
+              )}
+            </span>
             <AcrDirtyIndicator show={!!isDirty} variant={dirtyVariant} />
-            {labelSuffix}
           </div>
         </AcrLabel>
 
@@ -97,7 +103,7 @@ export const AcrFormField = React.forwardRef<HTMLDivElement, AcrFormFieldProps>(
         {(error || helperText) && (
           <p
             className={cn(
-              "mt-1 text-xs",
+              "mt-1 acr-caption",
               hasError ? "text-red-600" : "text-acr-gray-500"
             )}
           >

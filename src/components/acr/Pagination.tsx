@@ -172,7 +172,7 @@ export const AcrPagination = React.forwardRef<HTMLDivElement, AcrPaginationProps
           </div>
 
           {showInfo && (
-            <div className="text-xs text-acr-gray-500 text-center mt-2">
+            <div className="acr-caption text-acr-gray-500 text-center mt-2">
               {paginationText}
             </div>
           )}
@@ -241,7 +241,7 @@ export const AcrPagination = React.forwardRef<HTMLDivElement, AcrPaginationProps
           </Pagination>
 
           {showInfo && (
-            <div className="text-sm text-acr-gray-500 text-center mt-3">
+            <div className="acr-body-small text-acr-gray-500 text-center mt-3">
               {paginationText}
             </div>
           )}

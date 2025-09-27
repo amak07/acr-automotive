@@ -7,38 +7,38 @@ import { cva, type VariantProps } from "class-variance-authority";
  * ACR Button variants with brand-specific styling
  */
 const acrButtonVariants = cva(
-  // Base styles that apply to all ACR buttons
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acr-red-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  // Base styles that apply to all ACR buttons - Coca-Cola inspired modern styling
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl acr-action-text transition-all duration-300 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-acr-red-500/30 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 transform hover:scale-[1.02] active:scale-[0.98]",
   {
     variants: {
       variant: {
-        // Primary ACR red button
+        // Primary ACR red button - Coca-Cola inspired with gradient and depth
         primary:
-          "bg-acr-red-600 text-white shadow hover:bg-acr-red-700 active:bg-acr-red-800",
+          "bg-gradient-to-b from-acr-red-500 to-acr-red-600 text-white shadow-lg hover:from-acr-red-600 hover:to-acr-red-700 hover:shadow-xl active:from-acr-red-700 active:to-acr-red-800 active:shadow-md",
 
-        // Secondary outlined button
+        // Secondary outlined button - dark outline style (clean and minimal)
         secondary:
-          "border border-acr-gray-300 bg-white text-acr-gray-700 shadow-sm hover:bg-acr-gray-50 active:bg-acr-gray-100",
+          "border-2 border-black bg-white text-black shadow-sm hover:bg-white font-medium focus-visible:ring-gray-600/30",
 
         // Destructive red button for dangerous actions
         destructive:
-          "bg-red-600 text-white shadow hover:bg-red-700 active:bg-red-800",
+          "bg-gradient-to-b from-red-500 to-red-600 text-white shadow-lg hover:from-red-600 hover:to-red-700 hover:shadow-xl active:from-red-700 active:to-red-800",
 
-        // Ghost button for subtle actions
-        ghost: "text-acr-gray-700 hover:bg-acr-gray-100 active:bg-acr-gray-200",
+        // Ghost button for subtle actions - softer interactions
+        ghost: "text-acr-gray-700 hover:bg-acr-gray-100/80 hover:text-acr-gray-900 active:bg-acr-gray-200/80",
 
-        // Link-style button
-        link: "text-acr-red-600 underline-offset-4 hover:underline hover:text-acr-red-700",
+        // Link-style button - enhanced with better hover states
+        link: "text-acr-red-500 underline-offset-4 hover:underline hover:text-acr-red-600 transition-colors",
 
-        // Success button
+        // Success button - matching gradient pattern
         success:
-          "bg-green-600 text-white shadow hover:bg-green-700 active:bg-green-800",
+          "bg-gradient-to-b from-green-500 to-green-600 text-white shadow-lg hover:from-green-600 hover:to-green-700 hover:shadow-xl active:from-green-700 active:to-green-800",
       },
       size: {
-        sm: "h-8 px-3 text-xs",
-        default: "h-10 px-4 py-2",
-        lg: "h-12 px-6 text-base",
-        icon: "h-10 w-10",
+        sm: "h-9 px-4",
+        default: "h-11 px-6 py-2.5",
+        lg: "h-13 px-8",
+        icon: "h-11 w-11",
       },
     },
     defaultVariants: {

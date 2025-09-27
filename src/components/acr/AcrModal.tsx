@@ -63,11 +63,11 @@ export function AcrModal({
           <DialogHeader className="relative border-b border-acr-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <DialogTitle className="text-lg font-semibold text-acr-gray-900">
+                <DialogTitle className="acr-heading-5 text-acr-gray-900">
                   {title}
                 </DialogTitle>
                 {description && (
-                  <DialogDescription className="mt-1 text-sm text-acr-gray-600">
+                  <DialogDescription className="mt-1 acr-body-small text-acr-gray-600">
                     {description}
                   </DialogDescription>
                 )}

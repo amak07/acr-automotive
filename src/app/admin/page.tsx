@@ -54,10 +54,10 @@ function AdminPage() {
   });
 
   return (
-    <div className="min-h-screen bg-acr-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-acr-gray-50 to-acr-gray-100">
       <AdminHeader />
 
-      <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
+      <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8 space-y-8">
         <DashboardCards />
         <SearchFilters
           searchTerms={searchTerms}

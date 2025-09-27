@@ -110,18 +110,39 @@ export const AcrComboBox = React.forwardRef<
               className={cn(
                 // ACR-specific styling overrides
                 "pl-4 pr-3 py-3 h-auto w-full", // ACR spacing standards
-                "border-acr-gray-400 bg-white hover:border-acr-red-300 hover:bg-transparent", // ACR colors with hover
-                "focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:border-transparent", // ACR focus states
-                "transition-colors duration-200", // Smooth transitions
-                "data-[placeholder]:text-acr-gray-500", // ACR placeholder color - darker
 
-                // Custom dropdown arrow styling - force darker color with higher specificity
-                "[&>*[data-radix-select-icon]]:!text-acr-gray-500 [&>*[data-radix-select-icon]]:!opacity-100",
-                "[&_svg]:!text-acr-gray-500 [&_svg]:!opacity-100",
+                // Base styles
+                "transition-colors duration-200",
+
+                // Coca-Cola chunky style - matches inputs
+                "!border-black !border !bg-white !text-black",
+                "hover:!border-gray-600 hover:!shadow-[0_0_0_2px_rgba(0,0,0,0.24)]", // Coca-Cola hover
+                "!px-6 !py-4", // Extra padding but keep normal radius
+                "!font-medium", // Slightly bolder text
+
+                // Focus state - matches Coca-Cola (force override all focus styles)
+                "!focus:outline-2 !focus:outline-black !focus:outline-offset-2 !focus:border-black !focus:ring-0",
+                "!focus-visible:outline-2 !focus-visible:outline-black !focus-visible:outline-offset-2 !focus-visible:border-black !focus-visible:ring-0",
+                "focus:!outline focus-visible:!outline", // Force outline to be visible
+                // Override any red focus styles
+                "focus:!border-black focus-visible:!border-black focus:!ring-black focus-visible:!ring-black",
+                "focus:!ring-offset-0 focus-visible:!ring-offset-0",
+
+                // Open state - show dark border when dropdown is open (like Select component)
+                // Need to override button's focus-visible behavior
+                open && [
+                  "!border-black !outline-2 !outline-black !outline-offset-2",
+                  "focus-visible:!outline-2 focus-visible:!outline-black focus-visible:!outline-offset-2",
+                  "focus:!outline-2 focus:!outline-black focus:!outline-offset-2"
+                ],
+
+                // Custom dropdown arrow styling - black to match Coca-Cola style
+                "[&>*[data-radix-select-icon]]:!text-black [&>*[data-radix-select-icon]]:!opacity-100",
+                "[&_svg]:!text-black [&_svg]:!opacity-100",
 
                 // disabled styles
                 disabled &&
-                  "bg-acr-gray-50 text-acr-gray-500 cursor-not-allowed opacity-50",
+                  "!bg-acr-gray-50 !text-acr-gray-500 !cursor-not-allowed !opacity-50",
 
                 className
               )}
@@ -130,7 +151,7 @@ export const AcrComboBox = React.forwardRef<
               <span className="flex-1 text-left truncate">
                 {displayLabel ? displayLabel : placeholder}
               </span>
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              <ChevronsUpDown className="ml-1 mr-1 h-4 w-4 shrink-0 !text-black !opacity-100" />
             </Button>
           </PopoverTrigger>
           <PopoverContent
@@ -147,6 +168,7 @@ export const AcrComboBox = React.forwardRef<
               <CommandInput
                 placeholder={searchPlaceholder || t("common.search")}
                 value={searchValue}
+                className="[&>svg]:!ml-4 [&_input]:!pl-4" // Fix search icon padding - more space
                 onValueChange={setSearchValue}
               />
               <CommandList>

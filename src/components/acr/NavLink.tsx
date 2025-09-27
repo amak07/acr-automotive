@@ -76,9 +76,9 @@ const variantClasses = {
 } as const;
 
 const sizeClasses = {
-  sm: "px-2 py-1 text-xs gap-1",
-  default: "px-3 py-2 text-sm gap-2",
-  lg: "px-4 py-3 text-base gap-3",
+  sm: "px-2 py-1 acr-caption gap-1",
+  default: "px-3 py-2 acr-body-small gap-2",
+  lg: "px-4 py-3 acr-body gap-3",
 } as const;
 
 /**
@@ -108,7 +108,7 @@ export const AcrNavLink = React.forwardRef<
     ref
   ) => {
     const baseClasses = cn(
-      "flex items-center font-medium rounded-md transition-all duration-200",
+      "flex items-center acr-body-small rounded-md transition-all duration-200",
       "focus:outline-none focus:ring-2 focus:ring-acr-blue-500 focus:ring-offset-2",
       sizeClasses[size],
       variantClasses[variant],

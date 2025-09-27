@@ -125,7 +125,7 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
 
     const renderAction = (action: AcrHeaderAction, isMobile = false) => {
       const baseClasses = cn(
-        "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200",
+        "flex items-center gap-2 px-3 py-2 acr-body-small rounded-md transition-all duration-200",
         actionVariantClasses[action.variant || "default"],
         isMobile && "py-3",
         action.className
@@ -188,7 +188,7 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
             {/* Left side - Logo and Title */}
             <div className="flex items-center gap-2 lg:gap-3 min-w-0 flex-1">
               <AcrLogo className="h-7 lg:h-8 flex-shrink-0" />
-              <h1 className="text-lg lg:text-xl font-semibold text-acr-gray-800 truncate">
+              <h1 className="acr-heading-5 lg:acr-heading-4 text-acr-gray-800 truncate">
                 {title}
               </h1>
             </div>
@@ -230,7 +230,7 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
                 <div className="pt-3 mt-3 border-t border-acr-gray-200">
                   <div className="px-3 py-3">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-medium text-acr-gray-700">
+                      <span className="acr-body-small text-acr-gray-700">
                         {languageToggleLabel}
                       </span>
                     </div>

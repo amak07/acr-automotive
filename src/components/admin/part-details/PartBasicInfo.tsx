@@ -100,7 +100,7 @@ export function PartBasicInfo({
           <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
             <Info className="w-4 h-4 text-white" />
           </div>
-          <h2 className="text-lg font-semibold text-acr-gray-900">
+          <h2 className="acr-heading-6 text-acr-gray-900">
             {t("partDetails.basicInfo.title")}
           </h2>
         </div>
@@ -129,7 +129,6 @@ export function PartBasicInfo({
                     id="acr_sku"
                     value={data.acr_sku || ""}
                     readOnly
-                    className="bg-acr-gray-50"
                   />
                 </AcrFormField>
               )}

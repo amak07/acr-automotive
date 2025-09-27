@@ -81,12 +81,12 @@ export const AcrLanguageToggle = React.forwardRef<
     const buttonClasses = (isActive: boolean, lang: Locale) =>
       cn(
         // Base styles
-        "font-medium rounded-md transition-all duration-200",
+        "acr-caption rounded-md transition-all duration-200",
 
         // Size variants
         size === "sm"
-          ? "px-2 py-1 text-xs min-h-[28px]"
-          : "px-2 py-1 lg:px-3 lg:py-1.5 text-xs lg:text-sm min-h-[32px] lg:min-h-auto",
+          ? "px-2 py-1 min-h-[28px]"
+          : "px-2 py-1 lg:px-3 lg:py-1.5 acr-caption lg:acr-body-small min-h-[32px] lg:min-h-auto",
 
         // Active/inactive states
         isActive
