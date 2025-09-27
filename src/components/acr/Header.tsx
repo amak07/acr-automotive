@@ -188,7 +188,7 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
             {/* Left side - Logo and Title */}
             <div className="flex items-center gap-2 lg:gap-3 min-w-0 flex-1">
               <AcrLogo className="h-7 lg:h-8 flex-shrink-0" />
-              <h1 className="acr-heading-5 lg:acr-heading-4 text-acr-gray-800 truncate">
+              <h1 className="acr-heading-5 text-acr-gray-800 truncate">
                 {title}
               </h1>
             </div>
