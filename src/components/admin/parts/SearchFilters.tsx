@@ -72,7 +72,6 @@ export function SearchFilters(props: SearchFiltersProps) {
             disabled={isLoading}
           >
             <AcrSelect.Trigger
-              variant={isLoading ? "disabled" : "default"}
               className="text-sm"
             >
               <AcrSelect.Value
@@ -99,7 +98,6 @@ export function SearchFilters(props: SearchFiltersProps) {
             disabled={isLoading}
           >
             <AcrSelect.Trigger
-              variant={isLoading ? "disabled" : "default"}
               className="text-sm"
             >
               <AcrSelect.Value
@@ -126,7 +124,6 @@ export function SearchFilters(props: SearchFiltersProps) {
             disabled={isLoading}
           >
             <AcrSelect.Trigger
-              variant={isLoading ? "disabled" : "default"}
               className="text-sm"
             >
               <AcrSelect.Value
@@ -155,7 +152,6 @@ export function SearchFilters(props: SearchFiltersProps) {
             disabled={isLoading}
           >
             <AcrSelect.Trigger
-              variant={isLoading ? "disabled" : "default"}
               className="text-sm"
             >
               <AcrSelect.Value
@@ -182,7 +178,6 @@ export function SearchFilters(props: SearchFiltersProps) {
             disabled={isLoading}
           >
             <AcrSelect.Trigger
-              variant={isLoading ? "disabled" : "default"}
               className="text-sm"
             >
               <AcrSelect.Value
@@ -241,7 +236,7 @@ export function SearchFilters(props: SearchFiltersProps) {
               }
               disabled={isLoading}
             >
-              <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"}>
+              <AcrSelect.Trigger >
                 <AcrSelect.Value
                   placeholder={
                     isLoading ? "Loading..." : t("common.actions.all")
@@ -274,7 +269,7 @@ export function SearchFilters(props: SearchFiltersProps) {
               }
               disabled={isLoading}
             >
-              <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"}>
+              <AcrSelect.Trigger >
                 <AcrSelect.Value
                   placeholder={
                     isLoading ? "Loading..." : t("common.actions.all")
@@ -304,7 +299,7 @@ export function SearchFilters(props: SearchFiltersProps) {
               }
               disabled={isLoading}
             >
-              <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"}>
+              <AcrSelect.Trigger >
                 <AcrSelect.Value
                   placeholder={
                     isLoading ? "Loading..." : t("common.actions.all")
@@ -334,7 +329,7 @@ export function SearchFilters(props: SearchFiltersProps) {
               }
               disabled={isLoading}
             >
-              <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"}>
+              <AcrSelect.Trigger >
                 <AcrSelect.Value
                   placeholder={
                     isLoading ? "Loading..." : t("common.actions.all")
@@ -364,7 +359,7 @@ export function SearchFilters(props: SearchFiltersProps) {
               }
               disabled={isLoading}
             >
-              <AcrSelect.Trigger variant={isLoading ? "disabled" : "default"}>
+              <AcrSelect.Trigger >
                 <AcrSelect.Value
                   placeholder={
                     isLoading ? "Loading..." : t("common.actions.all")
