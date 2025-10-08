@@ -117,6 +117,300 @@
 
 ---
 
+## 🛠️ Tech Stack Considerations & Learning Roadmap
+
+> **Context**: Junior developer skill enhancement for 2025 job market competitiveness, focusing on modern (not trendy) technologies with strong interview value.
+>
+> **User Request**: "I need some recommendations for improving my tech but also for the opportunity to learn. It should be modern, not necessarily trendy, and that would be great for job interviews. Feel free to present some options in different categories of tech."
+
+### 📊 2025 Market Research Summary
+
+**Job Market Trends**:
+
+- **AI Engineering**: Hottest growth segment - companies want AI integration skills, not AI development from scratch
+- **Cloud Infrastructure**: 23% growth in cloud-related roles, DevOps in high demand
+- **Experience-First Hiring**: Mid-level and senior engineers favored, skills-based assessment over degrees
+- **AI Augmentation Focus**: Developers who can manage AI-driven workflows over pure coding
+
+**High-Demand Skills**:
+
+- AI/LLM integration and prompt engineering
+- Cloud platforms (AWS, Azure, GCP) with DevOps tools
+- Modern languages: Python, JavaScript, React, Rust, Go
+- Infrastructure: Docker, Kubernetes, CI/CD tools
+- Cybersecurity implementation and monitoring
+
+### 🔥 Priority Enhancement Categories
+
+#### **1. AI Integration (Highest Market Demand)**
+
+**Business Case**: Transform ACR into AI-powered platform demonstrating practical LLM applications
+
+**Implementation Opportunities**:
+
+```typescript
+// Semantic Search Enhancement
+- OpenAI/Anthropic embeddings for parts search
+- Natural language queries: "brake pads for 2018 Honda Civic"
+- Intelligent autocomplete with typo tolerance
+
+// Smart Data Management
+- AI-powered data validation and quality scoring
+- Automated cross-reference discovery from competitor monitoring
+- Intelligent part categorization and specification extraction
+
+// Customer Experience
+- Chatbot assistant for parts recommendations
+- Smart upselling based on vehicle compatibility
+- Automated technical support responses
+```
+
+**Tech Stack Additions**:
+
+- **Vercel AI SDK**: Perfect integration with existing Next.js stack
+- **OpenAI/Anthropic APIs**: Industry-standard LLM services
+- **LangChain**: For complex AI workflows and prompt engineering
+- **Vector Databases**: Supabase Vector, Pinecone for semantic search
+- **Prompt Engineering**: Templates and optimization for business queries
+
+**Interview Value**: Demonstrates practical AI integration solving real business problems, not toy projects
+
+#### **2. Cloud Infrastructure & DevOps (23% Growth)**
+
+**Business Case**: Production-ready infrastructure with monitoring, security, and scalability
+
+**Implementation Opportunities**:
+
+```bash
+# Observability & Monitoring
+- Application performance monitoring (APM)
+- Real-time error tracking and alerting
+- Business metrics dashboard (search patterns, conversion rates)
+- Infrastructure health monitoring
+
+# CI/CD Pipeline Enhancement
+- Automated testing and deployment
+- Environment-specific configurations
+- Performance regression testing
+- Security scanning integration
+
+# Infrastructure as Code
+- Terraform for reproducible deployments
+- Docker containerization for consistent environments
+- Kubernetes for scalable microservices architecture
+```
+
+**Tech Stack Additions**:
+
+- **Monitoring**: Sentry, DataDog, Vercel Analytics, Uptime Robot
+- **CI/CD**: GitHub Actions, Docker, Kubernetes basics
+- **Infrastructure**: Terraform, AWS/GCP services
+- **Performance**: Redis caching, CDN optimization, load balancing
+- **Security**: Rate limiting, intrusion detection, audit logging
+
+**Interview Value**: Shows production mindset and scalable architecture understanding
+
+#### **3. Data Engineering & Analytics**
+
+**Business Case**: Transform parts data into business intelligence and predictive insights
+
+**Implementation Opportunities**:
+
+```typescript
+// Real-time Analytics
+- Search pattern analysis and trending parts identification
+- Customer behavior tracking and conversion optimization
+- Inventory demand forecasting based on search data
+- Competitive intelligence and market gap analysis
+
+// Advanced Data Processing
+- Automated competitor price monitoring
+- Parts catalog completeness scoring
+- Cross-reference relationship discovery
+- Seasonal demand pattern recognition
+```
+
+**Tech Stack Additions**:
+
+- **Streaming**: Apache Kafka for real-time data processing
+- **Analytics**: ClickHouse, BigQuery for time-series analysis
+- **Visualization**: D3.js, Chart.js for interactive dashboards
+- **Pipelines**: Apache Airflow for scheduled data processing
+- **Enhanced ORM**: Prisma for advanced database operations
+
+**Interview Value**: Demonstrates data-driven decision making and business impact measurement
+
+#### **4. Enhanced Security & Authentication**
+
+**Business Case**: Upgrade from MVP authentication to enterprise-grade security
+
+**Implementation Opportunities**:
+
+```typescript
+// Professional Authentication
+- OAuth2/OIDC integration with Google, Microsoft, GitHub
+- Multi-tenant organization management
+- Role-based access control (admin, manager, viewer, API)
+- Session management and security monitoring
+
+// Security Infrastructure
+- Rate limiting and DDoS protection
+- API key management and rotation
+- Security headers and Content Security Policy
+- Automated vulnerability scanning
+```
+
+**Tech Stack Additions**:
+
+- **Auth Providers**: NextAuth.js v5, Clerk, Auth0
+- **Security**: Upstash Redis for rate limiting, helmet.js for headers
+- **Monitoring**: Security event logging and alerting
+- **Compliance**: GDPR/CCPA data protection implementation
+
+**Interview Value**: Shows enterprise readiness and security-first thinking
+
+### 🎯 Recommended Learning Path
+
+#### **Phase 1: AI Integration Foundation (Weeks 1-3)**
+
+**Project**: Semantic Search Enhancement
+
+```typescript
+// Week 1: Setup and Basic Integration
+- Implement OpenAI embeddings for parts descriptions
+- Create vector similarity search for "fuzzy" part matching
+- Add simple chatbot interface for part recommendations
+
+// Week 2: Advanced AI Features
+- Natural language query processing
+- Intelligent autocomplete with context awareness
+- AI-powered data validation and quality scoring
+
+// Week 3: Business Intelligence
+- Search pattern analysis with AI insights
+- Automated competitor monitoring setup
+- Performance optimization and cost management
+```
+
+#### **Phase 2: Infrastructure & Monitoring (Weeks 4-6)**
+
+**Project**: Production Observability Platform
+
+```bash
+# Week 4: Monitoring Foundation
+- Implement Sentry for error tracking
+- Add custom business metrics collection
+- Create real-time performance dashboard
+
+# Week 5: CI/CD Enhancement
+- GitHub Actions for automated testing and deployment
+- Docker containerization for consistent environments
+- Automated security scanning integration
+
+# Week 6: Advanced Infrastructure
+- Terraform for infrastructure as code
+- Redis caching for performance optimization
+- Load testing and performance profiling
+```
+
+#### **Phase 3: Data & Analytics (Weeks 7-9)**
+
+**Project**: Business Intelligence Dashboard
+
+```typescript
+// Week 7: Data Pipeline Setup
+- Implement event streaming for user actions
+- Create data warehouse for analytics
+- Build ETL processes for business metrics
+
+// Week 8: Advanced Analytics
+- Predictive modeling for inventory demand
+- Customer segmentation and behavior analysis
+- Competitive intelligence automation
+
+// Week 9: Visualization & Reporting
+- Interactive dashboards for business stakeholders
+- Automated reporting and alerting
+- A/B testing framework for feature optimization
+```
+
+#### **Phase 4: Advanced Features (Weeks 10-12)**
+
+**Project**: Multi-Tenant SaaS Platform
+
+```typescript
+// Transform ACR into SaaS offering for other auto parts distributors
+- Organization isolation and data segregation
+- White-label customization and branding
+- Subscription billing and usage tracking
+- API marketplace for third-party integrations
+```
+
+### 🏆 Strategic Tech Stack Evolution
+
+**Current Foundation** (Strong):
+
+```typescript
+- Next.js 15.4.4 + React 19 + TypeScript 5.8.3
+- Supabase PostgreSQL + Storage
+- TanStack Query + React Hook Form + Zod
+- Tailwind CSS + shadcn/ui
+- Vercel deployment
+```
+
+**Tier 1 Additions** (High Priority):
+
+```typescript
+- Vercel AI SDK + OpenAI/Anthropic APIs
+- Sentry + GitHub Actions
+- Redis + Docker basics
+- NextAuth.js v5
+```
+
+**Tier 2 Additions** (Medium Priority):
+
+```typescript
+- Terraform + Kubernetes basics
+- Apache Kafka + ClickHouse
+- LangChain + Vector databases
+- D3.js + Advanced monitoring
+```
+
+**Tier 3 Additions** (Advanced):
+
+```typescript
+- Rust/Go microservices
+- Apache Airflow + MLOps tools
+- Multi-cloud deployment
+- Advanced security tooling
+```
+
+### 💼 Interview Positioning Strategy
+
+**Technical Storytelling Framework**:
+
+1. **Business Problem**: Real automotive industry challenges you've solved
+2. **Technical Solution**: Modern tech stack demonstrating current best practices
+3. **Measurable Impact**: Performance metrics, user experience improvements
+4. **Future Vision**: How you'd scale and enhance the solution
+
+**Key Differentiators**:
+
+- **Domain Expertise**: Deep understanding of B2B automotive parts industry
+- **Production Experience**: Real deployed application with users and data
+- **Modern AI Integration**: Practical LLM applications, not academic projects
+- **Full-Stack + DevOps**: End-to-end ownership from database to deployment
+- **Business Impact Focus**: Every technical decision tied to measurable business outcomes
+
+**Portfolio Presentation**:
+
+- **Live Demo**: Functional application with real data and users
+- **Technical Deep-Dive**: Architecture decisions and trade-offs explained
+- **Evolution Story**: How you've enhanced and scaled the platform over time
+- **Future Roadmap**: Clear vision for continued improvement and growth
+
+---
+
 ## 📝 Implementation Guidelines
 
 ### Selection Criteria
@@ -134,3 +428,22 @@
 - **Documentation updates** - Keep technical documentation current with changes
 
 _This roadmap should be updated as system requirements evolve and new technical opportunities are identified._
+
+NOTES FROM HUMBERTO:
+
+1. ALLOW SITE TO HOST MORE IMAGES PER PART
+2. BULK UPDATES VIA EXCEL - EXPLORE
+3. STANDARDIZE EXCEL SHEET TEMPLATE OUTPUT
+4. ADD YEARS TO THE APPLICATIONS IN PUBLIC SEARCH
+5. ADD WAY TO DELETE A PART
+6. ADD FOOTER (LOGO, EMAIL, LOCATION)
+   CONTACT INFORMATION - ADD WHATS APP AND EMAIL LINKS
+7. ADD NAVIGATION LINK ON THE HEADER LOGO
+8. LINK VEHICLES APPLICATIONS TO ACR SKUS - EXPLORE
+9. PERSIST FILTERS AND SEARCH RESULTS ON BACK BUTTON
+10. ADD BANNERS TO THE SITE - UNDER HEADER BAR
+11. ABILITY TO ROLLBACK PREVIOUS VERSIONS OF DATABASE AND ADD REDUNDANCIES
+12. ADD AUTHENTICATION
+13. ADD RATE LIMITING FOR WEB SCRAPING
+14. PWA - research
+15. more optimizations and performance
