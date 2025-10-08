@@ -1,0 +1,665 @@
+# ACR Automotive - Category 1: Data Management System
+## Technical Implementation Plan
+
+**Version:** 1.0  
+**Date:** October 4, 2025  
+**Total Hours:** 66-80 hours (58-72 dev + 8 testing)
+
+---
+
+## Table of Contents
+
+1. [Architecture Overview](#architecture-overview)
+2. [1.1 Bulk Operations System (22-28h)](#11-bulk-operations-system)
+3. [1.2 Excel Export System (8-10h)](#12-excel-export-system)
+4. [1.3 Excel Import System (26-30h)](#13-excel-import-system)
+5. [1.4 Rollback System (10-12h)](#14-rollback-system)
+
+---
+
+## Architecture Overview
+
+### Tech Stack
+- Next.js 15.4.4 + React 19 + TypeScript 5.8.3
+- Supabase PostgreSQL + Storage
+- SheetJS (xlsx 0.18.5) for Excel processing
+
+### Key Architectural Patterns
+
+**1. Shared Service Layer**
+```typescript
+// lib/services/parts.service.ts
+// Business logic shared by admin UI and bulk operations
+export class PartsService {
+  static async createPart(data, tx?) { /* shared logic */ }
+  static async updatePart(id, data, tx?) { /* shared logic */ }
+  static async deletePart(id, tx?) { /* shared logic */ }
+}
+```
+
+**2. Atomic Transactions**
+```typescript
+// All bulk operations are atomic (all-or-nothing)
+async function bulkOperation(operations) {
+  return await db.transaction(async (tx) => {
+    for (const op of operations) {
+      await executeOperation(op, tx);
+    }
+  });
+}
+```
+
+**3. Three-Layer Validation**
+- Layer 1: Zod schema validation (API boundary)
+- Layer 2: Business logic validation (service layer)
+- Layer 3: Database constraints (UNIQUE, foreign keys, NOT NULL)
+
+---
+
+## 1.1 Bulk Operations System
+
+**Hours:** 22-28 (20-26 dev + 2 testing)  
+**Purpose:** Foundation for batch operations. Used by admin UI and Excel import.
+
+### Database Schema
+No new tables - existing schema supports bulk via transactions.
+
+### API Endpoints
+
+```typescript
+// POST /api/admin/bulk/parts/create
+interface BulkCreatePartsRequest {
+  operations: Array<{
+    acr_sku: string;
+    part_type: string;
+    position_type?: string;
+    abs_type?: string;
+    bolt_pattern?: string;
+    drive_type?: string;
+    specifications?: string;
+  }>;
+}
+
+// POST /api/admin/bulk/parts/update
+interface BulkUpdatePartsRequest {
+  operations: Array<{
+    id: string;
+    updates: Partial<PartData>;
+  }>;
+}
+
+// POST /api/admin/bulk/parts/delete
+interface BulkDeletePartsRequest {
+  ids: string[];
+}
+
+// Similar endpoints for:
+// - /api/admin/bulk/vehicles/* (create, update, delete)
+// - /api/admin/bulk/cross-references/* (create, update, delete)
+```
+
+### Service Implementation
+
+```typescript
+// lib/services/bulk-operations.service.ts
+export class BulkOperationsService {
+  static async bulkCreate<T>(
+    items: T[],
+    createFn: (item: T, tx: Transaction) => Promise<any>,
+    validateFn?: (item: T) => Promise<void>
+  ) {
+    // Step 1: Validate all items (fail fast)
+    if (validateFn) {
+      for (let i = 0; i < items.length; i++) {
+        await validateFn(items[i]);
+      }
+    }
+    
+    // Step 2: Execute in single transaction
+    return await db.transaction(async (tx) => {
+      const results = [];
+      for (const item of items) {
+        results.push(await createFn(item, tx));
+      }
+      return results;
+    });
+  }
+}
+```
+
+### Admin UI Components
+
+**Parts List with Selection:**
+```typescript
+// Checkbox selection in parts table
+// Bulk action toolbar when items selected
+// Modals for bulk add VAs, CRs, updates, deletes
+```
+
+**Key Features:**
+- Select multiple parts with checkboxes
+- "Select All" for filtered results
+- Bulk add vehicle applications to selected parts
+- Bulk add cross-references to selected parts
+- Bulk update part fields
+- Preview before executing
+
+---
+
+## 1.2 Excel Export System
+
+**Hours:** 8-10 (6-8 dev + 2 testing)  
+**Purpose:** Generate standardized three-sheet Excel files.
+
+### Excel Format Specification
+
+**Sheet 1: Parts**
+```
+ACR_SKU | Part_Type | Position_Type | ABS_Type | Bolt_Pattern | Drive_Type | Specifications
+```
+
+**Sheet 2: Vehicle_Applications**
+```
+ACR_SKU | Make | Model | Start_Year | End_Year
+```
+
+**Sheet 3: Cross_References**
+```
+ACR_SKU | Competitor_SKU | Competitor_Brand
+```
+
+### API Endpoint
+
+```typescript
+// GET /api/admin/export
+interface ExportRequest {
+  format?: 'all' | 'filtered' | 'template';
+  filters?: { part_type?: string; search?: string; };
+}
+// Returns: Binary Excel file for download
+```
+
+### Service Implementation
+
+```typescript
+// lib/services/excel-export.service.ts
+export class ExcelExportService {
+  static async generateExport(options): Promise<Buffer> {
+    // 1. Query data (all, filtered, or empty for template)
+    const data = await this.queryData(options);
+    
+    // 2. Create workbook
+    const workbook = XLSX.utils.book_new();
+    
+    // 3. Add three sheets
+    XLSX.utils.book_append_sheet(workbook, this.createPartsSheet(data.parts), 'Parts');
+    XLSX.utils.book_append_sheet(workbook, this.createVehiclesSheet(data.vehicles), 'Vehicle_Applications');
+    XLSX.utils.book_append_sheet(workbook, this.createCrossRefsSheet(data.crossRefs), 'Cross_References');
+    
+    // 4. Return buffer
+    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  }
+  
+  private static createPartsSheet(parts) {
+    const rows = parts.map(p => ({
+      'ACR_SKU': p.acr_sku,
+      'Part_Type': p.part_type,
+      // ... other fields
+    }));
+    return XLSX.utils.json_to_sheet(rows);
+  }
+}
+```
+
+### Admin UI
+
+```typescript
+// Export modal with three options:
+// - Export All Data
+// - Export Filtered Results (based on current filters)
+// - Download Empty Template
+// Downloads as: ACR_Export_2025-01-15.xlsx
+```
+
+---
+
+## 1.3 Excel Import System
+
+**Hours:** 26-30 (24-28 dev + 2 testing)  
+**Purpose:** Parse Excel, validate, preview changes, execute via bulk APIs.
+
+### API Endpoints
+
+```typescript
+// POST /api/admin/import/validate
+interface ImportValidateRequest {
+  fileData: string;  // Base64 encoded Excel
+}
+
+interface ImportValidateResponse {
+  valid: boolean;
+  errors: ValidationError[];
+  warnings: ValidationWarning[];
+  preview: ImportPreview;
+}
+
+// POST /api/admin/import/execute
+interface ImportExecuteRequest {
+  fileData: string;
+  preview: ImportPreview;
+}
+
+interface ImportExecuteResponse {
+  success: boolean;
+  summary: {
+    parts_created: number;
+    parts_updated: number;
+    parts_deleted: number;
+    vehicles_created: number;
+    vehicles_updated: number;
+    vehicles_deleted: number;
+    cross_refs_created: number;
+    cross_refs_deleted: number;
+  };
+  import_id: string;  // For rollback
+}
+```
+
+### Validation Rules
+
+**ERRORS (Block Import):**
+- Missing required fields (ACR_SKU, Part_Type, Make, Model, Years)
+- Duplicate ACR_SKU within Excel
+- Invalid year ranges (start > end)
+- Duplicate VAs/CRs within Excel
+- ACR_SKU references that don't exist
+- Invalid field types (text in year fields)
+
+**WARNINGS (Alert but Allow):**
+- Overlapping year ranges (Honda Civic 2016-2020 AND 2018-2023)
+- Wide year ranges (>20 years)
+- Future years (end_year > current_year + 2)
+- New part types not seen before (possible typos)
+- Large deletions (>20 items or >30% of database)
+
+### Import Process Flow
+
+```typescript
+// Step 1: Parse Excel
+const data = parseExcel(fileBuffer);
+// - Validate three sheets exist
+// - Parse to JSON objects
+
+// Step 2: Validate Data
+const { errors, warnings } = await validateData(data);
+// - Check structure, types, duplicates
+// - Business logic validation
+
+// Step 3: Generate Diff (Compare vs Database)
+const preview = await generateDiff(data);
+// - Detect: creates, updates, deletes
+// - For parts, VAs, and CRs
+
+// Step 4: Show Preview UI
+// User reviews all changes before approving
+
+// Step 5: Execute Import (Uses Bulk APIs)
+await executeImport(preview);
+// - Delete parts (cascade deletes VAs/CRs)
+// - Update parts
+// - Create parts
+// - Similar for VAs and CRs
+// - Create rollback snapshot
+```
+
+### Diff Engine Logic
+
+```typescript
+// Match Strategy: Option A (match by fields, not IDs)
+
+// Parts:
+// - Match by ACR_SKU
+// - If exists → UPDATE (if any field changed)
+// - If not in Excel → DELETE
+// - If not in DB → CREATE
+
+// Vehicle Applications:
+// - Match by: part_id + make + model + start_year
+// - Can update: end_year (or other fields)
+// - Not found → CREATE
+// - Not in Excel → DELETE
+
+// Cross References:
+// - Match by: part_id + competitor_sku + competitor_brand
+// - No updates (only CREATE/DELETE)
+```
+
+### Admin UI - Import Wizard
+
+```typescript
+// Four-step wizard:
+// 1. Upload: File picker for Excel
+// 2. Validate: Show validation progress
+// 3. Preview: Review all changes (errors, warnings, detailed diff)
+// 4. Execute: Apply changes, show progress
+```
+
+### Preview Component Structure
+
+```typescript
+// Summary Card
+// - X New items (green)
+// - Y Updates (blue)
+// - Z Deletions (red)
+
+// Large Deletion Warning (if triggered)
+// - "Will delete 90 items (45% of database)"
+// - Suggest downloading fresh export
+
+// Warnings Accordion
+// - Table of all warnings with sheet/row/field
+
+// Detailed Changes Accordion
+// - New Parts (table: ACR_SKU, Type, Position)
+// - Updated Parts (table: ACR_SKU, Field, Old → New)
+// - Deleted Parts (table: ACR_SKU, Type, VAs count, CRs count)
+// - Similar for VAs and CRs
+
+// Action Buttons
+// - Cancel Import
+// - Approve & Apply Changes
+```
+
+---
+
+## 1.4 Rollback System
+
+**Hours:** 10-12 (8-10 dev + 2 testing)  
+**Purpose:** Undo last import by applying inverse operations.
+
+### Database Schema
+
+```sql
+CREATE TABLE import_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    snapshot JSONB NOT NULL,  -- Contains rollback data
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_import_history_created_at 
+ON import_history(created_at DESC);
+```
+
+### Snapshot Structure
+
+```typescript
+interface ImportSnapshot {
+  timestamp: Date;
+  changes_summary: {
+    parts_created: number;
+    parts_updated: number;
+    parts_deleted: number;
+    // ... for VAs and CRs
+  };
+  rollback_data: {
+    // To undo creates: delete these SKUs
+    parts_to_delete: string[];
+    
+    // To undo deletes: restore these parts (full objects)
+    parts_to_restore: Part[];
+    
+    // To undo updates: revert to these values
+    parts_to_revert: Part[];
+    
+    // Similar for vehicles and cross-refs
+    vehicles_to_delete: VehicleRow[];
+    vehicles_to_restore: VehicleApplication[];
+    vehicles_to_revert: VehicleApplication[];
+    
+    cross_refs_to_delete: CrossRefRow[];
+    cross_refs_to_restore: CrossReference[];
+  };
+}
+```
+
+### API Endpoints
+
+```typescript
+// GET /api/admin/rollback/status
+interface RollbackStatusResponse {
+  can_rollback: boolean;
+  last_import?: {
+    id: string;
+    timestamp: string;
+    changes_summary: { /* ... */ };
+  };
+}
+
+// POST /api/admin/rollback/execute
+interface RollbackExecuteRequest {
+  import_id: string;
+  confirmed: boolean;
+}
+
+interface RollbackExecuteResponse {
+  success: boolean;
+  summary: {
+    parts_restored: number;
+    parts_reverted: number;
+    parts_removed: number;
+    // ... for VAs and CRs
+  };
+}
+```
+
+### Rollback Logic
+
+```typescript
+// Execute rollback in atomic transaction
+await db.transaction(async (tx) => {
+  // 1. Remove parts that were created
+  await tx.parts.deleteMany({
+    where: { acr_sku: { in: snapshot.parts_to_delete } }
+  });
+  
+  // 2. Restore parts that were deleted
+  await tx.parts.createMany({
+    data: snapshot.parts_to_restore.map(p => ({
+      id: p.id,  // Restore with same ID
+      acr_sku: p.acr_sku,
+      // ... all fields
+    }))
+  });
+  
+  // 3. Revert parts that were updated
+  for (const part of snapshot.parts_to_revert) {
+    await tx.parts.update({
+      where: { id: part.id },
+      data: { /* restore old values */ }
+    });
+  }
+  
+  // 4. Similar for VAs and CRs
+  
+  // 5. Delete snapshot (can't rollback twice)
+  await tx.import_history.delete({ where: { id: importId } });
+});
+```
+
+### Snapshot Management
+
+**Storage:**
+- Only keep ONE snapshot (most recent import)
+- New import deletes previous snapshot
+- No expiration - exists until next import
+
+**Limitations:**
+- Can only rollback LAST import
+- Manual changes after import are NOT affected
+- Once rolled back, cannot undo the rollback
+
+### Admin UI
+
+```typescript
+// Settings page → Rollback section
+// Shows:
+// - Last import date/time ("5 days ago")
+// - Changes made (X created, Y updated, Z deleted)
+// - Warning about what rollback does/doesn't do
+
+// Confirmation dialog:
+// - List all changes that will be reversed
+// - "This action cannot be undone"
+// - Cancel / Yes, Rollback buttons
+```
+
+---
+
+## Testing Strategy (8 hours total)
+
+### Bulk Operations (2 hours)
+- Create multiple items atomically
+- Rollback on error (transaction failure)
+- Detect and reject duplicates
+- Validate business rules (year ranges, etc.)
+
+### Excel Export (2 hours)
+- Generate valid three-sheet file
+- Export all data correctly
+- Export filtered data only
+- Generate empty template
+
+### Excel Import (2 hours)
+- Parse valid Excel files
+- Detect all error types
+- Detect all warning types
+- Generate accurate diff (creates, updates, deletes)
+- Execute import atomically
+- Rollback on error
+- Create rollback snapshot
+
+### Rollback (2 hours)
+- Return correct status
+- Undo part creations
+- Undo part deletions
+- Undo part updates
+- Undo VA/CR changes
+- Delete snapshot after rollback
+- Handle complex scenarios (creates + updates + deletes)
+
+---
+
+## Development Order
+
+**Week 1-2: Bulk Operations** (22-28h)
+- Build bulk APIs (CREATE/UPDATE/DELETE for parts, VAs, CRs)
+- Validation logic
+- Admin UI (selection, modals, preview)
+- Testing
+
+**Week 3: Excel Export** (8-10h)
+- Export service (three sheets)
+- Admin UI (export modal)
+- Testing
+
+**Week 4-5: Excel Import** (26-30h)
+- Parse Excel service
+- Validation engine
+- Diff engine
+- Admin UI (wizard, preview)
+- Execute using bulk APIs
+- Snapshot creation
+- Testing
+
+**Week 5-6: Rollback** (10-12h)
+- Rollback service
+- Admin UI (settings section)
+- Testing
+
+**Total: 66-80 hours over 6 weeks**
+
+---
+
+## Key Technical Decisions
+
+1. **Build Order**: Bulk Ops → Export → Import → Rollback
+   - Export defines format for import
+   - Import uses bulk APIs from step 1
+   - Rollback uses snapshots from import
+
+2. **Validation Strategy**: Three layers
+   - Zod at API boundary
+   - Business logic in services
+   - Database constraints as fallback
+
+3. **Transaction Scope**: All bulk operations atomic
+   - Single transaction per bulk operation
+   - Automatic rollback on any error
+
+4. **Matching Logic**: Option A (field-based, not ID-based)
+   - VAs match by: part + make + model + start_year
+   - Can update end_year (or other fields)
+   - Simpler Excel for user
+
+5. **Rollback Scope**: Last import only
+   - One snapshot at a time
+   - No history, no expiration
+   - Sufficient for 95% of cases
+
+6. **Large Deletion Detection**: >20 items OR >30% of database
+   - Warning shown in preview
+   - Suggests downloading fresh export
+   - User must explicitly approve
+
+---
+
+## File Structure
+
+```
+src/
+├── app/api/admin/
+│   ├── bulk/
+│   │   ├── parts/create/route.ts
+│   │   ├── parts/update/route.ts
+│   │   ├── parts/delete/route.ts
+│   │   ├── vehicles/create/route.ts
+│   │   ├── vehicles/update/route.ts
+│   │   ├── vehicles/delete/route.ts
+│   │   ├── cross-references/create/route.ts
+│   │   ├── cross-references/update/route.ts
+│   │   └── cross-references/delete/route.ts
+│   ├── export/route.ts
+│   ├── import/
+│   │   ├── validate/route.ts
+│   │   └── execute/route.ts
+│   └── rollback/
+│       ├── status/route.ts
+│       └── execute/route.ts
+├── lib/services/
+│   ├── bulk-operations.service.ts
+│   ├── excel-export.service.ts
+│   ├── excel-import.service.ts
+│   └── rollback.service.ts
+├── lib/validation/
+│   └── bulk-operations.ts
+├── components/admin/
+│   ├── parts/parts-list-with-selection.tsx
+│   ├── bulk/
+│   │   ├── bulk-add-vehicles-modal.tsx
+│   │   ├── bulk-add-cross-refs-modal.tsx
+│   │   ├── bulk-update-modal.tsx
+│   │   └── bulk-delete-modal.tsx
+│   ├── export/export-modal.tsx
+│   ├── import/
+│   │   ├── import-wizard.tsx
+│   │   ├── file-upload-step.tsx
+│   │   └── import-preview-step.tsx
+│   └── settings/rollback-section.tsx
+└── lib/supabase/
+    └── migrations/
+        └── 003_import_history.sql
+```
+
+---
+
+**END OF TECHNICAL PLAN**

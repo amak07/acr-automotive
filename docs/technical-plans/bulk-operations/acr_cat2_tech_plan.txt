@@ -1,0 +1,1872 @@
+# ACR Automotive - Category 2: User Experience Improvements
+## Technical Implementation Plan
+
+**Version:** 1.0  
+**Date:** October 4, 2025  
+**Total Hours:** 30-37.5 hours (24-31.5 dev + 6 testing)
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [2.1 UI & System Improvements (16-18.5h)](#21-ui--system-improvements)
+   - Multiple Images Per Part
+   - General UI Updates
+   - Persist Filters & Search State
+   - Website Assets & Settings Management
+
+---
+
+## Overview
+
+Category 2 consolidates all user experience improvements into a single integrated deliverable. This includes multiple images per part, UI polish, state persistence, and website management tools.
+
+### Tech Stack
+- Next.js 15.4.4 + React 19 + TypeScript
+- Supabase PostgreSQL + Storage
+- Tailwind CSS + shadcn/ui
+- React Hook Form + Zod
+- TanStack Query
+
+---
+
+## 2.1 UI & System Improvements
+
+**Total Hours:** 30-37.5 (24-31.5 dev + 6 testing)
+
+This section combines four related features:
+1. Multiple Images Per Part (12-14h dev + 2h testing)
+2. General UI Updates (1.5h dev + included in testing)
+3. Persist Filters & Search State (2-3h dev + 2h testing)
+4. Website Assets & Settings Management (8-12h dev + 2h testing)
+
+---
+
+## Feature 1: Multiple Images Per Part
+
+**Hours:** 12-14 dev + 2 testing = 14-16 total
+
+### Database Schema
+
+```sql
+CREATE TABLE part_images (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    part_id UUID NOT NULL REFERENCES parts(id) ON DELETE CASCADE,
+    image_url TEXT NOT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    is_primary BOOLEAN DEFAULT false,
+    caption TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_part_images_part_id ON part_images(part_id);
+CREATE INDEX idx_part_images_display_order ON part_images(part_id, display_order);
+
+-- Ensure only one primary image per part
+CREATE UNIQUE INDEX idx_part_images_primary 
+ON part_images(part_id) 
+WHERE is_primary = true;
+```
+
+### Supabase Storage Configuration
+
+```typescript
+// Storage bucket setup (via Supabase dashboard or migration)
+// Bucket name: acr-part-images
+// Public: true (for CDN access)
+// File size limit: 5MB per image
+// Allowed MIME types: image/jpeg, image/png, image/webp
+
+// Storage policies
+// 1. Public read access (already exists)
+// 2. Admin upload access (authenticated users)
+```
+
+### API Endpoints
+
+```typescript
+// POST /api/admin/parts/[id]/images
+// Upload multiple images for a part
+interface UploadImagesRequest {
+  files: File[];  // Array of image files
+}
+
+interface UploadImagesResponse {
+  success: boolean;
+  images: Array<{
+    id: string;
+    image_url: string;
+    display_order: number;
+  }>;
+}
+
+// PUT /api/admin/parts/[id]/images/reorder
+// Change display order of images
+interface ReorderImagesRequest {
+  image_ids: string[];  // Ordered array of image IDs
+}
+
+interface ReorderImagesResponse {
+  success: boolean;
+}
+
+// PUT /api/admin/parts/[id]/images/[imageId]/primary
+// Set primary image for part
+interface SetPrimaryImageRequest {
+  is_primary: boolean;
+}
+
+// PUT /api/admin/parts/[id]/images/[imageId]
+// Update image caption
+interface UpdateImageRequest {
+  caption?: string;
+}
+
+// DELETE /api/admin/parts/[id]/images/[imageId]
+// Delete single image
+interface DeleteImageResponse {
+  success: boolean;
+}
+```
+
+### Service Implementation
+
+```typescript
+// lib/services/part-images.service.ts
+
+export class PartImagesService {
+  /**
+   * Upload multiple images to Supabase Storage
+   */
+  static async uploadImages(
+    partId: string,
+    files: File[]
+  ): Promise<PartImage[]> {
+    const uploadedImages: PartImage[] = [];
+    
+    // Get current max display_order for this part
+    const existingImages = await db.part_images.findMany({
+      where: { part_id: partId },
+      orderBy: { display_order: 'desc' },
+      take: 1
+    });
+    
+    let nextOrder = existingImages[0]?.display_order + 1 || 0;
+    
+    for (const file of files) {
+      // 1. Upload to Supabase Storage
+      const fileName = `${partId}_${Date.now()}_${file.name}`;
+      const { data: uploadData, error } = await supabase.storage
+        .from('acr-part-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+      
+      if (error) throw new Error(`Upload failed: ${error.message}`);
+      
+      // 2. Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('acr-part-images')
+        .getPublicUrl(fileName);
+      
+      // 3. Create database record
+      const image = await db.part_images.create({
+        data: {
+          part_id: partId,
+          image_url: publicUrl,
+          display_order: nextOrder++,
+          is_primary: uploadedImages.length === 0  // First image is primary
+        }
+      });
+      
+      uploadedImages.push(image);
+    }
+    
+    return uploadedImages;
+  }
+  
+  /**
+   * Reorder images for a part
+   */
+  static async reorderImages(
+    partId: string,
+    imageIds: string[]
+  ): Promise<void> {
+    // Update display_order for each image
+    await db.transaction(async (tx) => {
+      for (let i = 0; i < imageIds.length; i++) {
+        await tx.part_images.update({
+          where: { id: imageIds[i], part_id: partId },
+          data: { display_order: i }
+        });
+      }
+    });
+  }
+  
+  /**
+   * Set primary image (unset others)
+   */
+  static async setPrimaryImage(
+    partId: string,
+    imageId: string
+  ): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Unset all primary flags for this part
+      await tx.part_images.updateMany({
+        where: { part_id: partId },
+        data: { is_primary: false }
+      });
+      
+      // Set new primary
+      await tx.part_images.update({
+        where: { id: imageId },
+        data: { is_primary: true }
+      });
+    });
+  }
+  
+  /**
+   * Delete image (from DB and Storage)
+   */
+  static async deleteImage(imageId: string): Promise<void> {
+    // 1. Get image record
+    const image = await db.part_images.findUnique({
+      where: { id: imageId }
+    });
+    
+    if (!image) throw new Error('Image not found');
+    
+    // 2. Delete from Supabase Storage
+    const fileName = image.image_url.split('/').pop();
+    await supabase.storage
+      .from('acr-part-images')
+      .remove([fileName]);
+    
+    // 3. Delete from database
+    await db.part_images.delete({
+      where: { id: imageId }
+    });
+  }
+}
+```
+
+### Admin UI Components
+
+**Image Upload Component:**
+```typescript
+// components/admin/parts/part-images-manager.tsx
+
+export function PartImagesManager({ partId }: { partId: string }) {
+  const [images, setImages] = useState<PartImage[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  
+  // Fetch existing images
+  const { data: existingImages } = useQuery({
+    queryKey: ['part-images', partId],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/parts/${partId}/images`);
+      return res.json();
+    }
+  });
+  
+  // Handle file upload
+  const handleUpload = async (files: FileList) => {
+    setIsUploading(true);
+    
+    try {
+      const formData = new FormData();
+      Array.from(files).forEach(file => {
+        formData.append('files', file);
+      });
+      
+      const response = await fetch(`/api/admin/parts/${partId}/images`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success(`Uploaded ${result.images.length} images`);
+        queryClient.invalidateQueries(['part-images', partId]);
+      }
+    } catch (error) {
+      toast.error('Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  return (
+    <div className="space-y-4">
+      {/* Upload Area */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Part Images</CardTitle>
+          <CardDescription>
+            Upload up to 8 images. Drag to reorder.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div
+            className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
+            <p className="mt-2 text-sm text-muted-foreground">
+              Click to upload or drag and drop
+            </p>
+            <p className="text-xs text-muted-foreground">
+              PNG, JPG, WEBP up to 5MB
+            </p>
+          </div>
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => e.target.files && handleUpload(e.target.files)}
+          />
+        </CardContent>
+      </Card>
+      
+      {/* Images Grid with Drag & Drop */}
+      <ImageGalleryEditor
+        images={existingImages || []}
+        onReorder={handleReorder}
+        onSetPrimary={handleSetPrimary}
+        onDelete={handleDelete}
+        onUpdateCaption={handleUpdateCaption}
+      />
+    </div>
+  );
+}
+```
+
+**Drag & Drop Gallery Editor:**
+```typescript
+// components/admin/parts/image-gallery-editor.tsx
+
+import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, arrayMove, useSortable } from '@dnd-kit/sortable';
+
+export function ImageGalleryEditor({
+  images,
+  onReorder,
+  onSetPrimary,
+  onDelete,
+  onUpdateCaption
+}) {
+  const [items, setItems] = useState(images);
+  
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const oldIndex = items.findIndex(i => i.id === active.id);
+      const newIndex = items.findIndex(i => i.id === over.id);
+      
+      const newOrder = arrayMove(items, oldIndex, newIndex);
+      setItems(newOrder);
+      
+      onReorder(newOrder.map(i => i.id));
+    }
+  };
+  
+  return (
+    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={items.map(i => i.id)}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {items.map((image) => (
+            <SortableImageCard
+              key={image.id}
+              image={image}
+              onSetPrimary={() => onSetPrimary(image.id)}
+              onDelete={() => onDelete(image.id)}
+              onUpdateCaption={(caption) => onUpdateCaption(image.id, caption)}
+            />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
+  );
+}
+
+function SortableImageCard({ image, onSetPrimary, onDelete, onUpdateCaption }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: image.id });
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1
+  };
+  
+  return (
+    <Card ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <CardContent className="p-2">
+        {/* Image Preview */}
+        <div className="relative aspect-square mb-2">
+          <img
+            src={image.image_url}
+            alt={image.caption || 'Part image'}
+            className="w-full h-full object-cover rounded"
+          />
+          
+          {/* Primary Badge */}
+          {image.is_primary && (
+            <Badge className="absolute top-2 left-2" variant="default">
+              Primary
+            </Badge>
+          )}
+          
+          {/* Actions */}
+          <div className="absolute top-2 right-2 flex gap-1">
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-8 w-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSetPrimary();
+              }}
+            >
+              <Star className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              size="icon"
+              variant="destructive"
+              className="h-8 w-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Caption Input */}
+        <Input
+          placeholder="Add caption..."
+          value={image.caption || ''}
+          onChange={(e) => onUpdateCaption(e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Public UI - Image Gallery Component
+
+```typescript
+// components/public/parts/part-image-gallery.tsx
+
+export function PartImageGallery({ images }: { images: PartImage[] }) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  
+  // Sort by display_order, primary first
+  const sortedImages = [...images].sort((a, b) => {
+    if (a.is_primary) return -1;
+    if (b.is_primary) return 1;
+    return a.display_order - b.display_order;
+  });
+  
+  return (
+    <div className="space-y-4">
+      {/* Main Image */}
+      <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
+        <img
+          src={sortedImages[selectedIndex]?.image_url}
+          alt={sortedImages[selectedIndex]?.caption || 'Part image'}
+          className="w-full h-full object-contain"
+        />
+        
+        {/* Navigation Arrows (Desktop) */}
+        <div className="hidden md:flex absolute inset-0 items-center justify-between p-4">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="rounded-full"
+            onClick={() => setSelectedIndex(Math.max(0, selectedIndex - 1))}
+            disabled={selectedIndex === 0}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          
+          <Button
+            variant="secondary"
+            size="icon"
+            className="rounded-full"
+            onClick={() => setSelectedIndex(Math.min(sortedImages.length - 1, selectedIndex + 1))}
+            disabled={selectedIndex === sortedImages.length - 1}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        {/* Image Counter */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+          {selectedIndex + 1} / {sortedImages.length}
+        </div>
+      </div>
+      
+      {/* Thumbnail Strip */}
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {sortedImages.map((image, index) => (
+          <button
+            key={image.id}
+            onClick={() => setSelectedIndex(index)}
+            className={cn(
+              "flex-shrink-0 w-20 h-20 rounded border-2 overflow-hidden",
+              selectedIndex === index ? "border-primary" : "border-transparent"
+            )}
+          >
+            <img
+              src={image.image_url}
+              alt={image.caption || ''}
+              className="w-full h-full object-cover"
+            />
+          </button>
+        ))}
+      </div>
+      
+      {/* Caption */}
+      {sortedImages[selectedIndex]?.caption && (
+        <p className="text-sm text-muted-foreground text-center">
+          {sortedImages[selectedIndex].caption}
+        </p>
+      )}
+    </div>
+  );
+}
+```
+
+### Mobile Swipe Gestures
+
+```typescript
+// Add touch gestures to gallery using react-use-gesture
+
+import { useGesture } from '@use-gesture/react';
+
+export function MobilePartGallery({ images }) {
+  const [index, setIndex] = useState(0);
+  
+  const bind = useGesture({
+    onDrag: ({ movement: [mx], direction: [xDir], cancel }) => {
+      // Swipe left/right to change images
+      if (Math.abs(mx) > 50) {
+        if (xDir > 0 && index > 0) {
+          setIndex(index - 1);
+          cancel();
+        } else if (xDir < 0 && index < images.length - 1) {
+          setIndex(index + 1);
+          cancel();
+        }
+      }
+    }
+  });
+  
+  return (
+    <div {...bind()} className="touch-pan-y">
+      {/* Gallery content */}
+    </div>
+  );
+}
+```
+
+---
+
+## Feature 2: General UI Updates
+
+**Hours:** 1.5 dev (included in testing above)
+
+### Years Display in Public Search
+
+```typescript
+// Update: components/public/search/vehicle-applications-list.tsx
+
+export function VehicleApplicationsList({ applications }) {
+  return (
+    <div className="space-y-2">
+      {applications.map(va => (
+        <div key={va.id} className="flex items-center gap-2">
+          <Car className="h-4 w-4 text-muted-foreground" />
+          <span>
+            {va.make} {va.model} ({va.start_year}-{va.end_year})
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Update: components/public/search/search-results.tsx
+// In search result cards, show year ranges:
+<p className="text-sm text-muted-foreground">
+  Fits: {part.vehicle_applications.map(va => 
+    `${va.make} ${va.model} ${va.start_year}-${va.end_year}`
+  ).join(', ')}
+</p>
+```
+
+### Footer with Contact Info
+
+```typescript
+// components/layout/footer.tsx
+
+export function Footer() {
+  return (
+    <footer className="border-t bg-muted/50">
+      <div className="container py-8 md:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Logo */}
+          <div>
+            <img
+              src="/acr-logo.png"
+              alt="ACR Automotive"
+              className="h-12 mb-4"
+            />
+          </div>
+          
+          {/* Contact Info */}
+          <div className="space-y-2">
+            <h3 className="font-semibold mb-3">Contacto</h3>
+            
+            <a
+              href="mailto:contacto@acrautomotive.com"
+              className="flex items-center gap-2 text-sm hover:text-primary"
+            >
+              <Mail className="h-4 w-4" />
+              contacto@acrautomotive.com
+            </a>
+            
+            <a
+              href="https://wa.me/52XXXXXXXXXX"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm hover:text-primary"
+            >
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp
+            </a>
+            
+            <div className="flex items-start gap-2 text-sm">
+              <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>
+                [Business Address]<br />
+                Ciudad de México, CDMX
+              </span>
+            </div>
+          </div>
+          
+          {/* Additional Info */}
+          <div className="space-y-2">
+            <h3 className="font-semibold mb-3">Información</h3>
+            <p className="text-sm text-muted-foreground">
+              Especialistas en refacciones automotrices
+            </p>
+          </div>
+        </div>
+        
+        {/* Copyright */}
+        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
+          © {new Date().getFullYear()} ACR Automotive. Todos los derechos reservados.
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// Add to: app/layout.tsx
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <Header />
+        {children}
+        <Footer />  {/* Add footer */}
+      </body>
+    </html>
+  );
+}
+```
+
+### Header Logo Navigation
+
+```typescript
+// Update: components/layout/header.tsx
+
+export function Header() {
+  return (
+    <header className="border-b">
+      <div className="container flex items-center gap-4 h-16">
+        <Link href="/" className="flex items-center">  {/* Add Link wrapper */}
+          <img
+            src="/acr-logo.png"
+            alt="ACR Automotive"
+            className="h-10 cursor-pointer hover:opacity-80 transition"
+          />
+        </Link>
+        
+        {/* Rest of header */}
+      </div>
+    </header>
+  );
+}
+```
+
+---
+
+## Feature 3: Persist Filters & Search State
+
+**Hours:** 2-3 dev + 2 testing = 4-5 total
+
+### URL-Based State Management
+
+```typescript
+// app/admin/parts/page.tsx
+
+'use client';
+
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+
+export default function AdminPartsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
+  // Read state from URL
+  const filters = {
+    search: searchParams.get('search') || '',
+    part_type: searchParams.get('part_type') || '',
+    position: searchParams.get('position') || '',
+    page: parseInt(searchParams.get('page') || '1'),
+    sort: searchParams.get('sort') || 'created_at_desc'
+  };
+  
+  // Update URL when filters change
+  const updateFilters = (updates: Partial<typeof filters>) => {
+    const newFilters = { ...filters, ...updates };
+    
+    // Build query string
+    const params = new URLSearchParams();
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value) params.set(key, value.toString());
+    });
+    
+    // Update URL (this triggers re-render with new searchParams)
+    router.push(`${pathname}?${params.toString()}`);
+  };
+  
+  return (
+    <div>
+      {/* Search Input */}
+      <Input
+        value={filters.search}
+        onChange={(e) => updateFilters({ search: e.target.value, page: 1 })}
+        placeholder="Search parts..."
+      />
+      
+      {/* Part Type Filter */}
+      <Select
+        value={filters.part_type}
+        onValueChange={(value) => updateFilters({ part_type: value, page: 1 })}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="All Types" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">All Types</SelectItem>
+          <SelectItem value="MAZA">MAZA</SelectItem>
+          <SelectItem value="BALERO">BALERO</SelectItem>
+          <SelectItem value="DISCO">DISCO</SelectItem>
+        </SelectContent>
+      </Select>
+      
+      {/* Position Filter */}
+      <Select
+        value={filters.position}
+        onValueChange={(value) => updateFilters({ position: value, page: 1 })}
+      >
+        {/* Similar */}
+      </Select>
+      
+      {/* Sort Dropdown */}
+      <Select
+        value={filters.sort}
+        onValueChange={(value) => updateFilters({ sort: value, page: 1 })}
+      >
+        <SelectItem value="created_at_desc">Newest First</SelectItem>
+        <SelectItem value="created_at_asc">Oldest First</SelectItem>
+        <SelectItem value="acr_sku_asc">SKU A-Z</SelectItem>
+        <SelectItem value="acr_sku_desc">SKU Z-A</SelectItem>
+      </Select>
+      
+      {/* Parts List */}
+      <PartsList filters={filters} />
+      
+      {/* Pagination */}
+      <Pagination
+        currentPage={filters.page}
+        onPageChange={(page) => updateFilters({ page })}
+      />
+    </div>
+  );
+}
+```
+
+### Benefits of URL State
+
+```typescript
+// 1. Browser back/forward works naturally
+// User clicks back → URL changes → searchParams updates → UI re-renders
+
+// 2. Bookmarkable searches
+// URL: /admin/parts?search=brake&part_type=MAZA&page=2
+// User can bookmark this exact search
+
+// 3. Shareable URLs
+// Copy URL and share with team member
+// They see exact same filtered view
+
+// 4. Refresh preserves state
+// User refreshes page → filters remain intact
+```
+
+### Debounced Search Input
+
+```typescript
+// For search input, debounce to avoid too many URL updates
+
+import { useDebouncedCallback } from 'use-debounce';
+
+const debouncedSearch = useDebouncedCallback(
+  (value: string) => {
+    updateFilters({ search: value, page: 1 });
+  },
+  500  // 500ms delay
+);
+
+<Input
+  defaultValue={filters.search}
+  onChange={(e) => debouncedSearch(e.target.value)}
+  placeholder="Search parts..."
+/>
+```
+
+---
+
+## Feature 4: Website Assets & Settings Management
+
+**Hours:** 8-12 dev + 2 testing = 10-14 total
+
+### Database Schema
+
+```sql
+-- Key-value store for site settings
+CREATE TABLE site_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    setting_key VARCHAR(100) UNIQUE NOT NULL,
+    setting_value JSONB NOT NULL,
+    updated_by UUID REFERENCES admin_users(id),  -- If auth exists
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Marketing banners
+CREATE TABLE banners (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    content TEXT NOT NULL,
+    banner_type VARCHAR(20) DEFAULT 'info',  -- info, warning, promo
+    is_active BOOLEAN DEFAULT true,
+    start_date TIMESTAMPTZ,
+    end_date TIMESTAMPTZ,
+    display_order INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_banners_active ON banners(is_active, start_date, end_date);
+CREATE INDEX idx_banners_display_order ON banners(display_order);
+```
+
+### Settings Structure
+
+```typescript
+// Site settings stored as JSONB
+
+interface SiteSettings {
+  contact: {
+    business_name: string;
+    email: string;
+    whatsapp: string;
+    address: string;
+    business_hours: string;
+  };
+  branding: {
+    logo_url: string;
+    favicon_url: string;
+  };
+  seo: {
+    site_title: string;
+    meta_description: string;
+    og_image_url?: string;
+  };
+}
+```
+
+### API Endpoints
+
+```typescript
+// GET /api/admin/settings
+interface GetSettingsResponse {
+  contact: SiteSettings['contact'];
+  branding: SiteSettings['branding'];
+  seo: SiteSettings['seo'];
+}
+
+// PUT /api/admin/settings
+interface UpdateSettingsRequest {
+  section: 'contact' | 'branding' | 'seo';
+  data: Partial<SiteSettings[section]>;
+}
+
+// POST /api/admin/settings/upload-logo
+// Upload logo/favicon to Supabase Storage
+
+// Banners CRUD
+// GET    /api/admin/banners
+// POST   /api/admin/banners
+// PUT    /api/admin/banners/[id]
+// DELETE /api/admin/banners/[id]
+
+// GET /api/public/banners/active
+// Returns only active banners within date range
+```
+
+### Admin UI - Settings Page
+
+```typescript
+// app/admin/settings/page.tsx
+
+export default function SettingsPage() {
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold">Site Settings</h1>
+        <p className="text-muted-foreground">
+          Manage website content and branding
+        </p>
+      </div>
+      
+      <Tabs defaultValue="contact">
+        <TabsList>
+          <TabsTrigger value="contact">Contact Info</TabsTrigger>
+          <TabsTrigger value="branding">Branding</TabsTrigger>
+          <TabsTrigger value="banners">Banners</TabsTrigger>
+          <TabsTrigger value="seo">SEO</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="contact">
+          <ContactInfoSettings />
+        </TabsContent>
+        
+        <TabsContent value="branding">
+          <BrandingSettings />
+        </TabsContent>
+        
+        <TabsContent value="banners">
+          <BannersManagement />
+        </TabsContent>
+        
+        <TabsContent value="seo">
+          <SEOSettings />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+```
+
+### Contact Info Settings Component
+
+```typescript
+// components/admin/settings/contact-info-settings.tsx
+
+export function ContactInfoSettings() {
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ['settings', 'contact'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/settings?section=contact');
+      return res.json();
+    }
+  });
+  
+  const form = useForm({
+    defaultValues: settings,
+    resolver: zodResolver(contactInfoSchema)
+  });
+  
+  const mutation = useMutation({
+    mutationFn: async (data) => {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'contact', data })
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success('Contact info updated');
+      queryClient.invalidateQueries(['settings', 'contact']);
+    }
+  });
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Contact Information</CardTitle>
+        <CardDescription>
+          Displayed in the website footer
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(data => mutation.mutate(data))}>
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="business_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="ACR Automotive" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="email" placeholder="contacto@acrautomotive.com" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="whatsapp"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>WhatsApp Number</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="+52 XXX XXX XXXX" />
+                    </FormControl>
+                    <FormDescription>
+                      Include country code (e.g., +52 for Mexico)
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Physical Address</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} rows={3} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="business_hours"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Hours</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Lun-Vie 9:00-18:00" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="mt-6">
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Branding Settings Component
+
+```typescript
+// components/admin/settings/branding-settings.tsx
+
+export function BrandingSettings() {
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  
+  const { data: settings } = useQuery({
+    queryKey: ['settings', 'branding'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/settings?section=branding');
+      return res.json();
+    }
+  });
+  
+  const uploadLogo = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'logo');
+      
+      const res = await fetch('/api/admin/settings/upload-logo', {
+        method: 'POST',
+        body: formData
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success('Logo uploaded');
+      queryClient.invalidateQueries(['settings', 'branding']);
+    }
+  });
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Branding Assets</CardTitle>
+        <CardDescription>
+          Upload logo and favicon for your website
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Logo Upload */}
+        <div>
+          <Label>Website Logo</Label>
+          <div className="mt-2 flex items-center gap-4">
+            {settings?.logo_url && (
+              <div className="border rounded p-2">
+                <img
+                  src={settings.logo_url}
+                  alt="Current logo"
+                  className="h-16 object-contain"
+                />
+              </div>
+            )}
+            
+            <div className="flex-1">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) uploadLogo.mutate(file);
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Recommended: PNG with transparent background, 200x60px
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Favicon Upload */}
+        <div>
+          <Label>Favicon</Label>
+          <div className="mt-2 flex items-center gap-4">
+            {settings?.favicon_url && (
+              <div className="border rounded p-2">
+                <img
+                  src={settings.favicon_url}
+                  alt="Current favicon"
+                  className="h-8 w-8"
+                />
+              </div>
+            )}
+            
+            <div className="flex-1">
+              <Input
+                type="file"
+                accept="image/x-icon,image/png"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) uploadFavicon.mutate(file);
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                ICO or PNG, 32x32px or 64x64px
+              </p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Banners Management Component
+
+```typescript
+// components/admin/settings/banners-management.tsx
+
+export function BannersManagement() {
+  const { data: banners } = useQuery({
+    queryKey: ['banners'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/banners');
+      return res.json();
+    }
+  });
+  
+  const [isCreating, setIsCreating] = useState(false);
+  
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Marketing Banners</CardTitle>
+          <CardDescription>
+            Create promotional banners displayed on the public search page
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => setIsCreating(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Banner
+          </Button>
+        </CardContent>
+      </Card>
+      
+      {/* Banners List */}
+      <div className="space-y-3">
+        {banners?.map(banner => (
+          <BannerCard
+            key={banner.id}
+            banner={banner}
+          />
+        ))}
+      </div>
+      
+      {/* Create/Edit Modal */}
+      {isCreating && (
+        <BannerFormModal
+          onClose={() => setIsCreating(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function BannerCard({ banner }) {
+  const [isEditing, setIsEditing] = useState(false);
+  
+  const deleteBanner = useMutation({
+    mutationFn: async () => {
+      await fetch(`/api/admin/banners/${banner.id}`, { method: 'DELETE' });
+    },
+    onSuccess: () => {
+      toast.success('Banner deleted');
+      queryClient.invalidateQueries(['banners']);
+    }
+  });
+  
+  const toggleActive = useMutation({
+    mutationFn: async () => {
+      await fetch(`/api/admin/banners/${banner.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: !banner.is_active })
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['banners']);
+    }
+  });
+  
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant={banner.banner_type === 'promo' ? 'default' : 'secondary'}>
+                {banner.banner_type}
+              </Badge>
+              
+              {banner.is_active ? (
+                <Badge variant="default">Active</Badge>
+              ) : (
+                <Badge variant="outline">Inactive</Badge>
+              )}
+              
+              {banner.start_date && (
+                <span className="text-xs text-muted-foreground">
+                  {format(new Date(banner.start_date), 'MMM d')} - 
+                  {banner.end_date ? format(new Date(banner.end_date), 'MMM d') : 'No end'}
+                </span>
+              )}
+            </div>
+            
+            <p className="text-sm">{banner.content}</p>
+          </div>
+          
+          <div className="flex items-center gap-2 ml-4">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => toggleActive.mutate()}
+            >
+              {banner.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+            
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setIsEditing(true)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => deleteBanner.mutate()}
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+      
+      {isEditing && (
+        <BannerFormModal
+          banner={banner}
+          onClose={() => setIsEditing(false)}
+        />
+      )}
+    </Card>
+  );
+}
+
+function BannerFormModal({ banner, onClose }) {
+  const form = useForm({
+    defaultValues: banner || {
+      content: '',
+      banner_type: 'info',
+      is_active: true,
+      start_date: null,
+      end_date: null
+    }
+  });
+  
+  const mutation = useMutation({
+    mutationFn: async (data) => {
+      const url = banner 
+        ? `/api/admin/banners/${banner.id}`
+        : '/api/admin/banners';
+      
+      const res = await fetch(url, {
+        method: banner ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success(banner ? 'Banner updated' : 'Banner created');
+      queryClient.invalidateQueries(['banners']);
+      onClose();
+    }
+  });
+  
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{banner ? 'Edit' : 'Create'} Banner</DialogTitle>
+        </DialogHeader>
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(data => mutation.mutate(data))}>
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Banner Content</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        rows={3}
+                        placeholder="¡Nuevos productos MAZA disponibles!"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="banner_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="info">Info</SelectItem>
+                        <SelectItem value="warning">Warning</SelectItem>
+                        <SelectItem value="promo">Promotion</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="start_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Date (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="datetime-local" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="end_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Date (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="datetime-local" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="is_active"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="!mt-0">Active</FormLabel>
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+### SEO Settings Component
+
+```typescript
+// components/admin/settings/seo-settings.tsx
+
+export function SEOSettings() {
+  const { data: settings } = useQuery({
+    queryKey: ['settings', 'seo'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/settings?section=seo');
+      return res.json();
+    }
+  });
+  
+  const form = useForm({
+    defaultValues: settings
+  });
+  
+  const mutation = useMutation({
+    mutationFn: async (data) => {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'seo', data })
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success('SEO settings updated');
+      queryClient.invalidateQueries(['settings', 'seo']);
+    }
+  });
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>SEO & Metadata</CardTitle>
+        <CardDescription>
+          Search engine optimization settings
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(data => mutation.mutate(data))}>
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="site_title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Site Title</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="ACR Automotive - Refacciones" />
+                    </FormControl>
+                    <FormDescription>
+                      Appears in browser tab and search results
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="meta_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meta Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        rows={3}
+                        placeholder="Especialistas en refacciones automotrices..."
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      150-160 characters for search engine snippets
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="mt-6">
+              <Button type="submit" disabled={mutation.isPending}>
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Public Banner Display
+
+```typescript
+// components/public/banner-display.tsx
+
+export function BannerDisplay() {
+  const { data: banners } = useQuery({
+    queryKey: ['banners', 'active'],
+    queryFn: async () => {
+      const res = await fetch('/api/public/banners/active');
+      return res.json();
+    }
+  });
+  
+  if (!banners || banners.length === 0) return null;
+  
+  return (
+    <div className="space-y-2">
+      {banners.map(banner => (
+        <Alert
+          key={banner.id}
+          variant={banner.banner_type === 'promo' ? 'default' : 'secondary'}
+        >
+          <AlertDescription>{banner.content}</AlertDescription>
+        </Alert>
+      ))}
+    </div>
+  );
+}
+
+// Add to public search page:
+// app/page.tsx or app/search/page.tsx
+
+export default function SearchPage() {
+  return (
+    <div>
+      <Header />
+      <BannerDisplay />  {/* Add banner display */}
+      <SearchInterface />
+      <Footer />
+    </div>
+  );
+}
+```
+
+### Banner Scheduling Logic
+
+```typescript
+// API endpoint: /api/public/banners/active/route.ts
+
+export async function GET() {
+  const now = new Date();
+  
+  const activeBanners = await db.banners.findMany({
+    where: {
+      is_active: true,
+      OR: [
+        // No dates set = always show
+        {
+          start_date: null,
+          end_date: null
+        },
+        // Within date range
+        {
+          start_date: { lte: now },
+          end_date: { gte: now }
+        },
+        // Started but no end date
+        {
+          start_date: { lte: now },
+          end_date: null
+        }
+      ]
+    },
+    orderBy: {
+      display_order: 'asc'
+    }
+  });
+  
+  return Response.json(activeBanners);
+}
+```
+
+### Settings Context Provider
+
+```typescript
+// contexts/SettingsContext.tsx
+// Make settings available globally
+
+const SettingsContext = createContext<SiteSettings | null>(null);
+
+export function SettingsProvider({ children }) {
+  const { data: settings } = useQuery({
+    queryKey: ['settings', 'all'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/settings');
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 5  // Cache for 5 minutes
+  });
+  
+  return (
+    <SettingsContext.Provider value={settings}>
+      {children}
+    </SettingsContext.Provider>
+  );
+}
+
+export function useSettings() {
+  const context = useContext(SettingsContext);
+  if (!context) throw new Error('useSettings must be within SettingsProvider');
+  return context;
+}
+
+// Usage in footer:
+export function Footer() {
+  const settings = useSettings();
+  
+  return (
+    <footer>
+      <a href={`mailto:${settings.contact.email}`}>
+        {settings.contact.email}
+      </a>
+      {/* ... */}
+    </footer>
+  );
+}
+```
+
+---
+
+## Testing (6 hours total)
+
+### Multiple Images Testing (2 hours)
+- Upload multiple images (success, file type validation, size limits)
+- Reorder images (drag & drop, verify order persisted)
+- Set primary image (verify only one primary, display in search)
+- Delete images (verify removed from storage and DB)
+- Mobile swipe gestures (test on actual devices)
+
+### Persist Filters Testing (2 hours)
+- URL updates on filter changes
+- Browser back/forward preserves state
+- Page refresh maintains filters
+- Bookmarked URLs work correctly
+- Shared URLs work for other users
+
+### Website Settings Testing (2 hours)
+- Update contact info (save, display in footer)
+- Upload logo/favicon (file validation, display)
+- Create/edit/delete banners (CRUD operations)
+- Banner scheduling (active within date range)
+- Banner display on public page
+
+---
+
+## File Structure
+
+```
+src/
+├── app/
+│   ├── admin/
+│   │   ├── parts/
+│   │   │   └── page.tsx  (Updated: URL state)
+│   │   └── settings/
+│   │       └── page.tsx  (New: Settings page)
+│   └── api/admin/
+│       ├── parts/[id]/images/
+│       │   ├── route.ts  (GET, POST)
+│       │   ├── reorder/route.ts  (PUT)
+│       │   └── [imageId]/
+│       │       ├── route.ts  (PUT, DELETE)
+│       │       └── primary/route.ts  (PUT)
+│       ├── settings/
+│       │   ├── route.ts  (GET, PUT)
+│       │   └── upload-logo/route.ts  (POST)
+│       └── banners/
+│           ├── route.ts  (GET, POST)
+│           └── [id]/route.ts  (PUT, DELETE)
+├── components/
+│   ├── admin/
+│   │   ├── parts/
+│   │   │   ├── part-images-manager.tsx
+│   │   │   └── image-gallery-editor.tsx
+│   │   └── settings/
+│   │       ├── contact-info-settings.tsx
+│   │       ├── branding-settings.tsx
+│   │       ├── banners-management.tsx
+│   │       └── seo-settings.tsx
+│   ├── public/
+│   │   ├── parts/part-image-gallery.tsx
+│   │   └── banner-display.tsx
+│   └── layout/
+│       ├── header.tsx  (Updated: clickable logo)
+│       └── footer.tsx  (New: with contact info)
+├── lib/services/
+│   └── part-images.service.ts
+└── contexts/
+    └── SettingsContext.tsx
+```
+
+---
+
+## Dependencies
+
+```json
+{
+  "@dnd-kit/core": "^6.0.8",
+  "@dnd-kit/sortable": "^7.0.2",
+  "@use-gesture/react": "^10.3.0",
+  "use-debounce": "^10.0.0"
+}
+```
+
+---
+
+## Migration Scripts
+
+```sql
+-- migrations/004_part_images.sql
+-- (Already shown in database schema section)
+
+-- migrations/005_site_settings.sql
+CREATE TABLE site_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    setting_key VARCHAR(100) UNIQUE NOT NULL,
+    setting_value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE banners (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    content TEXT NOT NULL,
+    banner_type VARCHAR(20) DEFAULT 'info',
+    is_active BOOLEAN DEFAULT true,
+    start_date TIMESTAMPTZ,
+    end_date TIMESTAMPTZ,
+    display_order INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insert default settings
+INSERT INTO site_settings (setting_key, setting_value) VALUES
+('contact', '{"business_name": "ACR Automotive", "email": "", "whatsapp": "", "address": "", "business_hours": ""}'),
+('branding', '{"logo_url": "", "favicon_url": ""}'),
+('seo', '{"site_title": "ACR Automotive", "meta_description": ""}');
+```
+
+---
+
+**END OF CATEGORY 2 TECHNICAL PLAN**
