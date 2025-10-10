@@ -1,8 +1,9 @@
 "use client";
 
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Search, XCircleIcon, ChevronDown, ChevronUp } from "lucide-react";
-import { AcrButton } from "@/components/acr/Button";
+import { useSearchParams } from "next/navigation";
+import { Search, Car, Package } from "lucide-react";
+import { AcrButton, AcrTabs, AcrTabsList, AcrTabsTrigger, AcrTabsContent } from "@/components/acr";
 import { AcrComboBox } from "@/components/acr/ComboBox";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useVehicleOptions } from "@/hooks";
@@ -27,20 +28,29 @@ type PublicSearchFiltersProps = {
 export function PublicSearchFilters(props: PublicSearchFiltersProps) {
   const { setSearchTerms } = props;
   const { t } = useLocale();
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState("vehicle");
   const { data, isLoading, error } = useVehicleOptions();
 
   // dropdown list options.
   const [models, setModels] = useState<string[] | undefined>();
   const [years, setYears] = useState<number[] | undefined>();
 
-  // selected options for SearchTerms.
-  const [selectedMake, setSelectedMake] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("");
-  const [selectedYear, setSelectedYear] = useState<string>("");
+  // selected options for SearchTerms - initialize from URL
+  const [selectedMake, setSelectedMake] = useState<string>(searchParams?.get('make') || "");
+  const [selectedModel, setSelectedModel] = useState<string>(searchParams?.get('model') || "");
+  const [selectedYear, setSelectedYear] = useState<string>(searchParams?.get('year') || "");
 
-  // for SKU term lookup
-  const [skuTerm, setSkuTerm] = useState<string>("");
+  // for SKU term lookup - initialize from URL
+  const [skuTerm, setSkuTerm] = useState<string>(searchParams?.get('sku') || "");
+
+  // Sync internal state with URL params when they change (browser back/forward)
+  useEffect(() => {
+    setSelectedMake(searchParams?.get('make') || "");
+    setSelectedModel(searchParams?.get('model') || "");
+    setSelectedYear(searchParams?.get('year') || "");
+    setSkuTerm(searchParams?.get('sku') || "");
+  }, [searchParams]);
 
   useEffect(() => {
     if (selectedMake && data?.models) {
@@ -80,6 +90,16 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
     }
   };
 
+  const clearAllFilters = () => {
+    setSelectedMake("");
+    setSelectedModel("");
+    setSelectedYear("");
+    setSkuTerm("");
+    setSearchTerms(DEFAULT_PUBLIC_SEARCH_TERMS);
+  };
+
+  const hasActiveFilters = selectedMake || selectedModel || selectedYear || skuTerm;
+
   // Show error state if vehicle options failed to load
   if (error) {
     return (
@@ -94,12 +114,29 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Vehicle Search Section */}
-      <div className="bg-white p-3 rounded-lg border border-acr-gray-300 shadow-md lg:p-4">
-        <h3 className="text-lg font-semibold text-acr-gray-900 mb-3">
-          {t("public.search.vehicleSearchTitle")}
-        </h3>
+    <div className="bg-white p-3 rounded-lg border border-acr-gray-300 shadow-md lg:p-4">
+      <AcrTabs value={activeTab} onValueChange={setActiveTab}>
+        {/* Tab Headers with "Search By" Label on Top (Mobile) */}
+        <div className="space-y-2 mb-4 lg:space-y-0 lg:mb-0">
+          <span className="block text-sm font-semibold text-acr-gray-900 lg:hidden">
+            {t("common.actions.searchBy")}
+          </span>
+          <AcrTabsList>
+            <AcrTabsTrigger value="vehicle">
+              <Car className="w-4 h-4 mr-1.5 hidden lg:inline" />
+              <span className="lg:hidden">{t("public.search.vehicleTabShort")}</span>
+              <span className="hidden lg:inline">{t("public.search.vehicleSearchTitle")}</span>
+            </AcrTabsTrigger>
+            <AcrTabsTrigger value="sku">
+              <Package className="w-4 h-4 mr-1.5 hidden lg:inline" />
+              <span className="lg:hidden">{t("public.search.skuTabShort")}</span>
+              <span className="hidden lg:inline">{t("public.search.skuSearchTitle")}</span>
+            </AcrTabsTrigger>
+          </AcrTabsList>
+        </div>
+
+        {/* Vehicle Search Tab Content */}
+        <AcrTabsContent value="vehicle">
 
         {/* Mobile & Tablet: Stacked Layout */}
         <div className="md:hidden space-y-3">
@@ -195,6 +232,17 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
           >
             {t("common.actions.search")}
           </AcrButton>
+
+          {/* Clear Filters Button - Mobile */}
+          {hasActiveFilters && (
+            <AcrButton
+              onClick={clearAllFilters}
+              variant="ghost"
+              className="w-full text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100 mt-2"
+            >
+              {t("common.actions.clearFilters")}
+            </AcrButton>
+          )}
         </div>
 
         {/* Desktop: Horizontal Layout */}
@@ -291,39 +339,22 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
           >
             {t("common.actions.search")}
           </AcrButton>
-        </div>
 
-        {/* SKU Search Toggle */}
-        <div className="mt-3 flex justify-end">
-          <button
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-acr-blue-600 hover:text-acr-blue-800 underline hover:no-underline transition-all duration-200"
-          >
-            <span>
-              {showAdvancedFilters
-                ? t("public.search.hideAdvanced")
-                : t("public.search.showAdvanced")}
-            </span>
-            {showAdvancedFilters ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
+          {/* Clear Filters Button - Desktop (inline with Search) */}
+          {hasActiveFilters && (
+            <AcrButton
+              onClick={clearAllFilters}
+              variant="ghost"
+              className="hidden md:inline-flex whitespace-nowrap h-auto py-3 text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100"
+            >
+              {t("common.actions.clearFilters")}
+            </AcrButton>
+          )}
         </div>
+        </AcrTabsContent>
 
-        {/* SKU Search Panel */}
-        <div
-          className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            showAdvancedFilters
-              ? "max-h-48 md:max-h-32 opacity-100 mt-4"
-              : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="border-t border-acr-gray-300 pt-4 pb-2 md:pb-0">
-            <h4 className="text-md font-medium text-acr-gray-700 mb-3">
-              {t("public.search.skuSearchTitle")}
-            </h4>
+        {/* SKU Search Tab Content */}
+        <AcrTabsContent value="sku">
 
             {/* Mobile: Stacked Layout */}
             <div className="md:hidden space-y-3">
@@ -336,14 +367,6 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                   placeholder={t("public.search.skuPlaceholder")}
                   className="w-full h-12 pl-10 pr-4 py-3 border border-acr-gray-400 rounded-lg focus:outline-none focus:border-acr-red-500 placeholder:text-acr-gray-500 transition-colors duration-200"
                 />
-                {skuTerm && (
-                  <button
-                    onClick={() => setSkuTerm("")}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-acr-gray-400 hover:text-acr-gray-600"
-                  >
-                    <XCircleIcon className="w-4 h-4" />
-                  </button>
-                )}
               </div>
 
               <AcrButton
@@ -366,19 +389,6 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                   placeholder={t("public.search.skuPlaceholder")}
                   className="w-full pl-10 pr-4 py-3 border border-acr-gray-400 rounded-lg focus:outline-none focus:border-acr-red-500 placeholder:text-acr-gray-500 transition-colors duration-200"
                 />
-                {skuTerm && (
-                  <button
-                    onClick={() => {
-                      setSearchTerms({
-                        ...DEFAULT_PUBLIC_SEARCH_TERMS,
-                      });
-                      setSkuTerm("");
-                    }}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-acr-gray-400 hover:text-acr-gray-600"
-                  >
-                    <XCircleIcon className="w-4 h-4" />
-                  </button>
-                )}
               </div>
 
               <AcrButton
@@ -388,10 +398,31 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
               >
                 {t("common.actions.search")}
               </AcrButton>
+
+              {/* Clear Filters Button - Desktop (inline with Search) */}
+              {hasActiveFilters && (
+                <AcrButton
+                  onClick={clearAllFilters}
+                  variant="ghost"
+                  className="whitespace-nowrap h-auto py-3 text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100"
+                >
+                  {t("common.actions.clearFilters")}
+                </AcrButton>
+              )}
             </div>
-          </div>
-        </div>
-      </div>
+
+          {/* Clear Filters Button - Mobile (full width below) */}
+          {hasActiveFilters && (
+            <AcrButton
+              onClick={clearAllFilters}
+              variant="ghost"
+              className="md:hidden w-full text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100 mt-3"
+            >
+              {t("common.actions.clearFilters")}
+            </AcrButton>
+          )}
+        </AcrTabsContent>
+      </AcrTabs>
     </div>
   );
 }

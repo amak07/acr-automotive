@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
+import { useSearchParams } from "next/navigation";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -17,6 +18,11 @@ interface PartDetailsBreadcrumbProps {
 
 export function PartDetailsBreadcrumb({ acrSku, partId }: PartDetailsBreadcrumbProps) {
   const { t } = useLocale();
+  const searchParams = useSearchParams();
+
+  // Preserve search params when going back
+  const currentSearch = searchParams?.toString() || '';
+  const backLink = `/admin${currentSearch ? `?${currentSearch}` : ''}`;
 
   return (
     <div className="mb-6">
@@ -24,7 +30,7 @@ export function PartDetailsBreadcrumb({ acrSku, partId }: PartDetailsBreadcrumbP
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink
-              href="/admin"
+              href={backLink}
               className="text-acr-gray-600 hover:text-acr-gray-800"
             >
               {t("partDetails.breadcrumb.parts")}

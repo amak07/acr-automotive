@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useMemo } from "react";
 import { PublicHeader } from "@/components/public/layout/PublicHeader";
 import {
   PublicSearchFilters,
@@ -14,10 +15,20 @@ import { CardError } from "@/components/ui/error-states";
 import { DEFAULT_PUBLIC_SEARCH_TERMS } from "./constants";
 
 export default function HomePage() {
-  const [searchTerms, setSearchTerms] = useState<PublicSearchTerms>({
-    ...DEFAULT_PUBLIC_SEARCH_TERMS,
-  });
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
+
+  // Read search terms from URL
+  const searchTerms = useMemo<PublicSearchTerms>(() => ({
+    make: searchParams?.get('make') || '',
+    model: searchParams?.get('model') || '',
+    year: searchParams?.get('year') || '',
+    sku_term: searchParams?.get('sku') || '',
+    limit: DEFAULT_PUBLIC_SEARCH_TERMS.limit,
+    offset: parseInt(searchParams?.get('offset') || '0'),
+  }), [searchParams]);
 
   const { data, isLoading, error } = usePublicParts(searchTerms);
 
@@ -25,12 +36,33 @@ export default function HomePage() {
   const currentPage = Math.floor(searchTerms.offset / searchTerms.limit) + 1;
   const totalPages = Math.ceil((data?.count || 0) / searchTerms.limit);
 
+  // Update URL when filters or page changes
+  const updateURL = (updates: Partial<PublicSearchTerms>) => {
+    const params = new URLSearchParams(searchParams?.toString());
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value && value !== '' && value !== 0) {
+        params.set(key === 'sku_term' ? 'sku' : key, value.toString());
+      } else {
+        params.delete(key === 'sku_term' ? 'sku' : key);
+      }
+    });
+
+    // Reset offset if filters changed (not pagination)
+    if (!('offset' in updates) && params.toString() !== searchParams?.toString()) {
+      params.delete('offset');
+    }
+
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const setSearchTerms = (terms: PublicSearchTerms) => {
+    updateURL(terms);
+  };
+
   const handlePageChange = (page: number) => {
     const newOffset = (page - 1) * searchTerms.limit;
-    setSearchTerms((prev) => ({
-      ...prev,
-      offset: newOffset,
-    }));
+    updateURL({ offset: newOffset });
   };
 
   return (

@@ -61,6 +61,7 @@ export interface TranslationKeys {
   'common.actions.cancel': string;
   'common.actions.delete': string;
   'common.actions.search': string;
+  'common.actions.searchBy': string;
   'common.actions.all': string;
   
   // Common States
@@ -223,7 +224,9 @@ export interface TranslationKeys {
   'public.search.year': string;
   'public.search.skuPlaceholder': string;
   'public.search.vehicleSearchTitle': string;
+  'public.search.vehicleTabShort': string;
   'public.search.skuSearchTitle': string;
+  'public.search.skuTabShort': string;
   'public.search.advancedFilters': string;
   'public.search.showAdvanced': string;
   'public.search.hideAdvanced': string;

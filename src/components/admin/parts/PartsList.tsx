@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import {  createAcrPartsTableColumns } from "./parts-table-config";
 import { AcrPagination } from "@/components/acr";
 import { SearchTerms } from "./SearchFilters";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AcrButton, AcrTable } from "@/components/acr";
 import { SkeletonAdminPartsList } from "@/components/ui/skeleton";
 import { PartSummary } from "@/types";
@@ -23,6 +23,7 @@ type PartsListProps = {
 
 export function PartsList(props: PartsListProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const {
     partsData,
@@ -34,8 +35,9 @@ export function PartsList(props: PartsListProps) {
     limit,
   } = props;
 
+  const currentSearch = searchParams?.toString() || '';
   const totalPages = Math.ceil(partsTotal / limit);
-  const acrTableColumns = createAcrPartsTableColumns(t, router);
+  const acrTableColumns = createAcrPartsTableColumns(t, router, searchParams);
 
   const handleAddNewPartNavigation = () => {
     router.push("/admin/parts/add-new-part" as any);
@@ -82,7 +84,7 @@ export function PartsList(props: PartsListProps) {
             <div
               key={part.id}
               onClick={() => {
-                router.push(`/admin/parts/${part.id}` as any);
+                router.push(`/admin/parts/${part.id}${currentSearch ? `?${currentSearch}` : ''}` as any);
               }}
               className="bg-white rounded-lg border border-acr-gray-200 overflow-hidden hover:shadow-md hover:border-acr-gray-300 transition-all duration-200 cursor-pointer active:scale-[0.98]"
             >

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { DatabasePartRow } from "@/types";
 import { useLocale } from "@/contexts/LocaleContext";
 import { SkeletonPartsGrid } from "@/components/ui/skeleton";
@@ -17,6 +18,10 @@ type PublicPartsListProps = {
 export function PublicPartsList(props: PublicPartsListProps) {
   const { partsData, isDataLoading, partsCount, currentPage, limit } = props;
   const { t } = useLocale();
+  const searchParams = useSearchParams();
+
+  // Preserve search params when navigating to part details
+  const currentSearch = searchParams?.toString() || '';
 
   if (isDataLoading) {
     return <SkeletonPartsGrid count={6} />;
@@ -51,8 +56,8 @@ export function PublicPartsList(props: PublicPartsListProps) {
           {partsData.map((part) => (
             <Link
               key={part.id}
-              href={`/parts/${part.id}`}
-              className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg hover:border-acr-gray-400 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:ring-offset-2 group relative flex flex-col block"
+              href={`/parts/${part.id}${currentSearch ? `?${currentSearch}` : ''}`}
+              className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg hover:border-acr-gray-400 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:ring-offset-2 group relative flex flex-col"
             >
               {/* Image Container - Baleros-Bisa Style */}
               <div className="relative overflow-hidden p-4 h-48">

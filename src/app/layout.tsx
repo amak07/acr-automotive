@@ -3,6 +3,7 @@ import { Noto_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/toaster";
+import { Footer } from "@/components/layout/Footer";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -32,8 +33,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${notoSans.variable} font-sans`} suppressHydrationWarning={true}>
-        <Providers>{children}</Providers>
+      <body className={`${notoSans.variable} font-sans flex flex-col min-h-screen`} suppressHydrationWarning={true}>
+        <Providers>
+          <div className="flex-1">{children}</div>
+          <Footer />
+        </Providers>
         <Toaster />
       </body>
     </html>

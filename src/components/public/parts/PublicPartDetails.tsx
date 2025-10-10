@@ -3,6 +3,7 @@
 import { ArrowLeft, Package } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
 import {
   DatabasePartRow,
@@ -13,7 +14,7 @@ import { AcrCard, AcrCardContent } from "@/components/acr/Card";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonPublicPartDetails } from "@/components/ui/skeleton";
 import { PageError } from "@/components/ui/error-states";
-import { useEffect, useState } from "react";
+import { useHomeLink } from "@/hooks";
 
 type PartWithRelations = DatabasePartRow & {
   vehicle_applications?: DatabaseVehicleAppRow[];
@@ -32,22 +33,17 @@ export function PublicPartDetails({
   error,
 }: PublicPartDetailsProps) {
   const { t } = useLocale();
-  const [backLink, setBackLink] = useState<string>("/");
-  const [backText, setBackText] = useState<string>("");
+  const homeLink = useHomeLink();
+  const searchParams = useSearchParams();
 
-  useEffect(() => {
-    // Only use the explicit URL parameter to determine if we came from admin
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromAdmin = urlParams.get('from') === 'admin';
-
-    if (fromAdmin && part?.id) {
-      setBackLink(`/admin/parts/${part.id}`);
-      setBackText(t("public.partDetails.backToAdmin"));
-    } else {
-      setBackLink("/");
-      setBackText(t("public.partDetails.backToSearch"));
-    }
-  }, [part?.id, t]);
+  // Preserve search params when going back
+  const currentSearch = searchParams?.toString() || '';
+  const backLink = homeLink === "/admin" && part?.id
+    ? `/admin/parts/${part.id}`
+    : `/${currentSearch ? `?${currentSearch}` : ''}`;
+  const backText = homeLink === "/admin"
+    ? t("public.partDetails.backToAdmin")
+    : t("public.partDetails.backToSearch");
 
   if (isLoading) {
     return <SkeletonPublicPartDetails />;
@@ -209,7 +205,7 @@ export function PublicPartDetails({
                   <div className="space-y-1">
                     {part.vehicle_applications.map((app) => (
                       <div key={app.id} className="text-sm text-acr-gray-900">
-                        - {app.make} {app.model} {app.year_range}
+                        - {app.make} {app.model} ({app.start_year}-{app.end_year})
                       </div>
                     ))}
                   </div>

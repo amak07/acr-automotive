@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { AcrLogo } from "@/components/ui/AcrLogo";
 import { AcrLanguageToggle } from "./LanguageToggle";
 import { Locale } from "@/lib/i18n";
+import { useHomeLink } from "@/hooks";
 
 export interface AcrHeaderAction {
   /**
@@ -120,6 +121,7 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
     ref
   ) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const homeLink = useHomeLink();
 
     const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
@@ -187,7 +189,12 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
           <div className="flex items-center justify-between">
             {/* Left side - Logo and Title */}
             <div className="flex items-center gap-2 lg:gap-3 min-w-0 flex-1">
-              <AcrLogo className="h-7 lg:h-8 flex-shrink-0" />
+              <Link
+                href={homeLink}
+                className="flex-shrink-0 hover:opacity-80 transition-opacity"
+              >
+                <AcrLogo className="h-7 lg:h-8" />
+              </Link>
               <h1 className="acr-heading-5 text-acr-gray-800 truncate">
                 {title}
               </h1>
