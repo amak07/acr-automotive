@@ -39,6 +39,7 @@ export {
   type AcrToastOptions
 } from "./Alert";
 export { AcrPagination, type AcrPaginationProps } from "./Pagination";
+export { AcrTabs, AcrTabsList, AcrTabsTrigger, AcrTabsContent } from "./Tabs";
 
 /**
  * Usage Examples:

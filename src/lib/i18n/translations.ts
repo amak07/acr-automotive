@@ -165,6 +165,10 @@ export const translations: Record<
     en: "Search",
     es: "Buscar",
   },
+  "common.actions.searchBy": {
+    en: "Search By",
+    es: "Buscar",
+  },
   "common.actions.all": {
     en: "All",
     es: "Todos",
@@ -746,9 +750,17 @@ export const translations: Record<
     en: "Vehicle Search",
     es: "Búsqueda por Vehículo",
   },
+  "public.search.vehicleTabShort": {
+    en: "Vehicle",
+    es: "Vehículo",
+  },
   "public.search.skuSearchTitle": {
     en: "Part Number Search",
     es: "Búsqueda por Número de Parte",
+  },
+  "public.search.skuTabShort": {
+    en: "Part Number",
+    es: "Número de Parte",
   },
   "public.search.advancedFilters": {
     en: "Advanced Filters",

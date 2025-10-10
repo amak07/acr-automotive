@@ -6,6 +6,7 @@ import { TranslationKeys } from "@/lib/i18n/translation-keys";
 import { PartSummary } from "@/types";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { AcrTableColumn } from "@/components/acr";
+import { ReadonlyURLSearchParams } from "next/navigation";
 
 export interface TableColumn {
   key: string;
@@ -23,7 +24,8 @@ export interface TableColumn {
  */
 export const createAcrPartsTableColumns = (
   t: (key: keyof TranslationKeys) => string,
-  router?: AppRouterInstance
+  router?: AppRouterInstance,
+  searchParams?: ReadonlyURLSearchParams | null
 ): AcrTableColumn<PartSummary>[] => [
   {
     key: "acr_sku",
@@ -181,17 +183,20 @@ export const createAcrPartsTableColumns = (
   {
     key: "actions",
     label: "",
-    render: (value: any, part?: PartSummary) => (
-      <button
-        onClick={() => {
-          if (router) {
-            router.push(`/admin/parts/${part?.id}`);
-          }
-        }}
-        className="text-acr-red-600 hover:text-acr-red-700 text-sm font-medium underline-offset-4 hover:underline transition-colors"
-      >
-        {t("common.actions.view")}
-      </button>
-    ),
+    render: (value: any, part?: PartSummary) => {
+      const currentSearch = searchParams?.toString() || '';
+      return (
+        <button
+          onClick={() => {
+            if (router) {
+              router.push(`/admin/parts/${part?.id}${currentSearch ? `?${currentSearch}` : ''}`);
+            }
+          }}
+          className="text-acr-red-600 hover:text-acr-red-700 text-sm font-medium underline-offset-4 hover:underline transition-colors"
+        >
+          {t("common.actions.view")}
+        </button>
+      );
+    },
   },
 ];

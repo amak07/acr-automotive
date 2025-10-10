@@ -5,35 +5,58 @@ import { DashboardCards } from "@/components/admin/dashboard/DashboardCards";
 import { SearchFilters, SearchTerms } from "@/components/admin/parts/SearchFilters";
 import { PartsList } from "@/components/admin/parts/PartsList";
 import { withAdminAuth } from "@/components/admin/auth/withAdminAuth";
-import { useState, useEffect } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useGetParts } from "@/hooks";
 import { useDebounce } from "use-debounce";
+import { useMemo } from "react";
 
 function AdminPage() {
-  const [searchTerms, setSearchTerms] = useState<SearchTerms>({
-    search: "",
-    part_type: "__all__",
-    position_type: "__all__",
-    abs_type: "__all__",
-    drive_type: "__all__",
-    bolt_pattern: "__all__",
-  });
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [limit] = useState(25);
+  // Read state from URL
+  const searchTerms = useMemo<SearchTerms>(() => ({
+    search: searchParams?.get('search') || '',
+    part_type: searchParams?.get('part_type') || '__all__',
+    position_type: searchParams?.get('position_type') || '__all__',
+    abs_type: searchParams?.get('abs_type') || '__all__',
+    drive_type: searchParams?.get('drive_type') || '__all__',
+    bolt_pattern: searchParams?.get('bolt_pattern') || '__all__',
+  }), [searchParams]);
+
+  const currentPage = parseInt(searchParams?.get('page') || '1');
+  const limit = 25;
   const [debouncedSearchTerm] = useDebounce(searchTerms.search, 300);
 
-  // Reset to first page when search terms change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [
-    searchTerms.abs_type,
-    searchTerms.bolt_pattern,
-    searchTerms.drive_type,
-    searchTerms.part_type,
-    searchTerms.position_type,
-    debouncedSearchTerm,
-  ]);
+  // Update URL when search terms or page changes
+  const updateURL = (updates: Partial<SearchTerms & { page?: number }>) => {
+    const params = new URLSearchParams(searchParams?.toString());
+
+    // Update or remove each parameter
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value && value !== '__all__' && value !== '') {
+        params.set(key, value.toString());
+      } else {
+        params.delete(key);
+      }
+    });
+
+    // Reset to page 1 if filters changed (not page)
+    if (!('page' in updates) && params.toString() !== searchParams?.toString()) {
+      params.delete('page');
+    }
+
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const setSearchTerms = (terms: SearchTerms) => {
+    updateURL(terms);
+  };
+
+  const setCurrentPage = (page: number) => {
+    updateURL({ page });
+  };
 
   // Move parts loading state to parent level
   const {

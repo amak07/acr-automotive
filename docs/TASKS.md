@@ -4,7 +4,7 @@ _Last Updated: October 8, 2025_
 
 ## 🎯 Current Sprint Status
 
-**Project Phase**: 🤖 **AI Integration Planning** - Phase 5 (AI-Enhanced Search)
+**Project Phase**: 🚀 **Category 2: User Experience Improvements** - Post-MVP Enhancements
 
 **Overall Progress**:
 
@@ -12,8 +12,9 @@ _Last Updated: October 8, 2025_
 - ✅ **Phase 2**: Admin CRUD interface (Complete)
 - ✅ **Phase 3**: Public search interface (Complete)
 - ✅ **Phase 4**: Production deployment and optimization (Complete)
-- 📋 **Phase 5**: AI Integration planning and documentation (In Progress)
-- 🎯 **Current**: AI architecture documentation complete, ready for implementation
+- ✅ **Phase 5**: Dev branch setup and feature flags (Complete)
+- 🎯 **Phase 6**: Category 2 site enhancements (30-37.5h estimated)
+- 📋 **Phase 7**: AI Integration (Planned - documentation complete)
 
 ## 📊 Production Status
 
@@ -147,53 +148,176 @@ All documentation exists as artifacts in the current chat session:
 
 ---
 
+## 📋 Category 2: User Experience Improvements (Phase 6)
+
+**Status**: 🎯 Ready to begin
+**Total Estimated Time**: 30-37.5 hours
+**Feature Flag**: `enablePostMVP` (enabled in dev, disabled in production)
+**Technical Plan**: `docs/technical-plans/site-enhancements/acr_cat2_tech_plan.txt`
+
+### Feature 2.1: General UI Updates (1.5h)
+
+**Quick wins to improve user experience**
+
+- [ ] Add year ranges to vehicle applications in public search results
+- [ ] Create footer component with logo, contact info, and links
+- [ ] Add WhatsApp and email clickable links to footer
+- [ ] Make header logo clickable (navigate to home)
+- [ ] Update layout.tsx to include footer
+
+**Files to modify:**
+- `components/public/search/vehicle-applications-list.tsx`
+- `components/public/search/search-results.tsx`
+- `components/layout/footer.tsx` (new)
+- `components/layout/header.tsx`
+- `app/layout.tsx`
+
+---
+
+### Feature 2.2: Persist Filters & Search State (4-5h)
+
+**URL-based state management for better UX**
+
+- [ ] Implement URL state management for admin parts page
+- [ ] Add debounced search input updates
+- [ ] Implement pagination with URL state
+- [ ] Add filter controls (part_type, position, sort)
+- [ ] Test browser back/forward navigation
+- [ ] Verify bookmarkable URLs work
+- [ ] Apply same pattern to public search page (if needed)
+
+**Files to create/modify:**
+- `app/admin/parts/page.tsx` (update with URL state)
+- Install: `use-debounce` package
+
+**Benefits:**
+- Browser back/forward works naturally
+- Bookmarkable searches
+- Shareable URLs with exact filters
+- Page refresh preserves state
+
+---
+
+### Feature 2.3: Multiple Images Per Part (14-16h)
+
+**Allow multiple images per part with gallery UI**
+
+#### Database & Storage (2-3h)
+- [ ] Create `part_images` table migration
+- [ ] Configure Supabase Storage bucket policies
+- [ ] Add indexes for performance
+
+#### Backend API (4-5h)
+- [ ] POST `/api/admin/parts/[id]/images` - Upload images
+- [ ] PUT `/api/admin/parts/[id]/images/reorder` - Reorder images
+- [ ] PUT `/api/admin/parts/[id]/images/[imageId]/primary` - Set primary
+- [ ] PUT `/api/admin/parts/[id]/images/[imageId]` - Update caption
+- [ ] DELETE `/api/admin/parts/[id]/images/[imageId]` - Delete image
+- [ ] Create `PartImagesService` for business logic
+
+#### Admin UI (5-6h)
+- [ ] Create `PartImagesManager` component with upload area
+- [ ] Implement drag & drop gallery editor (using @dnd-kit)
+- [ ] Add set primary, delete, and caption editing
+- [ ] Integrate into part edit/create pages
+
+#### Public UI (3-4h)
+- [ ] Create `PartImageGallery` component
+- [ ] Add navigation arrows and thumbnail strip
+- [ ] Implement mobile swipe gestures (using @use-gesture)
+- [ ] Display image captions
+- [ ] Integrate into search results
+
+**New dependencies:**
+- `@dnd-kit/core`
+- `@dnd-kit/sortable`
+- `@use-gesture/react`
+
+---
+
+### Feature 2.4: Website Assets & Settings Management (10-14h)
+
+**Admin interface for site configuration**
+
+#### Database Schema (1h)
+- [ ] Create `site_settings` table (key-value JSONB storage)
+- [ ] Create `banners` table (promotional banners)
+- [ ] Add indexes and initial default values
+
+#### Settings API (3-4h)
+- [ ] GET/PUT `/api/admin/settings` - Manage site settings
+- [ ] POST `/api/admin/settings/upload-logo` - Upload logo/favicon
+- [ ] CRUD `/api/admin/banners` - Banner management
+- [ ] GET `/api/public/banners/active` - Active banners for public
+
+#### Admin Settings Page (4-6h)
+- [ ] Create settings page with tabs (Contact, Branding, Banners, SEO)
+- [ ] Build `ContactInfoSettings` component
+- [ ] Build `BrandingSettings` component (logo/favicon upload)
+- [ ] Build `BannersManagement` component (CRUD UI)
+- [ ] Build `SEOSettings` component (meta tags)
+
+#### Public Display (2-3h)
+- [ ] Create `SettingsContext` provider
+- [ ] Update footer to use dynamic settings
+- [ ] Create `BannerDisplay` component
+- [ ] Add banner display to public search page
+- [ ] Implement banner scheduling logic (date ranges)
+
+**Files to create:**
+- `app/admin/settings/page.tsx`
+- `components/admin/settings/*`
+- `components/public/banner-display.tsx`
+- `contexts/SettingsContext.tsx`
+- `lib/supabase/migrations/005_site_settings.sql`
+
+---
+
 ## 🔄 Current Session State
 
-### Latest Session: October 8, 2025
+### Latest Session: October 10, 2025
 
-**Focus**: AI Integration planning and comprehensive documentation
+**Focus**: Dev branch setup, feature flags, and Category 2 planning
 **Completed**:
 
-- ✅ Researched AI model selection (GPT-4o Mini primary, Claude 4 Sonnet secondary)
-- ✅ Designed intent classification system for MAZA-only business
-- ✅ Architected hybrid search strategy (traditional + semantic fallback)
-- ✅ Specified progressive disclosure UX pattern (filter chips, not conversation)
-- ✅ Documented complete backend architecture (pgvector, embeddings, API endpoints)
-- ✅ Designed frontend components (universal search, voice input, recent searches)
-- ✅ Created 6-8 week implementation roadmap with day-by-day checklists
-- ✅ Analyzed industry patterns (Amazon, Google Shopping, Algolia)
-- ✅ Calculated cost estimates (~$7/month for production)
+- ✅ Created `dev` branch for development work
+- ✅ Pushed `dev` branch to GitHub
+- ✅ Implemented simple feature flag system (`src/lib/feature-flags.ts`)
+- ✅ Added `enablePostMVP` flag (true in dev, false in production)
+- ✅ Cleaned up environment files (removed 13 unused variables)
+- ✅ Added `.env.test` to `.gitignore`
+- ✅ Removed `.env.test` from git tracking
+- ✅ Audited all environment variables for actual usage
+- ✅ Updated TASKS.md with Category 2 features and task breakdown
 
 **Key Changes**:
 
-- `docs/TASKS.md` - Added comprehensive AI Integration section with Phase 5 planning
-- Created 5 detailed planning documents (as chat artifacts):
-  - Phase 1: Intent Classification System
-  - Phase 2: AI Response Generation System
-  - Phase 3: Technical Foundation (Backend)
-  - Phase 4: Frontend Integration (UI)
-  - AI Integration Implementation Roadmap
-- Established architectural decisions backed by industry research
+- `src/lib/feature-flags.ts` - Simple feature flag system with `enablePostMVP`
+- `.env` - Cleaned to 4 essential variables (production database)
+- `.env.test` - Cleaned to 4 essential variables (dev/test database)
+- `.gitignore` - Added `.env.test` to prevent tracking
+- `docs/TASKS.md` - Added Category 2 feature breakdown with detailed tasks
+- Git: Created and pushed `dev` branch
 
-**Key Technical Decisions**:
+**Vercel Setup (Next Steps)**:
 
-- Universal search bar (single input) instead of "AI toggle"
-- Progressive disclosure with filter chips (Amazon pattern)
-- Dynamic page sizing: fetch all for incomplete queries, paginate for complete
-- Hybrid search: traditional first, semantic fallback
-- Voice search via browser Web Speech API (free, no backend changes)
-- Recent searches via Local Storage (persists across sessions)
-- Mexican Spanish focus with bilingual architecture
+In Vercel dashboard, add these environment variables:
+- **Production**: `NEXT_PUBLIC_ENABLE_POST_MVP=false` + prod database credentials
+- **Preview (dev branch)**: `NEXT_PUBLIC_ENABLE_POST_MVP=true` + test database credentials
+
+**Workflow**:
+- Work on `dev` branch → preview deployment with test DB + post-MVP features enabled
+- Merge to `main` → production deployment with prod DB + post-MVP features disabled
 
 **Next Session Priorities**:
 
-1. Save all 5 AI planning documents locally (currently in chat artifacts)
-2. Review Phase 1 & 2 documents (1-2 days understanding architecture)
-3. Set up OpenAI API key and test embeddings locally
-4. Begin Phase 3 Week 1: Database setup (enable pgvector, add columns)
-5. Run embedding generation script for 865 parts (~$0.002 cost)
+1. Begin Category 2 Feature 2.1: General UI Updates (1.5h)
+2. Add year ranges to vehicle applications display
+3. Create footer component with contact information
+4. Make header logo clickable
+5. Move to Feature 2.2: Persist Filters & Search State
 
-**Current State**: ACR Automotive has complete AI integration architecture documented and ready for 6-8 week implementation. All design decisions are justified with industry research (Amazon, Google, Algolia patterns). Cost estimates show ~$7/month for production usage. No code written yet - pure planning phase complete. Next step: save artifacts and begin backend implementation (Phase 3).
+**Current State**: Development workflow established with dev branch and feature flags. Environment variables cleaned and organized. Ready to begin Category 2 implementation (30-37.5h of UX improvements). All AI integration planning from previous session preserved for Phase 7.
 
 ---
 
