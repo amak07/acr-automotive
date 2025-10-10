@@ -1,6 +1,6 @@
 # TASKS.md - ACR Automotive Development Tasks
 
-_Last Updated: October 8, 2025_
+_Last Updated: October 10, 2025_
 
 ## 🎯 Current Sprint Status
 
@@ -150,51 +150,74 @@ All documentation exists as artifacts in the current chat session:
 
 ## 📋 Category 2: User Experience Improvements (Phase 6)
 
-**Status**: 🎯 Ready to begin
+**Status**: 🎯 In Progress (2.1 & 2.2 Complete)
 **Total Estimated Time**: 30-37.5 hours
+**Completed**: ~5.5-6.5 hours (Features 2.1 & 2.2)
+**Remaining**: ~24-31 hours (Features 2.3 & 2.4)
 **Feature Flag**: `enablePostMVP` (enabled in dev, disabled in production)
 **Technical Plan**: `docs/technical-plans/site-enhancements/acr_cat2_tech_plan.txt`
 
-### Feature 2.1: General UI Updates (1.5h)
+### Feature 2.1: General UI Updates (1.5h) ✅ COMPLETED
 
 **Quick wins to improve user experience**
 
-- [ ] Add year ranges to vehicle applications in public search results
-- [ ] Create footer component with logo, contact info, and links
-- [ ] Add WhatsApp and email clickable links to footer
-- [ ] Make header logo clickable (navigate to home)
-- [ ] Update layout.tsx to include footer
+- ✅ Add year ranges to vehicle applications in public search results
+- ✅ Create footer component with logo, contact info, and links
+- ✅ Add email clickable links to footer (contacto@acrautomotive.com)
+- ✅ Make header logo clickable (navigate to home with smart routing)
+- ✅ Update layout.tsx to include footer
+- ✅ Create ACR Tabs component for search interface
+- ✅ Replace collapsible SKU search with tab-based interface
+- ✅ Add clear filters button to both search tabs
 
-**Files to modify:**
-- `components/public/search/vehicle-applications-list.tsx`
-- `components/public/search/search-results.tsx`
-- `components/layout/footer.tsx` (new)
-- `components/layout/header.tsx`
-- `app/layout.tsx`
+**Files modified/created:**
+- ✅ `components/public/parts/PublicPartDetails.tsx` - Added year ranges (start_year-end_year)
+- ✅ `components/layout/Footer.tsx` - New footer with ACR branding and smart navigation
+- ✅ `components/acr/Header.tsx` - Made logo clickable with useHomeLink
+- ✅ `components/acr/Tabs.tsx` - New responsive tabs component
+- ✅ `components/public/search/PublicSearchFilters.tsx` - Tab-based search interface
+- ✅ `app/layout.tsx` - Added footer and flexbox layout
+- ✅ `hooks/common/useHomeLink.ts` - Smart home navigation hook
 
 ---
 
-### Feature 2.2: Persist Filters & Search State (4-5h)
+### Feature 2.2: Persist Filters & Search State (4-5h) ✅ COMPLETED
 
 **URL-based state management for better UX**
 
-- [ ] Implement URL state management for admin parts page
-- [ ] Add debounced search input updates
-- [ ] Implement pagination with URL state
-- [ ] Add filter controls (part_type, position, sort)
-- [ ] Test browser back/forward navigation
-- [ ] Verify bookmarkable URLs work
-- [ ] Apply same pattern to public search page (if needed)
+- ✅ Implement URL state management for admin parts page
+- ✅ Add debounced search input updates
+- ✅ Implement pagination with URL state
+- ✅ Add filter controls (part_type, position, sort)
+- ✅ Test browser back/forward navigation
+- ✅ Verify bookmarkable URLs work
+- ✅ Apply same pattern to public search page
+- ✅ Create reusable hooks for URL state management
+- ✅ Preserve search params across all navigation flows
 
-**Files to create/modify:**
-- `app/admin/parts/page.tsx` (update with URL state)
-- Install: `use-debounce` package
+**Files created/modified:**
+- ✅ `app/admin/page.tsx` - URL-based state management
+- ✅ `app/page.tsx` - URL-based state management for public search
+- ✅ `components/public/search/PublicSearchFilters.tsx` - URL state sync
+- ✅ `components/public/parts/PublicPartsList.tsx` - Preserve params in links
+- ✅ `components/admin/parts/PartsList.tsx` - Preserve params in links
+- ✅ `components/admin/parts/parts-table-config.tsx` - Preserve params in actions
+- ✅ `components/admin/layout/PartDetailsBreadcrumb.tsx` - Preserve params in back link
+- ✅ `hooks/common/useURLState.ts` - Generic URL state management hook
+- ✅ `hooks/common/usePreserveSearchParams.ts` - Helper to preserve search params
 
 **Benefits:**
-- Browser back/forward works naturally
-- Bookmarkable searches
-- Shareable URLs with exact filters
-- Page refresh preserves state
+- ✅ Browser back/forward works naturally
+- ✅ Bookmarkable searches
+- ✅ Shareable URLs with exact filters
+- ✅ Page refresh preserves state
+- ✅ Search state persists across navigation
+
+**Additional Improvements:**
+- ✅ Added responsive translation keys for mobile/desktop tab labels
+- ✅ Created `common.actions.searchBy` translation key
+- ✅ Clear filters button inline with search on desktop
+- ✅ Mobile: Solid bordered tab style, Desktop: Ghost/link style
 
 ---
 
