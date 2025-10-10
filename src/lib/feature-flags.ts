@@ -12,9 +12,7 @@ export interface FeatureFlags {
  * Get current feature flags based on environment
  */
 export function getFeatureFlags(): FeatureFlags {
-  const enablePostMVP =
-    process.env.NEXT_PUBLIC_ENABLE_POST_MVP === 'true' ||
-    process.env.NEXT_PUBLIC_APP_ENV === 'development';
+  const enablePostMVP = process.env.NEXT_PUBLIC_ENABLE_POST_MVP === 'true';
 
   return {
     enablePostMVP,
@@ -33,12 +31,4 @@ export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
  */
 export function useFeatureFlag(feature: keyof FeatureFlags): boolean {
   return isFeatureEnabled(feature);
-}
-
-/**
- * Get environment display name
- */
-export function getEnvironmentName(): string {
-  const env = process.env.NEXT_PUBLIC_APP_ENV || process.env.NODE_ENV;
-  return env === 'development' ? 'Development' : 'Production';
 }
