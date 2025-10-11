@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, Car, Package } from "lucide-react";
 import { AcrButton, AcrTabs, AcrTabsList, AcrTabsTrigger, AcrTabsContent } from "@/components/acr";
@@ -22,7 +22,7 @@ export type PublicSearchTerms = {
 };
 
 type PublicSearchFiltersProps = {
-  setSearchTerms: Dispatch<SetStateAction<PublicSearchTerms>>;
+  setSearchTerms: (terms: PublicSearchTerms) => void;
 };
 
 export function PublicSearchFilters(props: PublicSearchFiltersProps) {

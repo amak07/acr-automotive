@@ -16,6 +16,7 @@
  */
 
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import type { Route } from 'next';
 import { useMemo, useCallback } from 'react';
 
 type URLStateValue = string | number | boolean | undefined;
@@ -29,7 +30,7 @@ export function useURLState<T extends Record<string, URLStateValue>>(
 
   // Read state from URL, fall back to defaults
   const state = useMemo(() => {
-    const result = { ...defaults };
+    const result = { ...defaults } as any;
 
     Object.keys(defaults).forEach((key) => {
       const value = searchParams?.get(key);
@@ -37,16 +38,16 @@ export function useURLState<T extends Record<string, URLStateValue>>(
         // Parse based on default type
         const defaultValue = defaults[key];
         if (typeof defaultValue === 'number') {
-          result[key] = parseInt(value) as T[Extract<keyof T, string>];
+          result[key] = parseInt(value);
         } else if (typeof defaultValue === 'boolean') {
-          result[key] = (value === 'true') as T[Extract<keyof T, string>];
+          result[key] = (value === 'true');
         } else {
-          result[key] = value as T[Extract<keyof T, string>];
+          result[key] = value;
         }
       }
     });
 
-    return result;
+    return result as T;
   }, [searchParams, defaults]);
 
   // Update URL with new state
@@ -70,7 +71,7 @@ export function useURLState<T extends Record<string, URLStateValue>>(
         }
       });
 
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      router.push(`${pathname}?${params.toString()}` as Route, { scroll: false });
     },
     [router, pathname, searchParams, defaults]
   );

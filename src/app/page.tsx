@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import type { Route } from "next";
 import { useMemo } from "react";
 import { PublicHeader } from "@/components/public/layout/PublicHeader";
 import {
@@ -53,7 +54,7 @@ export default function HomePage() {
       params.delete('offset');
     }
 
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    router.push(`${pathname}?${params.toString()}` as Route, { scroll: false });
   };
 
   const setSearchTerms = (terms: PublicSearchTerms) => {

@@ -94,30 +94,33 @@ export type Database = {
       vehicle_applications: {
         Row: {
           created_at: string | null;
+          end_year: number;
           id: string;
           make: string;
           model: string;
           part_id: string;
+          start_year: number;
           updated_at: string | null;
-          year_range: string;
         };
         Insert: {
           created_at?: string | null;
+          end_year: number;
           id?: string;
           make: string;
           model: string;
           part_id: string;
+          start_year: number;
           updated_at?: string | null;
-          year_range: string;
         };
         Update: {
           created_at?: string | null;
+          end_year?: number;
           id?: string;
           make?: string;
           model?: string;
           part_id?: string;
+          start_year?: number;
           updated_at?: string | null;
-          year_range?: string;
         };
         Relationships: [
           {
