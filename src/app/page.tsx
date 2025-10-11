@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import type { Route } from "next";
-import { useMemo } from "react";
+import { useMemo, Suspense } from "react";
 import { PublicHeader } from "@/components/public/layout/PublicHeader";
 import {
   PublicSearchFilters,
@@ -15,7 +15,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { CardError } from "@/components/ui/error-states";
 import { DEFAULT_PUBLIC_SEARCH_TERMS } from "./constants";
 
-export default function HomePage() {
+function HomePageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -67,43 +67,60 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-acr-gray-100">
-      <PublicHeader />
+    <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
+      <PublicSearchFilters setSearchTerms={setSearchTerms} />
 
-      <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
-        <PublicSearchFilters setSearchTerms={setSearchTerms} />
+      {/* Error State for Parts Search */}
+      {error && (
+        <div className="mt-8">
+          <CardError
+            title={t("public.parts.errorTitle")}
+            message={t("public.parts.errorMessage")}
+          />
+        </div>
+      )}
 
-        {/* Error State for Parts Search */}
-        {error && (
+      <div className="mt-8">
+        <PublicPartsList
+          partsData={data?.data || []}
+          partsCount={data?.count || 0}
+          isDataLoading={isLoading}
+          currentPage={currentPage}
+          limit={searchTerms.limit}
+        />
+        {data && data.count > searchTerms.limit && (
           <div className="mt-8">
-            <CardError
-              title={t("public.parts.errorTitle")}
-              message={t("public.parts.errorMessage")}
+            <AcrPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              total={data.count}
+              limit={searchTerms.limit}
+              onPageChange={handlePageChange}
             />
           </div>
         )}
+      </div>
+    </main>
+  );
+}
 
-        <div className="mt-8">
-          <PublicPartsList
-            partsData={data?.data || []}
-            partsCount={data?.count || 0}
-            isDataLoading={isLoading}
-            currentPage={currentPage}
-            limit={searchTerms.limit}
-          />
-          {data && data.count > searchTerms.limit && (
-            <div className="mt-8">
-              <AcrPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                total={data.count}
-                limit={searchTerms.limit}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+export default function HomePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-acr-gray-100">
+        <PublicHeader />
+        <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
+          <div className="animate-pulse">
+            <div className="h-32 bg-gray-200 rounded-lg mb-6"></div>
+            <div className="h-96 bg-gray-200 rounded-lg"></div>
+          </div>
+        </main>
+      </div>
+    }>
+      <div className="min-h-screen bg-acr-gray-100">
+        <PublicHeader />
+        <HomePageContent />
+      </div>
+    </Suspense>
   );
 }

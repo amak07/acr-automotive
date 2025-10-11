@@ -9,9 +9,9 @@ import { withAdminAuth } from "@/components/admin/auth/withAdminAuth";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useGetParts } from "@/hooks";
 import { useDebounce } from "use-debounce";
-import { useMemo } from "react";
+import { useMemo, Suspense } from "react";
 
-function AdminPage() {
+function AdminPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -78,27 +78,49 @@ function AdminPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-acr-gray-50 to-acr-gray-100">
-      <AdminHeader />
+    <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8 space-y-8">
+      <DashboardCards />
+      <SearchFilters
+        searchTerms={searchTerms}
+        setSearchTerms={setSearchTerms}
+      />
+      <PartsList
+        searchTerms={searchTerms}
+        partsData={partsResponse?.data}
+        partsTotal={partsResponse?.count || 0}
+        partsLoading={partsLoading}
+        partsError={partsError}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        limit={limit}
+      />
+    </main>
+  );
+}
 
-      <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8 space-y-8">
-        <DashboardCards />
-        <SearchFilters
-          searchTerms={searchTerms}
-          setSearchTerms={setSearchTerms}
-        />
-        <PartsList
-          searchTerms={searchTerms}
-          partsData={partsResponse?.data}
-          partsTotal={partsResponse?.count || 0}
-          partsLoading={partsLoading}
-          partsError={partsError}
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-          limit={limit}
-        />
-      </main>
-    </div>
+function AdminPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-acr-gray-50 to-acr-gray-100">
+        <AdminHeader />
+        <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
+          <div className="animate-pulse space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="h-24 bg-gray-200 rounded-lg"></div>
+              <div className="h-24 bg-gray-200 rounded-lg"></div>
+              <div className="h-24 bg-gray-200 rounded-lg"></div>
+            </div>
+            <div className="h-32 bg-gray-200 rounded-lg"></div>
+            <div className="h-96 bg-gray-200 rounded-lg"></div>
+          </div>
+        </main>
+      </div>
+    }>
+      <div className="min-h-screen bg-gradient-to-br from-acr-gray-50 to-acr-gray-100">
+        <AdminHeader />
+        <AdminPageContent />
+      </div>
+    </Suspense>
   );
 }
 

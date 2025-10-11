@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import type { Route } from "next";
 
 /**
@@ -9,11 +9,9 @@ import type { Route } from "next";
  */
 export function useHomeLink(): Route {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
-  const fromAdmin = searchParams?.get('from') === 'admin';
-
-  if (fromAdmin || pathname?.startsWith("/admin")) {
+  // If we're on any admin page, link to admin home
+  if (pathname?.startsWith("/admin")) {
     return "/admin" as Route;
   }
 
