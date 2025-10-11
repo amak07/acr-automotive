@@ -298,49 +298,61 @@ All documentation exists as artifacts in the current chat session:
 
 ## 🔄 Current Session State
 
-### Latest Session: October 10, 2025
+### Latest Session: October 10, 2025 (Session 2)
 
-**Focus**: Dev branch setup, feature flags, and Category 2 planning
+**Focus**: TypeScript errors, build fixes, and Suspense boundary resolution
+
 **Completed**:
 
-- ✅ Created `dev` branch for development work
-- ✅ Pushed `dev` branch to GitHub
-- ✅ Implemented simple feature flag system (`src/lib/feature-flags.ts`)
-- ✅ Added `enablePostMVP` flag (true in dev, false in production)
-- ✅ Cleaned up environment files (removed 13 unused variables)
-- ✅ Added `.env.test` to `.gitignore`
-- ✅ Removed `.env.test` from git tracking
-- ✅ Audited all environment variables for actual usage
-- ✅ Updated TASKS.md with Category 2 features and task breakdown
+- ✅ Fixed all 12 TypeScript compilation errors
+  - Updated `useHomeLink` hook to return proper `Route` type
+  - Fixed Supabase types: `start_year/end_year` as numbers (not `year_range` string)
+  - Cast `router.push()` dynamic URLs to `Route` type
+  - Fixed `useURLState` generic indexing with type assertions
+  - Simplified `setSearchTerms` interface to `(terms: T) => void`
+- ✅ Resolved Next.js build errors with Suspense boundaries
+  - Refactored `useHomeLink` to remove `useSearchParams()` dependency (now only uses `usePathname()`)
+  - Added Suspense boundaries to page components (HomePage, AdminPage)
+  - Split pages into wrapper + content components
+  - Removed Footer Suspense (no longer needed)
+- ✅ Production build now completes successfully (15/15 static pages generated)
 
-**Key Changes**:
+**Key Technical Insights**:
 
-- `src/lib/feature-flags.ts` - Simple feature flag system with `enablePostMVP`
-- `.env` - Cleaned to 4 essential variables (production database)
-- `.env.test` - Cleaned to 4 essential variables (dev/test database)
-- `.gitignore` - Added `.env.test` to prevent tracking
-- `docs/TASKS.md` - Added Category 2 feature breakdown with detailed tasks
-- Git: Created and pushed `dev` branch
+1. **Root Cause of Build Error**: Footer in root layout was calling `useHomeLink` which used `useSearchParams()`, causing prerender failures on all pages including 404
+2. **Solution**: Removed `useSearchParams()` from `useHomeLink` - now just checks if pathname starts with `/admin`
+3. **No force-dynamic needed**: Suspense boundaries alone are sufficient once layout-level search params removed
 
-**Vercel Setup (Next Steps)**:
+**Files Modified**:
 
-In Vercel dashboard, add these environment variables:
-- **Production**: `NEXT_PUBLIC_ENABLE_POST_MVP=false` + prod database credentials
-- **Preview (dev branch)**: `NEXT_PUBLIC_ENABLE_POST_MVP=true` + test database credentials
+- `src/hooks/common/useHomeLink.ts` - Removed useSearchParams, simpler pathname-only logic
+- `src/lib/supabase/types.ts` - Fixed year_range to start_year/end_year
+- `src/app/page.tsx` - Added Suspense boundary, split into HomePage + HomePageContent
+- `src/app/admin/page.tsx` - Added Suspense boundary, split into AdminPage + AdminPageContent
+- `src/app/layout.tsx` - Removed Suspense from Footer (no longer needed)
+- `src/hooks/common/useURLState.ts` - Fixed generic type indexing, cast router.push to Route
+- `src/components/admin/parts/SearchFilters.tsx` - Simplified setSearchTerms type
+- `src/components/public/search/PublicSearchFilters.tsx` - Simplified setSearchTerms type
 
-**Workflow**:
-- Work on `dev` branch → preview deployment with test DB + post-MVP features enabled
-- Merge to `main` → production deployment with prod DB + post-MVP features disabled
+**Git Commits**:
+
+1. `941f2e5` - Fix TypeScript compilation errors
+2. `dd6b51c` - Fix Next.js build: Resolve useSearchParams Suspense boundary issues
+
+**Known Issue (Non-Blocking)**:
+
+- VSCode TypeScript language server shows error for `use-debounce` import in `src/app/admin/page.tsx`
+- Actual TypeScript compilation works fine (`tsc --noEmit` passes)
+- Fix: Restart TypeScript Server in VSCode (`Ctrl+Shift+P` → "TypeScript: Restart TS Server")
 
 **Next Session Priorities**:
 
-1. Begin Category 2 Feature 2.1: General UI Updates (1.5h)
-2. Add year ranges to vehicle applications display
-3. Create footer component with contact information
-4. Make header logo clickable
-5. Move to Feature 2.2: Persist Filters & Search State
+1. Continue Category 2 Feature 2.3: Multiple Images Per Part (14-16h)
+2. Create `part_images` table migration
+3. Set up Supabase Storage bucket policies
+4. Build image upload API endpoints
 
-**Current State**: Development workflow established with dev branch and feature flags. Environment variables cleaned and organized. Ready to begin Category 2 implementation (30-37.5h of UX improvements). All AI integration planning from previous session preserved for Phase 7.
+**Current State**: All TypeScript errors resolved, production build working. Ready to continue Category 2 implementation (Features 2.1 & 2.2 complete, ~24-31h remaining for Features 2.3 & 2.4).
 
 ---
 
