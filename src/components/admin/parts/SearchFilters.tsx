@@ -1,6 +1,4 @@
 "use client";
-
-import { Dispatch, SetStateAction } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { AdminPartsQueryParams } from "@/types";
 import { useFilterOptions } from "@/hooks";
@@ -19,7 +17,7 @@ export type SearchTerms = Pick<
 
 type SearchFiltersProps = {
   searchTerms: SearchTerms;
-  setSearchTerms: Dispatch<SetStateAction<SearchTerms>>;
+  setSearchTerms: (terms: SearchTerms) => void;
 };
 
 export function SearchFilters(props: SearchFiltersProps) {

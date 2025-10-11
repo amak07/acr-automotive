@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 import { DashboardCards } from "@/components/admin/dashboard/DashboardCards";
 import { SearchFilters, SearchTerms } from "@/components/admin/parts/SearchFilters";
@@ -47,7 +48,7 @@ function AdminPage() {
       params.delete('page');
     }
 
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    router.push(`${pathname}?${params.toString()}` as Route, { scroll: false });
   };
 
   const setSearchTerms = (terms: SearchTerms) => {
