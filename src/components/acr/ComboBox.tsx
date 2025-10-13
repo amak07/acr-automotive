@@ -96,6 +96,22 @@ export const AcrComboBox = React.forwardRef<
       setOpen(false);
     };
 
+    // Handle keyboard interactions for opening the dropdown
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (disabled) return;
+
+      // Open dropdown on Space, Enter, or Arrow keys
+      if (
+        e.key === " " ||
+        e.key === "Enter" ||
+        e.key === "ArrowDown" ||
+        e.key === "ArrowUp"
+      ) {
+        e.preventDefault();
+        setOpen(true);
+      }
+    };
+
     if (isLoading) {
       return <Skeleton className={cn("w-full", "h-12")} />;
     } else {
@@ -107,6 +123,7 @@ export const AcrComboBox = React.forwardRef<
               variant="outline"
               role="combobox"
               aria-expanded={open}
+              onKeyDown={handleKeyDown}
               className={cn(
                 // ACR-specific styling overrides
                 "pl-4 pr-3 py-3 h-auto w-full", // ACR spacing standards

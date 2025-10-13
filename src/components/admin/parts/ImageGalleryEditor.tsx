@@ -81,9 +81,10 @@ export function ImageGalleryEditor({
   return (
     <div>
       {/* Instructions */}
-      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-1">
         <p className="text-sm text-blue-900">
-          <strong>{t("partDetails.images.dragTipLabel")}</strong> {t("partDetails.images.dragTip")}
+          <strong>{t("partDetails.images.dragTipLabel")}</strong>{" "}
+          {t("partDetails.images.dragTip")}
         </p>
       </div>
 
@@ -92,7 +93,10 @@ export function ImageGalleryEditor({
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext items={items.map((i) => i.id)} strategy={rectSortingStrategy}>
+        <SortableContext
+          items={items.map((i) => i.id)}
+          strategy={rectSortingStrategy}
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {items.map((image, index) => (
               <SortableImageCard
@@ -126,8 +130,14 @@ function SortableImageCard({
   isDeleting,
   t,
 }: SortableImageCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: image.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: image.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -139,20 +149,27 @@ function SortableImageCard({
     <Card
       ref={setNodeRef}
       style={style}
-      className="overflow-hidden"
+      className="overflow-hidden transition-all has-[:focus:not(button)]:ring-2 has-[:focus:not(button)]:ring-black has-[:focus:not(button)]:ring-offset-2"
     >
       <CardContent className="p-0">
         {/* Image Preview */}
         <div className="relative aspect-square bg-acr-gray-100">
           {/* Draggable area (image only) */}
           <div
-            className="absolute inset-0 cursor-grab active:cursor-grabbing"
+            className="absolute inset-0 cursor-grab active:cursor-grabbing focus:outline-none"
+            aria-label={`${isPrimary ? t("partDetails.images.primary") + " - " : ""}Image ${image.display_order + 1}. Press space to pick up, arrow keys to move, space to drop`}
+            role="button"
+            tabIndex={0}
             {...attributes}
             {...listeners}
           >
             <img
               src={image.image_url}
-              alt="Part image"
+              alt={
+                isPrimary
+                  ? `Primary part image`
+                  : `Part image ${image.display_order + 1}`
+              }
               className="w-full h-full object-cover"
             />
           </div>
@@ -176,13 +193,15 @@ function SortableImageCard({
             <Button
               size="icon"
               variant="destructive"
-              className="h-8 w-8"
+              className="h-8 w-8 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 console.log("[ImageGalleryEditor] Delete button clicked");
                 if (confirm(t("partDetails.images.deleteConfirm"))) {
-                  console.log("[ImageGalleryEditor] User confirmed delete, calling onDelete");
+                  console.log(
+                    "[ImageGalleryEditor] User confirmed delete, calling onDelete"
+                  );
                   onDelete();
                 } else {
                   console.log("[ImageGalleryEditor] User cancelled delete");

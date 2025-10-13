@@ -57,7 +57,7 @@ export function PublicPartsList(props: PublicPartsListProps) {
             <Link
               key={part.id}
               href={`/parts/${part.id}${currentSearch ? `?${currentSearch}` : ''}`}
-              className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg hover:border-acr-gray-400 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:ring-offset-2 group relative flex flex-col"
+              className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg hover:border-acr-gray-400 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 group relative flex flex-col"
             >
               {/* Image Container - Baleros-Bisa Style */}
               <div className="relative overflow-hidden p-4 h-48">

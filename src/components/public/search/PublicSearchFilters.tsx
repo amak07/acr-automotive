@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, Car, Package } from "lucide-react";
-import { AcrButton, AcrTabs, AcrTabsList, AcrTabsTrigger, AcrTabsContent } from "@/components/acr";
+import {
+  AcrButton,
+  AcrTabs,
+  AcrTabsList,
+  AcrTabsTrigger,
+  AcrTabsContent,
+} from "@/components/acr";
 import { AcrComboBox } from "@/components/acr/ComboBox";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useVehicleOptions } from "@/hooks";
@@ -29,7 +35,18 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
   const { setSearchTerms } = props;
   const { t } = useLocale();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState("vehicle");
+
+  // Determine initial active tab based on URL params
+  const getInitialTab = () => {
+    const skuParam = searchParams?.get("sku");
+
+    // SKU search takes precedence if present
+    if (skuParam) return "sku";
+    // Otherwise default to vehicle tab
+    return "vehicle";
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab());
   const { data, isLoading, error } = useVehicleOptions();
 
   // dropdown list options.
@@ -37,19 +54,35 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
   const [years, setYears] = useState<number[] | undefined>();
 
   // selected options for SearchTerms - initialize from URL
-  const [selectedMake, setSelectedMake] = useState<string>(searchParams?.get('make') || "");
-  const [selectedModel, setSelectedModel] = useState<string>(searchParams?.get('model') || "");
-  const [selectedYear, setSelectedYear] = useState<string>(searchParams?.get('year') || "");
+  const [selectedMake, setSelectedMake] = useState<string>(
+    searchParams?.get("make") || ""
+  );
+  const [selectedModel, setSelectedModel] = useState<string>(
+    searchParams?.get("model") || ""
+  );
+  const [selectedYear, setSelectedYear] = useState<string>(
+    searchParams?.get("year") || ""
+  );
 
   // for SKU term lookup - initialize from URL
-  const [skuTerm, setSkuTerm] = useState<string>(searchParams?.get('sku') || "");
+  const [skuTerm, setSkuTerm] = useState<string>(
+    searchParams?.get("sku") || ""
+  );
 
   // Sync internal state with URL params when they change (browser back/forward)
   useEffect(() => {
-    setSelectedMake(searchParams?.get('make') || "");
-    setSelectedModel(searchParams?.get('model') || "");
-    setSelectedYear(searchParams?.get('year') || "");
-    setSkuTerm(searchParams?.get('sku') || "");
+    setSelectedMake(searchParams?.get("make") || "");
+    setSelectedModel(searchParams?.get("model") || "");
+    setSelectedYear(searchParams?.get("year") || "");
+    setSkuTerm(searchParams?.get("sku") || "");
+
+    // Update active tab based on which search type has params
+    const skuParam = searchParams?.get("sku");
+    if (skuParam) {
+      setActiveTab("sku");
+    } else if (searchParams?.get("make")) {
+      setActiveTab("vehicle");
+    }
   }, [searchParams]);
 
   useEffect(() => {
@@ -66,23 +99,77 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
 
   const handleVehicleSearch = () => {
     if (selectedMake && selectedModel && selectedYear) {
+      // Clear SKU when doing vehicle search
+      setSkuTerm("");
       setSearchTerms({
         make: selectedMake,
         model: selectedModel,
         year: selectedYear,
         offset: 0,
         limit: 15,
-        sku_term: "",
+        sku_term: "", // Clear SKU search
       });
     }
   };
 
   const handleSkuTermSearch = () => {
     if (skuTerm) {
+      // Clear vehicle filters when doing SKU search
+      setSelectedMake("");
+      setSelectedModel("");
+      setSelectedYear("");
       setSearchTerms({
         offset: 0,
         limit: 15,
         sku_term: skuTerm,
+        make: "", // Clear vehicle search
+        model: "",
+        year: "",
+      });
+    }
+  };
+
+  // Keyboard handlers for Enter key
+  const handleVehicleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      // Only trigger search if Enter is pressed on a non-interactive element
+      // This prevents interfering with combobox keyboard navigation
+      const target = e.target as HTMLElement;
+      const isComboboxOrInput =
+        target.tagName === "INPUT" ||
+        target.role === "combobox" ||
+        target.closest('[role="combobox"]');
+
+      if (!isComboboxOrInput) {
+        e.preventDefault();
+        handleVehicleSearch();
+      }
+    }
+  };
+
+  const handleSkuKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSkuTermSearch();
+    }
+  };
+
+  const clearAllFilters = () => {
+    // Only clear filters for the active tab
+    if (activeTab === "vehicle") {
+      setSelectedMake("");
+      setSelectedModel("");
+      setSelectedYear("");
+      // Clear vehicle search, preserve SKU if on different tab
+      setSearchTerms({
+        ...DEFAULT_PUBLIC_SEARCH_TERMS,
+        sku_term: "", // Clear any SKU search too when clearing from vehicle tab
+      });
+    } else {
+      setSkuTerm("");
+      // Clear SKU search, preserve vehicle if on different tab
+      setSearchTerms({
+        ...DEFAULT_PUBLIC_SEARCH_TERMS,
         make: "",
         model: "",
         year: "",
@@ -90,15 +177,11 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
     }
   };
 
-  const clearAllFilters = () => {
-    setSelectedMake("");
-    setSelectedModel("");
-    setSelectedYear("");
-    setSkuTerm("");
-    setSearchTerms(DEFAULT_PUBLIC_SEARCH_TERMS);
-  };
-
-  const hasActiveFilters = selectedMake || selectedModel || selectedYear || skuTerm;
+  // Check if current tab has active filters
+  const hasActiveFilters =
+    activeTab === "vehicle"
+      ? selectedMake || selectedModel || selectedYear
+      : skuTerm;
 
   // Show error state if vehicle options failed to load
   if (error) {
@@ -124,292 +207,303 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
           <AcrTabsList>
             <AcrTabsTrigger value="vehicle">
               <Car className="w-4 h-4 mr-1.5 hidden lg:inline" />
-              <span className="lg:hidden">{t("public.search.vehicleTabShort")}</span>
-              <span className="hidden lg:inline">{t("public.search.vehicleSearchTitle")}</span>
+              <span className="lg:hidden">
+                {t("public.search.vehicleTabShort")}
+              </span>
+              <span className="hidden lg:inline">
+                {t("public.search.vehicleSearchTitle")}
+              </span>
             </AcrTabsTrigger>
             <AcrTabsTrigger value="sku">
               <Package className="w-4 h-4 mr-1.5 hidden lg:inline" />
-              <span className="lg:hidden">{t("public.search.skuTabShort")}</span>
-              <span className="hidden lg:inline">{t("public.search.skuSearchTitle")}</span>
+              <span className="lg:hidden">
+                {t("public.search.skuTabShort")}
+              </span>
+              <span className="hidden lg:inline">
+                {t("public.search.skuSearchTitle")}
+              </span>
             </AcrTabsTrigger>
           </AcrTabsList>
         </div>
 
         {/* Vehicle Search Tab Content */}
         <AcrTabsContent value="vehicle">
-
-        {/* Mobile & Tablet: Stacked Layout */}
-        <div className="md:hidden space-y-3">
-          <AcrComboBox
-            value={selectedMake}
-            onValueChange={(value) => {
-              setSelectedMake(value);
-              setSelectedModel("");
-              setSelectedYear("");
-            }}
-            options={
-              isLoading
-                ? []
-                : data?.makes.map((make) => ({
-                    label: make,
-                    value: make,
-                  })) || []
-            }
-            placeholder={
-              isLoading
-                ? t("public.search.loadingOptions")
-                : t("public.search.make")
-            }
-            searchPlaceholder="Search makes..."
-            allowCustomValue={false}
-            isLoading={isLoading}
-            className="w-full h-12"
-          />
-
-          <AcrComboBox
-            value={selectedModel}
-            onValueChange={(value) => {
-              setSelectedModel(value);
-              setSelectedYear("");
-            }}
-            options={
-              !selectedMake || isLoading
-                ? []
-                : models?.map((model) => ({
-                    label: model,
-                    value: model,
-                  })) || []
-            }
-            placeholder={
-              !selectedMake
-                ? t("public.search.selectMakeFirst")
-                : isLoading
+          {/* Mobile & Tablet: Stacked Layout */}
+          <div className="md:hidden space-y-3" onKeyDown={handleVehicleKeyDown}>
+            <AcrComboBox
+              value={selectedMake}
+              onValueChange={(value) => {
+                setSelectedMake(value);
+                setSelectedModel("");
+                setSelectedYear("");
+              }}
+              options={
+                isLoading
+                  ? []
+                  : data?.makes.map((make) => ({
+                      label: make,
+                      value: make,
+                    })) || []
+              }
+              placeholder={
+                isLoading
                   ? t("public.search.loadingOptions")
-                  : models?.length === 0
-                    ? t("public.search.noModelsAvailable")
-                    : t("public.search.model")
-            }
-            searchPlaceholder="Search models..."
-            allowCustomValue={false}
-            disabled={!selectedMake || isLoading}
-            isLoading={isLoading && !selectedMake}
-            className="w-full h-12"
-          />
+                  : t("public.search.make")
+              }
+              searchPlaceholder="Search makes..."
+              allowCustomValue={false}
+              isLoading={isLoading}
+              className="w-full h-12"
+            />
 
-          <AcrComboBox
-            value={selectedYear}
-            onValueChange={(value) => setSelectedYear(value)}
-            options={
-              !selectedModel || isLoading
-                ? []
-                : years?.map((year) => ({
-                    label: year.toString(),
-                    value: year.toString(),
-                  })) || []
-            }
-            placeholder={
-              !selectedModel
-                ? t("public.search.selectModelFirst")
-                : isLoading
-                  ? t("public.search.loadingOptions")
-                  : years?.length === 0
-                    ? t("public.search.noYearsAvailable")
-                    : t("public.search.year")
-            }
-            searchPlaceholder="Search years..."
-            allowCustomValue={false}
-            disabled={!selectedModel || isLoading}
-            isLoading={isLoading && !selectedModel}
-            className="w-full h-12"
-          />
+            <AcrComboBox
+              value={selectedModel}
+              onValueChange={(value) => {
+                setSelectedModel(value);
+                setSelectedYear("");
+              }}
+              options={
+                !selectedMake || isLoading
+                  ? []
+                  : models?.map((model) => ({
+                      label: model,
+                      value: model,
+                    })) || []
+              }
+              placeholder={
+                !selectedMake
+                  ? t("public.search.selectMakeFirst")
+                  : isLoading
+                    ? t("public.search.loadingOptions")
+                    : models?.length === 0
+                      ? t("public.search.noModelsAvailable")
+                      : t("public.search.model")
+              }
+              searchPlaceholder="Search models..."
+              allowCustomValue={false}
+              disabled={!selectedMake || isLoading}
+              isLoading={isLoading && !selectedMake}
+              className="w-full h-12"
+            />
 
-          <AcrButton
-            className="w-full h-12 mt-2"
-            onClick={handleVehicleSearch}
-            disabled={
-              !selectedMake || !selectedModel || !selectedYear || isLoading
-            }
-          >
-            {t("common.actions.search")}
-          </AcrButton>
+            <AcrComboBox
+              value={selectedYear}
+              onValueChange={(value) => setSelectedYear(value)}
+              options={
+                !selectedModel || isLoading
+                  ? []
+                  : years?.map((year) => ({
+                      label: year.toString(),
+                      value: year.toString(),
+                    })) || []
+              }
+              placeholder={
+                !selectedModel
+                  ? t("public.search.selectModelFirst")
+                  : isLoading
+                    ? t("public.search.loadingOptions")
+                    : years?.length === 0
+                      ? t("public.search.noYearsAvailable")
+                      : t("public.search.year")
+              }
+              searchPlaceholder="Search years..."
+              allowCustomValue={false}
+              disabled={!selectedModel || isLoading}
+              isLoading={isLoading && !selectedModel}
+              className="w-full h-12"
+            />
 
-          {/* Clear Filters Button - Mobile */}
-          {hasActiveFilters && (
             <AcrButton
-              onClick={clearAllFilters}
-              variant="ghost"
-              className="w-full text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100 mt-2"
+              className="w-full h-12 mt-2"
+              onClick={handleVehicleSearch}
+              disabled={
+                !selectedMake || !selectedModel || !selectedYear || isLoading
+              }
             >
-              {t("common.actions.clearFilters")}
+              {t("common.actions.search")}
             </AcrButton>
-          )}
-        </div>
 
-        {/* Desktop: Horizontal Layout */}
-        <div className="hidden md:flex md:items-center md:gap-4">
-          <AcrComboBox
-            value={selectedMake}
-            onValueChange={(value) => {
-              setSelectedMake(value);
-              setSelectedModel("");
-              setSelectedYear("");
-            }}
-            options={
-              isLoading
-                ? []
-                : data?.makes.map((make) => ({
-                    label: make,
-                    value: make,
-                  })) || []
-            }
-            placeholder={
-              isLoading
-                ? t("public.search.loadingOptions")
-                : t("public.search.make")
-            }
-            searchPlaceholder="Search makes..."
-            allowCustomValue={false}
-            isLoading={isLoading}
-            className="flex-1"
-          />
+            {/* Clear Filters Button - Mobile */}
+            {hasActiveFilters && (
+              <AcrButton
+                onClick={clearAllFilters}
+                variant="ghost"
+                className="w-full text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100 mt-2"
+              >
+                {t("common.actions.clearFilters")}
+              </AcrButton>
+            )}
+          </div>
 
-          <AcrComboBox
-            value={selectedModel}
-            onValueChange={(value) => {
-              setSelectedModel(value);
-              setSelectedYear("");
-            }}
-            options={
-              !selectedMake || isLoading
-                ? []
-                : models?.map((model) => ({
-                    label: model,
-                    value: model,
-                  })) || []
-            }
-            placeholder={
-              !selectedMake
-                ? t("public.search.selectMakeFirst")
-                : isLoading
-                  ? t("public.search.loadingOptions")
-                  : models?.length === 0
-                    ? t("public.search.noModelsAvailable")
-                    : t("public.search.model")
-            }
-            searchPlaceholder="Search models..."
-            allowCustomValue={false}
-            disabled={!selectedMake || isLoading}
-            isLoading={isLoading && !selectedMake}
-            className="flex-1"
-          />
-
-          <AcrComboBox
-            value={selectedYear}
-            onValueChange={(value) => setSelectedYear(value)}
-            options={
-              !selectedModel || isLoading
-                ? []
-                : years?.map((year) => ({
-                    label: year.toString(),
-                    value: year.toString(),
-                  })) || []
-            }
-            placeholder={
-              !selectedModel
-                ? t("public.search.selectModelFirst")
-                : isLoading
-                  ? t("public.search.loadingOptions")
-                  : years?.length === 0
-                    ? t("public.search.noYearsAvailable")
-                    : t("public.search.year")
-            }
-            searchPlaceholder="Search years..."
-            allowCustomValue={false}
-            disabled={!selectedModel || isLoading}
-            isLoading={isLoading && !selectedModel}
-            className="flex-1"
-          />
-
-          <AcrButton
-            className="whitespace-nowrap h-auto py-3"
-            onClick={handleVehicleSearch}
-            disabled={
-              !selectedMake || !selectedModel || !selectedYear || isLoading
-            }
+          {/* Desktop: Horizontal Layout */}
+          <div
+            className="hidden md:flex md:items-center md:gap-4"
+            onKeyDown={handleVehicleKeyDown}
           >
-            {t("common.actions.search")}
-          </AcrButton>
+            <AcrComboBox
+              value={selectedMake}
+              onValueChange={(value) => {
+                setSelectedMake(value);
+                setSelectedModel("");
+                setSelectedYear("");
+              }}
+              options={
+                isLoading
+                  ? []
+                  : data?.makes.map((make) => ({
+                      label: make,
+                      value: make,
+                    })) || []
+              }
+              placeholder={
+                isLoading
+                  ? t("public.search.loadingOptions")
+                  : t("public.search.make")
+              }
+              searchPlaceholder="Search makes..."
+              allowCustomValue={false}
+              isLoading={isLoading}
+              className="flex-1"
+            />
 
-          {/* Clear Filters Button - Desktop (inline with Search) */}
-          {hasActiveFilters && (
+            <AcrComboBox
+              value={selectedModel}
+              onValueChange={(value) => {
+                setSelectedModel(value);
+                setSelectedYear("");
+              }}
+              options={
+                !selectedMake || isLoading
+                  ? []
+                  : models?.map((model) => ({
+                      label: model,
+                      value: model,
+                    })) || []
+              }
+              placeholder={
+                !selectedMake
+                  ? t("public.search.selectMakeFirst")
+                  : isLoading
+                    ? t("public.search.loadingOptions")
+                    : models?.length === 0
+                      ? t("public.search.noModelsAvailable")
+                      : t("public.search.model")
+              }
+              searchPlaceholder="Search models..."
+              allowCustomValue={false}
+              disabled={!selectedMake || isLoading}
+              isLoading={isLoading && !selectedMake}
+              className="flex-1"
+            />
+
+            <AcrComboBox
+              value={selectedYear}
+              onValueChange={(value) => setSelectedYear(value)}
+              options={
+                !selectedModel || isLoading
+                  ? []
+                  : years?.map((year) => ({
+                      label: year.toString(),
+                      value: year.toString(),
+                    })) || []
+              }
+              placeholder={
+                !selectedModel
+                  ? t("public.search.selectModelFirst")
+                  : isLoading
+                    ? t("public.search.loadingOptions")
+                    : years?.length === 0
+                      ? t("public.search.noYearsAvailable")
+                      : t("public.search.year")
+              }
+              searchPlaceholder="Search years..."
+              allowCustomValue={false}
+              disabled={!selectedModel || isLoading}
+              isLoading={isLoading && !selectedModel}
+              className="flex-1"
+            />
+
             <AcrButton
-              onClick={clearAllFilters}
-              variant="ghost"
-              className="hidden md:inline-flex whitespace-nowrap h-auto py-3 text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100"
+              className="whitespace-nowrap h-auto py-3"
+              onClick={handleVehicleSearch}
+              disabled={
+                !selectedMake || !selectedModel || !selectedYear || isLoading
+              }
             >
-              {t("common.actions.clearFilters")}
+              {t("common.actions.search")}
             </AcrButton>
-          )}
-        </div>
+
+            {/* Clear Filters Button - Desktop (inline with Search) */}
+            {hasActiveFilters && (
+              <AcrButton
+                onClick={clearAllFilters}
+                variant="ghost"
+                className="hidden md:inline-flex whitespace-nowrap h-auto py-3 text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100"
+              >
+                {t("common.actions.clearFilters")}
+              </AcrButton>
+            )}
+          </div>
         </AcrTabsContent>
 
         {/* SKU Search Tab Content */}
         <AcrTabsContent value="sku">
-
-            {/* Mobile: Stacked Layout */}
-            <div className="md:hidden space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-acr-gray-500 w-4 h-4" />
-                <input
-                  type="text"
-                  value={skuTerm}
-                  onChange={(e) => setSkuTerm(e.target.value)}
-                  placeholder={t("public.search.skuPlaceholder")}
-                  className="w-full h-12 pl-10 pr-4 py-3 border border-acr-gray-400 rounded-lg focus:outline-none focus:border-acr-red-500 placeholder:text-acr-gray-500 transition-colors duration-200"
-                />
-              </div>
-
-              <AcrButton
-                className="w-full h-12"
-                onClick={handleSkuTermSearch}
-                disabled={!skuTerm}
-              >
-                {t("common.actions.search")}
-              </AcrButton>
+          {/* Mobile: Stacked Layout */}
+          <div className="md:hidden space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-acr-gray-500 w-4 h-4" />
+              <input
+                type="text"
+                value={skuTerm}
+                onChange={(e) => setSkuTerm(e.target.value)}
+                onKeyDown={handleSkuKeyDown}
+                placeholder={t("public.search.skuPlaceholder")}
+                className="w-full h-12 pl-10 pr-4 py-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 placeholder:text-acr-gray-500 transition-all duration-200"
+              />
             </div>
 
-            {/* Desktop: Horizontal Layout */}
-            <div className="hidden md:flex md:items-center md:gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-acr-gray-500 w-4 h-4" />
-                <input
-                  type="text"
-                  value={skuTerm}
-                  onChange={(e) => setSkuTerm(e.target.value)}
-                  placeholder={t("public.search.skuPlaceholder")}
-                  className="w-full pl-10 pr-4 py-3 border border-acr-gray-400 rounded-lg focus:outline-none focus:border-acr-red-500 placeholder:text-acr-gray-500 transition-colors duration-200"
-                />
-              </div>
+            <AcrButton
+              className="w-full h-12"
+              onClick={handleSkuTermSearch}
+              disabled={!skuTerm}
+            >
+              {t("common.actions.search")}
+            </AcrButton>
+          </div>
 
-              <AcrButton
-                className="whitespace-nowrap h-auto py-3"
-                onClick={handleSkuTermSearch}
-                disabled={!skuTerm}
-              >
-                {t("common.actions.search")}
-              </AcrButton>
-
-              {/* Clear Filters Button - Desktop (inline with Search) */}
-              {hasActiveFilters && (
-                <AcrButton
-                  onClick={clearAllFilters}
-                  variant="ghost"
-                  className="whitespace-nowrap h-auto py-3 text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100"
-                >
-                  {t("common.actions.clearFilters")}
-                </AcrButton>
-              )}
+          {/* Desktop: Horizontal Layout */}
+          <div className="hidden md:flex md:items-center md:gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-acr-gray-500 w-4 h-4" />
+              <input
+                type="text"
+                value={skuTerm}
+                onChange={(e) => setSkuTerm(e.target.value)}
+                onKeyDown={handleSkuKeyDown}
+                placeholder={t("public.search.skuPlaceholder")}
+                className="w-full pl-10 pr-4 py-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 placeholder:text-acr-gray-500 transition-all duration-200"
+              />
             </div>
+
+            <AcrButton
+              className="whitespace-nowrap h-auto py-3"
+              onClick={handleSkuTermSearch}
+              disabled={!skuTerm}
+            >
+              {t("common.actions.search")}
+            </AcrButton>
+
+            {/* Clear Filters Button - Desktop (inline with Search) */}
+            {hasActiveFilters && (
+              <AcrButton
+                onClick={clearAllFilters}
+                variant="ghost"
+                className="whitespace-nowrap h-auto py-3 text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100"
+              >
+                {t("common.actions.clearFilters")}
+              </AcrButton>
+            )}
+          </div>
 
           {/* Clear Filters Button - Mobile (full width below) */}
           {hasActiveFilters && (
