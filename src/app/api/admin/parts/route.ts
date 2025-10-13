@@ -130,7 +130,6 @@ export async function GET(request: NextRequest) {
           bolt_pattern: part.bolt_pattern,
           drive_type: part.drive_type,
           specifications: part.specifications,
-          image_url: part.image_url,
           created_at: part.created_at,
           updated_at: part.updated_at,
           // Add the computed counts
@@ -163,7 +162,6 @@ export async function POST(request: NextRequest) {
       drive_type,
       position_type,
       specifications,
-      image_url,
     } = params;
     const acr_sku = `ACR${sku_number}`;
     const {
@@ -180,7 +178,6 @@ export async function POST(request: NextRequest) {
           drive_type,
           position_type,
           specifications,
-          image_url,
         })
         .select();
 
@@ -232,7 +229,6 @@ export async function PUT(request: NextRequest) {
       drive_type,
       position_type,
       specifications,
-      image_url,
       id,
     } = params;
     const {
@@ -250,7 +246,6 @@ export async function PUT(request: NextRequest) {
         drive_type,
         position_type,
         specifications,
-        image_url,
       })
       .eq("id", id)
       .select();

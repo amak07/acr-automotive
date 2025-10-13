@@ -2,19 +2,23 @@
 
 import { ArrowLeft, Package } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { useLocale } from "@/contexts/LocaleContext";
 import {
   DatabasePartRow,
   DatabaseVehicleAppRow,
   DatabaseCrossRefRow,
 } from "@/types";
+import { Tables } from "@/lib/supabase/types";
 import { AcrCard, AcrCardContent } from "@/components/acr/Card";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonPublicPartDetails } from "@/components/ui/skeleton";
 import { PageError } from "@/components/ui/error-states";
 import { useHomeLink } from "@/hooks";
+import { PartImageGallery } from "./PartImageGallery";
+
+type PartImage = Tables<"part_images">;
 
 type PartWithRelations = DatabasePartRow & {
   vehicle_applications?: DatabaseVehicleAppRow[];
@@ -35,6 +39,19 @@ export function PublicPartDetails({
   const { t } = useLocale();
   const homeLink = useHomeLink();
   const searchParams = useSearchParams();
+
+  // Fetch part images
+  const { data: images } = useQuery({
+    queryKey: ["part-images-public", part?.id],
+    queryFn: async () => {
+      if (!part?.id) return [];
+      const res = await fetch(`/api/admin/parts/${part.id}/images`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      return (json.data as PartImage[]) || [];
+    },
+    enabled: !!part?.id,
+  });
 
   // Preserve search params when going back
   const currentSearch = searchParams?.toString() || '';
@@ -86,44 +103,27 @@ export function PublicPartDetails({
         </Link>
       </div>
 
-      {/* Main Content - Compact Layout */}
+      {/* SKU Header - Baleros-Bisa Style */}
+      <div>
+        <h1 className="text-3xl md:text-4xl font-bold text-acr-gray-900">
+          {t("public.partDetails.sku")}: <span className="font-mono">{part.acr_sku}</span>
+        </h1>
+      </div>
+
+      {/* Main Content - Image Emphasized Layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Product Image - Smaller */}
-        <AcrCard variant="elevated" padding="sm" className="md:col-span-1">
-          <AcrCardContent>
-            <div className="aspect-square bg-gray-50 rounded-lg flex items-center justify-center relative">
-              <Image
-                src="/part-placeholder.webp"
-                alt={`${part.part_type} ${part.acr_sku}`}
-                fill
-                style={{ objectFit: "contain" }}
-                sizes="(max-width: 768px) 100vw, 33vw"
-              />
-            </div>
-          </AcrCardContent>
+        {/* Product Image Gallery - 2/3 width */}
+        <AcrCard variant="elevated" padding="none" className="md:col-span-2 overflow-hidden">
+          <PartImageGallery
+            images={images || []}
+            partName={`${part.part_type} ${part.acr_sku}`}
+            className="w-full"
+          />
         </AcrCard>
 
-        {/* Part Details - Baleros-Bisa Style */}
-        <AcrCard variant="featured" padding="default" className="md:col-span-2">
+        {/* Part Details - Baleros-Bisa Style - 1/3 width */}
+        <AcrCard variant="featured" padding="default" className="md:col-span-1">
           <AcrCardContent>
-            {/* Header with SKU and Badge */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-acr-gray-900 font-mono tracking-wide mb-1">
-                  {part.acr_sku}
-                </h1>
-                <p className="text-sm font-medium text-acr-gray-600 uppercase tracking-wide">
-                  {part.part_type}
-                </p>
-              </div>
-              <Badge
-                variant="secondary"
-                className="bg-acr-red-50 text-acr-red-800 border-acr-red-200 font-semibold"
-              >
-                {t("public.parts.brand")}
-              </Badge>
-            </div>
-
             {/* Specifications Table */}
             <div className="border border-acr-gray-200 rounded">
               <div className="bg-acr-gray-50 border-b border-acr-gray-200 px-3 py-2">
@@ -133,6 +133,15 @@ export function PublicPartDetails({
               </div>
               <div className="p-3">
                 <div className="space-y-1">
+                  {/* SKU - First Row */}
+                  <div className="text-sm text-acr-gray-900">
+                    -{" "}
+                    <span className="font-medium">
+                      {t("public.partDetails.sku")}:
+                    </span>{" "}
+                    <span className="font-mono">{part.acr_sku}</span>
+                  </div>
+
                   {/* Brand info */}
                   <div className="text-sm text-acr-gray-900">
                     -{" "}
@@ -140,6 +149,15 @@ export function PublicPartDetails({
                       {t("public.partDetails.brand")}:
                     </span>{" "}
                     ACR
+                  </div>
+
+                  {/* Part Type/Class */}
+                  <div className="text-sm text-acr-gray-900">
+                    -{" "}
+                    <span className="font-medium">
+                      {t("public.partDetails.type")}:
+                    </span>{" "}
+                    {part.part_type}
                   </div>
 
                   {/* Technical specifications */}

@@ -11,7 +11,6 @@ import {
   AcrTooltip,
   AcrFormField,
   AcrPrefixInput,
-  AcrImageUpload,
 } from "@/components/acr";
 import { Info } from "lucide-react";
 import { Control, Controller } from "react-hook-form";
@@ -30,7 +29,6 @@ interface PartBasicInfoProps {
     drive_type?: string | null;
     bolt_pattern?: string | null;
     specifications?: string | null; // This is the notes field
-    image_url?: string | null; // Part image URL
   };
   control: Control<PartFormData>;
   filterOptions: FilterOptionsResponse | undefined;
@@ -108,9 +106,9 @@ export function PartBasicInfo({
 
       <AcrCardContent className="px-4 pb-6 lg:px-6">
         {/* Main Layout Grid */}
-        <div className="space-y-6 lg:grid lg:grid-cols-3 lg:gap-8 lg:space-y-0">
-          {/* Left Column - Form Fields */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6">
+          {/* Form Fields */}
+          <div className="space-y-6">
             {/* Two Column Layout for remaining fields */}
             <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
               {/* ACR SKU - Edit Mode (Read-only) */}
@@ -213,43 +211,6 @@ export function PartBasicInfo({
                     rows={4}
                     placeholder={t("partDetails.basicInfo.notesPlaceholder")}
                     onChange={(e) => field.onChange(e.target.value)}
-                  />
-                )}
-              />
-            </AcrFormField>
-          </div>
-
-          {/* Product Image */}
-          <div className="lg:col-span-1">
-            <AcrFormField
-              label={t("partDetails.basicInfo.productImage")}
-              isDirty={isFieldDirty("image_url")}
-            >
-              <Controller
-                name="image_url"
-                control={control}
-                render={({ field }) => (
-                  <AcrImageUpload
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    onSuccess={() => {
-                      toast({
-                        title: t("common.success"),
-                        description: t("partDetails.actions.saveSuccess"),
-                        variant: "success" as any,
-                      });
-                    }}
-                    onError={(error) => {
-                      toast({
-                        title: t("common.error.title"),
-                        description: error,
-                        variant: "destructive",
-                      });
-                    }}
-                    buttonText={t("partDetails.basicInfo.selectFile")}
-                    formatText={t("partDetails.basicInfo.imageFormat")}
-                    bucket="acr-part-images"
-                    maxSize={5 * 1024 * 1024}
                   />
                 )}
               />

@@ -3,12 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { DatabasePartRow } from "@/types";
+import { PartSearchResult } from "@/types";
 import { useLocale } from "@/contexts/LocaleContext";
 import { SkeletonPartsGrid } from "@/components/ui/skeleton";
 
 type PublicPartsListProps = {
-  partsData: DatabasePartRow[];
+  partsData: PartSearchResult[];
   isDataLoading: boolean;
   partsCount: number;
   currentPage: number;
@@ -62,7 +62,7 @@ export function PublicPartsList(props: PublicPartsListProps) {
               {/* Image Container - Baleros-Bisa Style */}
               <div className="relative overflow-hidden p-4 h-48">
                 <Image
-                  src="/part-placeholder.webp"
+                  src={part.primary_image_url || "/part-placeholder-new.svg"}
                   alt={`${part.part_type} ${part.acr_sku}`}
                   fill
                   style={{ objectFit: "contain" }}

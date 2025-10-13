@@ -185,7 +185,7 @@ export function PartCrossReferences({
             onClick={handleAdd}
           >
             <Plus className="w-4 h-4" />
-            Add Reference
+            {t("partDetails.crossReferences.add")}
           </AcrButton>
         </div>
 
@@ -205,7 +205,7 @@ export function PartCrossReferences({
 
           <AcrButton variant="primary" size="default" type="button" onClick={handleAdd}>
             <Plus className="w-4 h-4" />
-            Add Reference
+            {t("partDetails.crossReferences.add")}
           </AcrButton>
         </div>
       </AcrCardHeader>
