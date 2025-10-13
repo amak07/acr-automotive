@@ -56,7 +56,7 @@ const AcrTabsTrigger = React.forwardRef<
       // Mobile: Solid button style
       "inline-flex flex-1 items-center justify-center whitespace-nowrap rounded-md px-3 py-2",
       "text-xs font-medium transition-all duration-200",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acr-red-500 focus-visible:ring-offset-2",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
       "disabled:pointer-events-none disabled:opacity-50",
       // Mobile inactive state - gray background
       "bg-transparent text-acr-gray-700",
@@ -77,6 +77,7 @@ AcrTabsTrigger.displayName = "AcrTabsTrigger";
 /**
  * ACR Tabs Content - Container for tab panel content
  * Spacing optimized for ACR layouts
+ * Not focusable - focus should go to interactive elements inside
  */
 const AcrTabsContent = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Content>,
@@ -85,9 +86,10 @@ const AcrTabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      "mt-4 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acr-red-500 focus-visible:ring-offset-2",
+      "mt-4 focus-visible:outline-none",
       className
     )}
+    tabIndex={-1}
     {...props}
   />
 ));
