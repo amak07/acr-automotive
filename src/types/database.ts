@@ -22,6 +22,11 @@ export type PartSummary = DatabasePartRow & {
   cross_reference_count: number;
 };
 
+// Parts for public search results with primary image
+export type PartSearchResult = DatabasePartRow & {
+  primary_image_url: string | null;
+};
+
 // Parts with full relationship data for detail views
 export type PartWithDetails = DatabasePartRow & {
   vehicle_applications: Array<{

@@ -566,6 +566,112 @@ export const translations: Record<
     es: "•",
   },
 
+  // Part Images Section
+  "partDetails.images.title": {
+    en: "Part Images",
+    es: "Imágenes de la Pieza",
+  },
+  "partDetails.images.uploadButton": {
+    en: "Upload Images",
+    es: "Subir Imágenes",
+  },
+  "partDetails.images.uploading": {
+    en: "Uploading...",
+    es: "Subiendo...",
+  },
+  "partDetails.images.emptyTitle": {
+    en: "No images uploaded yet",
+    es: "No hay imágenes subidas aún",
+  },
+  "partDetails.images.emptyDescription": {
+    en: "Upload up to 6 images. Drag to reorder. Set primary image.",
+    es: "Sube hasta 6 imágenes. Arrastra para reordenar. Establece imagen principal.",
+  },
+  "partDetails.images.uploadFirst": {
+    en: "Upload First Image",
+    es: "Subir Primera Imagen",
+  },
+  "partDetails.images.limitReached": {
+    en: "Image limit reached",
+    es: "Límite de imágenes alcanzado",
+  },
+  "partDetails.images.limitDescription": {
+    en: "Maximum of 6 images allowed per part",
+    es: "Máximo de 6 imágenes permitidas por pieza",
+  },
+  "partDetails.images.tooMany": {
+    en: "Too many images",
+    es: "Demasiadas imágenes",
+  },
+  "partDetails.images.remainingSlots": {
+    en: "Can only upload {{count}} more image(s). Maximum 6 images per part.",
+    es: "Solo puedes subir {{count}} imagen(es) más. Máximo 6 imágenes por pieza.",
+  },
+  "partDetails.images.filesSkipped": {
+    en: "Some files were skipped",
+    es: "Algunos archivos fueron omitidos",
+  },
+  "partDetails.images.uploadSuccess": {
+    en: "Uploaded {{count}} image(s)",
+    es: "{{count}} imagen(es) subida(s)",
+  },
+  "partDetails.images.uploadFailed": {
+    en: "Upload failed",
+    es: "Error al subir",
+  },
+  "partDetails.images.deleteSuccess": {
+    en: "Image deleted",
+    es: "Imagen eliminada",
+  },
+  "partDetails.images.deleteFailed": {
+    en: "Delete failed",
+    es: "Error al eliminar",
+  },
+  "partDetails.images.setPrimarySuccess": {
+    en: "Primary image updated",
+    es: "Imagen principal actualizada",
+  },
+  "partDetails.images.setPrimaryFailed": {
+    en: "Failed to set primary",
+    es: "Error al establecer principal",
+  },
+  "partDetails.images.updateFailed": {
+    en: "Update failed",
+    es: "Error al actualizar",
+  },
+  "partDetails.images.reorderFailed": {
+    en: "Reorder failed",
+    es: "Error al reordenar",
+  },
+  "partDetails.images.primary": {
+    en: "Primary",
+    es: "Principal",
+  },
+  "partDetails.images.captionPlaceholder": {
+    en: "Add caption...",
+    es: "Agregar descripción...",
+  },
+  "partDetails.images.deleteConfirm": {
+    en: "Delete this image?",
+    es: "¿Eliminar esta imagen?",
+  },
+  "partDetails.images.setPrimaryTooltip": {
+    en: "Set as primary image",
+    es: "Establecer como imagen principal",
+  },
+  "partDetails.images.deleteTooltip": {
+    en: "Delete image",
+    es: "Eliminar imagen",
+  },
+  "partDetails.images.dragTipLabel": {
+    en: "Tip:",
+    es: "Consejo:",
+  },
+  "partDetails.images.dragTip": {
+    en: "The first image is your primary image. Click and hold any image to drag and reorder.",
+    es: "La primera imagen es tu imagen principal. Haz clic y mantén presionada cualquier imagen para arrastrar y reordenar.",
+  },
+
   // Table Headers for Vehicle Applications
   "partDetails.vehicleApps.table.brand": {
     en: "BRAND",
@@ -870,6 +976,10 @@ export const translations: Record<
     en: "We couldn't find a part with that SKU. Please check the part number and try again.",
     es: "No pudimos encontrar una refacción con ese SKU. Verifique el número de parte e intente nuevamente.",
   },
+  "public.partDetails.sku": {
+    en: "SKU",
+    es: "SKU",
+  },
   "public.partDetails.specifications": {
     en: "Specifications",
     es: "Especificaciones",
@@ -877,6 +987,10 @@ export const translations: Record<
   "public.partDetails.brand": {
     en: "Brand",
     es: "Marca",
+  },
+  "public.partDetails.type": {
+    en: "Type",
+    es: "Clase",
   },
   "public.partDetails.position": {
     en: "Position",

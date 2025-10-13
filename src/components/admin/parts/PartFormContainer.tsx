@@ -9,6 +9,7 @@ import { PartBasicInfo } from "../part-details/PartBasicInfo";
 import { PartDetailsActions } from "../part-details/PartDetailsActions";
 import { PartApplications } from "../vehicle-apps/PartApplications";
 import { PartCrossReferences } from "../cross-refs/PartCrossReferences";
+import { PartImagesManager } from "./PartImagesManager";
 
 export interface PartFormData {
   part_type: string;
@@ -17,7 +18,6 @@ export interface PartFormData {
   drive_type: string;
   bolt_pattern: string;
   specifications: string;
-  image_url?: string; // Image URL for part photos
   sku_number?: string; // Only for create mode
 }
 
@@ -74,7 +74,6 @@ export function PartFormContainer({
         drive_type: partData.drive_type ?? "__unspecified_drive_type__",
         bolt_pattern: partData.bolt_pattern ?? "__unspecified_bolt_pattern__",
         specifications: partData.specifications ?? "",
-        image_url: partData.image_url ?? "",
       };
 
       setTimeout(() => {
@@ -139,9 +138,11 @@ export function PartFormContainer({
             isCreateMode={mode === "create"}
           />
 
-          {/* Only show applications and cross-references in edit mode - they need existing part_id */}
+          {/* Only show applications, images, and cross-references in edit mode - they need existing part_id */}
           {mode === "edit" && partData && (
             <>
+              <PartImagesManager partId={partData.id || ""} />
+
               <PartApplications
                 vehicleCount={partData.vehicle_count || 0}
                 partId={partData.id || ""}

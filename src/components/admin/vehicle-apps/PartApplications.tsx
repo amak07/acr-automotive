@@ -194,7 +194,7 @@ export function PartApplications({
             onClick={handleAdd}
           >
             <Plus className="w-4 h-4" />
-            Add Application
+            {t("partDetails.applications.add")}
           </AcrButton>
         </div>
 
@@ -214,7 +214,7 @@ export function PartApplications({
 
           <AcrButton variant="primary" size="default" type="button" onClick={handleAdd}>
             <Plus className="w-4 h-4" />
-            Add Application
+            {t("partDetails.applications.add")}
           </AcrButton>
         </div>
       </AcrCardHeader>

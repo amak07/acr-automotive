@@ -167,6 +167,34 @@ export interface TranslationKeys {
   'partDetails.metadata.lastModified': string;
   'partDetails.metadata.separator': string;
 
+  // Part Images Section
+  'partDetails.images.title': string;
+  'partDetails.images.uploadButton': string;
+  'partDetails.images.uploading': string;
+  'partDetails.images.emptyTitle': string;
+  'partDetails.images.emptyDescription': string;
+  'partDetails.images.uploadFirst': string;
+  'partDetails.images.limitReached': string;
+  'partDetails.images.limitDescription': string;
+  'partDetails.images.tooMany': string;
+  'partDetails.images.remainingSlots': string;
+  'partDetails.images.filesSkipped': string;
+  'partDetails.images.uploadSuccess': string;
+  'partDetails.images.uploadFailed': string;
+  'partDetails.images.deleteSuccess': string;
+  'partDetails.images.deleteFailed': string;
+  'partDetails.images.setPrimarySuccess': string;
+  'partDetails.images.setPrimaryFailed': string;
+  'partDetails.images.updateFailed': string;
+  'partDetails.images.reorderFailed': string;
+  'partDetails.images.primary': string;
+  'partDetails.images.captionPlaceholder': string;
+  'partDetails.images.deleteConfirm': string;
+  'partDetails.images.setPrimaryTooltip': string;
+  'partDetails.images.deleteTooltip': string;
+  'partDetails.images.dragTipLabel': string;
+  'partDetails.images.dragTip': string;
+
   // Table Headers for Vehicle Applications
   'partDetails.vehicleApps.table.brand': string;
   'partDetails.vehicleApps.table.model': string;
@@ -257,8 +285,10 @@ export interface TranslationKeys {
   'public.partDetails.backToAdmin': string;
   'public.partDetails.notFound': string;
   'public.partDetails.notFoundMessage': string;
+  'public.partDetails.sku': string;
   'public.partDetails.specifications': string;
   'public.partDetails.brand': string;
+  'public.partDetails.type': string;
   'public.partDetails.position': string;
   'public.partDetails.abs': string;
   'public.partDetails.drive': string;

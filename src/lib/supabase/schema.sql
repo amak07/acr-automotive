@@ -109,6 +109,10 @@ CREATE INDEX idx_cross_references_competitor_sku_trgm ON cross_references USING 
 -- ============================================================================
 -- These are stored procedures that handle complex search queries
 
+-- Drop existing functions if they exist (needed when changing return types)
+DROP FUNCTION IF EXISTS search_by_sku(TEXT);
+DROP FUNCTION IF EXISTS search_by_vehicle(TEXT, TEXT, INT);
+
 -- Search for parts by SKU with intelligent fallback strategy
 -- Priority order: exact ACR → exact competitor → fuzzy search
 -- Returns parts with match quality information for UI display
@@ -122,7 +126,6 @@ RETURNS TABLE (
     bolt_pattern VARCHAR(50),
     drive_type VARCHAR(50),
     specifications TEXT,
-    image_url TEXT,
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ,
     match_type TEXT,
@@ -131,7 +134,7 @@ RETURNS TABLE (
 BEGIN
     -- Step 1: Try exact match on ACR SKU (highest priority)
     RETURN QUERY
-    SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url, p.created_at, p.updated_at,
+    SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.created_at, p.updated_at,
       'exact_acr'::TEXT AS match_type,
       1.0::REAL AS similarity_score  -- Perfect match = 1.0
     FROM parts p
@@ -140,7 +143,7 @@ BEGIN
     -- Step 2: If no ACR match, try exact competitor SKU match
     IF NOT FOUND THEN
       RETURN QUERY
-      SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url, p.created_at, p.updated_at,
+      SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.created_at, p.updated_at,
         'competitor_sku'::TEXT AS match_type,
         1.0::REAL AS similarity_score  -- Perfect match = 1.0
       FROM parts p
@@ -152,7 +155,7 @@ BEGIN
     IF NOT FOUND THEN
       RETURN QUERY
       -- Search both ACR and competitor SKUs for similar matches
-      SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url, p.created_at, p.updated_at,
+      SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.created_at, p.updated_at,
              'fuzzy'::TEXT AS match_type,
              similarity(p.acr_sku, search_sku) AS similarity_score
       FROM parts p
@@ -160,7 +163,7 @@ BEGIN
 
       UNION
 
-      SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.image_url, p.created_at, p.updated_at,
+      SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications, p.created_at, p.updated_at,
              'fuzzy'::TEXT AS match_type,
              similarity(c.competitor_sku, search_sku) AS similarity_score
       FROM parts p
@@ -189,14 +192,13 @@ RETURNS TABLE (
     bolt_pattern VARCHAR(50),
     drive_type VARCHAR(50),
     specifications TEXT,
-    image_url TEXT,
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT p.id, p.acr_sku, p.part_type, p.position_type, p.abs_type, p.bolt_pattern, p.drive_type, p.specifications,
-    p.image_url, p.created_at, p.updated_at
+    p.created_at, p.updated_at
     FROM parts p
     JOIN vehicle_applications va ON p.id = va.part_id
     WHERE va.make = $1 AND va.model = $2 AND $3 BETWEEN va.start_year AND va.end_year;

@@ -1,8 +1,47 @@
 import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase/client";
-import { DatabasePartRow } from "@/types";
+import { DatabasePartRow, PartSearchResult } from "@/types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { publicSearchSchema, PublicSearchParams } from "@/lib/schemas/public";
+
+// Helper function to enrich parts with primary image URLs
+async function enrichWithPrimaryImages(parts: DatabasePartRow[]): Promise<PartSearchResult[]> {
+  if (!parts || parts.length === 0) return [];
+
+  const partIds = parts.map(p => p.id);
+
+  // Fetch all primary images for these parts in one query
+  const { data: images, error } = await supabase
+    .from("part_images")
+    .select("part_id, image_url, is_primary, display_order")
+    .in("part_id", partIds)
+    .order("display_order", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching primary images:", error);
+    // Return parts without images rather than failing
+    return parts.map(part => ({ ...part, primary_image_url: null }));
+  }
+
+  // Group images by part_id
+  const imagesByPartId = images.reduce((acc, img) => {
+    if (!acc[img.part_id]) acc[img.part_id] = [];
+    acc[img.part_id].push(img);
+    return acc;
+  }, {} as Record<string, any[]>);
+
+  // Add primary_image_url to each part
+  // Primary image is always the first one by display_order (already sorted)
+  return parts.map(part => {
+    const partImages = imagesByPartId[part.id] || [];
+    const primaryImage = partImages[0]?.image_url || null;
+
+    return {
+      ...part,
+      primary_image_url: primaryImage,
+    };
+  });
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -84,7 +123,10 @@ export async function GET(request: NextRequest) {
 
       if (supabaseError) throw supabaseError;
 
-      return Response.json({ data, count });
+      // Enrich with primary images
+      const enrichedData = await enrichWithPrimaryImages(data || []);
+
+      return Response.json({ data: enrichedData, count });
     }
 
     // SKU search using RPC
@@ -99,8 +141,11 @@ export async function GET(request: NextRequest) {
       const totalCount = allData?.length || 0;
       const paginatedData = allData?.slice(params.offset, params.offset + params.limit) || [];
 
+      // Enrich with primary images
+      const enrichedData = await enrichWithPrimaryImages(paginatedData);
+
       return Response.json({
-        data: paginatedData,
+        data: enrichedData,
         count: totalCount,
         search_type: "sku",
       });
@@ -123,8 +168,11 @@ export async function GET(request: NextRequest) {
       const totalCount = allData?.length || 0;
       const paginatedData = allData?.slice(params.offset, params.offset + params.limit) || [];
 
+      // Enrich with primary images
+      const enrichedData = await enrichWithPrimaryImages(paginatedData);
+
       return Response.json({
-        data: paginatedData,
+        data: enrichedData,
         count: totalCount,
         search_type: "vehicle",
       });
