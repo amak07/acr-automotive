@@ -66,18 +66,21 @@ export interface AcrHeaderProps {
 
   /**
    * Current locale for language toggle
+   * @optional - if not provided, language toggle will not be shown
    */
-  locale: Locale;
+  locale?: Locale;
 
   /**
    * Locale change handler
+   * @optional - if not provided, language toggle will not be shown
    */
-  onLocaleChange: (locale: Locale) => void;
+  onLocaleChange?: (locale: Locale) => void;
 
   /**
    * Language toggle label text
+   * @optional - if not provided, language toggle will not be shown
    */
-  languageToggleLabel: string;
+  languageToggleLabel?: string;
 
   /**
    * Navigation actions for desktop/mobile
@@ -205,11 +208,13 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
               {/* Actions */}
               {actions.map((action) => renderAction(action))}
 
-              {/* Language Toggle */}
-              <AcrLanguageToggle
-                locale={locale}
-                onLocaleChange={onLocaleChange}
-              />
+              {/* Language Toggle (only if locale props provided) */}
+              {locale && onLocaleChange && (
+                <AcrLanguageToggle
+                  locale={locale}
+                  onLocaleChange={onLocaleChange}
+                />
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -233,25 +238,27 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
                 {/* Mobile Actions */}
                 {actions.map((action) => renderAction(action, true))}
 
-                {/* Language Selection - Footer */}
-                <div className="pt-3 mt-3 border-t border-acr-gray-200">
-                  <div className="px-3 py-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="acr-body-small text-acr-gray-700">
-                        {languageToggleLabel}
-                      </span>
+                {/* Language Selection - Footer (only if locale props provided) */}
+                {locale && onLocaleChange && languageToggleLabel && (
+                  <div className="pt-3 mt-3 border-t border-acr-gray-200">
+                    <div className="px-3 py-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="acr-body-small text-acr-gray-700">
+                          {languageToggleLabel}
+                        </span>
+                      </div>
+                      <AcrLanguageToggle
+                        locale={locale}
+                        onLocaleChange={(newLocale) => {
+                          onLocaleChange(newLocale);
+                          closeMobileMenu();
+                        }}
+                        size="sm"
+                        className="w-fit"
+                      />
                     </div>
-                    <AcrLanguageToggle
-                      locale={locale}
-                      onLocaleChange={(newLocale) => {
-                        onLocaleChange(newLocale);
-                        closeMobileMenu();
-                      }}
-                      size="sm"
-                      className="w-fit"
-                    />
                   </div>
-                </div>
+                )}
               </div>
             </div>
           )}

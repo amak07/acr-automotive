@@ -1,18 +1,11 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { ExternalLink, LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ExternalLink, Settings } from "lucide-react";
 import { AcrHeader, type AcrHeaderAction } from "@/components/acr";
 
 export function AdminHeader() {
-  const { locale, setLocale, t } = useLocale();
-  const router = useRouter();
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("admin-authenticated");
-    router.push("/");
-  };
+  const { t } = useLocale();
 
   const actions: AcrHeaderAction[] = [
     {
@@ -23,22 +16,17 @@ export function AdminHeader() {
       variant: "default",
     },
     {
-      id: "logout",
-      label: "Logout",
-      icon: LogOut,
-      variant: "danger",
-      asButton: true,
-      onClick: handleLogout,
-      title: "Logout",
+      id: "settings",
+      label: t("admin.header.settings"),
+      icon: Settings,
+      href: "/admin/settings",
+      variant: "default",
     },
   ];
 
   return (
     <AcrHeader
       title={t("admin.header.title")}
-      locale={locale}
-      onLocaleChange={setLocale}
-      languageToggleLabel={t("admin.header.languageToggle")}
       actions={actions}
       borderVariant="gray-200"
     />

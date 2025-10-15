@@ -8,6 +8,7 @@ export interface TranslationKeys {
   'admin.header.title': string;
   'admin.header.languageToggle': string;
   'admin.header.viewPublic': string;
+  'admin.header.settings': string;
   
   // Admin Dashboard
   'admin.dashboard.totalParts': string;
@@ -297,4 +298,42 @@ export interface TranslationKeys {
   'public.partDetails.applicationsPlaceholder': string;
   'public.partDetails.references': string;
   'public.partDetails.referencesPlaceholder': string;
+
+  // Admin Settings Page
+  'admin.settings.title': string;
+  'admin.settings.description': string;
+  'admin.settings.language': string;
+  'admin.settings.logout': string;
+  'admin.settings.contactInfo.title': string;
+  'admin.settings.contactInfo.email': string;
+  'admin.settings.contactInfo.emailPlaceholder': string;
+  'admin.settings.contactInfo.phone': string;
+  'admin.settings.contactInfo.phonePlaceholder': string;
+  'admin.settings.contactInfo.whatsapp': string;
+  'admin.settings.contactInfo.whatsappPlaceholder': string;
+  'admin.settings.contactInfo.address': string;
+  'admin.settings.contactInfo.addressPlaceholder': string;
+  'admin.settings.contactInfo.updated': string;
+  'admin.settings.contactInfo.success': string;
+  'admin.settings.contactInfo.error': string;
+  'admin.settings.branding.title': string;
+  'admin.settings.branding.companyName': string;
+  'admin.settings.branding.companyNamePlaceholder': string;
+  'admin.settings.branding.logo': string;
+  'admin.settings.branding.uploadLogo': string;
+  'admin.settings.branding.uploading': string;
+  'admin.settings.branding.logoFormat': string;
+  'admin.settings.branding.favicon': string;
+  'admin.settings.branding.uploadFavicon': string;
+  'admin.settings.branding.faviconFormat': string;
+  'admin.settings.branding.banner': string;
+  'admin.settings.branding.uploadBanner': string;
+  'admin.settings.branding.bannerFormat': string;
+  'admin.settings.branding.uploadSuccess': string;
+  'admin.settings.branding.uploadFailed': string;
+  'admin.settings.branding.updated': string;
+  'admin.settings.branding.success': string;
+  'admin.settings.branding.error': string;
+  'admin.settings.actions.save': string;
+  'admin.settings.actions.saving': string;
 }
