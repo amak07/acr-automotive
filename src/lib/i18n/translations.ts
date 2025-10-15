@@ -1174,4 +1174,44 @@ export const translations: Record<
     en: "Saving...",
     es: "Guardando...",
   },
+
+  // Contact FABs (Floating Action Buttons)
+  "contactFabs.ariaLabel": {
+    en: "Contact options",
+    es: "Opciones de contacto",
+  },
+  "contactFabs.whatsapp.ariaLabel": {
+    en: "Chat with us on WhatsApp",
+    es: "Chatea con nosotros por WhatsApp",
+  },
+  "contactFabs.whatsapp.tooltip": {
+    en: "Chat on WhatsApp",
+    es: "Chatear por WhatsApp",
+  },
+  "contactFabs.email.ariaLabel": {
+    en: "Send us an email",
+    es: "Envíanos un correo",
+  },
+  "contactFabs.email.tooltip": {
+    en: "Send Email",
+    es: "Enviar Correo",
+  },
+
+  // Footer
+  "footer.contact.whatsapp": {
+    en: "WhatsApp",
+    es: "WhatsApp",
+  },
+  "footer.contact.email": {
+    en: "Email",
+    es: "Email",
+  },
+  "footer.contact.location": {
+    en: "Location",
+    es: "Ubicación",
+  },
+  "footer.copyright": {
+    en: "All rights reserved.",
+    es: "Todos los derechos reservados.",
+  },
 };
