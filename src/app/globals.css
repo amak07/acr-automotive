@@ -111,4 +111,12 @@
   .acr-action-text {
     @apply text-base font-semibold tracking-tight;
   }
+
+  /* Custom ping animation for FABs with limited radius */
+  @keyframes ping-small {
+    75%, 100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
 }

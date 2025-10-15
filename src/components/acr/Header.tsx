@@ -198,9 +198,11 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
               >
                 <AcrLogo className="h-7 lg:h-8" />
               </Link>
-              <h1 className="acr-heading-5 text-acr-gray-800 truncate">
-                {title}
-              </h1>
+              {title && (
+                <h1 className="acr-heading-5 text-acr-gray-800 truncate">
+                  {title}
+                </h1>
+              )}
             </div>
 
             {/* Desktop Navigation */}

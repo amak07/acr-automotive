@@ -336,4 +336,17 @@ export interface TranslationKeys {
   'admin.settings.branding.error': string;
   'admin.settings.actions.save': string;
   'admin.settings.actions.saving': string;
+
+  // Contact FABs (Floating Action Buttons)
+  'contactFabs.ariaLabel': string;
+  'contactFabs.whatsapp.ariaLabel': string;
+  'contactFabs.whatsapp.tooltip': string;
+  'contactFabs.email.ariaLabel': string;
+  'contactFabs.email.tooltip': string;
+
+  // Footer
+  'footer.contact.whatsapp': string;
+  'footer.contact.email': string;
+  'footer.contact.location': string;
+  'footer.copyright': string;
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/toaster";
 import { Footer } from "@/components/layout/Footer";
+import { ContactFabs } from "@/components/layout/ContactFabs";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -37,6 +38,7 @@ export default function RootLayout({
         <Providers>
           <div className="flex-1">{children}</div>
           <Footer />
+          <ContactFabs />
         </Providers>
         <Toaster />
       </body>
