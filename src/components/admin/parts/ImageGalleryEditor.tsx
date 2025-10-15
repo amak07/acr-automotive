@@ -158,8 +158,6 @@ function SortableImageCard({
           <div
             className="absolute inset-0 cursor-grab active:cursor-grabbing focus:outline-none"
             aria-label={`${isPrimary ? t("partDetails.images.primary") + " - " : ""}Image ${image.display_order + 1}. Press space to pick up, arrow keys to move, space to drop`}
-            role="button"
-            tabIndex={0}
             {...attributes}
             {...listeners}
           >

@@ -40,12 +40,10 @@ const localeConfig = {
   en: {
     label: "EN",
     title: "Switch to English",
-    activeColor: "text-acr-blue-600",
   },
   es: {
     label: "ES",
     title: "Cambiar a Español",
-    activeColor: "text-acr-red-600",
   },
 } as const;
 
@@ -72,26 +70,20 @@ export const AcrLanguageToggle = React.forwardRef<
     const languages: Locale[] = ["en", "es"];
 
     const containerClasses = cn(
-      "flex items-center bg-acr-gray-50 rounded-lg border",
-      variant === "compact" ? "p-0.5" : "p-0.5 lg:p-1",
+      "flex items-center gap-1 px-3 py-2 bg-acr-gray-100 rounded-lg border border-acr-gray-300",
       disabled && "opacity-50 cursor-not-allowed",
       className
     );
 
-    const buttonClasses = (isActive: boolean, lang: Locale) =>
+    const buttonClasses = (isActive: boolean) =>
       cn(
         // Base styles
-        "acr-caption rounded-md transition-all duration-200",
-
-        // Size variants
-        size === "sm"
-          ? "px-2 py-1 min-h-[28px]"
-          : "px-2 py-1 lg:px-3 lg:py-1.5 acr-caption lg:acr-body-small min-h-[32px] lg:min-h-auto",
+        "px-3 py-1 text-sm font-medium rounded transition-all duration-200",
 
         // Active/inactive states
         isActive
-          ? `bg-white shadow-sm ${localeConfig[lang].activeColor}`
-          : "text-acr-gray-600 hover:text-acr-gray-800 hover:bg-acr-gray-100",
+          ? "bg-acr-red-600 text-white shadow-sm"
+          : "text-acr-gray-600 hover:text-acr-gray-900",
 
         // Disabled state
         disabled && "cursor-not-allowed hover:bg-transparent hover:text-acr-gray-600"
@@ -114,7 +106,7 @@ export const AcrLanguageToggle = React.forwardRef<
               key={lang}
               type="button"
               onClick={() => handleLocaleChange(lang)}
-              className={buttonClasses(isActive, lang)}
+              className={buttonClasses(isActive)}
               title={config.title}
               disabled={disabled}
               aria-pressed={isActive}

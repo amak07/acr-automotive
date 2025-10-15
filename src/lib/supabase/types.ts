@@ -129,6 +129,33 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       vehicle_applications: {
         Row: {
           created_at: string | null
@@ -204,7 +231,6 @@ export type Database = {
           created_at: string
           drive_type: string
           id: string
-          image_url: string
           match_type: string
           part_type: string
           position_type: string
@@ -222,7 +248,6 @@ export type Database = {
           created_at: string
           drive_type: string
           id: string
-          image_url: string
           part_type: string
           position_type: string
           specifications: string

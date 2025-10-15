@@ -106,3 +106,28 @@ export type QueryVehicleParams = z.infer<typeof queryVehicleSchema>;
 export type CreateVehicleApplicationParams = z.infer<typeof createVehicleSchema>;
 export type UpdateVehicleApplicationParams = z.infer<typeof updateVehicleSchema>;
 export type DeleteVehicleApplicationParams = z.infer<typeof deleteVehicleSchema>;
+
+// ===== SITE SETTINGS SCHEMAS =====
+export const contactInfoSchema = z.object({
+  email: z.string().email(),
+  phone: z.string(),
+  whatsapp: z.string(),
+  address: z.string(),
+});
+
+export const brandingSchema = z.object({
+  company_name: z.string().min(1, "Company name is required"),
+  logo_url: z.string(),
+  favicon_url: z.string(),
+  banner_url: z.string(),
+});
+
+export const updateSettingSchema = z.discriminatedUnion("key", [
+  z.object({ key: z.literal("contact_info"), value: contactInfoSchema }),
+  z.object({ key: z.literal("branding"), value: brandingSchema }),
+]);
+
+// Type exports
+export type ContactInfoParams = z.infer<typeof contactInfoSchema>;
+export type BrandingParams = z.infer<typeof brandingSchema>;
+export type UpdateSettingParams = z.infer<typeof updateSettingSchema>;

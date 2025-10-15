@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { LocaleProvider } from "@/contexts/LocaleContext";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -19,7 +20,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LocaleProvider>{children}</LocaleProvider>
+      <SettingsProvider>
+        <LocaleProvider>{children}</LocaleProvider>
+      </SettingsProvider>
     </QueryClientProvider>
   );
 }

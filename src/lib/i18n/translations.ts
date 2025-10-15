@@ -25,6 +25,10 @@ export const translations: Record<
     en: "View Public Site",
     es: "Ver Sitio Público",
   },
+  "admin.header.settings": {
+    en: "Settings",
+    es: "Configuración",
+  },
 
   // Admin Dashboard
   "admin.dashboard.totalParts": {
@@ -1023,5 +1027,151 @@ export const translations: Record<
   "public.partDetails.referencesPlaceholder": {
     en: "Competitor part number cross-references will be displayed here when available.",
     es: "Las referencias cruzadas de números de parte de competidores se mostrarán aquí cuando estén disponibles.",
+  },
+
+  // Admin Settings Page
+  "admin.settings.title": {
+    en: "Site Settings",
+    es: "Configuración del Sitio",
+  },
+  "admin.settings.description": {
+    en: "Manage contact information and branding assets",
+    es: "Administrar información de contacto y recursos de marca",
+  },
+  "admin.settings.language": {
+    en: "Language:",
+    es: "Idioma:",
+  },
+  "admin.settings.logout": {
+    en: "Logout",
+    es: "Cerrar Sesión",
+  },
+  "admin.settings.contactInfo.title": {
+    en: "Contact Information",
+    es: "Información de Contacto",
+  },
+  "admin.settings.contactInfo.email": {
+    en: "Contact Email",
+    es: "Email de Contacto",
+  },
+  "admin.settings.contactInfo.emailPlaceholder": {
+    en: "contacto@acrautomotive.com",
+    es: "contacto@acrautomotive.com",
+  },
+  "admin.settings.contactInfo.phone": {
+    en: "Phone",
+    es: "Teléfono",
+  },
+  "admin.settings.contactInfo.phonePlaceholder": {
+    en: "+52 123 456 7890",
+    es: "+52 123 456 7890",
+  },
+  "admin.settings.contactInfo.whatsapp": {
+    en: "WhatsApp",
+    es: "WhatsApp",
+  },
+  "admin.settings.contactInfo.whatsappPlaceholder": {
+    en: "+52 123 456 7890",
+    es: "+52 123 456 7890",
+  },
+  "admin.settings.contactInfo.address": {
+    en: "Address",
+    es: "Dirección",
+  },
+  "admin.settings.contactInfo.addressPlaceholder": {
+    en: "Street, City, State, ZIP",
+    es: "Calle, Ciudad, Estado, C.P.",
+  },
+  "admin.settings.contactInfo.updated": {
+    en: "Contact info updated",
+    es: "Información de contacto actualizada",
+  },
+  "admin.settings.contactInfo.success": {
+    en: "Changes saved successfully",
+    es: "Cambios guardados exitosamente",
+  },
+  "admin.settings.contactInfo.error": {
+    en: "Update failed",
+    es: "Error al actualizar",
+  },
+  "admin.settings.branding.title": {
+    en: "Branding & Assets",
+    es: "Marca y Recursos",
+  },
+  "admin.settings.branding.companyName": {
+    en: "Company Name",
+    es: "Nombre de la Empresa",
+  },
+  "admin.settings.branding.companyNamePlaceholder": {
+    en: "ACR Automotive",
+    es: "ACR Automotive",
+  },
+  "admin.settings.branding.logo": {
+    en: "Logo",
+    es: "Logo",
+  },
+  "admin.settings.branding.uploadLogo": {
+    en: "Upload Logo",
+    es: "Subir Logo",
+  },
+  "admin.settings.branding.uploading": {
+    en: "Uploading...",
+    es: "Subiendo...",
+  },
+  "admin.settings.branding.logoFormat": {
+    en: "PNG, JPG, or SVG (max 5MB)",
+    es: "PNG, JPG, o SVG (máx 5MB)",
+  },
+  "admin.settings.branding.favicon": {
+    en: "Favicon",
+    es: "Favicon",
+  },
+  "admin.settings.branding.uploadFavicon": {
+    en: "Upload Favicon",
+    es: "Subir Favicon",
+  },
+  "admin.settings.branding.faviconFormat": {
+    en: "ICO, PNG (16x16 or 32x32 recommended)",
+    es: "ICO, PNG (16x16 o 32x32 recomendado)",
+  },
+  "admin.settings.branding.banner": {
+    en: "Promotional Banner",
+    es: "Banner Promocional",
+  },
+  "admin.settings.branding.uploadBanner": {
+    en: "Upload Banner",
+    es: "Subir Banner",
+  },
+  "admin.settings.branding.bannerFormat": {
+    en: "Banner image for homepage (PNG, JPG - recommended 1200x300px, max 5MB)",
+    es: "Imagen de banner para página principal (PNG, JPG - recomendado 1200x300px, máx 5MB)",
+  },
+  "admin.settings.branding.uploadSuccess": {
+    en: "Upload successful",
+    es: "Subida exitosa",
+  },
+  "admin.settings.branding.uploadFailed": {
+    en: "Upload failed",
+    es: "Error al subir",
+  },
+  "admin.settings.branding.updated": {
+    en: "Branding updated",
+    es: "Marca actualizada",
+  },
+  "admin.settings.branding.success": {
+    en: "Changes saved successfully",
+    es: "Cambios guardados exitosamente",
+  },
+  "admin.settings.branding.error": {
+    en: "Update failed",
+    es: "Error al actualizar",
+  },
+  "admin.settings.actions.save": {
+    en: "Save",
+    es: "Guardar",
+  },
+  "admin.settings.actions.saving": {
+    en: "Saving...",
+    es: "Guardando...",
   },
 };
