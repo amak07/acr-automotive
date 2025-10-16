@@ -121,7 +121,7 @@ export function PartFormContainer({
       className="min-h-screen bg-acr-gray-100"
       data-testid="part-form-container"
     >
-      <AdminHeader />
+      <AppHeader variant="admin" />
 
       <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
         {children}
