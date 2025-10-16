@@ -3,7 +3,7 @@ import { useFilterOptions } from "@/hooks";
 import { PartWithDetails } from "@/types";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { AdminHeader } from "../layout/AdminHeader";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { SkeletonPartForm } from "@/components/ui/skeleton";
 import { PartBasicInfo } from "../part-details/PartBasicInfo";
 import { PartDetailsActions } from "../part-details/PartDetailsActions";
@@ -86,7 +86,7 @@ export function PartFormContainer({
   if (filterOptionsLoading || isLoading) {
     return (
       <div className="min-h-screen bg-acr-gray-100">
-        <AdminHeader />
+        <AppHeader variant="admin" />
         <div className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
           {children}
           <SkeletonPartForm />
@@ -99,7 +99,7 @@ export function PartFormContainer({
   if (error) {
     return (
       <div className="min-h-screen bg-acr-gray-100">
-        <AdminHeader />
+        <AppHeader variant="admin" />
         <div className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">

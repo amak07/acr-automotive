@@ -112,6 +112,27 @@
     @apply text-base font-semibold tracking-tight;
   }
 
+  /* Exo 2 branded headings */
+  .acr-brand-heading {
+    @apply font-[family-name:var(--font-exo2)] font-bold tracking-tight;
+  }
+
+  .acr-brand-heading-xl {
+    @apply acr-brand-heading text-xl lg:text-2xl;
+  }
+
+  .acr-brand-heading-2xl {
+    @apply acr-brand-heading text-2xl lg:text-3xl;
+  }
+
+  .acr-brand-heading-3xl {
+    @apply acr-brand-heading text-3xl lg:text-4xl;
+  }
+
+  .acr-brand-heading-4xl {
+    @apply acr-brand-heading text-4xl lg:text-5xl;
+  }
+
   /* Custom ping animation for FABs with limited radius */
   @keyframes ping-small {
     75%, 100% {

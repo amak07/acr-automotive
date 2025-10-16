@@ -6,6 +6,7 @@ export type Locale = 'en' | 'es';
 export interface TranslationKeys {
   // Admin Header
   'admin.header.title': string;
+  'admin.header.admin': string;
   'admin.header.languageToggle': string;
   'admin.header.viewPublic': string;
   'admin.header.settings': string;
