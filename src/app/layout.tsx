@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans } from "next/font/google";
+import { Noto_Sans, Exo_2 } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,6 +9,13 @@ import { ContactFabs } from "@/components/layout/ContactFabs";
 const notoSans = Noto_Sans({
   subsets: ["latin"],
   variable: "--font-noto-sans",
+  display: "swap",
+});
+
+const exo2 = Exo_2({
+  subsets: ["latin"],
+  variable: "--font-exo2",
+  weight: ["600", "700", "800"],
   display: "swap",
 });
 
@@ -34,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${notoSans.variable} font-sans flex flex-col min-h-screen`} suppressHydrationWarning={true}>
+      <body className={`${notoSans.variable} ${exo2.variable} font-sans flex flex-col min-h-screen`} suppressHydrationWarning={true}>
         <Providers>
           <div className="flex-1">{children}</div>
           <Footer />

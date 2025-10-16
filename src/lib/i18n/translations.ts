@@ -17,6 +17,10 @@ export const translations: Record<
     en: "Admin Management",
     es: "Administración",
   },
+  "admin.header.admin": {
+    en: "Admin",
+    es: "Admin",
+  },
   "admin.header.languageToggle": {
     en: "Language",
     es: "Idioma",

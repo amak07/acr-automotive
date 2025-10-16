@@ -1,7 +1,7 @@
 "use client";
 
 import type { Route } from "next";
-import { AdminHeader } from "@/components/admin/layout/AdminHeader";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { DashboardCards } from "@/components/admin/dashboard/DashboardCards";
 import { SearchFilters, SearchTerms } from "@/components/admin/parts/SearchFilters";
 import { PartsList } from "@/components/admin/parts/PartsList";
@@ -102,7 +102,7 @@ function AdminPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-acr-gray-50 to-acr-gray-100">
-        <AdminHeader />
+        <AppHeader variant="admin" />
         <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
           <div className="animate-pulse space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -117,7 +117,7 @@ function AdminPage() {
       </div>
     }>
       <div className="min-h-screen bg-gradient-to-br from-acr-gray-50 to-acr-gray-100">
-        <AdminHeader />
+        <AppHeader variant="admin" />
         <AdminPageContent />
       </div>
     </Suspense>

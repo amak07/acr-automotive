@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import type { Route } from "next";
 import { useMemo, Suspense } from "react";
-import { PublicHeader } from "@/components/public/layout/PublicHeader";
+import { AppHeader } from "@/components/layout/AppHeader";
 import {
   PublicSearchFilters,
   PublicSearchTerms,
@@ -108,7 +108,7 @@ export default function HomePage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-acr-gray-100">
-        <PublicHeader />
+        <AppHeader variant="public" />
         <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
           <div className="animate-pulse">
             <div className="h-32 bg-gray-200 rounded-lg mb-6"></div>
@@ -118,7 +118,7 @@ export default function HomePage() {
       </div>
     }>
       <div className="min-h-screen bg-acr-gray-100">
-        <PublicHeader />
+        <AppHeader variant="public" />
         <HomePageContent />
       </div>
     </Suspense>

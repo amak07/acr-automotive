@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { PublicHeader } from "@/components/public/layout/PublicHeader";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { PublicPartDetails } from "@/components/public/parts/PublicPartDetails";
 import { usePublicPartById } from "@/hooks";
 
@@ -13,7 +13,7 @@ export default function PublicPartDetailsPage() {
 
   return (
     <div className="min-h-screen bg-acr-gray-100">
-      <PublicHeader />
+      <AppHeader variant="public" />
 
       <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
         <PublicPartDetails part={part} isLoading={isLoading} error={error} />

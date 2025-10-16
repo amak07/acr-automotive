@@ -196,10 +196,10 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
                 href={homeLink}
                 className="flex-shrink-0 hover:opacity-80 transition-opacity"
               >
-                <AcrLogo className="h-7 lg:h-8" />
+                <AcrLogo className="h-10 md:h-7 lg:h-8" />
               </Link>
               {title && (
-                <h1 className="acr-heading-5 text-acr-gray-800 truncate">
+                <h1 className="acr-brand-heading-xl text-acr-gray-800 truncate hidden md:block">
                   {title}
                 </h1>
               )}
