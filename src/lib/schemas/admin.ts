@@ -115,11 +115,29 @@ export const contactInfoSchema = z.object({
   address: z.string(),
 });
 
+export const bannerSchema = z.object({
+  id: z.string(),
+  image_url: z.string().refine(
+    (val) => val === "" || z.string().url().safeParse(val).success,
+    { message: "Must be a valid URL or empty" }
+  ),
+  mobile_image_url: z.string().refine(
+    (val) => val === "" || z.string().url().safeParse(val).success,
+    { message: "Must be a valid URL or empty" }
+  ).optional(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  cta_text: z.string().optional(),
+  cta_link: z.string().optional(),
+  display_order: z.number().int().min(0),
+  is_active: z.boolean(),
+});
+
 export const brandingSchema = z.object({
   company_name: z.string().min(1, "Company name is required"),
   logo_url: z.string(),
   favicon_url: z.string(),
-  banner_url: z.string(),
+  banners: z.array(bannerSchema),
 });
 
 export const updateSettingSchema = z.discriminatedUnion("key", [

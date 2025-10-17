@@ -11,11 +11,23 @@ export interface ContactInfo {
   address: string;
 }
 
+export interface Banner {
+  id: string;
+  image_url: string;
+  mobile_image_url?: string;
+  title?: string;
+  subtitle?: string;
+  cta_text?: string;
+  cta_link?: string;
+  display_order: number;
+  is_active: boolean;
+}
+
 export interface Branding {
   company_name: string;
   logo_url: string;
   favicon_url: string;
-  banner_url: string;
+  banners: Banner[];
 }
 
 // Combined settings for frontend consumption

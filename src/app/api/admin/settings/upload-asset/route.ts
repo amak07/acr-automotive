@@ -6,7 +6,7 @@
 import { supabase } from "@/lib/supabase/client";
 import { NextRequest, NextResponse } from "next/server";
 
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/svg+xml", "image/x-icon"];
+const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/svg+xml", "image/x-icon"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 /**

@@ -305,6 +305,8 @@ export interface TranslationKeys {
   'admin.settings.description': string;
   'admin.settings.language': string;
   'admin.settings.logout': string;
+  'admin.settings.backToAdmin': string;
+  'admin.settings.backToSearch': string;
   'admin.settings.contactInfo.title': string;
   'admin.settings.contactInfo.email': string;
   'admin.settings.contactInfo.emailPlaceholder': string;
@@ -317,7 +319,6 @@ export interface TranslationKeys {
   'admin.settings.contactInfo.updated': string;
   'admin.settings.contactInfo.success': string;
   'admin.settings.contactInfo.error': string;
-  'admin.settings.branding.title': string;
   'admin.settings.branding.companyName': string;
   'admin.settings.branding.companyNamePlaceholder': string;
   'admin.settings.branding.logo': string;
@@ -335,6 +336,26 @@ export interface TranslationKeys {
   'admin.settings.branding.updated': string;
   'admin.settings.branding.success': string;
   'admin.settings.branding.error': string;
+  'admin.settings.branding.banners': string;
+  'admin.settings.branding.addBanner': string;
+  'admin.settings.branding.addFirstBanner': string;
+  'admin.settings.branding.noBanners': string;
+  'admin.settings.branding.active': string;
+  'admin.settings.branding.untitled': string;
+  'admin.settings.branding.desktopImage': string;
+  'admin.settings.branding.mobileImage': string;
+  'admin.settings.branding.optional': string;
+  'admin.settings.branding.recommendedSize': string;
+  'admin.settings.branding.title': string;
+  'admin.settings.branding.titlePlaceholder': string;
+  'admin.settings.branding.subtitle': string;
+  'admin.settings.branding.subtitlePlaceholder': string;
+  'admin.settings.branding.ctaText': string;
+  'admin.settings.branding.ctaTextPlaceholder': string;
+  'admin.settings.branding.ctaLink': string;
+  'admin.settings.branding.ctaLinkPlaceholder': string;
+  'admin.settings.branding.collapse': string;
+  'admin.settings.branding.deleteBannerConfirm': string;
   'admin.settings.actions.save': string;
   'admin.settings.actions.saving': string;
 

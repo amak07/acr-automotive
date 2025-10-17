@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Package } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale } from "@/contexts/LocaleContext";
 import {
@@ -37,6 +37,7 @@ export function PublicPartDetails({
   error,
 }: PublicPartDetailsProps) {
   const { t } = useLocale();
+  const router = useRouter();
   const homeLink = useHomeLink();
   const searchParams = useSearchParams();
 
@@ -61,6 +62,23 @@ export function PublicPartDetails({
   const backText = homeLink === "/admin"
     ? t("public.partDetails.backToAdmin")
     : t("public.partDetails.backToSearch");
+
+  // Handle back navigation with browser history for seamless scroll restoration
+  const handleBackClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Only use router.back() for public users (not admin)
+    if (homeLink === "/admin") return; // Let default Link behavior handle admin navigation
+
+    e.preventDefault();
+
+    // Check if user came from our search page by looking at history state
+    // Next.js maintains scroll position automatically when using router.back()
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      // Fallback: direct navigation if no history (e.g., user landed directly via bookmark)
+      router.push(backLink as any);
+    }
+  };
 
   if (isLoading) {
     return <SkeletonPublicPartDetails />;
@@ -96,6 +114,7 @@ export function PublicPartDetails({
       <div className="flex items-center text-sm text-acr-gray-600">
         <Link
           href={(backLink || "/") as any}
+          onClick={handleBackClick}
           className="flex items-center hover:text-acr-red-600 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />

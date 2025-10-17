@@ -9,9 +9,11 @@ import {
   PublicSearchTerms,
 } from "@/components/public/search/PublicSearchFilters";
 import { PublicPartsList } from "@/components/public/parts/PublicPartsList";
+import { BannerCarousel } from "@/components/public/BannerCarousel";
 import { AcrPagination } from "@/components/acr";
 import { usePublicParts } from "@/hooks";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import { CardError } from "@/components/ui/error-states";
 import { DEFAULT_PUBLIC_SEARCH_TERMS } from "./constants";
 
@@ -20,16 +22,20 @@ function HomePageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t } = useLocale();
+  const { settings } = useSettings();
 
   // Read search terms from URL
-  const searchTerms = useMemo<PublicSearchTerms>(() => ({
-    make: searchParams?.get('make') || '',
-    model: searchParams?.get('model') || '',
-    year: searchParams?.get('year') || '',
-    sku_term: searchParams?.get('sku') || '',
-    limit: DEFAULT_PUBLIC_SEARCH_TERMS.limit,
-    offset: parseInt(searchParams?.get('offset') || '0'),
-  }), [searchParams]);
+  const searchTerms = useMemo<PublicSearchTerms>(
+    () => ({
+      make: searchParams?.get("make") || "",
+      model: searchParams?.get("model") || "",
+      year: searchParams?.get("year") || "",
+      sku_term: searchParams?.get("sku") || "",
+      limit: DEFAULT_PUBLIC_SEARCH_TERMS.limit,
+      offset: parseInt(searchParams?.get("offset") || "0"),
+    }),
+    [searchParams]
+  );
 
   const { data, isLoading, error } = usePublicParts(searchTerms);
 
@@ -42,16 +48,19 @@ function HomePageContent() {
     const params = new URLSearchParams(searchParams?.toString());
 
     Object.entries(updates).forEach(([key, value]) => {
-      if (value && value !== '' && value !== 0) {
-        params.set(key === 'sku_term' ? 'sku' : key, value.toString());
+      if (value && value !== "" && value !== 0) {
+        params.set(key === "sku_term" ? "sku" : key, value.toString());
       } else {
-        params.delete(key === 'sku_term' ? 'sku' : key);
+        params.delete(key === "sku_term" ? "sku" : key);
       }
     });
 
     // Reset offset if filters changed (not pagination)
-    if (!('offset' in updates) && params.toString() !== searchParams?.toString()) {
-      params.delete('offset');
+    if (
+      !("offset" in updates) &&
+      params.toString() !== searchParams?.toString()
+    ) {
+      params.delete("offset");
     }
 
     router.push(`${pathname}?${params.toString()}` as Route, { scroll: false });
@@ -67,38 +76,46 @@ function HomePageContent() {
   };
 
   return (
-    <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
-      <PublicSearchFilters setSearchTerms={setSearchTerms} />
-
-      {/* Error State for Parts Search */}
-      {error && (
-        <div className="mt-8">
-          <CardError
-            title={t("public.parts.errorTitle")}
-            message={t("public.parts.errorMessage")}
-          />
-        </div>
+    <main className="mx-auto">
+      {/* Banner Carousel - Full width */}
+      {settings?.branding?.banners && settings.branding.banners.length > 0 && (
+        <BannerCarousel banners={settings.branding.banners} />
       )}
 
-      <div className="mt-8">
-        <PublicPartsList
-          partsData={data?.data || []}
-          partsCount={data?.count || 0}
-          isDataLoading={isLoading}
-          currentPage={currentPage}
-          limit={searchTerms.limit}
-        />
-        {data && data.count > searchTerms.limit && (
+      {/* Search and Parts List - Contained width */}
+      <div className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
+        <PublicSearchFilters setSearchTerms={setSearchTerms} />
+
+        {/* Error State for Parts Search */}
+        {error && (
           <div className="mt-8">
-            <AcrPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              total={data.count}
-              limit={searchTerms.limit}
-              onPageChange={handlePageChange}
+            <CardError
+              title={t("public.parts.errorTitle")}
+              message={t("public.parts.errorMessage")}
             />
           </div>
         )}
+
+        <div className="mt-8">
+          <PublicPartsList
+            partsData={data?.data || []}
+            partsCount={data?.count || 0}
+            isDataLoading={isLoading}
+            currentPage={currentPage}
+            limit={searchTerms.limit}
+          />
+          {data && data.count > searchTerms.limit && (
+            <div className="mt-8">
+              <AcrPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                total={data.count}
+                limit={searchTerms.limit}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
@@ -106,17 +123,19 @@ function HomePageContent() {
 
 export default function HomePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-acr-gray-100">
-        <AppHeader variant="public" />
-        <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
-          <div className="animate-pulse">
-            <div className="h-32 bg-gray-200 rounded-lg mb-6"></div>
-            <div className="h-96 bg-gray-200 rounded-lg"></div>
-          </div>
-        </main>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-acr-gray-100">
+          <AppHeader variant="public" />
+          <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
+            <div className="animate-pulse">
+              <div className="h-32 bg-gray-200 rounded-lg mb-6"></div>
+              <div className="h-96 bg-gray-200 rounded-lg"></div>
+            </div>
+          </main>
+        </div>
+      }
+    >
       <div className="min-h-screen bg-acr-gray-100">
         <AppHeader variant="public" />
         <HomePageContent />

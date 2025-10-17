@@ -140,4 +140,40 @@
       opacity: 0;
     }
   }
+
+  /* Swiper custom styles for banner carousel */
+  .banner-swiper .swiper-pagination {
+    bottom: 16px !important;
+    z-index: 10 !important;
+  }
+
+  /* Hide pagination dots on desktop (md and above) */
+  @media (min-width: 768px) {
+    .banner-swiper .swiper-pagination {
+      display: none !important;
+    }
+  }
+
+  .banner-swiper .swiper-pagination-bullet {
+    background: rgba(0, 0, 0, 0.5) !important;
+    opacity: 1 !important;
+    width: 10px !important;
+    height: 10px !important;
+    margin: 0 4px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .banner-swiper .swiper-pagination-bullet:hover {
+    background: rgba(0, 0, 0, 0.7) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .banner-swiper .swiper-pagination-bullet-active {
+    background: rgba(0, 0, 0, 0.8) !important;
+    opacity: 1 !important;
+    width: 32px !important;
+    border-radius: 5px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  }
 }
