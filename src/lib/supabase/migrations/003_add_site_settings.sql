@@ -59,8 +59,8 @@ INSERT INTO site_settings (key, value, description) VALUES
     "company_name": "ACR Automotive",
     "logo_url": "",
     "favicon_url": "",
-    "banner_url": ""
-}'::JSONB, 'Branding assets (logo, favicon, promotional banner)');
+    "banners": []
+}'::JSONB, 'Branding assets (logo, favicon) and promotional banner carousel');
 
 -- ============================================================================
 -- ROW LEVEL SECURITY

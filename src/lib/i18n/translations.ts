@@ -1050,6 +1050,14 @@ export const translations: Record<
     en: "Logout",
     es: "Cerrar Sesión",
   },
+  "admin.settings.backToAdmin": {
+    en: "Back to Admin",
+    es: "Volver a Admin",
+  },
+  "admin.settings.backToSearch": {
+    en: "Back to Search",
+    es: "Volver a Búsqueda",
+  },
   "admin.settings.contactInfo.title": {
     en: "Contact Information",
     es: "Información de Contacto",
@@ -1097,10 +1105,6 @@ export const translations: Record<
   "admin.settings.contactInfo.error": {
     en: "Update failed",
     es: "Error al actualizar",
-  },
-  "admin.settings.branding.title": {
-    en: "Branding & Assets",
-    es: "Marca y Recursos",
   },
   "admin.settings.branding.companyName": {
     en: "Company Name",
@@ -1169,6 +1173,86 @@ export const translations: Record<
   "admin.settings.branding.error": {
     en: "Update failed",
     es: "Error al actualizar",
+  },
+  "admin.settings.branding.banners": {
+    en: "Banner Carousel",
+    es: "Carrusel de Banners",
+  },
+  "admin.settings.branding.addBanner": {
+    en: "Add Banner",
+    es: "Agregar Banner",
+  },
+  "admin.settings.branding.addFirstBanner": {
+    en: "Add First Banner",
+    es: "Agregar Primer Banner",
+  },
+  "admin.settings.branding.noBanners": {
+    en: "No banners yet",
+    es: "No hay banners aún",
+  },
+  "admin.settings.branding.active": {
+    en: "Active",
+    es: "Activo",
+  },
+  "admin.settings.branding.untitled": {
+    en: "Untitled Banner",
+    es: "Banner Sin Título",
+  },
+  "admin.settings.branding.desktopImage": {
+    en: "Desktop Image",
+    es: "Imagen de Escritorio",
+  },
+  "admin.settings.branding.mobileImage": {
+    en: "Mobile Image",
+    es: "Imagen Móvil",
+  },
+  "admin.settings.branding.optional": {
+    en: "optional",
+    es: "opcional",
+  },
+  "admin.settings.branding.recommendedSize": {
+    en: "Recommended size",
+    es: "Tamaño recomendado",
+  },
+  "admin.settings.branding.title": {
+    en: "Title",
+    es: "Título",
+  },
+  "admin.settings.branding.titlePlaceholder": {
+    en: "Enter banner title...",
+    es: "Ingrese título del banner...",
+  },
+  "admin.settings.branding.subtitle": {
+    en: "Subtitle",
+    es: "Subtítulo",
+  },
+  "admin.settings.branding.subtitlePlaceholder": {
+    en: "Enter banner subtitle...",
+    es: "Ingrese subtítulo del banner...",
+  },
+  "admin.settings.branding.ctaText": {
+    en: "CTA Button Text",
+    es: "Texto del Botón CTA",
+  },
+  "admin.settings.branding.ctaTextPlaceholder": {
+    en: "Learn More",
+    es: "Más Información",
+  },
+  "admin.settings.branding.ctaLink": {
+    en: "CTA Link URL",
+    es: "URL del Enlace CTA",
+  },
+  "admin.settings.branding.ctaLinkPlaceholder": {
+    en: "https://example.com/promo",
+    es: "https://example.com/promo",
+  },
+  "admin.settings.branding.collapse": {
+    en: "Collapse",
+    es: "Contraer",
+  },
+  "admin.settings.branding.deleteBannerConfirm": {
+    en: "Are you sure you want to delete this banner? This action cannot be undone.",
+    es: "¿Está seguro de que desea eliminar este banner? Esta acción no se puede deshacer.",
   },
   "admin.settings.actions.save": {
     en: "Save",

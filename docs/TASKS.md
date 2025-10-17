@@ -134,7 +134,77 @@ _Last Updated: October 15, 2025_
 
 ## 🔄 Current Session State
 
-### Latest Session: October 15, 2025 (Session 7)
+### Latest Session: October 16, 2025 (Session 8 - Continuation)
+
+**Focus**: Mobile UX Improvements & Scroll Restoration
+
+**Completed**:
+
+- ✅ **Banner Carousel Mobile Enhancements**
+  - Decreased auto-rotate interval from 5s to 3.5s for better engagement
+  - Added deletion confirmation dialog with translations
+  - Implemented dark pagination dots (rgba(0,0,0,0.5-0.8)) for visibility on all backgrounds
+  - Increased mobile banner height from 160px to 224px
+  - Fixed logo white space issues (removed logos from mobile banners)
+  - Hidden pagination dots on desktop (md+), show only on mobile
+  - Created mobile-optimized banner designs
+
+- ✅ **Seamless Scroll Position Restoration**
+  - Implemented hybrid `router.back()` approach for native browser scroll restoration
+  - No jarring flash when returning from part details page
+  - Industry-standard behavior (same as Amazon, eBay)
+  - Safe fallback for direct links using query params
+  - Admin navigation unchanged (uses default Link behavior)
+
+- ✅ **Settings Navigation Improvements**
+  - Smart back button routing with query parameters (?from=admin/public)
+  - Proper breadcrumb navigation from settings page
+  - Context-aware routing based on user origin
+
+- ✅ **Code Quality**
+  - Removed dead code (`isAddingBanner` state)
+  - Added missing translation key type definition
+  - TypeScript compilation clean
+  - All changes linted and validated
+
+**Files Created (8)**:
+- `public/temp-banners/README.md`
+- `public/temp-banners/banner-1-gradient-mobile.svg`
+- `public/temp-banners/banner-1-gradient.svg`
+- `public/temp-banners/banner-4-split-mobile.svg`
+- `public/temp-banners/banner-4-split.svg`
+- `public/temp-banners/banner-6-professional-mobile.svg`
+- `public/temp-banners/banner-6-professional.svg`
+- `src/components/public/BannerCarousel.tsx`
+
+**Files Modified (12)**:
+- `src/components/public/BannerCarousel.tsx` - Auto-rotate interval, responsive heights
+- `src/components/public/parts/PublicPartDetails.tsx` - Hybrid router.back() approach
+- `src/components/admin/settings/BrandingSettings.tsx` - Deletion confirm, removed dead code
+- `src/components/admin/settings/SettingsPageContent.tsx` - Back button with query params
+- `src/components/layout/AppHeader.tsx` - Settings links with origin tracking
+- `src/app/globals.css` - Dark pagination dot styles with media queries
+- `src/lib/i18n/translations.ts` - Banner deletion confirmation translations
+- `src/lib/i18n/translation-keys.ts` - Added deleteBannerConfirm type
+- `src/lib/schemas/admin.ts` - Banner schema validation
+- `src/lib/types/settings.ts` - Banner type definitions
+- `src/lib/supabase/migrations/003_add_site_settings.sql` - Banner carousel support
+- `package.json` / `package-lock.json` - Swiper dependencies
+
+**Technical Decisions**:
+- Used `router.back()` instead of sessionStorage for scroll restoration (browser native)
+- Dark semi-transparent dots instead of white dots for universal visibility
+- Removed SVG logos from mobile banners to fix white space issues
+- Query parameter approach for back navigation tracking
+
+**Next Priorities**:
+1. Test scroll restoration and banner carousel on production
+2. Gather user feedback on mobile UX improvements
+3. Consider Phase 7: AI Integration or additional polish from ENHANCEMENTS.md
+
+---
+
+### Previous Session: October 15, 2025 (Session 7)
 
 **Focus**: Contact FABs and Footer Enhancements
 

@@ -50,7 +50,7 @@ export function AppHeader({ variant = "public" }: AppHeaderProps) {
           id: "settings",
           label: t("admin.header.settings"),
           icon: Settings,
-          href: "/admin/settings",
+          href: "/admin/settings?from=admin",
           variant: "default",
         },
       ]
@@ -67,7 +67,7 @@ export function AppHeader({ variant = "public" }: AppHeaderProps) {
           id: "settings",
           label: t("admin.header.settings"),
           icon: Settings,
-          href: "/admin/settings",
+          href: "/admin/settings?from=public",
           variant: "default",
         },
       ]
