@@ -5,12 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RotateCw, Upload, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/common/use-toast";
 import { useLocale } from "@/contexts/LocaleContext";
-import {
-  AcrCard,
-  AcrCardHeader,
-  AcrCardContent,
-  AcrButton,
-} from "@/components/acr";
+import { AcrButton } from "@/components/acr";
 
 interface Upload360ViewerProps {
   partId: string;
@@ -248,8 +243,8 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
   };
 
   return (
-    <AcrCard variant="default" padding="none" data-testid="part-360-viewer-section">
-      <AcrCardHeader className="px-4 pt-6 lg:px-6" data-testid="part-360-viewer-header">
+    <div data-testid="part-360-viewer-section">
+      <div className="mb-6" data-testid="part-360-viewer-header">
         {/* Mobile Layout - Stacked */}
         <div className="block lg:hidden">
           <div className="flex items-center gap-2 mb-4">
@@ -313,9 +308,9 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
             </AcrButton>
           )}
         </div>
-      </AcrCardHeader>
+      </div>
 
-      <AcrCardContent className="px-4 pb-6 lg:px-6" data-testid="part-360-viewer-content">
+      <div data-testid="part-360-viewer-content">
         {has360Viewer ? (
           // Active state - 360° viewer configured
           <div className="space-y-4">
@@ -425,7 +420,7 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
             </div>
           </div>
         )}
-      </AcrCardContent>
+      </div>
 
       {/* Hidden file input */}
       <input
@@ -437,6 +432,6 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
         onChange={handleUpload}
         disabled={uploadMutation.isPending || deleteMutation.isPending}
       />
-    </AcrCard>
+    </div>
   );
 }
