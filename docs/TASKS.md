@@ -1,6 +1,6 @@
 # TASKS.md - ACR Automotive Development Tasks
 
-_Last Updated: October 17, 2025_
+_Last Updated: October 18, 2025_
 
 ## 🎯 Current Sprint Status
 
@@ -367,65 +367,65 @@ npm install sharp
 
 ## 🔄 Current Session State
 
-### Latest Session: October 17, 2025 (Session 9 - Continuation)
+### Latest Session: October 18, 2025 (Session 10 - 360° Viewer Upload UX Refinement)
 
-**Focus**: 360° Interactive Viewer - Phase 1 Implementation (Week 1)
+**Focus**: 360° Interactive Viewer - Week 2 Upload Interface Refinements
 
 **Completed**:
 
-- ✅ **Phase 1 Planning Complete (Earlier in session)**
-  - Created comprehensive technical plan: `docs/technical-plans/360-viewer-acr-production.md`
-  - Analyzed existing patterns (ImageGalleryEditor, API routes)
-  - Designed all-or-nothing UX approach for admin (no individual frame reordering)
-  - Updated PLANNING.md and TASKS.md with 360° viewer feature
+- ✅ **Upload Interface UX Improvements**
+  - Implemented drag-and-drop preview grid with reordering (@dnd-kit)
+  - Added checkbox-based frame selection (non-destructive UX)
+  - Entire tile now draggable (removed small drag handle for better UX)
+  - Unselected frames show grayscale + 50% opacity + dashed border
+  - Frame numbering with checkboxes in top-left corner
 
-- ✅ **Week 1: Database & API Foundation (COMPLETE)**
-  - Sharp library already installed (v0.34.4)
-  - Created migration `004_add_360_viewer.sql` (idempotent, includes RLS)
-  - Ran migration successfully in Supabase dev database
-  - Verified `part_360_frames` table created with proper constraints
+- ✅ **Validation & Warning System**
+  - Removed blocking confirm dialogs (better UX)
+  - Removed file selection validation (allows any count to preview)
+  - Added dynamic warning banners (top + bottom):
+    - Red: < 12 frames (blocks upload)
+    - Yellow: 12-23 frames (warns about recommendation)
+    - Green: 24+ frames (ready to upload)
+  - Fixed translation placeholder: `{{count}}` instead of `{{min}}`
 
-- ✅ **API Implementation**
-  - Created `/api/admin/parts/[id]/360-frames/route.ts`
-    - POST: Upload + Sharp optimization (1200×1200px @ 85% JPEG)
-    - GET: Fetch all frames for a part
-    - DELETE: Remove entire 360° viewer
-  - Created `/api/admin/parts/[id]/360-frames/[frameId]/route.ts`
-    - DELETE: Remove individual frame (for future flexibility)
-  - Fixed to use correct Supabase client pattern (`supabase` from `@/lib/supabase/client`)
-  - Fixed params signature: `Promise<{ id: string }>` to match existing routes
+- ✅ **Progress Indicators**
+  - Added upload progress banner above action buttons
+  - Shows "Uploading X frames" with spinner
+  - Subtitle: "Processing and optimizing images..."
+  - Button shows "Uploading..." during upload
 
-- ✅ **Frame Management Strategy**
-  - Decided on all-or-nothing approach (no drag & drop reordering)
-  - `frame_number` assigned sequentially on upload (0-23)
-  - No resequencing on individual delete (creates gaps intentionally)
-  - Recommended UX: Replace All or Delete Viewer only
+- ✅ **Design System Updates**
+  - Removed scale transform effects from all AcrButton variants
+  - Updated secondary button hover: `gray-50` → `gray-200` (darker)
+  - Cleaner button interactions without zoom effects
 
-- ✅ **Code Quality**
-  - TypeScript compilation clean (no errors)
-  - npm build successful
-  - Removed NUL artifact file (Windows ls redirect issue)
+- ✅ **Code Quality & Cleanup**
+  - Removed unused `X` icon import from lucide-react
+  - Removed dead empty-state loading indicator code
+  - Removed old `uploadProgress` state tracking
+  - All code compiles cleanly with no errors
+
+- ✅ **Toast Notifications**
+  - Upload success: Always shows green "success" variant
+  - Removed conditional warning messages from success toast
+  - Clean, consistent notification UX
 
 **Technical Decisions**:
-- All-or-nothing admin UX (simpler, prevents broken rotation sequences)
-- Individual frame delete endpoint exists but won't be exposed in initial UI
-- Integration testing deferred to Week 2 (test via admin UI instead of test page)
-- Frame count validation: 12 min (block), 24 recommended (warn if less), 48 max (warn if more)
-
-**Files Created (4)**:
-- `src/lib/supabase/migrations/004_add_360_viewer.sql`
-- `src/app/api/admin/parts/[id]/360-frames/route.ts`
-- `src/app/api/admin/parts/[id]/360-frames/[frameId]/route.ts`
-- `docs/technical-plans/360-viewer-acr-production.md`
+- Checkbox selection better than X button (non-destructive, allows experimentation)
+- Preview grid workflow: Select files → Preview with checkboxes → Reorder → Upload
+- Validation only at upload time (not at file selection)
+- No frame-by-frame progress (API processes batch server-side)
+- Progress shown as total count rather than individual frames
 
 **Files Modified (2)**:
-- `docs/PLANNING.md` - Added Sharp to tech stack, updated Image Management section
-- `docs/TASKS.md` - Marked Week 1 as complete, updated success criteria
+- `src/components/admin/parts/Upload360Viewer.tsx` - Complete UX overhaul
+- `src/components/acr/Button.tsx` - Removed scale transforms, updated secondary hover
 
 **Next Priorities**:
-1. **Week 2**: Build admin upload interface (PartMediaManager, Upload360Viewer)
-2. Test full upload flow with CTK512016 images via admin UI
-3. Add i18n keys (English + Spanish)
+1. **Week 2 Completion**: Test full upload flow with CTK512016 images
+2. **Week 3**: Begin public interactive viewer component
+3. Consider frame-by-frame upload progress if needed
 
 ---
 

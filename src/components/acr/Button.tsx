@@ -8,7 +8,7 @@ import { cva, type VariantProps } from "class-variance-authority";
  */
 const acrButtonVariants = cva(
   // Base styles that apply to all ACR buttons - Coca-Cola inspired modern styling
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl acr-action-text transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 transform hover:scale-[1.02] active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl acr-action-text transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -18,7 +18,7 @@ const acrButtonVariants = cva(
 
         // Secondary outlined button - dark outline style (clean and minimal)
         secondary:
-          "border-2 border-black bg-white text-black shadow-sm hover:bg-gray-50 font-medium focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
+          "border-2 border-black bg-white text-black shadow-sm hover:bg-gray-200 font-medium focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
 
         // Destructive red button for dangerous actions
         destructive:

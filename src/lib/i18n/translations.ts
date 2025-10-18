@@ -728,8 +728,20 @@ export const translations: Record<
     es: "{{count}} fotogramas configurados",
   },
   "partDetails.viewer360.replaceButton": {
-    en: "Replace All",
-    es: "Reemplazar Todo",
+    en: "Replace All Frames",
+    es: "Reemplazar Todos los Fotogramas",
+  },
+  "partDetails.viewer360.reorderInstructions": {
+    en: "Reorder frames before upload",
+    es: "Reordena los fotogramas antes de subir",
+  },
+  "partDetails.viewer360.dragToReorder": {
+    en: "Drag frames to reorder. Frame #0 is the starting position.",
+    es: "Arrastra fotogramas para reordenar. Fotograma #0 es la posición inicial.",
+  },
+  "partDetails.viewer360.confirmUpload": {
+    en: "Upload Frames",
+    es: "Subir Fotogramas",
   },
   "partDetails.viewer360.deleteButton": {
     en: "Delete Viewer",
@@ -775,9 +787,13 @@ export const translations: Record<
     en: "Some files were skipped",
     es: "Algunos archivos fueron omitidos",
   },
-  "partDetails.viewer360.uploadProgress": {
-    en: "Uploading {{current}}/{{total}} frames ({{percent}}%)",
-    es: "Subiendo {{current}}/{{total}} fotogramas ({{percent}}%)",
+  "partDetails.viewer360.processing": {
+    en: "Processing images...",
+    es: "Procesando imágenes...",
+  },
+  "partDetails.viewer360.processingFrames": {
+    en: "Optimizing {{count}} frames with Sharp",
+    es: "Optimizando {{count}} fotogramas con Sharp",
   },
   "partDetails.viewer360.requirementsTitle": {
     en: "Image Requirements:",

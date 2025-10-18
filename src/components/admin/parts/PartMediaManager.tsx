@@ -31,6 +31,8 @@ export function PartMediaManager({ partId }: PartMediaManagerProps) {
       if (!res.ok) throw new Error("Failed to fetch 360 frames");
       return res.json();
     },
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const has360Viewer = (viewer360Data?.count || 0) > 0;
@@ -42,6 +44,7 @@ export function PartMediaManager({ partId }: PartMediaManagerProps) {
         <div className="flex gap-1 -mb-px">
           {/* Photos Tab */}
           <button
+            type="button"
             onClick={() => setActiveTab("photos")}
             className={`
               flex items-center gap-2 px-4 py-3 border-b-2 transition-colors
@@ -58,6 +61,7 @@ export function PartMediaManager({ partId }: PartMediaManagerProps) {
 
           {/* 360° Viewer Tab */}
           <button
+            type="button"
             onClick={() => setActiveTab("360viewer")}
             className={`
               flex items-center gap-2 px-4 py-3 border-b-2 transition-colors
@@ -81,8 +85,12 @@ export function PartMediaManager({ partId }: PartMediaManagerProps) {
 
       {/* Tab content */}
       <div className="px-4 pb-6 pt-6 lg:px-6">
-        {activeTab === "photos" && <PartImagesManager partId={partId} />}
-        {activeTab === "360viewer" && <Upload360Viewer partId={partId} />}
+        <div className={activeTab === "photos" ? "block" : "hidden"}>
+          <PartImagesManager partId={partId} />
+        </div>
+        <div className={activeTab === "360viewer" ? "block" : "hidden"}>
+          <Upload360Viewer partId={partId} />
+        </div>
       </div>
     </AcrCard>
   );

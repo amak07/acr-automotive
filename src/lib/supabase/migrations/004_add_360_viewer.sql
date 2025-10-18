@@ -114,7 +114,7 @@ COMMENT ON COLUMN parts.viewer_360_frame_count IS
     'Total number of frames in 360° viewer (0 if not configured)';
 
 -- =====================================================
--- 6. Verify storage bucket exists (informational)
+-- 6. Configure storage bucket policies
 -- =====================================================
 
 -- Note: The 'acr-part-images' storage bucket should already exist
@@ -125,7 +125,27 @@ COMMENT ON COLUMN parts.viewer_360_frame_count IS
 --   acr-part-images/360-viewer/{acr_sku}/frame-001.jpg
 --   etc.
 --
--- No additional storage bucket configuration needed.
+-- Add UPDATE policy for storage bucket to support upsert operations
+-- (Required for replacing 360° viewer frames)
+
+-- Drop existing policy if it exists (idempotent)
+DROP POLICY IF EXISTS "Admin Update" ON storage.objects;
+
+-- Create UPDATE policy for admin operations
+CREATE POLICY "Admin Update"
+    ON storage.objects
+    FOR UPDATE
+    TO public
+    USING (bucket_id = 'acr-part-images');
+
+-- Add DELETE policy for storage cleanup
+DROP POLICY IF EXISTS "Admin Delete" ON storage.objects;
+
+CREATE POLICY "Admin Delete"
+    ON storage.objects
+    FOR DELETE
+    TO public
+    USING (bucket_id = 'acr-part-images');
 
 -- =====================================================
 -- Migration Complete
@@ -139,5 +159,6 @@ BEGIN
   RAISE NOTICE '  - parts (added has_360_viewer, viewer_360_frame_count)';
   RAISE NOTICE '  - part_360_frames (created)';
   RAISE NOTICE 'Indexes created: 2';
-  RAISE NOTICE 'RLS policies created: 2';
+  RAISE NOTICE 'Table RLS policies created: 2';
+  RAISE NOTICE 'Storage RLS policies created: 2 (UPDATE, DELETE)';
 END $$;
