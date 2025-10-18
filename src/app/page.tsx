@@ -15,6 +15,7 @@ import { usePublicParts } from "@/hooks";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { CardError } from "@/components/ui/error-states";
+import { SkeletonBannerCarousel } from "@/components/ui/skeleton";
 import { DEFAULT_PUBLIC_SEARCH_TERMS } from "./constants";
 
 function HomePageContent() {
@@ -22,7 +23,7 @@ function HomePageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t } = useLocale();
-  const { settings } = useSettings();
+  const { settings, isLoading: settingsLoading } = useSettings();
 
   // Read search terms from URL
   const searchTerms = useMemo<PublicSearchTerms>(
@@ -77,9 +78,13 @@ function HomePageContent() {
 
   return (
     <main className="mx-auto">
-      {/* Banner Carousel - Full width */}
-      {settings?.branding?.banners && settings.branding.banners.length > 0 && (
-        <BannerCarousel banners={settings.branding.banners} />
+      {/* Banner Carousel - Full width with lazy loading */}
+      {settingsLoading ? (
+        <SkeletonBannerCarousel />
+      ) : (
+        settings?.branding?.banners && settings.branding.banners.length > 0 && (
+          <BannerCarousel banners={settings.branding.banners} />
+        )
       )}
 
       {/* Search and Parts List - Contained width */}

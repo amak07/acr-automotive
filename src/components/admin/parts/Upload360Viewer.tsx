@@ -6,6 +6,7 @@ import { RotateCw, Upload, Plus, Trash2, CheckCircle2, Loader2 } from "lucide-re
 import { useToast } from "@/hooks/common/use-toast";
 import { useLocale } from "@/contexts/LocaleContext";
 import { AcrButton } from "@/components/acr";
+import { Part360Viewer } from "@/components/public/parts/Part360Viewer";
 import {
   DndContext,
   closestCenter,
@@ -140,6 +141,7 @@ function SortablePreviewItem({
  */
 export function Upload360Viewer({ partId }: Upload360ViewerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { t } = useLocale();
   const queryClient = useQueryClient();
@@ -149,6 +151,11 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
   const MIN_FRAMES = 12;
   const RECOMMENDED_FRAMES = 24;
   const MAX_FRAMES = 48;
+
+  // Scroll to viewer section
+  const scrollToViewer = () => {
+    containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   // DND sensors for drag and drop
   const sensors = useSensors(
@@ -209,6 +216,7 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
       });
 
       queryClient.invalidateQueries({ queryKey: ["part-360-frames", partId] });
+      queryClient.invalidateQueries({ queryKey: ["part-360-frames-public", partId] });
       // Invalidate public parts queries
       queryClient.invalidateQueries({
         predicate: (query) => {
@@ -216,6 +224,9 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
           return key[0] === "public" && key[1] === "parts";
         },
       });
+
+      // Scroll back to viewer section
+      setTimeout(() => scrollToViewer(), 100);
     },
     onError: (error: Error) => {
       setUploadingFrameCount(null);
@@ -248,6 +259,7 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
         variant: "success",
       });
       queryClient.invalidateQueries({ queryKey: ["part-360-frames", partId] });
+      queryClient.invalidateQueries({ queryKey: ["part-360-frames-public", partId] });
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey as string[];
@@ -366,6 +378,9 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
     // Cleanup preview URLs
     previewFiles.forEach((pf) => URL.revokeObjectURL(pf.preview));
     setPreviewFiles([]);
+
+    // Scroll back to viewer section
+    setTimeout(() => scrollToViewer(), 100);
   };
 
   // Toggle selection state of a preview file
@@ -383,7 +398,7 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
   };
 
   return (
-    <div data-testid="part-360-viewer-section">
+    <div ref={containerRef} data-testid="part-360-viewer-section">
       <div className="mb-6" data-testid="part-360-viewer-header">
         {/* Mobile Layout - Stacked */}
         <div className="block lg:hidden">
@@ -454,59 +469,66 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
         {has360Viewer ? (
           // Active state - 360° viewer configured
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="font-medium text-green-900">
-                    {t("partDetails.viewer360.activeTitle")}
-                  </p>
-                  <p className="text-sm text-green-700">
-                    {t("partDetails.viewer360.activeDescription").replace(
-                      "{{count}}",
-                      String(frameCount)
-                    )}
-                  </p>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-green-900">
+                      {t("partDetails.viewer360.activeTitle")}
+                    </p>
+                    <p className="text-sm text-green-700">
+                      {t("partDetails.viewer360.activeDescription").replace(
+                        "{{count}}",
+                        String(frameCount)
+                      )}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <AcrButton
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleUploadClick}
-                  disabled={uploadMutation.isPending || deleteMutation.isPending}
-                >
-                  {t("partDetails.viewer360.replaceButton")}
-                </AcrButton>
-                <AcrButton
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDelete}
-                  disabled={deleteMutation.isPending || uploadMutation.isPending}
-                >
-                  {deleteMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      {t("partDetails.viewer360.deleteButton")}
-                    </>
-                  )}
-                </AcrButton>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <AcrButton
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleUploadClick}
+                    disabled={uploadMutation.isPending || deleteMutation.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    {t("partDetails.viewer360.replaceButton")}
+                  </AcrButton>
+                  <AcrButton
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDelete}
+                    disabled={deleteMutation.isPending || uploadMutation.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    {deleteMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        {t("partDetails.viewer360.deleteButton")}
+                      </>
+                    )}
+                  </AcrButton>
+                </div>
               </div>
             </div>
 
-            {/* Preview thumbnail */}
+            {/* Interactive 360° viewer preview */}
             {frames.length > 0 && (
               <div className="flex justify-center">
-                <img
-                  src={frames[0].image_url}
-                  alt={t("partDetails.viewer360.previewAlt")}
-                  className="max-w-xs rounded-lg border border-acr-gray-200"
-                />
+                <div className="w-full max-w-2xl">
+                  <Part360Viewer
+                    frameUrls={frames.map((f) => f.image_url)}
+                    alt={t("partDetails.viewer360.previewAlt")}
+                    enableFullscreen={true}
+                    autoRotate={false}
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -519,17 +541,17 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
 
               if (selectedCount < MIN_FRAMES) {
                 return (
-                  <div className="bg-red-100 border-2 border-red-500 rounded-lg p-5 shadow-md">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <p className="text-base font-bold text-red-900 mb-1">
-                          ⚠️ UPLOAD BLOCKED - Not Enough Frames
+                  <div className="bg-red-100 border-2 border-red-500 rounded-lg p-3 sm:p-5 shadow-md">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm sm:text-base font-bold text-red-900 mb-1">
+                          ⚠️ Upload Blocked
                         </p>
-                        <p className="text-sm text-red-800 mb-2">
+                        <p className="text-xs sm:text-sm text-red-800 mb-2">
                           {t("partDetails.viewer360.minFramesError").replace("{{count}}", String(MIN_FRAMES))}
                         </p>
-                        <p className="text-sm font-semibold text-red-700">
-                          Currently selected: {selectedCount} / {MIN_FRAMES} minimum required
+                        <p className="text-xs sm:text-sm font-semibold text-red-700">
+                          Selected: {selectedCount} / {MIN_FRAMES} minimum required
                         </p>
                       </div>
                     </div>
@@ -537,20 +559,17 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
                 );
               } else if (selectedCount < RECOMMENDED_FRAMES) {
                 return (
-                  <div className="bg-yellow-100 border-2 border-yellow-500 rounded-lg p-5 shadow-md">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <p className="text-base font-bold text-yellow-900 mb-1">
-                          ⚡ Below Recommended Frame Count
+                  <div className="bg-yellow-100 border-2 border-yellow-500 rounded-lg p-3 sm:p-5 shadow-md">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm sm:text-base font-bold text-yellow-900 mb-1">
+                          ⚡ Below Recommended
                         </p>
-                        <p className="text-sm text-yellow-800 mb-2">
+                        <p className="text-xs sm:text-sm text-yellow-800 mb-2">
                           {t("partDetails.viewer360.recommendedWarning").replace("{{count}}", String(RECOMMENDED_FRAMES))}
                         </p>
-                        <p className="text-sm font-semibold text-yellow-700 mb-2">
-                          Currently selected: {selectedCount} / {RECOMMENDED_FRAMES} recommended
-                        </p>
                         <p className="text-xs text-yellow-700">
-                          {t("partDetails.viewer360.reorderInstructions")} • {t("partDetails.viewer360.dragToReorder")}
+                          {selectedCount} / {RECOMMENDED_FRAMES} recommended • {t("partDetails.viewer360.dragToReorder")}
                         </p>
                       </div>
                     </div>
@@ -559,13 +578,13 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
               } else {
                 // Good state - 24+ frames
                 return (
-                  <div className="bg-green-100 border-2 border-green-500 rounded-lg p-5 shadow-md">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <p className="text-base font-bold text-green-900 mb-1">
+                  <div className="bg-green-100 border-2 border-green-500 rounded-lg p-3 sm:p-5 shadow-md">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm sm:text-base font-bold text-green-900 mb-1">
                           ✓ Ready to Upload
                         </p>
-                        <p className="text-sm font-semibold text-green-700 mb-2">
+                        <p className="text-xs sm:text-sm text-green-700 mb-1">
                           {selectedCount} of {previewFiles.length} frames selected
                         </p>
                         <p className="text-xs text-green-700">
@@ -601,70 +620,6 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
               </SortableContext>
             </DndContext>
 
-            {/* Warning banners - BOTTOM (before buttons) */}
-            {(() => {
-              const selectedCount = previewFiles.filter(f => f.selected).length;
-
-              if (selectedCount < MIN_FRAMES) {
-                return (
-                  <div className="bg-red-100 border-2 border-red-500 rounded-lg p-5 shadow-md">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <p className="text-base font-bold text-red-900 mb-1">
-                          ⚠️ UPLOAD BLOCKED - Not Enough Frames
-                        </p>
-                        <p className="text-sm text-red-800 mb-2">
-                          {t("partDetails.viewer360.minFramesError").replace("{{count}}", String(MIN_FRAMES))}
-                        </p>
-                        <p className="text-sm font-semibold text-red-700">
-                          Currently selected: {selectedCount} / {MIN_FRAMES} minimum required
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              } else if (selectedCount < RECOMMENDED_FRAMES) {
-                return (
-                  <div className="bg-yellow-100 border-2 border-yellow-500 rounded-lg p-5 shadow-md">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <p className="text-base font-bold text-yellow-900 mb-1">
-                          ⚡ Below Recommended Frame Count
-                        </p>
-                        <p className="text-sm text-yellow-800 mb-2">
-                          {t("partDetails.viewer360.recommendedWarning").replace("{{count}}", String(RECOMMENDED_FRAMES))}
-                        </p>
-                        <p className="text-sm font-semibold text-yellow-700 mb-2">
-                          Currently selected: {selectedCount} / {RECOMMENDED_FRAMES} recommended
-                        </p>
-                        <p className="text-xs text-yellow-700">
-                          {t("partDetails.viewer360.reorderInstructions")} • {t("partDetails.viewer360.dragToReorder")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              } else {
-                // Good state - 24+ frames
-                return (
-                  <div className="bg-green-100 border-2 border-green-500 rounded-lg p-5 shadow-md">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <p className="text-base font-bold text-green-900 mb-1">
-                          ✓ Ready to Upload
-                        </p>
-                        <p className="text-sm font-semibold text-green-700 mb-2">
-                          {selectedCount} of {previewFiles.length} frames selected
-                        </p>
-                        <p className="text-xs text-green-700">
-                          {t("partDetails.viewer360.reorderInstructions")} • {t("partDetails.viewer360.dragToReorder")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-            })()}
 
             {/* Upload progress indicator */}
             {uploadMutation.isPending && uploadingFrameCount && (
@@ -684,13 +639,14 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
             )}
 
             {/* Action buttons */}
-            <div className="flex gap-3 justify-end">
+            <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
               <AcrButton
                 variant="secondary"
                 size="default"
                 type="button"
                 onClick={handleCancelPreview}
                 disabled={uploadMutation.isPending}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </AcrButton>
@@ -700,6 +656,7 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
                 type="button"
                 onClick={handleConfirmUpload}
                 disabled={uploadMutation.isPending || previewFiles.filter(f => f.selected).length < MIN_FRAMES}
+                className="w-full sm:w-auto"
               >
                 {uploadMutation.isPending ? (
                   <>

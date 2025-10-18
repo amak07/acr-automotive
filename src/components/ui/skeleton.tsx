@@ -463,6 +463,38 @@ function SkeletonDashboardCards({
   )
 }
 
+// Banner Carousel Skeleton
+function SkeletonBannerCarousel({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn("relative w-full bg-white mx-auto max-w-[1560px]", className)} {...props}>
+      <div className="relative w-full h-56 md:h-64 lg:h-80 xl:h-[480px] bg-acr-gray-100 rounded-lg overflow-hidden">
+        <Skeleton className="w-full h-full rounded-none" />
+
+        {/* Navigation arrows skeleton (desktop only) */}
+        <div className="hidden md:block">
+          <Skeleton className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full" />
+          <Skeleton className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full" />
+        </div>
+
+        {/* Pagination dots skeleton */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="w-2 h-2 rounded-full" />
+          ))}
+        </div>
+
+        {/* Counter and play/pause skeleton (desktop only) */}
+        <div className="absolute bottom-4 right-4 hidden md:block">
+          <Skeleton className="w-24 h-8 rounded-full" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Public Page Skeletons
 function SkeletonPublicPartDetails({
   className,
@@ -473,74 +505,76 @@ function SkeletonPublicPartDetails({
       {/* Breadcrumb skeleton */}
       <SkeletonText width="32" />
 
-      {/* Main content skeleton */}
+      {/* SKU Header skeleton */}
+      <div>
+        <Skeleton className="h-10 w-64 md:h-12 md:w-80" />
+      </div>
+
+      {/* Main Content - Image Emphasized Layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Product image skeleton */}
-        <div className="md:col-span-1 bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md">
+        {/* Product Image Gallery - 2/3 width */}
+        <div className="md:col-span-2 bg-white border border-acr-gray-200 rounded-lg overflow-hidden shadow-lg">
           <div className="p-4">
-            <SkeletonText className="aspect-square rounded-lg" />
+            {/* Gallery with thumbnails skeleton */}
+            <div className="flex gap-4">
+              {/* Thumbnail strip */}
+              <div className="flex flex-col gap-2 w-20">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="w-20 h-20 rounded" />
+                ))}
+              </div>
+              {/* Main image */}
+              <div className="flex-1">
+                <Skeleton className="w-full aspect-square rounded" />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Part details skeleton */}
-        <div className="md:col-span-2 bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md">
-          <div className="p-4">
-            {/* Header skeleton */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <SkeletonTitle className="mb-2" />
-                <SkeletonText width="24" />
-              </div>
-              <SkeletonBadge />
-            </div>
-
-            {/* Specifications table skeleton */}
-            <SkeletonCard>
-              <SkeletonTableHeader>
-                <SkeletonText width="24" className="mx-auto" />
-              </SkeletonTableHeader>
-              <SkeletonTableContent className="space-y-2">
-                <SkeletonText width="full" />
-                <SkeletonText width="3/4" />
-                <SkeletonText width="1/2" />
-                <SkeletonText width="2/3" />
-              </SkeletonTableContent>
-            </SkeletonCard>
-          </div>
+        {/* Part Details - Baleros-Bisa Style - 1/3 width */}
+        <div className="md:col-span-1 bg-white border border-acr-gray-200 rounded-lg overflow-hidden shadow-md">
+          {/* Specifications Table */}
+          <SkeletonCard className="border-0">
+            <SkeletonTableHeader>
+              <SkeletonText width="32" className="h-4 mx-auto" />
+            </SkeletonTableHeader>
+            <SkeletonTableContent className="space-y-1">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonText key={i} width="full" className="h-4" />
+              ))}
+            </SkeletonTableContent>
+          </SkeletonCard>
         </div>
       </div>
 
-      {/* Applications and References skeleton */}
+      {/* Applications and References - Baleros-Bisa Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Applications skeleton */}
-        <div className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md">
-          <div className="p-4">
-            <SkeletonCard>
-              <SkeletonTableHeader>
-                <SkeletonText width="20" className="mx-auto" />
-              </SkeletonTableHeader>
-              <SkeletonTableContent className="space-y-2">
-                <SkeletonText width="full" />
-                <SkeletonText width="4/5" />
-              </SkeletonTableContent>
-            </SkeletonCard>
-          </div>
+        <div className="bg-white border border-acr-gray-200 rounded-lg overflow-hidden shadow-md">
+          <SkeletonCard className="border-0">
+            <SkeletonTableHeader>
+              <SkeletonText width="28" className="h-4 mx-auto" />
+            </SkeletonTableHeader>
+            <SkeletonTableContent className="space-y-1">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <SkeletonText key={i} width="full" className="h-4" />
+              ))}
+            </SkeletonTableContent>
+          </SkeletonCard>
         </div>
 
         {/* References skeleton */}
-        <div className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md">
-          <div className="p-4">
-            <SkeletonCard>
-              <SkeletonTableHeader>
-                <SkeletonText width="20" className="mx-auto" />
-              </SkeletonTableHeader>
-              <SkeletonTableContent className="space-y-2">
-                <SkeletonText width="3/4" />
-                <SkeletonText width="1/2" />
-                <SkeletonText width="2/3" />
-              </SkeletonTableContent>
-            </SkeletonCard>
-          </div>
+        <div className="bg-white border border-acr-gray-200 rounded-lg overflow-hidden shadow-md">
+          <SkeletonCard className="border-0">
+            <SkeletonTableHeader>
+              <SkeletonText width="24" className="h-4 mx-auto" />
+            </SkeletonTableHeader>
+            <SkeletonTableContent className="space-y-1">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <SkeletonText key={i} width={i === 0 ? "3/4" : i === 1 ? "1/2" : i === 2 ? "2/3" : "4/5"} className="h-4" />
+              ))}
+            </SkeletonTableContent>
+          </SkeletonCard>
         </div>
       </div>
     </div>
@@ -779,6 +813,7 @@ export {
   SkeletonAdminPartsList,
   SkeletonDashboardCard,
   SkeletonDashboardCards,
+  SkeletonBannerCarousel,
   SkeletonPublicPartDetails,
   SkeletonPartForm,
   SkeletonPartDetailsHeader,

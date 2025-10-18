@@ -819,6 +819,26 @@ export const translations: Record<
     en: "360° viewer preview",
     es: "Vista previa del visor 360°",
   },
+  "partDetails.viewer360.loading": {
+    en: "Loading 360° viewer...",
+    es: "Cargando visor 360°...",
+  },
+  "partDetails.viewer360.dragToRotate": {
+    en: "Drag to rotate",
+    es: "Arrastra para rotar",
+  },
+  "partDetails.viewer360.validationError": {
+    en: "Validation Error",
+    es: "Error de validación",
+  },
+  "partDetails.viewer360.thumbnailAlt": {
+    en: "360° interactive view",
+    es: "Vista interactiva 360°",
+  },
+  "partDetails.viewer360.clickToView": {
+    en: "Click to view 360° rotation",
+    es: "Haz clic para ver la rotación 360°",
+  },
 
   // Table Headers for Vehicle Applications
   "partDetails.vehicleApps.table.brand": {
