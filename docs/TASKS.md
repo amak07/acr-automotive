@@ -1,10 +1,10 @@
 # TASKS.md - ACR Automotive Development Tasks
 
-_Last Updated: October 15, 2025_
+_Last Updated: October 17, 2025_
 
 ## 🎯 Current Sprint Status
 
-**Project Phase**: ✅ **Category 2: User Experience Improvements** - COMPLETE!
+**Project Phase**: 🚀 **360° Interactive Viewer Implementation** (Planning Complete)
 
 **Overall Progress**:
 
@@ -14,7 +14,8 @@ _Last Updated: October 15, 2025_
 - ✅ **Phase 4**: Production deployment and optimization (Complete)
 - ✅ **Phase 5**: Dev branch setup and feature flags (Complete)
 - ✅ **Phase 6**: Category 2 site enhancements - **ALL FEATURES COMPLETE** ✨
-- 📋 **Phase 7**: AI Integration (Planned - documentation complete)
+- 🎯 **Phase 7**: 360° Interactive Viewer (In Planning - 4 weeks estimated)
+- 📋 **Phase 8**: AI Integration (Future - documentation complete)
 
 ## 📊 Production Status
 
@@ -25,6 +26,238 @@ _Last Updated: October 15, 2025_
 - ✅ **Mobile Responsive**: Tablet-optimized for parts counter staff
 - ✅ **Performance**: Sub-300ms search response times maintained
 - ✅ **Settings Management**: Dynamic footer, logo/favicon/banner uploads
+
+---
+
+## 🎬 Phase 7: 360° Interactive Viewer (Current Phase)
+
+**Status**: 📋 Planning Complete - Ready for Implementation
+**Total Estimated Time**: 32-40 hours (4 weeks part-time)
+**Technical Plan**: `docs/technical-plans/360-viewer-acr-production.md`
+**Test Data**: CTK512016 (24 frames @ 800×800px in `public/CTK512016/`)
+
+### Overview
+
+Add professional 360° drag-to-rotate viewer for parts catalog, allowing customers to inspect parts from all angles. Integrates with existing image gallery using tabbed admin interface.
+
+**Key Features:**
+- ✅ Flexible frame count (12-48 frames) with industry-standard validation
+- ✅ Server-side optimization with Sharp (standardize to 1200×1200px @ 85% JPEG)
+- ✅ Tabbed admin UI (Product Photos | 360° Viewer)
+- ✅ Drag-to-rotate interaction (desktop + mobile touch gestures)
+- ✅ Lazy loading & performance optimization
+- ✅ Dual-mode public display (360° viewer ↔ photo gallery toggle)
+
+---
+
+### Implementation Phases
+
+#### **Week 1: Database & API Foundation** (8-10 hours) - ✅ COMPLETE
+
+**Tasks:**
+- [x] Install Sharp library: `npm install sharp` (v0.34.4 already installed)
+- [x] Run migration `004_add_360_viewer.sql` in Supabase
+  - [x] Add `has_360_viewer`, `viewer_360_frame_count` to parts table
+  - [x] Create `part_360_frames` table with RLS policies
+  - [x] Add performance indexes
+- [x] Create API route: `app/api/admin/parts/[id]/360-frames/route.ts`
+  - [x] POST endpoint: Upload + optimize frames with Sharp
+  - [x] GET endpoint: Fetch frames for part
+  - [x] DELETE endpoint: Remove 360° viewer
+  - [x] Individual frame delete: `[frameId]/route.ts`
+- [x] Implement frame count validation (12 min, 24 recommended, 48 max)
+- [x] Use correct Supabase client pattern (matches existing routes)
+- [ ] **Integration testing deferred:** Will test via Week 2 admin UI
+
+**Validation Rules:**
+- ❌ Block: < 12 frames ("Minimum 12 frames required")
+- ⚠️ Warn: 12-23 frames ("24+ frames recommended for smooth rotation")
+- ✅ Accept: 24-48 frames (no warning)
+- ⚠️ Warn: > 48 frames ("Consider 48 frames or fewer for optimal loading")
+
+**Success Criteria:**
+- [x] API accepts 12-48 image files
+- [x] Sharp optimizes each frame to 1200×1200px @ ~100KB
+- [x] Frames stored at `360-viewer/{acr_sku}/frame-000.jpg` to `frame-023.jpg`
+- [x] Database records include width, height, file_size_bytes
+- [x] TypeScript compilation clean (no errors)
+- [ ] Integration testing via admin UI (Week 2)
+
+---
+
+#### **Week 2: Admin Upload Interface** (10-12 hours) - 📋 PENDING
+
+**Tasks:**
+- [ ] Create `PartMediaManager.tsx` (tabbed container)
+  - [ ] Tab 1: Product Photos (existing PartImagesManager)
+  - [ ] Tab 2: 360° Viewer (new Upload360Viewer)
+  - [ ] Green checkmark indicator when 360° active
+- [ ] Create `Upload360Viewer.tsx` component
+  - [ ] Drag & drop file upload zone
+  - [ ] File validation (type, size, count)
+  - [ ] Upload progress tracker: "Uploading 12/24 frames (50%)"
+  - [ ] Warning badges for < 24 frames
+  - [ ] Preview mode (interactive spin before publishing)
+  - [ ] Active state (viewer configured with frame count)
+  - [ ] Delete confirmation dialog
+- [ ] Update `PartFormContainer.tsx`
+  - [ ] Replace `<PartImagesManager>` with `<PartMediaManager>`
+- [ ] Add ~35 i18n keys (English + Spanish)
+
+**Component Flow:**
+```
+Empty State → Upload Zone → Progress → Preview → Active State
+                ↓              ↓          ↓          ↓
+            Select files   Optimize   Test spin   Published
+```
+
+**Success Criteria:**
+- [ ] Tabs render correctly with proper styling
+- [ ] Upload accepts drag & drop + file picker
+- [ ] Progress shown during bulk upload
+- [ ] Preview mode allows interactive rotation test
+- [ ] Warning displayed for suboptimal frame counts
+- [ ] Mobile/tablet layout responsive
+
+---
+
+#### **Week 3: Public Interactive Viewer** (8-10 hours) - 📋 PENDING
+
+**Tasks:**
+- [ ] Create `Part360Viewer.tsx` component
+  - [ ] Drag-to-rotate interaction (mouse)
+  - [ ] Touch swipe gestures (mobile/tablet)
+  - [ ] Keyboard navigation (arrow keys for a11y)
+  - [ ] Frame counter overlay ("12 / 24")
+  - [ ] Instruction hint ("← Drag to rotate →")
+  - [ ] Fullscreen mode button
+  - [ ] Loading state (spinner while preloading)
+- [ ] Implement performance optimizations
+  - [ ] Lazy loading (first 3 frames instant, rest in background)
+  - [ ] Adjacent frame preloading (smooth rotation without gaps)
+  - [ ] Optional: Auto-rotate on hover (1 rotation every 3.6s)
+- [ ] Add error handling & fallback
+  - [ ] Fallback to photo gallery if viewer fails to load
+
+**Performance Strategy:**
+```typescript
+// Load first 3 frames immediately (instant display)
+const [loadedFrames, setLoadedFrames] = useState(new Set([0, 1, 2]));
+
+// Background load remaining frames
+useEffect(() => {
+  frameUrls.slice(3).forEach((url, idx) => {
+    const img = new Image();
+    img.onload = () => setLoadedFrames(prev => new Set(prev).add(idx + 3));
+    img.src = url;
+  });
+}, []);
+```
+
+**Success Criteria:**
+- [ ] Smooth drag-to-rotate on desktop (60fps)
+- [ ] Touch gestures work on mobile/tablet
+- [ ] Fullscreen mode functional
+- [ ] Load time < 2 seconds on 4G mobile
+- [ ] Keyboard accessible (WCAG 2.1 AA)
+- [ ] Graceful fallback to photo gallery on error
+
+---
+
+#### **Week 4: Public Integration & Testing** (6-8 hours) - 📋 PENDING
+
+**🚨 IMPORTANT - Phase 5 Discussion Required:**
+> **TODO:** When reaching this phase, discuss exact UX flow for public part details page integration.
+>
+> Current plan: Dual-mode toggle (360° Viewer | Photo Gallery buttons), but needs user review before implementation.
+>
+> **Questions to address:**
+> - Default view priority (360° first vs. photos first?)
+> - Toggle button placement (above viewer vs. sidebar?)
+> - Mobile UX (single view vs. swipeable modes?)
+> - Fallback when only one mode available
+>
+> **Do not proceed with Phase 4 implementation until discussion complete.**
+
+**Tasks:**
+- [ ] **PAUSE FOR UX DISCUSSION** (see note above)
+- [ ] Integrate viewer into public part details page
+- [ ] Build dual-mode toggle (subject to discussion)
+- [ ] Add mode preference persistence (session storage)
+- [ ] Mobile/tablet UX testing on real devices
+- [ ] Performance testing (load times, rotation smoothness)
+- [ ] Complete i18n coverage (all ~35 keys translated)
+- [ ] Final polish & documentation
+- [ ] Update admin workflow guide
+
+**Testing Checklist:**
+- [ ] Desktop: Chrome, Firefox, Safari, Edge
+- [ ] Mobile: iOS Safari, Android Chrome
+- [ ] Tablet: iPad, Android tablet
+- [ ] Keyboard navigation works
+- [ ] Screen reader announces frame changes
+- [ ] Load time < 2s on 4G
+- [ ] No memory leaks during rotation
+- [ ] Fallback works when viewer errors
+
+**Production Deployment:**
+- [ ] Run migration in production Supabase
+- [ ] Verify storage bucket has 360-viewer folder
+- [ ] Test Sharp library in Vercel serverless
+- [ ] Monitor Supabase storage usage
+- [ ] Gather user feedback on UX
+
+---
+
+### Files to Create (8 total)
+
+**Database & API:**
+- `lib/supabase/migrations/004_add_360_viewer.sql`
+- `app/api/admin/parts/[id]/360-frames/route.ts`
+
+**Admin Components:**
+- `components/admin/parts/PartMediaManager.tsx`
+- `components/admin/parts/Upload360Viewer.tsx`
+
+**Public Components:**
+- `components/public/parts/Part360Viewer.tsx`
+
+**Files to Modify (2 total):**
+- `components/admin/parts/PartFormContainer.tsx` (replace PartImagesManager)
+- `app/parts/[id]/page.tsx` (add viewer with toggle - pending UX discussion)
+
+---
+
+### Dependencies
+
+**New (1):**
+```bash
+npm install sharp
+```
+
+**Existing (already installed):**
+- `@dnd-kit/*` - Drag & drop (used in ImageGalleryEditor)
+- `@tanstack/react-query` - Data fetching
+- `shadcn/ui tabs` - Tabbed interface
+- `lucide-react` - Icons (RotateCw, Image, Upload, etc.)
+
+---
+
+### Success Metrics
+
+**Technical KPIs:**
+- Upload success rate: > 95%
+- Average processing time: < 50s for 24 frames
+- Viewer load time: < 2s on 4G mobile
+- Error rate: < 1%
+
+**Business KPIs:**
+- % parts with 360° viewer: 20-30% of catalog
+- Customer engagement time: 2-3× longer on page
+- Conversion rate impact (A/B test vs. static images)
+- Support ticket reduction ("what does this look like?")
+
+---
 
 ## 📋 Category 2: User Experience Improvements (Phase 6)
 
@@ -134,245 +367,93 @@ _Last Updated: October 15, 2025_
 
 ## 🔄 Current Session State
 
-### Latest Session: October 16, 2025 (Session 8 - Continuation)
+### Latest Session: October 17, 2025 (Session 9 - Continuation)
 
-**Focus**: Mobile UX Improvements & Scroll Restoration
+**Focus**: 360° Interactive Viewer - Phase 1 Implementation (Week 1)
 
 **Completed**:
 
-- ✅ **Banner Carousel Mobile Enhancements**
-  - Decreased auto-rotate interval from 5s to 3.5s for better engagement
-  - Added deletion confirmation dialog with translations
-  - Implemented dark pagination dots (rgba(0,0,0,0.5-0.8)) for visibility on all backgrounds
-  - Increased mobile banner height from 160px to 224px
-  - Fixed logo white space issues (removed logos from mobile banners)
-  - Hidden pagination dots on desktop (md+), show only on mobile
-  - Created mobile-optimized banner designs
+- ✅ **Phase 1 Planning Complete (Earlier in session)**
+  - Created comprehensive technical plan: `docs/technical-plans/360-viewer-acr-production.md`
+  - Analyzed existing patterns (ImageGalleryEditor, API routes)
+  - Designed all-or-nothing UX approach for admin (no individual frame reordering)
+  - Updated PLANNING.md and TASKS.md with 360° viewer feature
 
-- ✅ **Seamless Scroll Position Restoration**
-  - Implemented hybrid `router.back()` approach for native browser scroll restoration
-  - No jarring flash when returning from part details page
-  - Industry-standard behavior (same as Amazon, eBay)
-  - Safe fallback for direct links using query params
-  - Admin navigation unchanged (uses default Link behavior)
+- ✅ **Week 1: Database & API Foundation (COMPLETE)**
+  - Sharp library already installed (v0.34.4)
+  - Created migration `004_add_360_viewer.sql` (idempotent, includes RLS)
+  - Ran migration successfully in Supabase dev database
+  - Verified `part_360_frames` table created with proper constraints
 
-- ✅ **Settings Navigation Improvements**
-  - Smart back button routing with query parameters (?from=admin/public)
-  - Proper breadcrumb navigation from settings page
-  - Context-aware routing based on user origin
+- ✅ **API Implementation**
+  - Created `/api/admin/parts/[id]/360-frames/route.ts`
+    - POST: Upload + Sharp optimization (1200×1200px @ 85% JPEG)
+    - GET: Fetch all frames for a part
+    - DELETE: Remove entire 360° viewer
+  - Created `/api/admin/parts/[id]/360-frames/[frameId]/route.ts`
+    - DELETE: Remove individual frame (for future flexibility)
+  - Fixed to use correct Supabase client pattern (`supabase` from `@/lib/supabase/client`)
+  - Fixed params signature: `Promise<{ id: string }>` to match existing routes
+
+- ✅ **Frame Management Strategy**
+  - Decided on all-or-nothing approach (no drag & drop reordering)
+  - `frame_number` assigned sequentially on upload (0-23)
+  - No resequencing on individual delete (creates gaps intentionally)
+  - Recommended UX: Replace All or Delete Viewer only
 
 - ✅ **Code Quality**
-  - Removed dead code (`isAddingBanner` state)
-  - Added missing translation key type definition
-  - TypeScript compilation clean
-  - All changes linted and validated
-
-**Files Created (8)**:
-- `public/temp-banners/README.md`
-- `public/temp-banners/banner-1-gradient-mobile.svg`
-- `public/temp-banners/banner-1-gradient.svg`
-- `public/temp-banners/banner-4-split-mobile.svg`
-- `public/temp-banners/banner-4-split.svg`
-- `public/temp-banners/banner-6-professional-mobile.svg`
-- `public/temp-banners/banner-6-professional.svg`
-- `src/components/public/BannerCarousel.tsx`
-
-**Files Modified (12)**:
-- `src/components/public/BannerCarousel.tsx` - Auto-rotate interval, responsive heights
-- `src/components/public/parts/PublicPartDetails.tsx` - Hybrid router.back() approach
-- `src/components/admin/settings/BrandingSettings.tsx` - Deletion confirm, removed dead code
-- `src/components/admin/settings/SettingsPageContent.tsx` - Back button with query params
-- `src/components/layout/AppHeader.tsx` - Settings links with origin tracking
-- `src/app/globals.css` - Dark pagination dot styles with media queries
-- `src/lib/i18n/translations.ts` - Banner deletion confirmation translations
-- `src/lib/i18n/translation-keys.ts` - Added deleteBannerConfirm type
-- `src/lib/schemas/admin.ts` - Banner schema validation
-- `src/lib/types/settings.ts` - Banner type definitions
-- `src/lib/supabase/migrations/003_add_site_settings.sql` - Banner carousel support
-- `package.json` / `package-lock.json` - Swiper dependencies
+  - TypeScript compilation clean (no errors)
+  - npm build successful
+  - Removed NUL artifact file (Windows ls redirect issue)
 
 **Technical Decisions**:
-- Used `router.back()` instead of sessionStorage for scroll restoration (browser native)
-- Dark semi-transparent dots instead of white dots for universal visibility
-- Removed SVG logos from mobile banners to fix white space issues
-- Query parameter approach for back navigation tracking
+- All-or-nothing admin UX (simpler, prevents broken rotation sequences)
+- Individual frame delete endpoint exists but won't be exposed in initial UI
+- Integration testing deferred to Week 2 (test via admin UI instead of test page)
+- Frame count validation: 12 min (block), 24 recommended (warn if less), 48 max (warn if more)
+
+**Files Created (4)**:
+- `src/lib/supabase/migrations/004_add_360_viewer.sql`
+- `src/app/api/admin/parts/[id]/360-frames/route.ts`
+- `src/app/api/admin/parts/[id]/360-frames/[frameId]/route.ts`
+- `docs/technical-plans/360-viewer-acr-production.md`
+
+**Files Modified (2)**:
+- `docs/PLANNING.md` - Added Sharp to tech stack, updated Image Management section
+- `docs/TASKS.md` - Marked Week 1 as complete, updated success criteria
 
 **Next Priorities**:
-1. Test scroll restoration and banner carousel on production
-2. Gather user feedback on mobile UX improvements
-3. Consider Phase 7: AI Integration or additional polish from ENHANCEMENTS.md
-
----
-
-### Previous Session: October 15, 2025 (Session 7)
-
-**Focus**: Contact FABs and Footer Enhancements
-
-**Completed**:
-
-- ✅ **ContactFabs Component (Desktop-Only)**
-  - Created floating action buttons for WhatsApp and Email
-  - Positioned on left side with synchronized pulsing animations (2s)
-  - Custom `ping-small` animation with limited radius (1.5x scale)
-  - Dynamic content from site settings API (phone/email)
-  - Hidden on mobile (`hidden md:flex`) to avoid UI clutter
-  - Full i18n support for tooltips and ARIA labels
-
-- ✅ **Footer Enhancements**
-  - Added WhatsApp, Email, and Google Maps contact icon buttons
-  - Icon + label design for clarity ("WhatsApp", "Email", "Ubicación")
-  - WhatsApp link opens `wa.me` with formatted phone number
-  - Email link opens mailto
-  - Address link opens Google Maps search in new tab
-  - Centered vertical layout on all screen sizes
-  - Responsive horizontal padding (px-6/12/16)
-  - Full i18n support (4 new translation keys)
-
-- ✅ **Public Header Cleanup**
-  - Removed "Product Catalogue" title for cleaner look
-  - Admin and Settings links only visible when authenticated
-  - Language toggle removed from header (accessible in Settings page)
-  - Authentication check via `sessionStorage.getItem("admin-authenticated")`
-
-**Files Created (1)**:
-- `src/components/layout/ContactFabs.tsx`
-
-**Files Modified (7)**:
-- `src/components/layout/Footer.tsx` - Social-style contact icon buttons
-- `src/components/public/layout/PublicHeader.tsx` - Auth-based visibility
-- `src/components/acr/Header.tsx` - Made title optional
-- `src/app/layout.tsx` - Added ContactFabs to root layout
-- `src/app/globals.css` - Custom ping-small animation
-- `src/lib/i18n/translation-keys.ts` - 9 new keys (FABs + Footer)
-- `src/lib/i18n/translations.ts` - English + Spanish translations
-
-**Git Commits**:
-1. ✅ `feat: Add ContactFabs and enhance Footer with dynamic contact links`
-
-**Next Priorities**:
-1. Test ContactFabs and Footer on production with real settings data
-2. Consider starting Phase 7: AI Integration (6-8 week project)
-3. Review ENHANCEMENTS.md for next quick wins
-
----
-
-### Previous Session: October 15, 2025 (Session 6)
-
-**Focus**: Complete Feature 2.4 - Website Settings Management
-
-**Completed**:
-
-- ✅ **Database Schema Simplification**
-  - Created idempotent migration `003_add_site_settings.sql`
-  - Only 2 settings tables: contact_info (email, phone, whatsapp, address) and branding (company_name, logo_url, favicon_url, banner_url)
-  - Removed SEO, banners, business hours, color settings (simplified for MVP)
-  - Created storage bucket `acr-site-assets` with RLS policies
-
-- ✅ **Settings API Implementation**
-  - Built GET/PUT `/api/admin/settings` with Zod validation
-  - Built POST `/api/admin/settings/upload-asset` for file uploads
-  - Built GET `/api/public/settings` for footer consumption
-  - Created TypeScript types in `lib/types/settings.ts`
-  - Created schemas in `lib/schemas/admin.ts`
-
-- ✅ **Admin Settings UI**
-  - Created `/admin/settings` page with `withAdminAuth`
-  - Built `SettingsPageContent` with single-page layout (no tabs)
-  - Built `ContactInfoSettings` form with validation
-  - Built `BrandingSettings` with asset upload previews
-  - Moved language toggle and logout buttons to settings page
-  - Added real-time asset preview on upload
-
-- ✅ **Public Integration**
-  - Created `SettingsContext` provider with React Query (5-min cache)
-  - Updated `Footer` component to use dynamic settings from API
-  - Fixed cache invalidation (invalidates both admin and public query keys)
-  - Added `SettingsProvider` to app providers
-
-- ✅ **UX Improvements & i18n**
-  - Removed logout button from AdminHeader
-  - Removed language toggle from AdminHeader
-  - Made Header language toggle optional (props-based)
-  - Updated `AcrLanguageToggle` component with better UX (ACR red for active)
-  - Settings moved to rightmost position in header
-  - Added 58 new translation keys (English + Spanish)
-  - Applied translations to all settings page components
-
-**Files Created (11)**:
-- `lib/supabase/migrations/003_add_site_settings.sql`
-- `lib/types/settings.ts`
-- `app/api/admin/settings/route.ts`
-- `app/api/admin/settings/upload-asset/route.ts`
-- `app/api/public/settings/route.ts`
-- `app/admin/settings/page.tsx`
-- `components/admin/settings/SettingsPageContent.tsx`
-- `components/admin/settings/ContactInfoSettings.tsx`
-- `components/admin/settings/BrandingSettings.tsx`
-- `contexts/SettingsContext.tsx`
-
-**Files Modified (10)**:
-- `lib/schemas/admin.ts` - Added settings schemas
-- `components/admin/layout/AdminHeader.tsx` - Removed logout/language, reordered actions
-- `components/acr/Header.tsx` - Made language toggle optional
-- `components/acr/LanguageToggle.tsx` - Improved UX with unified red active state
-- `components/layout/Footer.tsx` - Uses dynamic settings from context
-- `app/providers.tsx` - Added SettingsProvider
-- `lib/i18n/translations.ts` - Added 58 new translation keys
-- `lib/i18n/translation-keys.ts` - Added type definitions
-- `src/lib/supabase/types.ts` - Updated for new tables
-- `components/admin/parts/ImageGalleryEditor.tsx` - Fixed duplicate props
-
-**Git Commits**:
-1. ✅ `feat: Complete Feature 2.4 - Website Settings Management`
-
-**Feature Status**:
-- ✅ **Feature 2.4 COMPLETE** - Website Settings Management (migration ready, UI complete, i18n done)
-- ✅ **Category 2 COMPLETE** - All 4 features done! (30h actual vs 30-37.5h estimated)
-
-**Next Priorities**:
-1. Run migration `003_add_site_settings.sql` in Supabase production
-2. Test end-to-end: Upload assets, save settings, verify footer updates
-3. Consider starting Phase 7: AI Integration (6-8 week project)
-
----
-
-### Previous Session: October 13, 2025 (Session 5)
-
-**Focus**: Keyboard accessibility improvements and Feature 2.3 finalization
-
-**Completed**:
-- ✅ Fixed tab state persistence bugs
-- ✅ Implemented comprehensive keyboard accessibility (WCAG 2.1 AA)
-- ✅ Standardized focus states (black rings, ring-2 width)
-- ✅ Feature 2.3 Complete with full internationalization
-
-**Git Commits**:
-1. ✅ `feat: Complete Feature 2.3 - Multiple Images Per Part`
-2. ✅ `feat: Comprehensive keyboard accessibility improvements`
+1. **Week 2**: Build admin upload interface (PartMediaManager, Upload360Viewer)
+2. Test full upload flow with CTK512016 images via admin UI
+3. Add i18n keys (English + Spanish)
 
 ---
 
 ## 🚀 Active Development Areas
 
-### ✅ Category 2: User Experience Improvements (COMPLETE!)
+### 🎯 Current: 360° Interactive Viewer (Phase 7)
 
-All 4 features complete:
-- ✅ Feature 2.1: General UI Updates
-- ✅ Feature 2.2: Persist Filters & Search State
-- ✅ Feature 2.3: Multiple Images Per Part
-- ✅ Feature 2.4: Website Settings Management
+**Status**: Planning Complete - Ready for Implementation
+**Timeline**: 4 weeks (32-40 hours)
+**Next Step**: Begin Week 1 (Database + API + Sharp optimization)
 
-### 📋 Next Phase: AI Integration (Phase 7)
+See Phase 7 section above for complete implementation breakdown.
+
+---
+
+### 📋 Future: AI Integration (Phase 8)
 
 **Planning Status**: ✅ Documentation Complete (October 8, 2025)
 
-See detailed AI Integration plan above with:
+Deferred to Phase 8 after 360° viewer completion. See detailed AI Integration plan with:
 - Intent Classification System (6 valid, 3 invalid intent types)
 - AI Response Generation (progressive disclosure, filter chips)
 - Technical Foundation (pgvector, embeddings, hybrid search)
 - Frontend Integration (universal search, voice input)
 - 6-8 week implementation timeline
 - $7-10/month estimated cost
+
+---
 
 ### Post-MVP Features
 

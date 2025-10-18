@@ -63,6 +63,7 @@ _For detailed current session state and next steps, see TASKS.md_
 
 - **SheetJS (xlsx 0.18.5)** (Excel file parsing)
 - **Lodash 4.17.21** (utility functions for data manipulation)
+- **Sharp 0.33.2** (server-side image optimization for 360° viewer)
 
 ### Infrastructure & Hosting
 
@@ -186,7 +187,9 @@ GET / api / admin / filter - options; // Dropdown filter options
 - **Supabase Storage** for all part images
 - **CDN distribution** automatic via Supabase
 - **Admin upload interface** (no Google Drive migration)
-- **Standardized naming**: `{acr_sku}.jpg` format
+- **Multi-image support**: Up to 6 product photos per part with drag-to-reorder gallery
+- **360° Interactive Viewer**: Optional spin viewer (12-48 frames) with server-side optimization
+- **Standardized naming**: Product images `{acr_sku}-{n}.jpg`, 360° frames `360-viewer/{acr_sku}/frame-{nnn}.jpg`
 
 ## UI/UX Design Patterns
 
