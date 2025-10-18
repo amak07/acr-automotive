@@ -235,6 +235,7 @@ export interface TranslationKeys {
   'partDetails.viewer360.sequentialRequirement': string;
   'partDetails.viewer360.previewAlt': string;
   'partDetails.viewer360.loading': string;
+  'partDetails.media.loading': string;
   'partDetails.viewer360.dragToRotate': string;
   'partDetails.viewer360.validationError': string;
   'partDetails.viewer360.thumbnailAlt': string;
@@ -348,6 +349,7 @@ export interface TranslationKeys {
   'admin.settings.description': string;
   'admin.settings.language': string;
   'admin.settings.logout': string;
+  'admin.settings.back': string;
   'admin.settings.backToAdmin': string;
   'admin.settings.backToSearch': string;
   'admin.settings.contactInfo.title': string;

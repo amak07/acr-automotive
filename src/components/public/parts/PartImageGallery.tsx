@@ -66,7 +66,7 @@ export function PartImageGallery({
         <div className="aspect-square flex items-center justify-center">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-acr-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-3"></div>
-            <p className="text-sm text-acr-gray-600">{t("partDetails.viewer360.loading")}</p>
+            <p className="text-sm text-acr-gray-600">{t("partDetails.media.loading")}</p>
           </div>
         </div>
       </div>
@@ -157,16 +157,17 @@ export function PartImageGallery({
         )}
 
         {/* Main Viewer Area - Right Side (Desktop) / Top (Mobile) */}
-        <div className="flex-1 relative aspect-square bg-white p-4 flex items-center justify-center">
-          {viewMode === "360" && has360Viewer && viewer360Frames.length > 0 ? (
-            // 360° Interactive Viewer
-            <Part360Viewer
-              frameUrls={viewer360Frames}
-              alt={`${partName} - 360° view`}
-              enableFullscreen={true}
-              transparent={true}
-              className="w-full h-full"
-            />
+        <div className="flex-1 relative aspect-square bg-white">
+          <div className="w-full h-full flex items-center justify-center">
+            {viewMode === "360" && has360Viewer && viewer360Frames.length > 0 ? (
+              // 360° Interactive Viewer
+              <Part360Viewer
+                frameUrls={viewer360Frames}
+                alt={`${partName} - 360° view`}
+                enableFullscreen={true}
+                transparent={true}
+                className="w-full h-full"
+              />
           ) : hasImages ? (
             // Static Product Photo with Pinch-to-Zoom
             <TransformWrapper
@@ -200,12 +201,13 @@ export function PartImageGallery({
                 </div>
               </TransformComponent>
             </TransformWrapper>
-          ) : (
-            // Fallback: No media available
-            <div className="flex items-center justify-center h-full">
-              <p className="text-sm text-acr-gray-500">No image available</p>
-            </div>
-          )}
+            ) : (
+              // Fallback: No media available
+              <div className="flex items-center justify-center h-full">
+                <p className="text-sm text-acr-gray-500">No image available</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Bottom Thumbnails - Horizontal Strip (Mobile only) */}

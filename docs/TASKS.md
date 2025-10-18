@@ -337,59 +337,65 @@ npm install sharp
 
 ## 🔄 Current Session State
 
-### Latest Session: October 18, 2025 (Session 11 - 360° Viewer Completion + Mobile Gallery Enhancements)
+### Latest Session: October 18, 2025 (Session 12 - Mobile UX Bug Fixes & Polish)
 
-**Focus**: Completed 360° Interactive Viewer (Phase 7) + Mobile Photo Gallery UX Improvements
+**Focus**: Fixed mobile Safari UX issues and improved navigation patterns
 
 **Completed**:
 
-- ✅ **360° Viewer Mobile UX Polish**
-  - Fixed mobile overlay positioning (drag-to-rotate label at bottom)
-  - Made fullscreen button smaller and repositioned on mobile (`top-2 right-2`, smaller icon)
-  - Fixed desktop centering issue (added `flex items-center justify-center` to gallery container)
-  - Responsive text and spacing (`text-xs md:text-sm`, `px-3 py-1.5 md:px-6 md:py-3`)
+- ✅ **360° Viewer & Gallery Centering Fixes**
+  - Fixed images being cut off on right side (removed `p-4` padding from main viewer area)
+  - Images now properly centered in both 360° viewer and static photo gallery
+  - Improved mobile Safari rendering consistency
 
-- ✅ **Independent Lazy Loading (Banners vs Parts)**
-  - Created `SkeletonBannerCarousel` component matching actual carousel layout
-  - Implemented separate loading states for banners (`settingsLoading`) and parts (`isLoading`)
-  - Banners and parts list now load independently with proper skeleton loaders
-  - Better perceived performance and granular loading feedback
+- ✅ **Fullscreen Mode Refactor**
+  - Replaced buggy native Fullscreen API with CSS-based overlay approach
+  - Fullscreen now renders at document root level using `fixed inset-0 z-50`
+  - Works reliably on iOS Safari (previous webkit fallbacks were unreliable)
+  - ESC key support for exiting fullscreen
+  - Simpler implementation, better cross-browser compatibility
 
-- ✅ **Mobile Photo Gallery Enhancements**
-  - Horizontal thumbnail strip at bottom for mobile (`md:hidden flex gap-2`)
-  - Vertical strip remains on desktop (`hidden md:flex`)
-  - Smaller thumbnails on mobile (64px × 64px vs 80px × 80px)
-  - Implemented pinch-to-zoom for static photos (`react-zoom-pan-pinch`)
-  - Double-tap zoom toggle (1x → 4x magnification)
-  - Pan/drag when zoomed in
-  - Fixed uneven borders (using inline styles for dimensions)
+- ✅ **Mobile Menu Cleanup**
+  - Hidden hamburger menu when no actions available (non-authenticated users)
+  - Prevents confusing empty menu dropdown on public pages
+  - Menu appears after authentication with Admin/Settings links
 
-- ✅ **Swipe Navigation Decision**
-  - Evaluated swipe gestures for gallery navigation
-  - Decided to disable due to conflict with 360° viewer drag-to-rotate
-  - Kept simple thumbnail-based navigation
+- ✅ **Loading State Improvements**
+  - Changed generic loading message from "Loading 360° viewer..." to "Loading..."
+  - Added `partDetails.media.loading` translation key (English/Spanish)
+  - Prevents confusion when parts only have static photos
+  - Part360Viewer component still uses specific "Loading 360° viewer..." message
+
+- ✅ **Settings Page Navigation Fixes**
+  - Replaced hardcoded back links with `router.back()` for proper history navigation
+  - Back button now returns to actual previous page (e.g., part details) instead of always going to search
+  - Simplified back button text to generic "Back" / "Volver"
+  - Removed unused `useSearchParams` import
 
 **Technical Decisions**:
-- `TransformWrapper` only wraps static photos, not 360° viewer (no conflicts)
-- Zoom range: 1x-4x with wheel disabled, pinch/panning enabled
-- Removed `rounded` class from thumbnails for cleaner borders
-- Used inline `style={{ width: '64px', height: '64px' }}` for consistent border rendering
+- CSS-based fullscreen (`fixed inset-0`) is more reliable than native Fullscreen API on mobile
+- React Fragment with conditional rendering allows dual-mode (normal/fullscreen) without portals
+- `router.back()` provides better UX than hardcoded navigation routes
+- Generic loading messages prevent false expectations about media type
 
-**Dependencies Added**:
-- `react-zoom-pan-pinch` (v3.7.0) - Pinch-to-zoom library
+**Files Modified (6)**:
+- `src/components/public/parts/Part360Viewer.tsx` - CSS fullscreen overlay, simplified toggle
+- `src/components/public/parts/PartImageGallery.tsx` - Removed padding, generic loading message
+- `src/components/acr/Header.tsx` - Conditional hamburger menu rendering
+- `src/components/admin/settings/SettingsPageContent.tsx` - router.back() navigation, cleanup
+- `src/lib/i18n/translations.ts` - Added partDetails.media.loading key
+- `src/lib/i18n/translation-keys.ts` - Added partDetails.media.loading key
 
-**Files Modified (4)**:
-- `src/components/public/parts/Part360Viewer.tsx` - Mobile overlay/button positioning
-- `src/components/public/parts/PartImageGallery.tsx` - Horizontal thumbnails, pinch-to-zoom
-- `src/components/ui/skeleton.tsx` - Added SkeletonBannerCarousel
-- `src/app/page.tsx` - Independent banner lazy loading
+**Translation Keys Added**:
+- `admin.settings.back` - "Back" / "Volver"
+- `partDetails.media.loading` - "Loading..." / "Cargando..."
 
-**Phase 7 Status**: ✅ **COMPLETE** - All 4 weeks done, ready for production testing
+**Phase 7 Status**: ✅ **COMPLETE** - Mobile UX polished and ready for production
 
 **Next Priorities**:
 1. Production deployment (run migration, test Sharp in Vercel)
-2. Gather user feedback on UX
-3. Consider additional enhancements (fullscreen for static photos, visual zoom hints)
+2. Upload test 360° viewer for a real production part
+3. Monitor mobile performance and user feedback
 
 ---
 

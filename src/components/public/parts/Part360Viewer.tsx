@@ -182,115 +182,160 @@ export function Part360Viewer({
     });
   }, [frameUrls]);
 
-  // Fullscreen toggle
-  const toggleFullscreen = async () => {
-    if (!containerRef.current) return;
-
-    try {
-      if (!isFullscreen) {
-        await containerRef.current.requestFullscreen();
-        setIsFullscreen(true);
-      } else {
-        await document.exitFullscreen();
-        setIsFullscreen(false);
-      }
-    } catch (error) {
-      console.error("Fullscreen toggle failed:", error);
-    }
+  // Fullscreen toggle - simple state-based approach (works on all browsers including iOS Safari)
+  const toggleFullscreen = () => {
+    setIsFullscreen((prev) => !prev);
   };
 
-  // Listen for fullscreen changes (e.g., ESC key)
+  // Handle ESC key to exit fullscreen
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
+      }
     };
 
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    if (isFullscreen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
     return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [isFullscreen]);
 
   // Loading state (first frame not loaded yet)
   const isLoading = !loadedFrames.has(0);
 
   return (
-    <div
-      ref={containerRef}
-      className={`relative overflow-hidden flex items-center justify-center ${transparent ? "" : "bg-acr-gray-100 rounded-lg"} ${className} ${
-        isFullscreen ? "fixed inset-0 z-50 bg-black rounded-none" : ""
-      }`}
-      style={{ touchAction: "none" }} // Prevent default touch behaviors
-    >
-      {/* Main viewer area */}
-      <div
-        className={`relative ${isFullscreen ? "h-screen w-full" : "aspect-square w-full"} select-none`}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        style={{
-          cursor: isDragging ? "grabbing" : "grab",
-        }}
-        role="img"
-        aria-label={alt}
-        tabIndex={0}
-      >
-        {/* Current frame image */}
-        {isLoading ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-acr-gray-200">
-            <div className="text-center">
-              <Loader2 className="w-12 h-12 text-acr-gray-500 animate-spin mx-auto mb-2" />
-              <p className="text-sm text-acr-gray-600">
-                {t("partDetails.viewer360.loading")}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <img
-            ref={imageRef}
-            src={frameUrls[currentFrame]}
-            alt={`${alt} - Frame ${currentFrame + 1} of ${totalFrames}`}
-            className="absolute inset-0 w-full h-full object-contain"
-            draggable={false}
-          />
-        )}
-
-        {/* Instruction overlay (shows initially, fades on first interaction) */}
-        {showInstructions && !isLoading && (
-          <div className="absolute inset-x-0 bottom-4 md:inset-0 flex items-end md:items-center justify-center pointer-events-none">
-            <div className="bg-black/60 text-white px-3 py-1.5 md:px-6 md:py-3 rounded-full backdrop-blur-sm">
-              <p className="text-xs md:text-sm font-medium flex items-center gap-1 md:gap-2">
-                <span>←</span>
-                <span>{t("partDetails.viewer360.dragToRotate")}</span>
-                <span>→</span>
-              </p>
-            </div>
-          </div>
-        )}
-
-
-        {/* Fullscreen toggle (top-right) */}
-        {!isLoading && enableFullscreen && (
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            className="absolute top-2 right-2 md:top-4 md:right-4 bg-white/90 hover:bg-white text-acr-gray-700 hover:text-acr-gray-900 p-1.5 md:p-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 backdrop-blur-sm border border-acr-gray-200"
-            title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-            aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+    <>
+      {/* Fullscreen mode - render at root level */}
+      {isFullscreen && (
+        <div className="fixed inset-0 z-50 bg-black">
+          <div
+            className="relative h-full w-full select-none"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{
+              cursor: isDragging ? "grabbing" : "grab",
+              touchAction: "none",
+            }}
+            role="img"
+            aria-label={alt}
+            tabIndex={0}
           >
-            {isFullscreen ? (
-              <Minimize2 className="w-4 h-4 md:w-5 md:h-5" />
-            ) : (
-              <Maximize2 className="w-4 h-4 md:w-5 md:h-5" />
-            )}
-          </button>
-        )}
-      </div>
+            {/* Current frame image */}
+            <img
+              src={frameUrls[currentFrame]}
+              alt={`${alt} - Frame ${currentFrame + 1} of ${totalFrames}`}
+              className="absolute inset-0 w-full h-full object-contain"
+              draggable={false}
+            />
 
-    </div>
+            {/* Instruction overlay */}
+            {showInstructions && (
+              <div className="absolute inset-x-0 bottom-4 md:inset-0 flex items-end md:items-center justify-center pointer-events-none">
+                <div className="bg-black/60 text-white px-3 py-1.5 md:px-6 md:py-3 rounded-full backdrop-blur-sm">
+                  <p className="text-xs md:text-sm font-medium flex items-center gap-1 md:gap-2">
+                    <span>←</span>
+                    <span>{t("partDetails.viewer360.dragToRotate")}</span>
+                    <span>→</span>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Exit fullscreen button */}
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="absolute top-2 right-2 md:top-4 md:right-4 bg-white/90 hover:bg-white text-acr-gray-700 hover:text-acr-gray-900 p-1.5 md:p-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 backdrop-blur-sm border border-acr-gray-200"
+              title="Exit fullscreen"
+              aria-label="Exit fullscreen"
+            >
+              <Minimize2 className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Normal mode - embedded in page */}
+      {!isFullscreen && (
+        <div
+          ref={containerRef}
+          className={`relative overflow-hidden flex items-center justify-center ${transparent ? "" : "bg-acr-gray-100 rounded-lg"} ${className}`}
+          style={{ touchAction: "none" }} // Prevent default touch behaviors
+        >
+          {/* Main viewer area */}
+          <div
+            className="relative aspect-square w-full select-none"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{
+              cursor: isDragging ? "grabbing" : "grab",
+            }}
+            role="img"
+            aria-label={alt}
+            tabIndex={0}
+          >
+            {/* Current frame image */}
+            {isLoading ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-acr-gray-200">
+                <div className="text-center">
+                  <Loader2 className="w-12 h-12 text-acr-gray-500 animate-spin mx-auto mb-2" />
+                  <p className="text-sm text-acr-gray-600">
+                    {t("partDetails.viewer360.loading")}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <img
+                ref={imageRef}
+                src={frameUrls[currentFrame]}
+                alt={`${alt} - Frame ${currentFrame + 1} of ${totalFrames}`}
+                className="absolute inset-0 w-full h-full object-contain"
+                draggable={false}
+              />
+            )}
+
+            {/* Instruction overlay (shows initially, fades on first interaction) */}
+            {showInstructions && !isLoading && (
+              <div className="absolute inset-x-0 bottom-4 md:inset-0 flex items-end md:items-center justify-center pointer-events-none">
+                <div className="bg-black/60 text-white px-3 py-1.5 md:px-6 md:py-3 rounded-full backdrop-blur-sm">
+                  <p className="text-xs md:text-sm font-medium flex items-center gap-1 md:gap-2">
+                    <span>←</span>
+                    <span>{t("partDetails.viewer360.dragToRotate")}</span>
+                    <span>→</span>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Fullscreen toggle (top-right) */}
+            {!isLoading && enableFullscreen && (
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="absolute top-2 right-2 md:top-4 md:right-4 bg-white/90 hover:bg-white text-acr-gray-700 hover:text-acr-gray-900 p-1.5 md:p-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 backdrop-blur-sm border border-acr-gray-200"
+                title="Enter fullscreen"
+                aria-label="Enter fullscreen"
+              >
+                <Maximize2 className="w-4 h-4 md:w-5 md:h-5" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
