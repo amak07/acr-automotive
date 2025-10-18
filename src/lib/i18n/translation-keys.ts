@@ -223,7 +223,11 @@ export interface TranslationKeys {
   'partDetails.viewer360.invalidFileType': string;
   'partDetails.viewer360.fileSizeError': string;
   'partDetails.viewer360.filesSkipped': string;
-  'partDetails.viewer360.uploadProgress': string;
+  'partDetails.viewer360.processing': string;
+  'partDetails.viewer360.processingFrames': string;
+  'partDetails.viewer360.reorderInstructions': string;
+  'partDetails.viewer360.dragToReorder': string;
+  'partDetails.viewer360.confirmUpload': string;
   'partDetails.viewer360.requirementsTitle': string;
   'partDetails.viewer360.frameCountRequirement': string;
   'partDetails.viewer360.fileTypeRequirement': string;
