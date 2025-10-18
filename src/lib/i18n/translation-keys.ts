@@ -234,6 +234,11 @@ export interface TranslationKeys {
   'partDetails.viewer360.fileSizeRequirement': string;
   'partDetails.viewer360.sequentialRequirement': string;
   'partDetails.viewer360.previewAlt': string;
+  'partDetails.viewer360.loading': string;
+  'partDetails.viewer360.dragToRotate': string;
+  'partDetails.viewer360.validationError': string;
+  'partDetails.viewer360.thumbnailAlt': string;
+  'partDetails.viewer360.clickToView': string;
 
   // Table Headers for Vehicle Applications
   'partDetails.vehicleApps.table.brand': string;

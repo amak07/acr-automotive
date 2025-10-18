@@ -42,7 +42,7 @@ export function PublicPartDetails({
   const searchParams = useSearchParams();
 
   // Fetch part images
-  const { data: images } = useQuery({
+  const { data: images, isLoading: imagesLoading } = useQuery({
     queryKey: ["part-images-public", part?.id],
     queryFn: async () => {
       if (!part?.id) return [];
@@ -53,6 +53,23 @@ export function PublicPartDetails({
     },
     enabled: !!part?.id,
   });
+
+  // Fetch 360° viewer frames
+  const { data: viewer360Data, isLoading: viewer360Loading } = useQuery({
+    queryKey: ["part-360-frames-public", part?.id],
+    queryFn: async () => {
+      if (!part?.id) return null;
+      const res = await fetch(`/api/admin/parts/${part.id}/360-frames`);
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json as { frames: Array<{ frame_number: number; image_url: string }>; count: number };
+    },
+    enabled: !!part?.id,
+  });
+
+  const viewer360Frames = viewer360Data?.frames?.map(f => f.image_url) || [];
+  const has360Viewer = (viewer360Data?.count || 0) > 0;
+  const isMediaLoading = imagesLoading || viewer360Loading;
 
   // Preserve search params when going back
   const currentSearch = searchParams?.toString() || '';
@@ -137,6 +154,9 @@ export function PublicPartDetails({
             images={images || []}
             partName={`${part.part_type} ${part.acr_sku}`}
             className="w-full"
+            viewer360Frames={viewer360Frames}
+            has360Viewer={has360Viewer}
+            isLoading={isMediaLoading}
           />
         </AcrCard>
 
