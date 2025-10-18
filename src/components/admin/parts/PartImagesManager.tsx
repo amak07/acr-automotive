@@ -7,12 +7,7 @@ import { useToast } from "@/hooks/common/use-toast";
 import { useLocale } from "@/contexts/LocaleContext";
 import { Tables } from "@/lib/supabase/types";
 import { ImageGalleryEditor } from "./ImageGalleryEditor";
-import {
-  AcrCard,
-  AcrCardHeader,
-  AcrCardContent,
-  AcrButton,
-} from "@/components/acr";
+import { AcrButton } from "@/components/acr";
 
 type PartImage = Tables<"part_images">;
 
@@ -298,8 +293,8 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
   };
 
   return (
-    <AcrCard variant="default" padding="none" className="mb-6" data-testid="part-images-section">
-      <AcrCardHeader className="px-4 pt-6 lg:px-6" data-testid="part-images-header">
+    <div data-testid="part-images-section">
+      <div className="mb-6" data-testid="part-images-header">
         {/* Mobile Layout - Stacked */}
         <div className="block lg:hidden">
           <div className="flex items-center gap-2 mb-4">
@@ -351,9 +346,9 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
             {uploadMutation.isPending ? t("partDetails.images.uploading") : t("partDetails.images.uploadButton")}
           </AcrButton>
         </div>
-      </AcrCardHeader>
+      </div>
 
-      <AcrCardContent className="px-4 pb-6 lg:px-6" data-testid="part-images-content">
+      <div data-testid="part-images-content">
         {imageCount === 0 ? (
           // Empty state
           <div className="flex items-center justify-center py-12 border-2 border-dashed border-acr-gray-200 rounded-lg" data-testid="part-images-empty-state">
@@ -387,7 +382,7 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
             isDeleting={deleteMutation.isPending}
           />
         )}
-      </AcrCardContent>
+      </div>
 
       {/* Hidden file input */}
       <input
@@ -399,6 +394,6 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
         onChange={handleUpload}
         disabled={uploadMutation.isPending || isAtMaxCapacity}
       />
-    </AcrCard>
+    </div>
   );
 }
