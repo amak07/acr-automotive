@@ -2,8 +2,7 @@
 
 import { Settings, LogOut, Mail, Palette, ArrowLeft } from "lucide-react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AcrButton, AcrLanguageToggle } from "@/components/acr";
 import { ContactInfoSettings } from "./ContactInfoSettings";
 import { BrandingSettings } from "./BrandingSettings";
@@ -11,32 +10,28 @@ import { BrandingSettings } from "./BrandingSettings";
 export function SettingsPageContent() {
   const { locale, setLocale, t } = useLocale();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const handleLogout = () => {
     sessionStorage.removeItem("admin-authenticated");
     router.push("/");
   };
 
-  // Determine back link based on query parameter
-  const from = searchParams?.get("from");
-  const backLink = from === "public" ? "/" : "/admin";
-  const backText = from === "public"
-    ? t("admin.settings.backToSearch")
-    : t("admin.settings.backToAdmin");
+  const handleBackClick = () => {
+    router.back();
+  };
 
   return (
     <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
       <div className="max-w-4xl mx-auto">
-        {/* Back Link */}
+        {/* Back Button */}
         <div className="mb-4">
-          <Link
-            href={backLink}
+          <button
+            onClick={handleBackClick}
             className="flex items-center text-sm text-acr-gray-600 hover:text-acr-red-600 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            {backText}
-          </Link>
+            {t("admin.settings.back")}
+          </button>
         </div>
 
         {/* Page Header */}

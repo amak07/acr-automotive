@@ -823,6 +823,10 @@ export const translations: Record<
     en: "Loading 360° viewer...",
     es: "Cargando visor 360°...",
   },
+  "partDetails.media.loading": {
+    en: "Loading...",
+    es: "Cargando...",
+  },
   "partDetails.viewer360.dragToRotate": {
     en: "Drag to rotate",
     es: "Arrastra para rotar",
@@ -1209,6 +1213,10 @@ export const translations: Record<
   "admin.settings.logout": {
     en: "Logout",
     es: "Cerrar Sesión",
+  },
+  "admin.settings.back": {
+    en: "Back",
+    es: "Volver",
   },
   "admin.settings.backToAdmin": {
     en: "Back to Admin",
