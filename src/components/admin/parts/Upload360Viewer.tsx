@@ -526,7 +526,6 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
                     frameUrls={frames.map((f) => f.image_url)}
                     alt={t("partDetails.viewer360.previewAlt")}
                     enableFullscreen={true}
-                    autoRotate={false}
                   />
                 </div>
               </div>
