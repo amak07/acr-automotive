@@ -197,6 +197,40 @@ export interface TranslationKeys {
   'partDetails.images.dragTipLabel': string;
   'partDetails.images.dragTip': string;
 
+  // Part Media Tabs
+  'partDetails.media.photosTab': string;
+  'partDetails.media.viewer360Tab': string;
+
+  // 360° Viewer
+  'partDetails.viewer360.title': string;
+  'partDetails.viewer360.frames': string;
+  'partDetails.viewer360.uploadButton': string;
+  'partDetails.viewer360.uploading': string;
+  'partDetails.viewer360.dragToUpload': string;
+  'partDetails.viewer360.imageRequirements': string;
+  'partDetails.viewer360.uploadSuccess': string;
+  'partDetails.viewer360.activeTitle': string;
+  'partDetails.viewer360.activeDescription': string;
+  'partDetails.viewer360.replaceButton': string;
+  'partDetails.viewer360.deleteButton': string;
+  'partDetails.viewer360.deleteConfirm': string;
+  'partDetails.viewer360.deleteSuccess': string;
+  'partDetails.viewer360.minFramesError': string;
+  'partDetails.viewer360.maxFramesError': string;
+  'partDetails.viewer360.currentCount': string;
+  'partDetails.viewer360.recommendedWarning': string;
+  'partDetails.viewer360.proceedQuestion': string;
+  'partDetails.viewer360.invalidFileType': string;
+  'partDetails.viewer360.fileSizeError': string;
+  'partDetails.viewer360.filesSkipped': string;
+  'partDetails.viewer360.uploadProgress': string;
+  'partDetails.viewer360.requirementsTitle': string;
+  'partDetails.viewer360.frameCountRequirement': string;
+  'partDetails.viewer360.fileTypeRequirement': string;
+  'partDetails.viewer360.fileSizeRequirement': string;
+  'partDetails.viewer360.sequentialRequirement': string;
+  'partDetails.viewer360.previewAlt': string;
+
   // Table Headers for Vehicle Applications
   'partDetails.vehicleApps.table.brand': string;
   'partDetails.vehicleApps.table.model': string;

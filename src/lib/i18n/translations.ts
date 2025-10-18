@@ -680,6 +680,130 @@ export const translations: Record<
     es: "La primera imagen es tu imagen principal. Haz clic y mantén presionada cualquier imagen para arrastrar y reordenar.",
   },
 
+  // Part Media Tabs
+  "partDetails.media.photosTab": {
+    en: "Product Photos",
+    es: "Fotos del Producto",
+  },
+  "partDetails.media.viewer360Tab": {
+    en: "360° Viewer",
+    es: "Visor 360°",
+  },
+
+  // 360° Viewer
+  "partDetails.viewer360.title": {
+    en: "360° Interactive Viewer",
+    es: "Visor Interactivo 360°",
+  },
+  "partDetails.viewer360.frames": {
+    en: "frames",
+    es: "fotogramas",
+  },
+  "partDetails.viewer360.uploadButton": {
+    en: "Upload Frames",
+    es: "Subir Fotogramas",
+  },
+  "partDetails.viewer360.uploading": {
+    en: "Uploading...",
+    es: "Subiendo...",
+  },
+  "partDetails.viewer360.dragToUpload": {
+    en: "Click to upload 12-48 frames or drag and drop",
+    es: "Haz clic para subir 12-48 fotogramas o arrastra y suelta",
+  },
+  "partDetails.viewer360.imageRequirements": {
+    en: "JPG or PNG, sequential rotation",
+    es: "JPG o PNG, rotación secuencial",
+  },
+  "partDetails.viewer360.uploadSuccess": {
+    en: "Successfully uploaded {{count}} frames",
+    es: "Se subieron exitosamente {{count}} fotogramas",
+  },
+  "partDetails.viewer360.activeTitle": {
+    en: "360° viewer active",
+    es: "Visor 360° activo",
+  },
+  "partDetails.viewer360.activeDescription": {
+    en: "{{count}} frames configured",
+    es: "{{count}} fotogramas configurados",
+  },
+  "partDetails.viewer360.replaceButton": {
+    en: "Replace All",
+    es: "Reemplazar Todo",
+  },
+  "partDetails.viewer360.deleteButton": {
+    en: "Delete Viewer",
+    es: "Eliminar Visor",
+  },
+  "partDetails.viewer360.deleteConfirm": {
+    en: "Are you sure you want to delete the 360° viewer? This will remove all frames.",
+    es: "¿Estás seguro de que quieres eliminar el visor 360°? Esto eliminará todos los fotogramas.",
+  },
+  "partDetails.viewer360.deleteSuccess": {
+    en: "360° viewer deleted",
+    es: "Visor 360° eliminado",
+  },
+  "partDetails.viewer360.minFramesError": {
+    en: "Minimum {{count}} frames required",
+    es: "Se requieren mínimo {{count}} fotogramas",
+  },
+  "partDetails.viewer360.maxFramesError": {
+    en: "Maximum {{count}} frames allowed",
+    es: "Máximo {{count}} fotogramas permitidos",
+  },
+  "partDetails.viewer360.currentCount": {
+    en: "You selected {{count}} files",
+    es: "Seleccionaste {{count}} archivos",
+  },
+  "partDetails.viewer360.recommendedWarning": {
+    en: "{{count}}+ frames recommended for smooth rotation",
+    es: "Se recomiendan {{count}}+ fotogramas para rotación suave",
+  },
+  "partDetails.viewer360.proceedQuestion": {
+    en: "Do you want to proceed anyway?",
+    es: "¿Deseas continuar de todos modos?",
+  },
+  "partDetails.viewer360.invalidFileType": {
+    en: "not an image",
+    es: "no es una imagen",
+  },
+  "partDetails.viewer360.fileSizeError": {
+    en: "too large (max 10MB)",
+    es: "demasiado grande (máx. 10MB)",
+  },
+  "partDetails.viewer360.filesSkipped": {
+    en: "Some files were skipped",
+    es: "Algunos archivos fueron omitidos",
+  },
+  "partDetails.viewer360.uploadProgress": {
+    en: "Uploading {{current}}/{{total}} frames ({{percent}}%)",
+    es: "Subiendo {{current}}/{{total}} fotogramas ({{percent}}%)",
+  },
+  "partDetails.viewer360.requirementsTitle": {
+    en: "Image Requirements:",
+    es: "Requisitos de Imagen:",
+  },
+  "partDetails.viewer360.frameCountRequirement": {
+    en: "{{min}}-{{max}} frames ({{recommended}} recommended for smooth rotation)",
+    es: "{{min}}-{{max}} fotogramas ({{recommended}} recomendados para rotación suave)",
+  },
+  "partDetails.viewer360.fileTypeRequirement": {
+    en: "JPG or PNG format only",
+    es: "Solo formato JPG o PNG",
+  },
+  "partDetails.viewer360.fileSizeRequirement": {
+    en: "Maximum 10MB per file",
+    es: "Máximo 10MB por archivo",
+  },
+  "partDetails.viewer360.sequentialRequirement": {
+    en: "Sequential rotation (15° per frame for 24 frames)",
+    es: "Rotación secuencial (15° por fotograma para 24 fotogramas)",
+  },
+  "partDetails.viewer360.previewAlt": {
+    en: "360° viewer preview",
+    es: "Vista previa del visor 360°",
+  },
+
   // Table Headers for Vehicle Applications
   "partDetails.vehicleApps.table.brand": {
     en: "BRAND",
