@@ -85,24 +85,24 @@ Add professional 360° drag-to-rotate viewer for parts catalog, allowing custome
 
 ---
 
-#### **Week 2: Admin Upload Interface** (10-12 hours) - 📋 PENDING
+#### **Week 2: Admin Upload Interface** (10-12 hours) - ✅ COMPLETE
 
 **Tasks:**
-- [ ] Create `PartMediaManager.tsx` (tabbed container)
-  - [ ] Tab 1: Product Photos (existing PartImagesManager)
-  - [ ] Tab 2: 360° Viewer (new Upload360Viewer)
-  - [ ] Green checkmark indicator when 360° active
-- [ ] Create `Upload360Viewer.tsx` component
-  - [ ] Drag & drop file upload zone
-  - [ ] File validation (type, size, count)
-  - [ ] Upload progress tracker: "Uploading 12/24 frames (50%)"
-  - [ ] Warning badges for < 24 frames
-  - [ ] Preview mode (interactive spin before publishing)
-  - [ ] Active state (viewer configured with frame count)
-  - [ ] Delete confirmation dialog
-- [ ] Update `PartFormContainer.tsx`
-  - [ ] Replace `<PartImagesManager>` with `<PartMediaManager>`
-- [ ] Add ~35 i18n keys (English + Spanish)
+- [x] Create `PartMediaManager.tsx` (tabbed container)
+  - [x] Tab 1: Product Photos (existing PartImagesManager)
+  - [x] Tab 2: 360° Viewer (new Upload360Viewer)
+  - [x] Green checkmark indicator when 360° active
+- [x] Create `Upload360Viewer.tsx` component
+  - [x] Drag & drop file upload zone
+  - [x] File validation (type, size, count)
+  - [x] Upload progress tracking
+  - [x] Warning dialogs for < 24 frames
+  - [x] Active state (viewer configured with frame count)
+  - [x] Delete confirmation dialog
+  - [x] Replace All functionality
+- [x] Update `PartFormContainer.tsx`
+  - [x] Replace `<PartImagesManager>` with `<PartMediaManager>`
+- [x] Add 35 i18n keys (English + Spanish)
 
 **Component Flow:**
 ```

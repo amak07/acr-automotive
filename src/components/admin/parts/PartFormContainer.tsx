@@ -9,7 +9,7 @@ import { PartBasicInfo } from "../part-details/PartBasicInfo";
 import { PartDetailsActions } from "../part-details/PartDetailsActions";
 import { PartApplications } from "../vehicle-apps/PartApplications";
 import { PartCrossReferences } from "../cross-refs/PartCrossReferences";
-import { PartImagesManager } from "./PartImagesManager";
+import { PartMediaManager } from "./PartMediaManager";
 
 export interface PartFormData {
   part_type: string;
@@ -141,7 +141,7 @@ export function PartFormContainer({
           {/* Only show applications, images, and cross-references in edit mode - they need existing part_id */}
           {mode === "edit" && partData && (
             <>
-              <PartImagesManager partId={partData.id || ""} />
+              <PartMediaManager partId={partData.id || ""} />
 
               <PartApplications
                 vehicleCount={partData.vehicle_count || 0}
