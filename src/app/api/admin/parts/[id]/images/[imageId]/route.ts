@@ -99,13 +99,39 @@ export async function DELETE(
       );
     }
 
-    // Extract filename from URL
+    // Extract storage path from URL
     // URL format: https://xyz.supabase.co/storage/v1/object/public/acr-part-images/filename.jpg
-    const urlParts = image.image_url.split("/");
-    const fileName = urlParts[urlParts.length - 1];
-    console.log("[API DELETE] Extracted filename:", fileName);
+    // Extract everything after the bucket name
+    const bucketName = "acr-part-images";
+    const bucketPrefix = `/${bucketName}/`;
 
-    // Delete from database first
+    let storagePath: string;
+    if (image.image_url.includes(bucketPrefix)) {
+      // Extract path after bucket name
+      storagePath = image.image_url.split(bucketPrefix)[1];
+      // Remove any query parameters (e.g., ?timestamp=123)
+      storagePath = storagePath.split("?")[0];
+    } else {
+      // Fallback: just use the filename (last part of URL)
+      const urlParts = image.image_url.split("/");
+      storagePath = urlParts[urlParts.length - 1].split("?")[0];
+    }
+
+    console.log("[API DELETE] Extracted storage path:", storagePath);
+
+    // Delete from storage first (blocking, to ensure cleanup before DB delete)
+    const { error: storageError } = await supabase.storage
+      .from(bucketName)
+      .remove([storagePath]);
+
+    if (storageError) {
+      console.error("[API DELETE] Storage deletion error:", storageError);
+      // Continue with database deletion even if storage fails (orphaned file is better than broken DB)
+    } else {
+      console.log("[API DELETE] Successfully deleted from storage:", storagePath);
+    }
+
+    // Delete from database
     const { error: dbError } = await supabase
       .from("part_images")
       .delete()
@@ -117,17 +143,6 @@ export async function DELETE(
     }
 
     console.log("[API DELETE] Successfully deleted from database");
-
-    // Delete from storage (non-blocking, log errors but don't fail the request)
-    supabase.storage
-      .from("acr-part-images")
-      .remove([fileName])
-      .then(() => {
-        console.log("[API DELETE] Successfully deleted from storage:", fileName);
-      })
-      .catch((error) => {
-        console.error("[API DELETE] Failed to delete file from storage:", error);
-      });
 
     console.log("[API DELETE] Delete operation completed successfully");
     return NextResponse.json({ success: true }, { status: 200 });
