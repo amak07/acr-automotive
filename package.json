@@ -12,6 +12,7 @@
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --watchAll=false",
     "test:full": "npm run type-check && npm test",
+    "test:bulk": "tsx scripts/test-bulk-operations.ts",
     "bootstrap": "tsx scripts/bootstrap-import.ts",
     "bootstrap:test": "cross-env NODE_ENV=test tsx scripts/bootstrap-import.ts",
     "check-prod": "tsx scripts/check-production.ts",
