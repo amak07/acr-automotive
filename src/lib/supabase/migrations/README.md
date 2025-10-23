@@ -9,22 +9,46 @@ This directory contains database migrations for ACR Automotive.
 3. Open the migration file (e.g., `001_add_part_images.sql`)
 4. Copy and paste the SQL into the editor
 5. Click **Run**
-6. Update the status below to `[x]` when applied
+6. Update the status below when applied
 
 ## Migration History
 
 | # | File | Description | Status | Applied Date |
 |---|------|-------------|--------|--------------|
-| - | `schema.sql` | Initial database schema | ✅ Applied | ~Sept 7, 2025 |
+| - | `schema.sql` | Initial database schema | ✅ Applied | Sept 7, 2025 |
 | 001 | `001_add_part_images.sql` | Multiple images per part (Feature 2.3) | ✅ Applied | Oct 11, 2025 |
+| 002 | `002_update_search_functions.sql` | Enhanced search functions | ✅ Applied | Oct 13, 2025 |
+| 003 | `003_add_site_settings.sql` | Site settings table (Feature 2.4) | ✅ Applied | Oct 15, 2025 |
+| 004 | `004_add_360_viewer.sql` | 360° interactive viewer (Phase 7) | ✅ Applied | Oct 17, 2025 |
+| 005 | `005_add_tenant_id.sql` | Multi-tenancy preparation (Phase 8.1) | ✅ Applied | Oct 22, 2025 |
+| 006 | `006_add_import_history.sql` | Import rollback support (Phase 8.1) | ✅ Applied | Oct 22, 2025 |
 
 ## Upcoming Migrations
 
-- **002_add_site_settings.sql** - Site settings and banners (Feature 2.4)
+**Phase 8.1 (Ready to Apply)**:
+- **005_add_tenant_id.sql** - Adds tenant_id columns to all tables for future multi-tenancy
+- **006_add_import_history.sql** - Creates import_history table for 3-snapshot rollback system
 
-## Notes
+## Important Notes
 
-- Always backup your database before applying migrations
-- Migrations are applied manually via Supabase SQL Editor
-- Keep this README updated when applying migrations
-- Migration files are version controlled for documentation purposes
+- ✅ All migrations are **idempotent** (safe to re-run)
+- ✅ Migrations 005-006 are **backward compatible** (no breaking changes)
+- ⚠️ Always backup your database before applying migrations
+- 📝 Migrations are applied manually via Supabase SQL Editor
+- 📚 Keep this README updated when applying migrations
+- 🔍 Migration files are version controlled for documentation
+- **📖 IMPORTANT**: When updating migrations, also update `docs/database/DATABASE.md` with the changes
+
+## Testing Migrations Locally
+
+If using local Supabase (via `supabase start`):
+
+```bash
+# Apply migration
+supabase migration up
+
+# Check status
+supabase migration list
+```
+
+For production, use Supabase Dashboard SQL Editor (manual process).
