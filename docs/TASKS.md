@@ -1,10 +1,10 @@
 # TASKS.md - ACR Automotive Development Tasks
 
-_Last Updated: October 18, 2025_
+_Last Updated: October 21, 2025_
 
 ## 🎯 Current Sprint Status
 
-**Project Phase**: 🎉 **360° Interactive Viewer - COMPLETE!**
+**Project Phase**: 📊 **Category 1: Data Management System - Ready to Begin**
 
 **Overall Progress**:
 
@@ -15,7 +15,8 @@ _Last Updated: October 18, 2025_
 - ✅ **Phase 5**: Dev branch setup and feature flags (Complete)
 - ✅ **Phase 6**: Category 2 site enhancements - **ALL FEATURES COMPLETE** ✨
 - ✅ **Phase 7**: 360° Interactive Viewer - **COMPLETE** 🎉 (October 18, 2025)
-- 📋 **Phase 8**: AI Integration (Future - documentation complete)
+- 🚧 **Phase 8**: Category 1 Data Management - **STARTING** (October 21, 2025)
+- 📋 **Phase 9**: AI Integration (Future - documentation complete)
 
 ## 📊 Production Status
 
@@ -29,393 +30,218 @@ _Last Updated: October 18, 2025_
 
 ---
 
-## 🎬 Phase 7: 360° Interactive Viewer (Current Phase)
+## 📊 Phase 8: Category 1 Data Management System (Current Phase)
 
-**Status**: ✅ **COMPLETE**
-**Estimated Time**: 32-40 hours (4 weeks part-time)
-**Actual Time**: 4.5 hours (October 18, 2025)
-**Technical Plan**: `docs/technical-plans/360-viewer-acr-production.md`
-**Test Data**: CTK512016 (24 frames @ 800×800px in `public/CTK512016/`)
+**Status**: 📋 **READY TO BEGIN**
+**Estimated Time**: 78-95 hours (8-10 weeks part-time @ 10h/week)
+**Technical Plan**: `docs/technical-plans/data-management/cat1-production-plan.md`
+**Priority**: High - Critical for scaling catalog management
 
 ### Overview
 
-Add professional 360° drag-to-rotate viewer for parts catalog, allowing customers to inspect parts from all angles. Integrates with existing image gallery using tabbed admin interface.
+Build production-grade bulk data management system enabling efficient bulk operations via Excel export/import workflows with comprehensive validation, preview, and rollback capabilities.
+
+**Business Value:**
+- Manage inventory via familiar Excel interface
+- Bulk add/update/delete hundreds of parts at once
+- Preview all changes before applying (safety net)
+- Rollback last 3 imports if mistakes detected
+- Reduce manual data entry time by 80%
 
 **Key Features:**
-- ✅ Flexible frame count (12-48 frames) with industry-standard validation
-- ✅ Server-side optimization with Sharp (standardize to 1200×1200px @ 85% JPEG)
-- ✅ Tabbed admin UI (Product Photos | 360° Viewer)
-- ✅ Drag-to-rotate interaction (desktop + mobile touch gestures)
-- ✅ Lazy loading & performance optimization
-- ✅ Dual-mode public display (360° viewer ↔ photo gallery toggle)
+- ✅ Atomic transaction-based bulk operations (create/update/delete)
+- ✅ Standardized 3-sheet Excel format (Parts, Vehicle Apps, Cross References)
+- ✅ ID-based matching with hidden UUID columns (multi-tenant ready)
+- ✅ Comprehensive validation (23 error rules + 12 warning rules)
+- ✅ Change preview with diff engine (visual before/after)
+- ✅ 3-snapshot rollback system with sequential enforcement
+- ✅ Export-only workflow (prevents data loss)
+
+### Phase Breakdown
+
+**Phase 8.1: Bulk Operations + Excel Export** (30-38 hours)
+- Database migration (tenant_id preparation)
+- 9 bulk API endpoints (parts/VAs/CRs × create/update/delete)
+- Excel export service (3-sheet format with hidden IDs)
+- Service layer with atomic transactions
+- Unit tests for all APIs
+
+**Phase 8.2: Excel Import + Rollback** (48-57 hours)
+- Excel import parsing engine (SheetJS)
+- Validation engine (23 errors + 12 warnings)
+- Diff engine (ID-based change detection)
+- Import wizard UI (4-step flow)
+- Rollback service (3-snapshot sequential rollback)
+- Admin UI for rollback management
+- Integration tests (comprehensive)
+
+### Technical Decisions
+
+**Key Decisions Made:**
+- ✅ **ID-based matching only** (no field fallback) for multi-tenant safety
+- ✅ **Export-only workflow** (users must export first to get IDs)
+- ✅ **Hidden ID columns** in Excel (_id, _tenant_id, _part_id)
+- ✅ **ACR_SKU semi-immutable** (allow changes with warning)
+- ✅ **Sequential rollback** (newest first, last 3 visible)
+- ✅ **13 hours testing** for production safety
+
+### Implementation Status
+
+**Phase 8.1 Tasks:**
+- [ ] Database migrations (005_add_tenant_id, 006_add_import_history)
+- [ ] Bulk operations service with atomic transactions
+- [ ] 9 bulk API endpoints (create/update/delete × 3 entities)
+- [ ] Excel export service (3-sheet format, hidden columns)
+- [ ] Unit tests (6.5 hours allocated)
+
+**Phase 8.2 Tasks:**
+- [ ] Excel import parsing engine (SheetJS)
+- [ ] Validation engine (23 errors + 12 warnings)
+- [ ] Diff engine (ID-based matching)
+- [ ] Import service with snapshot creation
+- [ ] Rollback service (sequential enforcement)
+- [ ] Import wizard UI (4-step flow)
+- [ ] Rollback manager UI (admin settings)
+- [ ] Integration tests (6.5 hours allocated)
+
+### Success Criteria
+
+**Functional:**
+- ✅ All bulk APIs working with atomic transactions
+- ✅ Excel export generates valid 3-sheet file with hidden IDs
+- ✅ Import wizard completes full validation → preview → execute flow
+- ✅ All 23 error rules block import, all 12 warning rules display
+- ✅ Rollback restores exact snapshot state
+- ✅ Sequential rollback enforcement prevents out-of-order operations
+
+**Performance:**
+- Validation: <5s for 10,000 rows
+- Import execution: <30s for 10,000 rows
+- Rollback: <30s
+
+**Data Integrity:**
+- All operations use atomic transactions
+- No orphaned records after import
+- Snapshots restore 100% accurate data
 
 ---
 
-### Implementation Phases
+## ✅ Completed Phases
 
-#### **Week 1: Database & API Foundation** (8-10 hours) - ✅ COMPLETE
+<details>
+<summary><strong>Phase 7: 360° Interactive Viewer</strong> (October 18, 2025) - 4.5 hours actual</summary>
 
-**Tasks:**
-- [x] Install Sharp library: `npm install sharp` (v0.34.4 already installed)
-- [x] Run migration `004_add_360_viewer.sql` in Supabase
-  - [x] Add `has_360_viewer`, `viewer_360_frame_count` to parts table
-  - [x] Create `part_360_frames` table with RLS policies
-  - [x] Add performance indexes
-- [x] Create API route: `app/api/admin/parts/[id]/360-frames/route.ts`
-  - [x] POST endpoint: Upload + optimize frames with Sharp
-  - [x] GET endpoint: Fetch frames for part
-  - [x] DELETE endpoint: Remove 360° viewer
-  - [x] Individual frame delete: `[frameId]/route.ts`
-- [x] Implement frame count validation (12 min, 24 recommended, 48 max)
-- [x] Use correct Supabase client pattern (matches existing routes)
-- [ ] **Integration testing deferred:** Will test via Week 2 admin UI
+**Summary**: Production-ready 360° drag-to-rotate viewer with admin upload interface, mobile touch gestures, fullscreen mode, lazy loading, and dual-mode public display.
 
-**Validation Rules:**
-- ❌ Block: < 12 frames ("Minimum 12 frames required")
-- ⚠️ Warn: 12-23 frames ("24+ frames recommended for smooth rotation")
-- ✅ Accept: 24-48 frames (no warning)
-- ⚠️ Warn: > 48 frames ("Consider 48 frames or fewer for optimal loading")
+**Key Achievements:**
+- Server-side image optimization with Sharp (1200×1200px @ 85% JPEG)
+- Tabbed admin UI for media management
+- Frame count validation (12-48 frames)
+- CSS-based fullscreen mode (iOS Safari compatible)
+- Mobile photo gallery enhancements (pinch-to-zoom, horizontal thumbnails)
 
-**Success Criteria:**
-- [x] API accepts 12-48 image files
-- [x] Sharp optimizes each frame to 1200×1200px @ ~100KB
-- [x] Frames stored at `360-viewer/{acr_sku}/frame-000.jpg` to `frame-023.jpg`
-- [x] Database records include width, height, file_size_bytes
-- [x] TypeScript compilation clean (no errors)
-- [ ] Integration testing via admin UI (Week 2)
+**Technical Plan**: `docs/technical-plans/360-viewer-acr-production.md`
+</details>
 
----
+<details>
+<summary><strong>Phase 6: Category 2 Site Enhancements</strong> - 30 hours actual</summary>
 
-#### **Week 2: Admin Upload Interface** (10-12 hours) - ✅ COMPLETE
+**Summary**: UX improvements including general UI updates, URL-based filter persistence, multiple images per part, and dynamic settings management.
 
-**Tasks:**
-- [x] Create `PartMediaManager.tsx` (tabbed container)
-  - [x] Tab 1: Product Photos (existing PartImagesManager)
-  - [x] Tab 2: 360° Viewer (new Upload360Viewer)
-  - [x] Green checkmark indicator when 360° active
-- [x] Create `Upload360Viewer.tsx` component
-  - [x] Drag & drop file upload zone
-  - [x] File validation (type, size, count)
-  - [x] Upload progress tracking
-  - [x] Warning dialogs for < 24 frames
-  - [x] Active state (viewer configured with frame count)
-  - [x] Delete confirmation dialog
-  - [x] Replace All functionality
-- [x] Update `PartFormContainer.tsx`
-  - [x] Replace `<PartImagesManager>` with `<PartMediaManager>`
-- [x] Add 35 i18n keys (English + Spanish)
+**Features Delivered:**
+- General UI updates (footer, tabs, year ranges)
+- URL state management with browser navigation
+- Multi-image gallery with drag-and-drop reordering
+- Settings management (contact info, branding, asset uploads)
 
-**Component Flow:**
-```
-Empty State → Upload Zone → Progress → Preview → Active State
-                ↓              ↓          ↓          ↓
-            Select files   Optimize   Test spin   Published
-```
-
-**Success Criteria:**
-- [ ] Tabs render correctly with proper styling
-- [ ] Upload accepts drag & drop + file picker
-- [ ] Progress shown during bulk upload
-- [ ] Preview mode allows interactive rotation test
-- [ ] Warning displayed for suboptimal frame counts
-- [ ] Mobile/tablet layout responsive
-
----
-
-#### **Week 3: Public Interactive Viewer** (8-10 hours) - ✅ COMPLETE
-
-**Tasks:**
-- [x] Create `Part360Viewer.tsx` component
-  - [x] Drag-to-rotate interaction (mouse)
-  - [x] Touch swipe gestures (mobile/tablet)
-  - [x] Fullscreen mode button
-  - [x] Loading state (spinner while preloading)
-  - [x] Instruction overlay with fade on interaction
-- [x] Implement performance optimizations
-  - [x] Lazy loading (first 3 frames instant, rest in background)
-  - [x] Adjacent frame preloading (smooth rotation without gaps)
-- [x] Add error handling & fallback
-  - [x] Fallback to photo gallery if viewer fails to load
-
-**Success Criteria:**
-- [x] Smooth drag-to-rotate on desktop (60fps)
-- [x] Touch gestures work on mobile/tablet
-- [x] Fullscreen mode functional
-- [x] Load time < 2 seconds on 4G mobile
-- [x] Graceful fallback to photo gallery on error
-
----
-
-#### **Week 4: Public Integration & Testing** (6-8 hours) - ✅ COMPLETE
-
-**Tasks:**
-- [x] Integrate viewer into public part details page
-- [x] Build Amazon-style gallery (360° as first thumbnail)
-- [x] Implement view mode toggling (360° ↔ photos)
-- [x] Mobile/tablet UX polish (centering, responsive overlays)
-- [x] Independent lazy loading (banners vs parts)
-- [x] Complete i18n coverage (all keys translated)
-- [x] Mobile UX enhancements for photo gallery
-
-**Mobile Photo Gallery Enhancements (Beyond Original Scope):**
-- [x] Horizontal thumbnail strip at bottom (mobile only)
-- [x] Pinch-to-zoom for static photos (react-zoom-pan-pinch)
-- [x] Double-tap zoom toggle
-- [x] Fixed uneven borders on thumbnails
-
-**Testing Checklist:**
-- [x] Desktop: Viewer centering, fullscreen mode
-- [x] Mobile: Touch gestures, responsive overlays, zoom
-- [x] Tablet: Gallery layout, interactions
-- [x] Load time optimizations with skeleton loaders
-- [x] Fallback works when viewer errors
-
-**Production Deployment:**
-- [ ] Run migration in production Supabase
-- [ ] Verify storage bucket has 360-viewer folder
-- [ ] Test Sharp library in Vercel serverless
-- [ ] Monitor Supabase storage usage
-- [ ] Gather user feedback on UX
-
----
-
-### Files to Create (8 total)
-
-**Database & API:**
-- `lib/supabase/migrations/004_add_360_viewer.sql`
-- `app/api/admin/parts/[id]/360-frames/route.ts`
-
-**Admin Components:**
-- `components/admin/parts/PartMediaManager.tsx`
-- `components/admin/parts/Upload360Viewer.tsx`
-
-**Public Components:**
-- `components/public/parts/Part360Viewer.tsx`
-
-**Files to Modify (2 total):**
-- `components/admin/parts/PartFormContainer.tsx` (replace PartImagesManager)
-- `app/parts/[id]/page.tsx` (add viewer with toggle - pending UX discussion)
-
----
-
-### Dependencies
-
-**New (1):**
-```bash
-npm install sharp
-```
-
-**Existing (already installed):**
-- `@dnd-kit/*` - Drag & drop (used in ImageGalleryEditor)
-- `@tanstack/react-query` - Data fetching
-- `shadcn/ui tabs` - Tabbed interface
-- `lucide-react` - Icons (RotateCw, Image, Upload, etc.)
-
----
-
-### Success Metrics
-
-**Technical KPIs:**
-- Upload success rate: > 95%
-- Average processing time: < 50s for 24 frames
-- Viewer load time: < 2s on 4G mobile
-- Error rate: < 1%
-
-**Business KPIs:**
-- % parts with 360° viewer: 20-30% of catalog
-- Customer engagement time: 2-3× longer on page
-- Conversion rate impact (A/B test vs. static images)
-- Support ticket reduction ("what does this look like?")
-
----
-
-## 📋 Category 2: User Experience Improvements (Phase 6)
-
-**Status**: ✅ COMPLETE! (All 4 features done)
-**Total Estimated Time**: 30-37.5 hours
-**ACTUAL TIME SPENT**: ~30 hours (10h for 2.1 & 2.2, 9h for 2.3, 11h for 2.4)
-**Feature Flag**: `enablePostMVP` (enabled in dev, disabled in production)
 **Technical Plan**: `docs/technical-plans/site-enhancements/acr_cat2_tech_plan.txt`
-
-### Feature 2.1: General UI Updates (1.5h) ✅ COMPLETED
-
-**Quick wins to improve user experience**
-
-- ✅ Add year ranges to vehicle applications in public search results
-- ✅ Create footer component with logo, contact info, and links
-- ✅ Add email clickable links to footer (contacto@acrautomotive.com)
-- ✅ Make header logo clickable (navigate to home with smart routing)
-- ✅ Update layout.tsx to include footer
-- ✅ Create ACR Tabs component for search interface
-- ✅ Replace collapsible SKU search with tab-based interface
-- ✅ Add clear filters button to both search tabs
-
----
-
-### Feature 2.2: Persist Filters & Search State (4-5h) ✅ COMPLETED
-
-**URL-based state management for better UX**
-
-- ✅ Implement URL state management for admin parts page
-- ✅ Add debounced search input updates
-- ✅ Implement pagination with URL state
-- ✅ Add filter controls (part_type, position, sort)
-- ✅ Test browser back/forward navigation
-- ✅ Verify bookmarkable URLs work
-- ✅ Apply same pattern to public search page
-- ✅ Create reusable hooks for URL state management
-- ✅ Preserve search params across all navigation flows
-
----
-
-### Feature 2.3: Multiple Images Per Part (14-16h) ✅ COMPLETED
-
-**Allow multiple images per part with gallery UI**
-
-- ✅ Database & Storage (part_images table, acr-part-images bucket)
-- ✅ Backend API (upload, reorder, delete, set primary)
-- ✅ Admin UI (drag & drop gallery editor with @dnd-kit)
-- ✅ Public UI (thumbnail gallery, placeholder image)
-- ✅ Bug fixes (delete, sort order, loading states)
-- ✅ Full internationalization (English + Spanish)
-- ✅ WCAG 2.1 AA keyboard accessibility
-
----
-
-### Feature 2.4: Website Assets & Settings Management (10-14h) ✅ COMPLETED
-
-**Admin interface for site configuration**
-
-#### Database Schema (1h) ✅
-- ✅ Created `site_settings` table (key-value JSONB storage)
-- ✅ Simplified schema: contact_info and branding only (no SEO/banners for MVP)
-- ✅ Created storage bucket `acr-site-assets` with RLS policies
-- ✅ Made migration idempotent (safe to re-run)
-
-#### Settings API (3-4h) ✅
-- ✅ GET/PUT `/api/admin/settings` - Manage site settings
-- ✅ POST `/api/admin/settings/upload-asset` - Upload logo/favicon/banner
-- ✅ GET `/api/public/settings` - Public endpoint for footer
-- ✅ Created Zod schemas and TypeScript types
-
-#### Admin Settings Page (4-6h) ✅
-- ✅ Created `/admin/settings` page with authentication
-- ✅ Built `SettingsPageContent` - Single-page layout (removed tabs)
-- ✅ Built `ContactInfoSettings` - Email, phone, whatsapp, address
-- ✅ Built `BrandingSettings` - Company name, logo, favicon, banner uploads
-- ✅ Moved language toggle and logout to settings page
-
-#### Public Display (2-3h) ✅
-- ✅ Created `SettingsContext` provider with React Query
-- ✅ Updated footer to use dynamic settings
-- ✅ Fixed cache invalidation (both admin and public queries)
-
-#### i18n & UX (Complete) ✅
-- ✅ Added 58 new translation keys (English + Spanish)
-- ✅ Applied translations to all settings components
-- ✅ Removed logout/language toggle from AdminHeader
-- ✅ Made Header language toggle optional
-- ✅ Updated AcrLanguageToggle UX (unified ACR red active state)
-- ✅ Settings moved to rightmost position in header
-
-**Files created:**
-- `lib/supabase/migrations/003_add_site_settings.sql`
-- `lib/types/settings.ts`
-- `app/api/admin/settings/route.ts`
-- `app/api/admin/settings/upload-asset/route.ts`
-- `app/api/public/settings/route.ts`
-- `app/admin/settings/page.tsx`
-- `components/admin/settings/SettingsPageContent.tsx`
-- `components/admin/settings/ContactInfoSettings.tsx`
-- `components/admin/settings/BrandingSettings.tsx`
-- `contexts/SettingsContext.tsx`
-
-**Remaining:**
-- [ ] Run migration `003_add_site_settings.sql` in Supabase production
+</details>
 
 ---
 
 ## 🔄 Current Session State
 
-### Latest Session: October 18, 2025 (Session 12 - Mobile UX Bug Fixes & Polish)
+### Latest Session: October 22, 2025 - 4:45 PM MX (Session 14 - Phase 8.1 Implementation Start)
 
-**Focus**: Fixed mobile Safari UX issues and improved navigation patterns
+**Focus**: Beginning Phase 8.1 implementation (Bulk Operations + Excel Export)
+
+**Session Start**: October 22, 2025 at 4:45 PM Mexico City Time
+
+---
+
+### Previous Session: October 21, 2025 (Session 13 - Data Management Planning Review)
+
+**Focus**: Reviewed Category 1 Data Management technical plans and updated TASKS.md for Phase 8
 
 **Completed**:
 
-- ✅ **360° Viewer & Gallery Centering Fixes**
-  - Fixed images being cut off on right side (removed `p-4` padding from main viewer area)
-  - Images now properly centered in both 360° viewer and static photo gallery
-  - Improved mobile Safari rendering consistency
+- ✅ **Reviewed Technical Plans**
+  - Main plan: `docs/technical-plans/data-management/cat1-production-plan.md` (78-95 hours)
+  - Phase 1 plan: `phase1-bulk-export-production.md` (30-38 hours)
+  - Phase 2 plan: `phase2-import-rollback-production.md` (48-57 hours)
+  - Excel spec: `excel-format-specification.md` (complete format docs)
 
-- ✅ **Fullscreen Mode Refactor**
-  - Replaced buggy native Fullscreen API with CSS-based overlay approach
-  - Fullscreen now renders at document root level using `fixed inset-0 z-50`
-  - Works reliably on iOS Safari (previous webkit fallbacks were unreliable)
-  - ESC key support for exiting fullscreen
-  - Simpler implementation, better cross-browser compatibility
+- ✅ **Updated TASKS.md**
+  - Changed current phase from Phase 7 (360° Viewer) to Phase 8 (Data Management)
+  - Added comprehensive Phase 8 overview with business value
+  - Documented Phase 8.1 (Bulk Operations + Export) and 8.2 (Import + Rollback) breakdown
+  - Listed key technical decisions and implementation status
+  - Moved Phase 7 and Phase 6 details to collapsible "Completed Phases" section
+  - Updated session state to reflect planning review
 
-- ✅ **Mobile Menu Cleanup**
-  - Hidden hamburger menu when no actions available (non-authenticated users)
-  - Prevents confusing empty menu dropdown on public pages
-  - Menu appears after authentication with Admin/Settings links
+**Technical Plans Summary**:
 
-- ✅ **Loading State Improvements**
-  - Changed generic loading message from "Loading 360° viewer..." to "Loading..."
-  - Added `partDetails.media.loading` translation key (English/Spanish)
-  - Prevents confusion when parts only have static photos
-  - Part360Viewer component still uses specific "Loading 360° viewer..." message
+**Phase 8.1: Bulk Operations + Excel Export (30-38 hours)**
+- 2 database migrations (tenant_id prep, import_history table)
+- 9 bulk API endpoints with atomic transactions
+- Excel export service (3-sheet format with hidden ID columns)
+- BulkOperationsService with validation
+- 6.5 hours unit testing
 
-- ✅ **Settings Page Navigation Fixes**
-  - Replaced hardcoded back links with `router.back()` for proper history navigation
-  - Back button now returns to actual previous page (e.g., part details) instead of always going to search
-  - Simplified back button text to generic "Back" / "Volver"
-  - Removed unused `useSearchParams` import
+**Phase 8.2: Excel Import + Rollback (48-57 hours)**
+- Excel parsing engine (SheetJS)
+- Validation engine (23 error rules + 12 warning rules)
+- Diff engine (ID-based matching for adds/updates/deletes)
+- Import service with snapshot creation
+- Rollback service (3-snapshot sequential rollback)
+- Import wizard UI (4-step flow: upload → validate → preview → execute)
+- Rollback manager UI (admin settings integration)
+- 6.5 hours integration testing
 
-**Technical Decisions**:
-- CSS-based fullscreen (`fixed inset-0`) is more reliable than native Fullscreen API on mobile
-- React Fragment with conditional rendering allows dual-mode (normal/fullscreen) without portals
-- `router.back()` provides better UX than hardcoded navigation routes
-- Generic loading messages prevent false expectations about media type
+**Key Architectural Decisions**:
+- ID-based matching only (no field fallback) - multi-tenant ready
+- Export-only workflow (prevents manual file creation errors)
+- Hidden UUID columns (_id, _tenant_id) for seamless UX
+- ACR_SKU semi-immutable (changes allowed with prominent warning)
+- Sequential rollback (must roll back newest first, last 3 visible)
+- Atomic transactions for all bulk operations
+- Three-layer validation (Zod → Business Logic → Database constraints)
 
-**Files Modified (6)**:
-- `src/components/public/parts/Part360Viewer.tsx` - CSS fullscreen overlay, simplified toggle
-- `src/components/public/parts/PartImageGallery.tsx` - Removed padding, generic loading message
-- `src/components/acr/Header.tsx` - Conditional hamburger menu rendering
-- `src/components/admin/settings/SettingsPageContent.tsx` - router.back() navigation, cleanup
-- `src/lib/i18n/translations.ts` - Added partDetails.media.loading key
-- `src/lib/i18n/translation-keys.ts` - Added partDetails.media.loading key
-
-**Translation Keys Added**:
-- `admin.settings.back` - "Back" / "Volver"
-- `partDetails.media.loading` - "Loading..." / "Cargando..."
-
-**Phase 7 Status**: ✅ **COMPLETE** - Mobile UX polished and ready for production
-
-**Next Priorities**:
-1. Production deployment (run migration, test Sharp in Vercel)
-2. Upload test 360° viewer for a real production part
-3. Monitor mobile performance and user feedback
+**Next Steps**:
+1. Decide whether to start with Phase 8.1 or 8.2 (recommendation: 8.1 first)
+2. Review detailed implementation checklists in phase-specific plans
+3. Begin implementation once approved
 
 ---
 
 ## 🚀 Active Development Areas
 
-### 🎯 Current: 360° Interactive Viewer (Phase 7)
+### 🎯 Current: Data Management System (Phase 8)
 
-**Status**: ✅ **COMPLETE** - All 4 weeks implemented
-**Timeline**: 4 weeks (32-40 hours) - Completed October 18, 2025
-**Next Step**: Production deployment and user testing
+**Status**: 📋 **READY TO BEGIN**
+**Timeline**: 8-10 weeks (78-95 hours part-time @ 10h/week)
+**Recommendation**: Start with Phase 8.1 (Bulk Operations + Export) first
+**Next Step**: Begin Phase 8.1 implementation after approval
 
-See Phase 7 section above for complete implementation breakdown.
+See Phase 8 section above for complete breakdown and technical plans in `docs/technical-plans/data-management/`.
 
 ---
 
-### 📋 Future: AI Integration (Phase 8)
+### 📋 Future: AI Integration (Phase 9)
 
 **Planning Status**: ✅ Documentation Complete (October 8, 2025)
 
-Deferred to Phase 8 after 360° viewer completion. See detailed AI Integration plan with:
+Deferred to Phase 9 after data management completion. Detailed AI Integration plan includes:
 - Intent Classification System (6 valid, 3 invalid intent types)
 - AI Response Generation (progressive disclosure, filter chips)
 - Technical Foundation (pgvector, embeddings, hybrid search)
@@ -423,11 +249,13 @@ Deferred to Phase 8 after 360° viewer completion. See detailed AI Integration p
 - 6-8 week implementation timeline
 - $7-10/month estimated cost
 
+**Technical Plan**: See existing AI integration documentation
+
 ---
 
-### Post-MVP Features
+### Future Enhancements
 
-See `docs/ENHANCEMENTS.md` for complete prioritized roadmap.
+See `docs/ENHANCEMENTS.md` for complete prioritized roadmap of post-Phase 9 features.
 
 ## 📋 Technical Maintenance
 
