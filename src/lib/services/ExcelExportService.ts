@@ -2,25 +2,47 @@ import ExcelJS from 'exceljs';
 import { supabase } from '@/lib/supabase/client';
 
 /**
+ * Export filter parameters
+ */
+export interface ExportFilters {
+  search?: string;
+  part_type?: string;
+  position_type?: string;
+  abs_type?: string;
+  drive_type?: string;
+  bolt_pattern?: string;
+}
+
+/**
  * ExcelExportService
  *
- * Handles Excel export of all catalog data in standardized 3-sheet format.
+ * Handles Excel export of catalog data in standardized 3-sheet format.
+ * Supports both full catalog export and filtered export based on search criteria.
  * Uses ExcelJS library for full Excel feature support including hidden columns.
  *
  * Sheet Structure:
- * 1. Parts - All parts with hidden ID columns
- * 2. Vehicle Applications - Vehicle fitment data
- * 3. Cross References - Competitor cross-references
+ * 1. Parts - All/filtered parts with hidden ID columns
+ *    Columns: _id (hidden), ACR_SKU, Part_Type, Position_Type, ABS_Type, Bolt_Pattern, Drive_Type, Specifications
+ *
+ * 2. Vehicle Applications - Vehicle fitment data for exported parts
+ *    Columns: _id (hidden), _part_id (hidden), ACR_SKU, Make, Model, Start_Year, End_Year
+ *
+ * 3. Cross References - Competitor cross-references for exported parts
+ *    Columns: _id (hidden), _acr_part_id (hidden), ACR_SKU, Competitor_Brand, Competitor_SKU
  *
  * Hidden Columns (for import matching):
- * - _id: Record UUID (hidden)
- * - _tenant_id: Tenant UUID (hidden, NULL for MVP)
- * - _part_id: Foreign key reference (hidden, for VAs and CRs)
+ * - _id: Record UUID (hidden, for matching on re-import)
+ * - _part_id: Foreign key UUID (hidden, for VAs)
+ * - _acr_part_id: Foreign key UUID (hidden, for CRs)
+ *
+ * Visible ACR_SKU:
+ * - Parts sheet: Direct column from parts table
+ * - VA/CR sheets: Joined from parts table for user-friendly reference (Humberto maps by SKU, not UUID)
  *
  * Export-Import Loop:
- * 1. User exports to get IDs
- * 2. User edits data in Excel
- * 3. User imports - system matches by ID and applies changes
+ * 1. User exports to get IDs (all data or filtered results)
+ * 2. User edits data in Excel (using ACR_SKU for readability)
+ * 3. User imports - system matches by hidden _id columns and applies changes
  */
 export class ExcelExportService {
   /**
@@ -71,8 +93,8 @@ export class ExcelExportService {
     // Fetch all data from database
     const [parts, vehicles, crossRefs] = await Promise.all([
       this.fetchAllRows('parts', 'acr_sku'),
-      this.fetchAllRows('vehicle_applications', 'part_id, make, model, start_year'),
-      this.fetchAllRows('cross_references', 'acr_part_id, competitor_brand, competitor_sku'),
+      this.fetchVehiclesWithSku(),
+      this.fetchCrossRefsWithSku(),
     ]);
 
     // Create workbook
@@ -96,6 +118,234 @@ export class ExcelExportService {
   }
 
   /**
+   * Export filtered catalog data to Excel workbook
+   *
+   * Filters parts based on search criteria, then includes all related
+   * vehicle applications and cross-references for the filtered parts.
+   *
+   * @param filters - Search filters to apply
+   * @returns Excel file buffer ready for download
+   */
+  async exportFiltered(filters: ExportFilters): Promise<Buffer> {
+    // Fetch filtered parts
+    const parts = await this.fetchFilteredParts(filters);
+
+    // Extract part IDs for relationship queries
+    const partIds = parts.map((p) => p.id);
+
+    // If no parts match, return empty workbook
+    if (partIds.length === 0) {
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'ACR Automotive';
+      workbook.created = new Date();
+
+      this.addPartsSheet(workbook, []);
+      this.addVehiclesSheet(workbook, []);
+      this.addCrossRefsSheet(workbook, []);
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      return Buffer.from(buffer);
+    }
+
+    // Fetch all vehicle applications and cross-references for the filtered parts
+    const [vehicles, crossRefs] = await Promise.all([
+      this.fetchRowsByPartIds('vehicle_applications', partIds),
+      this.fetchRowsByPartIds('cross_references', partIds),
+    ]);
+
+    // Create workbook
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'ACR Automotive';
+    workbook.created = new Date();
+
+    // Add sheets
+    this.addPartsSheet(workbook, parts);
+    this.addVehiclesSheet(workbook, vehicles);
+    this.addCrossRefsSheet(workbook, crossRefs);
+
+    // Generate Excel file buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    return Buffer.from(buffer);
+  }
+
+  /**
+   * Fetch parts with filters applied
+   */
+  private async fetchFilteredParts(filters: ExportFilters): Promise<any[]> {
+    const PAGE_SIZE = 1000;
+    let allRows: any[] = [];
+    let start = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      let query = supabase
+        .from('parts')
+        .select('*')
+        .order('acr_sku', { ascending: true });
+
+      // Apply filters
+      if (filters.search) {
+        query = query.or(`acr_sku.ilike.%${filters.search}%,part_type.ilike.%${filters.search}%,specifications.ilike.%${filters.search}%`);
+      }
+      if (filters.part_type) {
+        query = query.eq('part_type', filters.part_type);
+      }
+      if (filters.position_type) {
+        query = query.eq('position_type', filters.position_type);
+      }
+      if (filters.abs_type) {
+        query = query.eq('abs_type', filters.abs_type);
+      }
+      if (filters.drive_type) {
+        query = query.eq('drive_type', filters.drive_type);
+      }
+      if (filters.bolt_pattern) {
+        query = query.eq('bolt_pattern', filters.bolt_pattern);
+      }
+
+      const { data, error } = await query.range(start, start + PAGE_SIZE - 1);
+
+      if (error) {
+        throw new Error(`Failed to fetch filtered parts: ${error.message}`);
+      }
+
+      if (data && data.length > 0) {
+        allRows = allRows.concat(data);
+        start += PAGE_SIZE;
+        hasMore = data.length === PAGE_SIZE;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    return allRows;
+  }
+
+  /**
+   * Fetch all vehicle applications with ACR_SKU (joined from parts table)
+   */
+  private async fetchVehiclesWithSku(): Promise<any[]> {
+    const PAGE_SIZE = 1000;
+    let allRows: any[] = [];
+    let start = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from('vehicle_applications')
+        .select('*, parts!inner(acr_sku)')
+        .order('part_id, make, model, start_year', { ascending: true })
+        .range(start, start + PAGE_SIZE - 1);
+
+      if (error) {
+        throw new Error(`Failed to fetch vehicle applications: ${error.message}`);
+      }
+
+      if (data && data.length > 0) {
+        // Flatten the nested parts.acr_sku into top-level acr_sku
+        const flattened = data.map((row: any) => ({
+          ...row,
+          acr_sku: row.parts?.acr_sku || '',
+          parts: undefined, // Remove nested object
+        }));
+        allRows = allRows.concat(flattened);
+        start += PAGE_SIZE;
+        hasMore = data.length === PAGE_SIZE;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    return allRows;
+  }
+
+  /**
+   * Fetch all cross references with ACR_SKU (joined from parts table)
+   */
+  private async fetchCrossRefsWithSku(): Promise<any[]> {
+    const PAGE_SIZE = 1000;
+    let allRows: any[] = [];
+    let start = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from('cross_references')
+        .select('*, parts!inner(acr_sku)')
+        .order('acr_part_id, competitor_brand, competitor_sku', { ascending: true })
+        .range(start, start + PAGE_SIZE - 1);
+
+      if (error) {
+        throw new Error(`Failed to fetch cross references: ${error.message}`);
+      }
+
+      if (data && data.length > 0) {
+        // Flatten the nested parts.acr_sku into top-level acr_sku
+        const flattened = data.map((row: any) => ({
+          ...row,
+          acr_sku: row.parts?.acr_sku || '',
+          parts: undefined, // Remove nested object
+        }));
+        allRows = allRows.concat(flattened);
+        start += PAGE_SIZE;
+        hasMore = data.length === PAGE_SIZE;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    return allRows;
+  }
+
+  /**
+   * Fetch vehicle applications or cross-references by part IDs (with ACR_SKU joined)
+   */
+  private async fetchRowsByPartIds(tableName: string, partIds: string[]): Promise<any[]> {
+    const PAGE_SIZE = 1000;
+    let allRows: any[] = [];
+
+    // Process part IDs in chunks to avoid URL length limits
+    const CHUNK_SIZE = 100; // Max 100 IDs per query
+    for (let i = 0; i < partIds.length; i += CHUNK_SIZE) {
+      const chunk = partIds.slice(i, i + CHUNK_SIZE);
+
+      let start = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const partIdColumn = tableName === 'vehicle_applications' ? 'part_id' : 'acr_part_id';
+
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('*, parts!inner(acr_sku)')
+          .in(partIdColumn, chunk)
+          .range(start, start + PAGE_SIZE - 1);
+
+        if (error) {
+          throw new Error(`Failed to fetch ${tableName} by part IDs: ${error.message}`);
+        }
+
+        if (data && data.length > 0) {
+          // Flatten the nested parts.acr_sku into top-level acr_sku
+          const flattened = data.map((row: any) => ({
+            ...row,
+            acr_sku: row.parts?.acr_sku || '',
+            parts: undefined, // Remove nested object
+          }));
+          allRows = allRows.concat(flattened);
+          start += PAGE_SIZE;
+          hasMore = data.length === PAGE_SIZE;
+        } else {
+          hasMore = false;
+        }
+      }
+    }
+
+    return allRows;
+  }
+
+  /**
    * Add Parts sheet to workbook
    */
   private addPartsSheet(workbook: ExcelJS.Workbook, parts: any[]): void {
@@ -104,24 +354,26 @@ export class ExcelExportService {
     // Define columns with hidden property
     worksheet.columns = [
       { header: '_id', key: 'id', width: 36, hidden: true },
-      { header: '_tenant_id', key: 'tenant_id', width: 36, hidden: true },
       { header: 'ACR_SKU', key: 'acr_sku', width: 15 },
       { header: 'Part_Type', key: 'part_type', width: 20 },
-      { header: 'Description', key: 'description', width: 40 },
-      { header: 'OEM_Number', key: 'oem_number', width: 20 },
-      { header: 'Notes', key: 'notes', width: 30 },
+      { header: 'Position_Type', key: 'position_type', width: 15 },
+      { header: 'ABS_Type', key: 'abs_type', width: 15 },
+      { header: 'Bolt_Pattern', key: 'bolt_pattern', width: 15 },
+      { header: 'Drive_Type', key: 'drive_type', width: 15 },
+      { header: 'Specifications', key: 'specifications', width: 40 },
     ];
 
     // Add rows
     parts.forEach((part) => {
       worksheet.addRow({
         id: part.id,
-        tenant_id: part.tenant_id || null,
         acr_sku: part.acr_sku,
         part_type: part.part_type,
-        description: part.description || '',
-        oem_number: part.oem_number || '',
-        notes: part.notes || '',
+        position_type: part.position_type || '',
+        abs_type: part.abs_type || '',
+        bolt_pattern: part.bolt_pattern || '',
+        drive_type: part.drive_type || '',
+        specifications: part.specifications || '',
       });
     });
 
@@ -138,28 +390,24 @@ export class ExcelExportService {
     // Define columns with hidden property
     worksheet.columns = [
       { header: '_id', key: 'id', width: 36, hidden: true },
-      { header: '_tenant_id', key: 'tenant_id', width: 36, hidden: true },
       { header: '_part_id', key: 'part_id', width: 36, hidden: true },
+      { header: 'ACR_SKU', key: 'acr_sku', width: 15 },
       { header: 'Make', key: 'make', width: 15 },
       { header: 'Model', key: 'model', width: 20 },
       { header: 'Start_Year', key: 'start_year', width: 12 },
       { header: 'End_Year', key: 'end_year', width: 12 },
-      { header: 'Engine', key: 'engine', width: 20 },
-      { header: 'Notes', key: 'notes', width: 30 },
     ];
 
     // Add rows
     vehicles.forEach((vehicle) => {
       worksheet.addRow({
         id: vehicle.id,
-        tenant_id: vehicle.tenant_id || null,
         part_id: vehicle.part_id,
+        acr_sku: vehicle.acr_sku || '',
         make: vehicle.make,
         model: vehicle.model,
         start_year: vehicle.start_year,
-        end_year: vehicle.end_year || '',
-        engine: vehicle.engine || '',
-        notes: vehicle.notes || '',
+        end_year: vehicle.end_year,
       });
     });
 
@@ -176,8 +424,8 @@ export class ExcelExportService {
     // Define columns with hidden property
     worksheet.columns = [
       { header: '_id', key: 'id', width: 36, hidden: true },
-      { header: '_tenant_id', key: 'tenant_id', width: 36, hidden: true },
-      { header: '_part_id', key: 'acr_part_id', width: 36, hidden: true },
+      { header: '_acr_part_id', key: 'acr_part_id', width: 36, hidden: true },
+      { header: 'ACR_SKU', key: 'acr_sku', width: 15 },
       { header: 'Competitor_Brand', key: 'competitor_brand', width: 20 },
       { header: 'Competitor_SKU', key: 'competitor_sku', width: 20 },
     ];
@@ -186,9 +434,9 @@ export class ExcelExportService {
     crossRefs.forEach((crossRef) => {
       worksheet.addRow({
         id: crossRef.id,
-        tenant_id: crossRef.tenant_id || null,
         acr_part_id: crossRef.acr_part_id,
-        competitor_brand: crossRef.competitor_brand,
+        acr_sku: crossRef.acr_sku || '',
+        competitor_brand: crossRef.competitor_brand || '',
         competitor_sku: crossRef.competitor_sku,
       });
     });

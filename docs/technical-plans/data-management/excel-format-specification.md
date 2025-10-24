@@ -1,8 +1,9 @@
 # Excel Format Specification - ACR Data Management
 
-**Project**: ACR Automotive - Category 1 Data Management System
-**Version**: 1.0
-**Last Updated**: October 2025
+**Project**: ACR Automotive - Bulk Export/Import System
+**Version**: 1.0 (Phase 8.1 - Export Only)
+**Last Updated**: October 23, 2025
+**Status**: ✅ Export implemented, Import pending (Phase 8.2)
 
 ---
 
@@ -10,11 +11,17 @@
 
 This document defines the exact Excel format used for ACR's bulk export/import system. All exported files follow this specification. Users must export first, modify the exported file, then re-import.
 
+**Current Implementation** (Phase 8.1):
+- ✅ **Export service** - Full and filtered catalog export
+- ✅ **ExcelJS library** - Professional Excel file generation with hidden columns
+- ✅ **3-sheet structure** - Parts, Vehicle Applications, Cross References
+- ⏳ **Import service** - Coming in Phase 8.2
+
 **Key Principles**:
 - ✅ **Export-only workflow** - No blank templates allowed
 - ✅ **Hidden ID columns** - UUIDs for ID-based matching
 - ✅ **3-sheet structure** - Parts, Vehicle_Applications, Cross_References
-- ✅ **Multi-tenant ready** - Hidden tenant_id column (future-proof)
+- ✅ **ACR_SKU visible** - User-friendly reference in all sheets (Humberto maps by SKU, not UUID)
 
 ---
 
@@ -42,128 +49,130 @@ This document defines the exact Excel format used for ACR's bulk export/import s
 
 ## Sheet 1: Parts
 
-### Column Structure
+### Column Structure (Phase 8.1 - Current Database Schema)
 
 | Column | Field Name | Type | Required | Hidden | Max Length | Notes |
 |--------|------------|------|----------|--------|------------|-------|
 | A | `_id` | UUID | Yes* | ✅ Yes | 36 | Primary key (hidden column) |
-| B | `_tenant_id` | UUID | No | ✅ Yes | 36 | Multi-tenant ID (future, hidden) |
-| C | `acr_sku` | String | Yes | No | 50 | ACR part number (semi-immutable) |
-| D | `brand` | String | Yes | No | 100 | Brand name |
-| E | `category_1` | String | Yes | No | 100 | Primary category |
-| F | `category_2` | String | No | No | 100 | Secondary category |
-| G | `category_3` | String | No | No | 100 | Tertiary category |
-| H | `description` | String | No | No | 1000 | Part description |
-| I | `price` | Number | No | No | - | Price (≥ 0, 2 decimals) |
-| J | `stock_quantity` | Integer | No | No | - | Stock count (≥ 0) |
-| K | `discontinued` | Boolean | No | No | - | TRUE/FALSE |
-| L | `notes` | String | No | No | 1000 | Internal notes |
-| M | `has_360_viewer` | Boolean | No | No | - | TRUE/FALSE (read-only) |
-| N | `viewer_360_frame_count` | Integer | No | No | - | Frame count (12-48, read-only) |
+| B | `acr_sku` | String | Yes | No | 50 | ACR part number |
+| C | `part_type` | String | Yes | No | 100 | Part type (e.g., "Wheel Hub", "Brake Rotor") |
+| D | `position_type` | String | No | No | 50 | Position (e.g., "Front", "Rear", "Front Left") |
+| E | `abs_type` | String | No | No | 20 | ABS compatibility |
+| F | `bolt_pattern` | String | No | No | 50 | Wheel bolt pattern |
+| G | `drive_type` | String | No | No | 50 | Drive type (e.g., "2WD", "4WD", "AWD") |
+| H | `specifications` | String | No | No | - | Technical specifications (TEXT field) |
 
 **\* _id is required for updates/deletes, omitted for new rows (adds)**
 
-### Example Data (Parts)
+### Example Data (Parts) - Actual Production Data
 
 ```
-| _id                                  | _tenant_id | acr_sku    | brand      | category_1    | category_2 | category_3 | description              | price  | stock_quantity | discontinued | notes        | has_360_viewer | viewer_360_frame_count |
-|--------------------------------------|------------|------------|------------|---------------|------------|------------|--------------------------|--------|----------------|--------------|--------------|----------------|------------------------|
-| 550e8400-e29b-41d4-a716-446655440000 |            | ACR-001    | ACR Brand  | Brake System  | Rotors     |            | Front brake rotor 12"    | 45.99  | 150            | FALSE        |              | FALSE          | 0                      |
-| 660e8400-e29b-41d4-a716-446655440001 |            | ACR-002    | ACR Brand  | Suspension    | Shocks     |            | Rear shock absorber      | 89.50  | 75             | FALSE        |              | TRUE           | 24                     |
-|                                      |            | ACR-NEW    | ACR Brand  | Engine        | Filters    | Oil        | High-flow oil filter     | 12.99  | 500            | FALSE        |              | FALSE          | 0                      |
+| _id                                  | acr_sku      | part_type | position_type | abs_type | bolt_pattern | drive_type | specifications |
+|--------------------------------------|--------------|-----------|---------------|----------|--------------|------------|----------------|
+| 17f5fe74-7477-4d32-b93d-c7bc753ea799 | ACR10094077  | PENDING   |               |          |              |            |                |
+| ff2bcb0c-de98-409d-ae80-fa8a12ed4e7f | ACR10124926  | PENDING   |               |          |              |            |                |
+| 000d02cd-3bed-4143-9e58-a0a25c9e86a8 | ACR512348    | PENDING   |               |          |              |            |                |
 ```
 
 **Notes**:
 - Row 1 (headers) is required
-- Row 2: Existing part (has `_id`) → Will update if modified
-- Row 3: Existing part (has `_id`) → Will update if modified
-- Row 4: New part (no `_id`) → Will create new record
+- Most parts currently show "PENDING" for part_type (data to be filled in later)
+- Optional fields (position_type, abs_type, etc.) are empty until cataloging is complete
+- Row 2-4: Existing parts (have `_id`) → Will update if modified in Phase 8.2
 
-### Hidden Columns (A-B)
+### Hidden Columns (A only)
 
-Hidden columns are set using Excel's column width property:
+Hidden columns are set using ExcelJS library:
 
 ```typescript
-// SheetJS implementation
-worksheet['!cols'] = [
-  { hidden: true },  // Column A (_id)
-  { hidden: true },  // Column B (_tenant_id)
-  { wch: 15 },       // Column C (acr_sku)
-  { wch: 20 },       // Column D (brand)
+// ExcelJS implementation
+worksheet.columns = [
+  { header: '_id', key: 'id', width: 36, hidden: true },  // Column A
+  { header: 'ACR_SKU', key: 'acr_sku', width: 15 },       // Column B
+  { header: 'Part_Type', key: 'part_type', width: 20 },   // Column C
   // ... rest of columns
 ];
 ```
 
 **User Experience**:
-- Columns A-B are invisible in Excel by default
-- Users can unhide manually (View → Unhide Columns)
+- Column A (`_id`) is invisible in Excel by default
+- Users can unhide manually (View → Unhide Columns) if needed for debugging
 - IDs are preserved when user edits visible columns
+- `tenant_id` removed from export (MVP is single-tenant)
 
 ---
 
-## Sheet 2: Vehicle_Applications
+## Sheet 2: Vehicle Applications
 
-### Column Structure
+### Column Structure (Phase 8.1 - Current Database Schema)
 
 | Column | Field Name | Type | Required | Hidden | Max Length | Notes |
 |--------|------------|------|----------|--------|------------|-------|
 | A | `_id` | UUID | Yes* | ✅ Yes | 36 | Primary key (hidden) |
-| B | `_tenant_id` | UUID | No | ✅ Yes | 36 | Multi-tenant ID (hidden) |
-| C | `_part_id` | UUID | Yes | ✅ Yes | 36 | Foreign key to Parts._id (hidden) |
-| D | `make` | String | Yes | No | 100 | Vehicle make (e.g., "Ford") |
-| E | `model` | String | Yes | No | 100 | Vehicle model (e.g., "F-150") |
-| F | `year_start` | Integer | Yes | No | - | Start year (1900-2100) |
-| G | `year_end` | Integer | No | No | - | End year (≥ year_start) |
-| H | `engine` | String | No | No | 100 | Engine spec (e.g., "5.0L V8") |
-| I | `notes` | String | No | No | 500 | Application notes |
+| B | `_part_id` | UUID | Yes | ✅ Yes | 36 | Foreign key to Parts._id (hidden) |
+| C | `acr_sku` | String | Yes | No | 50 | ACR part number (joined from parts table) |
+| D | `make` | String | Yes | No | 50 | Vehicle make (e.g., "MAZDA", "NISSAN") |
+| E | `model` | String | Yes | No | 100 | Vehicle model (e.g., "3", "NP300 FRONTIER") |
+| F | `start_year` | Integer | Yes | No | - | Start year (e.g., 2004) |
+| G | `end_year` | Integer | Yes | No | - | End year (e.g., 2009) |
 
 **\* _id is required for updates/deletes, omitted for new rows (adds)**
 
-### Example Data (Vehicle_Applications)
+### Example Data (Vehicle Applications) - Actual Production Data
 
 ```
-| _id                                  | _tenant_id | _part_id                             | make  | model  | year_start | year_end | engine   | notes                          |
-|--------------------------------------|------------|--------------------------------------|-------|--------|------------|----------|----------|--------------------------------|
-| 770e8400-e29b-41d4-a716-446655440000 |            | 550e8400-e29b-41d4-a716-446655440000 | Ford  | F-150  | 2015       | 2020     | 5.0L V8  | Fits all trim levels           |
-| 880e8400-e29b-41d4-a716-446655440001 |            | 550e8400-e29b-41d4-a716-446655440000 | Ford  | F-150  | 2021       |          | 3.5L V6  | EcoBoost models only           |
-|                                      |            | 660e8400-e29b-41d4-a716-446655440001 | Chevy | Tahoe  | 2018       | 2023     |          | All engines compatible         |
+| _id                                  | _part_id                             | acr_sku     | make   | model           | start_year | end_year |
+|--------------------------------------|--------------------------------------|-------------|--------|-----------------|------------|----------|
+| 94cbe095-d61d-43a2-a29c-d1f8a23468c7 | 000d02cd-3bed-4143-9e58-a0a25c9e86a8 | ACR512348   | MAZDA  | 3               | 2004       | 2009     |
+| 0b666bd0-0c6f-4fae-89c7-1e967772057a | 0107d5e8-a36a-4039-a830-059f5699f886 | ACR2316041  | NISSAN | NP300 FRONTIER  | 2016       | 2020     |
+| e4f3f274-4930-48f6-9f34-5618b8b83cb3 | 0107d5e8-a36a-4039-a830-059f5699f886 | ACR2316041  | NISSAN | NP300 PICKUP 4X4| 2015       | 2020     |
 ```
 
 **Notes**:
 - `_part_id` must reference a valid `_id` from Parts sheet
-- If `_part_id` is invalid, validation error: `ORPHANED_FOREIGN_KEY`
-- New rows (no `_id`) will auto-generate UUIDs
+- `acr_sku` is **joined from parts table** (read-only, for user reference)
+- Humberto uses `acr_sku` to map VAs to parts (not UUID)
+- If `_part_id` is invalid during import, validation error: `ORPHANED_FOREIGN_KEY`
+- New rows (no `_id`) will auto-generate UUIDs in Phase 8.2
+- `tenant_id` removed from export (MVP is single-tenant)
+- `engine` and `notes` columns do not exist in current database schema
 
 ---
 
-## Sheet 3: Cross_References
+## Sheet 3: Cross References
 
-### Column Structure
+### Column Structure (Phase 8.1 - Current Database Schema)
 
 | Column | Field Name | Type | Required | Hidden | Max Length | Notes |
 |--------|------------|------|----------|--------|------------|-------|
 | A | `_id` | UUID | Yes* | ✅ Yes | 36 | Primary key (hidden) |
-| B | `_tenant_id` | UUID | No | ✅ Yes | 36 | Multi-tenant ID (hidden) |
-| C | `_part_id` | UUID | Yes | ✅ Yes | 36 | Foreign key to Parts._id (hidden) |
-| D | `competitor_brand` | String | Yes | No | 100 | Competitor brand name |
+| B | `_acr_part_id` | UUID | Yes | ✅ Yes | 36 | Foreign key to Parts._id (hidden) |
+| C | `acr_sku` | String | Yes | No | 50 | ACR part number (joined from parts table) |
+| D | `competitor_brand` | String | No | No | 50 | Competitor brand name (optional) |
 | E | `competitor_sku` | String | Yes | No | 50 | Competitor part number |
-| F | `notes` | String | No | No | 500 | Cross-reference notes |
 
 **\* _id is required for updates/deletes, omitted for new rows (adds)**
 
-### Example Data (Cross_References)
+### Example Data (Cross References) - Actual Production Data
 
 ```
-| _id                                  | _tenant_id | _part_id                             | competitor_brand | competitor_sku | notes                              |
-|--------------------------------------|------------|--------------------------------------|------------------|----------------|------------------------------------|
-| 990e8400-e29b-41d4-a716-446655440000 |            | 550e8400-e29b-41d4-a716-446655440000 | Brembo           | 09.9772.11     | Direct replacement                 |
-| aa0e8400-e29b-41d4-a716-446655440001 |            | 550e8400-e29b-41d4-a716-446655440000 | Wagner           | BD125931       | Budget alternative                 |
-|                                      |            | 660e8400-e29b-41d4-a716-446655440001 | Monroe           | 181622         | OEM equivalent                     |
+| _id                                  | _acr_part_id                         | acr_sku    | competitor_brand | competitor_sku |
+|--------------------------------------|--------------------------------------|------------|------------------|----------------|
+| bfcb22e9-40be-4050-bb44-708abb6978f4 | 000d02cd-3bed-4143-9e58-a0a25c9e86a8 | ACR512348  | ATV              | MF0680         |
+| df2e9b9b-6a3f-4673-8b0e-331826b4901e | 000d02cd-3bed-4143-9e58-a0a25c9e86a8 | ACR512348  | GMB              | 745-0149       |
+| ada329fe-129d-4cb5-8776-439f22f8e05c | 000d02cd-3bed-4143-9e58-a0a25c9e86a8 | ACR512348  | NATIONAL         | 512348         |
 ```
 
 **Notes**:
-- `_part_id` must reference a valid `_id` from Parts sheet
+- `_acr_part_id` must reference a valid `_id` from Parts sheet
+- `acr_sku` is **joined from parts table** (read-only, for user reference)
+- Humberto uses `acr_sku` to map CRs to parts (not UUID)
+- `competitor_brand` is optional (sometimes only SKU is known)
 - Duplicate `competitor_sku` allowed (different parts may cross-reference same competitor part)
+- If `_acr_part_id` is invalid during import, validation error: `ORPHANED_FOREIGN_KEY`
+- New rows (no `_id`) will auto-generate UUIDs in Phase 8.2
+- `tenant_id` removed from export (MVP is single-tenant)
+- `notes` column does not exist in current database schema
 
 ---
 
