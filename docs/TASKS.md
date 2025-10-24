@@ -13,8 +13,9 @@ _Last Updated: October 23, 2025_
 | 14 | Oct 22, 2025 | 4:45 PM MX | 6:27 PM MX | 1h 42m | Database migrations (005-006), documentation consolidation, architecture review |
 | 15 | Oct 23, 2025 | 3:55 PM MX | 4:40 PM MX | 0h 45m | Bulk operations complete: Zod schemas, BulkOperationsService, 9 API endpoints, test suite, BULK_OPERATIONS.md docs |
 | 15 (cont) | Oct 23, 2025 | 4:40 PM MX | 6:10 PM MX | 1h 30m | Excel export complete: ExcelJS integration with hidden columns, pagination, frozen headers, 8/8 tests passing |
+| 15 (cont) | Oct 23, 2025 | 6:10 PM MX | 6:30 PM MX | 0h 20m | Export schema alignment: Fixed column mapping to match actual DB schema, added ACR_SKU to VA/CR sheets via JOIN, updated docs |
 
-**Phase 8.1 Actual Time**: 3h 57m / 30-38h estimated
+**Phase 8.1 Actual Time**: 4h 17m / 30-38h estimated
 
 ---
 

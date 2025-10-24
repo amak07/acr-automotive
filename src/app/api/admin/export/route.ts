@@ -1,35 +1,68 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ExcelExportService } from '@/lib/services/ExcelExportService';
+import { ExcelExportService, ExportFilters } from '@/lib/services/ExcelExportService';
 
 /**
  * GET /api/admin/export
  *
- * Export all catalog data to Excel file (3-sheet format)
+ * Export catalog data to Excel file (3-sheet format)
+ *
+ * Query Parameters (all optional):
+ * - search: Text search (SKU, description, part type)
+ * - part_type: Filter by part type
+ * - position_type: Filter by position
+ * - abs_type: Filter by ABS type
+ * - drive_type: Filter by drive type
+ * - bolt_pattern: Filter by bolt pattern
+ *
+ * If no filters provided, exports entire catalog.
+ * If filters provided, exports only matching parts and their relationships.
  *
  * Returns:
  * - Excel file download (.xlsx)
- * - Filename: acr-catalog-export-{timestamp}.xlsx
+ * - Filename: acr-catalog-export-{timestamp}.xlsx or acr-filtered-export-{timestamp}.xlsx
  * - 3 sheets: Parts, Vehicle Applications, Cross References
  * - Hidden ID columns for import matching
  *
- * Example:
+ * Examples:
  * ```bash
+ * # Export all
  * curl http://localhost:3000/api/admin/export > export.xlsx
+ *
+ * # Export filtered
+ * curl "http://localhost:3000/api/admin/export?part_type=Brake%20Rotor&search=civic" > filtered.xlsx
  * ```
  */
 export async function GET(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams;
+
+    // Extract filters from query parameters
+    const filters: ExportFilters = {
+      search: searchParams.get('search') || undefined,
+      part_type: searchParams.get('part_type') || undefined,
+      position_type: searchParams.get('position_type') || undefined,
+      abs_type: searchParams.get('abs_type') || undefined,
+      drive_type: searchParams.get('drive_type') || undefined,
+      bolt_pattern: searchParams.get('bolt_pattern') || undefined,
+    };
+
+    // Check if any filters are applied
+    const hasFilters = Object.values(filters).some((v) => v !== undefined);
+
     const service = new ExcelExportService();
 
-    // Get export statistics for logging
-    const stats = await service.getExportStats();
+    // Generate Excel file (filtered or all)
+    const buffer = hasFilters
+      ? await service.exportFiltered(filters)
+      : await service.exportAllData();
 
-    // Generate Excel file
-    const buffer = await service.exportAllData();
+    // Get export statistics for headers
+    const stats = await service.getExportStats();
 
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const filename = `acr-catalog-export-${timestamp}.xlsx`;
+    const prefix = hasFilters ? 'acr-filtered-export' : 'acr-catalog-export';
+    const filename = `${prefix}-${timestamp}.xlsx`;
 
     // Return file download response
     // Convert Buffer to Uint8Array for NextResponse

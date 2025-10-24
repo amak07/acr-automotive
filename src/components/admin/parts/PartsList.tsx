@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import {  createAcrPartsTableColumns } from "./parts-table-config";
 import { AcrPagination } from "@/components/acr";
 import { SearchTerms } from "./SearchFilters";
@@ -43,20 +43,57 @@ export function PartsList(props: PartsListProps) {
     router.push("/admin/parts/add-new-part" as any);
   };
 
+  const handleExport = () => {
+    // Build query string from current search params
+    const params = new URLSearchParams();
+
+    // Only add non-default search terms to export URL
+    Object.entries(props.searchTerms).forEach(([key, value]) => {
+      if (value && value !== '__all__' && value !== '') {
+        params.set(key, value);
+      }
+    });
+
+    // Trigger download
+    const queryString = params.toString();
+    const url = queryString
+      ? `/api/admin/export?${queryString}`
+      : '/api/admin/export';
+
+    window.location.href = url;
+  };
+
+  // Check if any filters are active
+  const hasFilters = Object.values(props.searchTerms).some(
+    (value) => value && value !== '__all__' && value !== ''
+  );
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="acr-heading-5 text-acr-gray-800">
           {t("admin.dashboard.catalogTitle")}
         </h2>
-        <AcrButton
-          variant="primary"
-          size="default"
-          onClick={handleAddNewPartNavigation}
-        >
-          <Plus className="w-4 h-4" />
-          {t("admin.parts.newButton")}
-        </AcrButton>
+        <div className="flex gap-2">
+          <AcrButton
+            variant="secondary"
+            size="default"
+            onClick={handleExport}
+          >
+            <Download className="w-4 h-4" />
+            {hasFilters
+              ? `Export Results (${partsTotal})`
+              : `Export All (${partsTotal})`}
+          </AcrButton>
+          <AcrButton
+            variant="primary"
+            size="default"
+            onClick={handleAddNewPartNavigation}
+          >
+            <Plus className="w-4 h-4" />
+            {t("admin.parts.newButton")}
+          </AcrButton>
+        </div>
       </div>
 
       {/* Error State */}
