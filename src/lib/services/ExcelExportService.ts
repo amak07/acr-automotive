@@ -1,17 +1,12 @@
 import ExcelJS from 'exceljs';
 import { supabase } from '@/lib/supabase/client';
-
-/**
- * Export filter parameters
- */
-export interface ExportFilters {
-  search?: string;
-  part_type?: string;
-  position_type?: string;
-  abs_type?: string;
-  drive_type?: string;
-  bolt_pattern?: string;
-}
+import {
+  SHEET_NAMES,
+  PARTS_COLUMNS,
+  VEHICLE_APPLICATIONS_COLUMNS,
+  CROSS_REFERENCES_COLUMNS,
+  ExportFilters,
+} from '@/services/excel/shared';
 
 /**
  * ExcelExportService
@@ -349,24 +344,15 @@ export class ExcelExportService {
    * Add Parts sheet to workbook
    */
   private addPartsSheet(workbook: ExcelJS.Workbook, parts: any[]): void {
-    const worksheet = workbook.addWorksheet('Parts');
+    const worksheet = workbook.addWorksheet(SHEET_NAMES.PARTS);
 
-    // Define columns with hidden property
-    worksheet.columns = [
-      { header: '_id', key: 'id', width: 36, hidden: true },
-      { header: 'ACR_SKU', key: 'acr_sku', width: 15 },
-      { header: 'Part_Type', key: 'part_type', width: 20 },
-      { header: 'Position_Type', key: 'position_type', width: 15 },
-      { header: 'ABS_Type', key: 'abs_type', width: 15 },
-      { header: 'Bolt_Pattern', key: 'bolt_pattern', width: 15 },
-      { header: 'Drive_Type', key: 'drive_type', width: 15 },
-      { header: 'Specifications', key: 'specifications', width: 40 },
-    ];
+    // Define columns using shared constants (single source of truth)
+    worksheet.columns = PARTS_COLUMNS;
 
     // Add rows
     parts.forEach((part) => {
       worksheet.addRow({
-        id: part.id,
+        _id: part.id, // Map database 'id' to Excel '_id' column key
         acr_sku: part.acr_sku,
         part_type: part.part_type,
         position_type: part.position_type || '',
@@ -385,24 +371,16 @@ export class ExcelExportService {
    * Add Vehicle Applications sheet to workbook
    */
   private addVehiclesSheet(workbook: ExcelJS.Workbook, vehicles: any[]): void {
-    const worksheet = workbook.addWorksheet('Vehicle Applications');
+    const worksheet = workbook.addWorksheet(SHEET_NAMES.VEHICLE_APPLICATIONS);
 
-    // Define columns with hidden property
-    worksheet.columns = [
-      { header: '_id', key: 'id', width: 36, hidden: true },
-      { header: '_part_id', key: 'part_id', width: 36, hidden: true },
-      { header: 'ACR_SKU', key: 'acr_sku', width: 15 },
-      { header: 'Make', key: 'make', width: 15 },
-      { header: 'Model', key: 'model', width: 20 },
-      { header: 'Start_Year', key: 'start_year', width: 12 },
-      { header: 'End_Year', key: 'end_year', width: 12 },
-    ];
+    // Define columns using shared constants (single source of truth)
+    worksheet.columns = VEHICLE_APPLICATIONS_COLUMNS;
 
     // Add rows
     vehicles.forEach((vehicle) => {
       worksheet.addRow({
-        id: vehicle.id,
-        part_id: vehicle.part_id,
+        _id: vehicle.id, // Map database 'id' to Excel '_id' column key
+        _part_id: vehicle.part_id, // Map database 'part_id' to Excel '_part_id' column key
         acr_sku: vehicle.acr_sku || '',
         make: vehicle.make,
         model: vehicle.model,
@@ -419,22 +397,16 @@ export class ExcelExportService {
    * Add Cross References sheet to workbook
    */
   private addCrossRefsSheet(workbook: ExcelJS.Workbook, crossRefs: any[]): void {
-    const worksheet = workbook.addWorksheet('Cross References');
+    const worksheet = workbook.addWorksheet(SHEET_NAMES.CROSS_REFERENCES);
 
-    // Define columns with hidden property
-    worksheet.columns = [
-      { header: '_id', key: 'id', width: 36, hidden: true },
-      { header: '_acr_part_id', key: 'acr_part_id', width: 36, hidden: true },
-      { header: 'ACR_SKU', key: 'acr_sku', width: 15 },
-      { header: 'Competitor_Brand', key: 'competitor_brand', width: 20 },
-      { header: 'Competitor_SKU', key: 'competitor_sku', width: 20 },
-    ];
+    // Define columns using shared constants (single source of truth)
+    worksheet.columns = CROSS_REFERENCES_COLUMNS;
 
     // Add rows
     crossRefs.forEach((crossRef) => {
       worksheet.addRow({
-        id: crossRef.id,
-        acr_part_id: crossRef.acr_part_id,
+        _id: crossRef.id, // Map database 'id' to Excel '_id' column key
+        _acr_part_id: crossRef.acr_part_id, // Map database 'acr_part_id' to Excel '_acr_part_id' column key
         acr_sku: crossRef.acr_sku || '',
         competitor_brand: crossRef.competitor_brand || '',
         competitor_sku: crossRef.competitor_sku,
