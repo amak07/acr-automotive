@@ -8,6 +8,12 @@ _Last Updated: October 23, 2025_
 
 **Estimated Time**: 78-95 hours total (Phase 8.1: 30-38h, Phase 8.2: 48-57h)
 
+**Time Tracking Protocol:**
+- Track IN/OUT timestamps for each commit within a session
+- Use "(cont)" notation for continuation segments within same session
+- Each row represents a distinct piece of work that gets committed separately
+- This provides granular visibility: what was accomplished, how long it took, and clear audit trail
+
 | Session | Date | Time In | Time Out | Duration | Work Completed |
 |---------|------|---------|----------|----------|----------------|
 | 14 | Oct 22, 2025 | 4:45 PM MX | 6:27 PM MX | 1h 42m | Database migrations (005-006), documentation consolidation, architecture review |
