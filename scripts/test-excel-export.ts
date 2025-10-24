@@ -83,30 +83,35 @@ async function testExcelExport() {
     if (partsSheet) {
       const partsData = XLSX.utils.sheet_to_json(partsSheet, { header: 1 }) as any[][];
       const partsHeaders = partsData[0] || [];
-      const hasHiddenCols = partsHeaders.includes('_id') && partsHeaders.includes('_tenant_id');
+      const hasHiddenCols = partsHeaders.includes('_id');
       const hasVisibleCols =
-        partsHeaders.includes('ACR_SKU') && partsHeaders.includes('Part_Type');
+        partsHeaders.includes('ACR_SKU') &&
+        partsHeaders.includes('Part_Type') &&
+        partsHeaders.includes('Position_Type') &&
+        partsHeaders.includes('ABS_Type') &&
+        partsHeaders.includes('Bolt_Pattern') &&
+        partsHeaders.includes('Drive_Type') &&
+        partsHeaders.includes('Specifications');
 
       results.push({
         test: 'Parts Sheet Structure',
         passed: hasHiddenCols && hasVisibleCols,
         message: hasHiddenCols && hasVisibleCols
-          ? `Headers: ${partsHeaders.join(', ')}`
+          ? `✓ All columns present (${partsHeaders.length} columns)`
           : `Missing columns. Found: ${partsHeaders.join(', ')}`,
       });
 
       // Check if hidden columns are properly set using ExcelJS
       const excelJSPartsSheet = excelJSWorkbook.getWorksheet('Parts');
       const idColumn = excelJSPartsSheet?.getColumn(1); // _id is first column
-      const tenantColumn = excelJSPartsSheet?.getColumn(2); // _tenant_id is second column
-      const isHidden = idColumn?.hidden === true && tenantColumn?.hidden === true;
+      const isHidden = idColumn?.hidden === true;
 
       results.push({
-        test: 'Hidden Columns (_id, _tenant_id)',
+        test: 'Hidden Column (_id)',
         passed: isHidden,
         message: isHidden
-          ? '✓ Columns properly hidden'
-          : `✗ Columns not hidden (id=${idColumn?.hidden}, tenant=${tenantColumn?.hidden})`,
+          ? '✓ _id column properly hidden'
+          : `✗ _id column not hidden (hidden=${idColumn?.hidden})`,
       });
 
       results.push({
@@ -122,17 +127,19 @@ async function testExcelExport() {
       const vehiclesData = XLSX.utils.sheet_to_json(vehiclesSheet, { header: 1 }) as any[][];
       const vehiclesHeaders = vehiclesData[0] || [];
       const hasHiddenCols =
-        vehiclesHeaders.includes('_id') &&
-        vehiclesHeaders.includes('_tenant_id') &&
-        vehiclesHeaders.includes('_part_id');
+        vehiclesHeaders.includes('_id') && vehiclesHeaders.includes('_part_id');
       const hasVisibleCols =
-        vehiclesHeaders.includes('Make') && vehiclesHeaders.includes('Model');
+        vehiclesHeaders.includes('ACR_SKU') &&
+        vehiclesHeaders.includes('Make') &&
+        vehiclesHeaders.includes('Model') &&
+        vehiclesHeaders.includes('Start_Year') &&
+        vehiclesHeaders.includes('End_Year');
 
       results.push({
         test: 'Vehicle Applications Sheet',
         passed: hasHiddenCols && hasVisibleCols,
         message: hasHiddenCols && hasVisibleCols
-          ? `Headers: ${vehiclesHeaders.slice(0, 6).join(', ')}...`
+          ? `✓ All columns present (${vehiclesHeaders.length} columns)`
           : `Missing columns. Found: ${vehiclesHeaders.join(', ')}`,
       });
 
@@ -149,10 +156,9 @@ async function testExcelExport() {
       const crossRefsData = XLSX.utils.sheet_to_json(crossRefsSheet, { header: 1 }) as any[][];
       const crossRefsHeaders = crossRefsData[0] || [];
       const hasHiddenCols =
-        crossRefsHeaders.includes('_id') &&
-        crossRefsHeaders.includes('_tenant_id') &&
-        crossRefsHeaders.includes('_part_id');
+        crossRefsHeaders.includes('_id') && crossRefsHeaders.includes('_acr_part_id');
       const hasVisibleCols =
+        crossRefsHeaders.includes('ACR_SKU') &&
         crossRefsHeaders.includes('Competitor_Brand') &&
         crossRefsHeaders.includes('Competitor_SKU');
 
@@ -160,7 +166,7 @@ async function testExcelExport() {
         test: 'Cross References Sheet',
         passed: hasHiddenCols && hasVisibleCols,
         message: hasHiddenCols && hasVisibleCols
-          ? `Headers: ${crossRefsHeaders.join(', ')}`
+          ? `✓ All columns present (${crossRefsHeaders.length} columns)`
           : `Missing columns. Found: ${crossRefsHeaders.join(', ')}`,
       });
 

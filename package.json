@@ -14,6 +14,7 @@
     "test:full": "npm run type-check && npm test",
     "test:bulk": "tsx scripts/test-bulk-operations.ts",
     "test:export": "tsx scripts/test-excel-export.ts",
+    "test:import-pipeline": "tsx scripts/test-import-pipeline.ts",
     "bootstrap": "tsx scripts/bootstrap-import.ts",
     "bootstrap:test": "cross-env NODE_ENV=test tsx scripts/bootstrap-import.ts",
     "check-prod": "tsx scripts/check-production.ts",
