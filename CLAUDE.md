@@ -8,6 +8,31 @@
 
 1. **Read `docs/PLANNING.md`** - Technical architecture, tech stack, and implementation strategy
 2. **Check `docs/TASKS.md`** - Current development priorities and session state
+3. **Say "session start"** - Automatic time tracking begins (fully automated via hooks!)
+
+**During work session:**
+
+- **Say "session pause"** - Temporarily stop tracking (lunch, breaks, meetings)
+- **Say "session continue"** - Resume tracking after pause
+- Work on features and tasks as normal
+
+**When ending session:**
+
+1. Say **"session end"** to trigger automatic documentation
+2. Claude will generate TASKS.md entry with:
+   - Session number and date
+   - Start/end times with calculated work duration (excluding pauses!)
+   - Pause time breakdown (if any)
+   - Work completed summary
+   - Git statistics (lines changed, files modified, commits)
+
+**Automated hooks will:**
+- Load project context on session start
+- Run session tracker automatically (start/pause/continue/end)
+- Detect large features (>500 lines changed)
+- Remind about documentation after git commits
+- Protect sensitive files from accidental modification
+- Track actual work time vs break time for honest billing
 
 ## 📁 Key File Locations
 

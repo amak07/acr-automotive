@@ -24,6 +24,8 @@ dist/
 .vscode/
 .idea/
 .claude/
+!.claude/session-tracker.sh
+!.claude/README.md
 *.swp
 *.swo
 *~

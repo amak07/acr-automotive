@@ -15,23 +15,29 @@ High-level feature documentation for RAG and developer reference.
 
 ### Data Management
 - [Bulk Operations API](./features/data-management/BULK_OPERATIONS.md) - ✅ Batch create/update/delete operations for parts, vehicles, and cross-references
+- [Excel Export](./features/data-management/EXCEL_EXPORT.md) - ✅ Excel generation with pagination bypass and hidden columns
 
 ### Coming Soon
 - **Search System** - Core search functionality and optimization strategies
 - **Part Image Management** - 360° viewer, storage, and cleanup system
 - **Authentication** - Admin auth and security (Phase 9)
-- **Internationalization** - Translation system and language support
 
 ## Architecture Documentation
 
 Core system architecture and design decisions.
 
+### System Architecture
+- [Overview](./architecture/OVERVIEW.md) - ✅ 30,000-foot view of system architecture, layers, and design principles
+- [API Design](./architecture/API_DESIGN.md) - ✅ RESTful patterns, error handling, and response formats
+- [Validation](./architecture/VALIDATION.md) - ✅ Zod schema patterns and type inference
+- [Service Layer](./architecture/SERVICE_LAYER.md) - ✅ When to use services, patterns, and examples
+- [State Management](./architecture/STATE_MANAGEMENT.md) - ✅ TanStack Query and React Context patterns
+- [Data Flow](./architecture/DATA_FLOW.md) - ✅ Request lifecycle, caching, and performance optimizations
+- [Internationalization](./architecture/INTERNATIONALIZATION.md) - ✅ Custom i18n system architecture
+- [Component Architecture](./architecture/COMPONENT_ARCHITECTURE.md) - ✅ ACR design system patterns and usage
+
 ### Database
 - [Database Schema](./database/DATABASE.md) - Complete schema, relationships, and migration history
-
-### Coming Soon
-- **API Design** - REST conventions, error handling, and versioning
-- **Service Layer** - Service pattern, dependency injection, and testing
 
 ## Technical Plans
 
@@ -85,4 +91,4 @@ Located in: [excel/](./excel/)
 
 ---
 
-**Last Updated**: October 23, 2025
+**Last Updated**: October 25, 2025

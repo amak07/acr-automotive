@@ -1,6 +1,6 @@
 # TASKS.md - ACR Automotive Development Tasks
 
-_Last Updated: October 23, 2025_
+_Last Updated: October 25, 2025_
 
 ---
 
@@ -21,6 +21,7 @@ _Last Updated: October 23, 2025_
 | 15 (cont) | Oct 23, 2025 | 4:40 PM MX | 6:10 PM MX | 1h 30m | Excel export complete: ExcelJS integration with hidden columns, pagination, frozen headers, 8/8 tests passing |
 | 15 (cont) | Oct 23, 2025 | 6:10 PM MX | 6:30 PM MX | 0h 20m | Export schema alignment: Fixed column mapping to match actual DB schema, added ACR_SKU to VA/CR sheets via JOIN, updated docs |
 | 16 | Oct 24, 2025 | 2:25 PM MX | 4:55 PM MX | 2h 30m | Import pipeline: Shared constants, ExcelImportService parser, ValidationEngine (19 errors/10 warnings), DiffEngine, export bug fixes, null/undefined normalization, test suite passing |
+| 17 | Oct 25, 2025 | 2:00 PM MX | 2:15 PM MX | 0h 15m | Documentation automation: Claude Code hooks implementation (6 hooks), jq installation, session tracker script, enhanced session end detection with auto time tracking |
 
 **Phase 8.1 Actual Time**: 4h 17m / 30-38h estimated
 **Phase 8.2 Actual Time**: 2h 30m / 48-57h estimated

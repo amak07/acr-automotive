@@ -938,10 +938,19 @@ ORDER BY seq_tup_read DESC;
 
 ## Related Documentation
 
+### Database Files
 - **[schema.sql](../../src/lib/supabase/schema.sql)** - Base schema SQL
 - **[migrations/](../../src/lib/supabase/migrations/)** - All migration files
 - **[types.ts](../../src/lib/supabase/types.ts)** - TypeScript types (auto-generated)
-- **[PLANNING.md](../PLANNING.md)** - Overall project architecture
+
+### Architecture Documentation
+- **[Architecture Overview](../architecture/OVERVIEW.md)** - Database layer in system architecture
+- **[Data Flow](../architecture/DATA_FLOW.md)** - How database fits in request lifecycle
+- **[Validation](../architecture/VALIDATION.md)** - Zod schemas that validate database operations
+- **[API Design](../architecture/API_DESIGN.md)** - API routes that query the database
+
+### Project Documentation
+- **[PLANNING.md](../PLANNING.md)** - Overall project architecture and tech stack rationale
 - **[TASKS.md](../TASKS.md)** - Current development status
 
 ---
