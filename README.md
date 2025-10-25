@@ -19,7 +19,8 @@ ACR Automotive solves a critical problem in the auto parts industry: **cross-ref
 - **🌍 Bilingual Support**: English development, Spanish production (Mexican market)
 - **⚙️ Admin CRUD Interface**: Complete parts management system for ongoing inventory control
 - **🖼️ Image Management**: Admin interface for product photos
-- **📦 One-Time Bootstrap**: Import existing Excel data once, then manage through web interface
+- **📦 Bulk Operations**: Import/export parts data via Excel with validation and error handling
+- **📊 Excel Export**: Export parts catalog with pagination bypass (handles 9,600+ parts)
 
 ## 🏗️ Technical Architecture
 
@@ -108,6 +109,8 @@ ACR Automotive solves a critical problem in the auto parts industry: **cross-ref
 | `npm run test:watch`     | Run tests in watch mode                        |
 | `npm run test:coverage`  | Run tests with coverage                        |
 | `npm run test:full`      | TypeScript check + tests (recommended)        |
+| `npm run test:excel-export` | Test Excel export functionality            |
+| `npm run test:export`    | Test export with real data                     |
 | `npm run bootstrap`      | One-time data import from Excel (completed)   |
 | `npm run bootstrap:test` | Test bootstrap import with development data    |
 | `npm run check-prod`     | Check production database status               |
@@ -285,12 +288,34 @@ NODE_ENV=production
 
 ## 📚 Documentation
 
-- **`docs/PLANNING.md`** - Technical architecture and implementation strategy
-- **`docs/TASKS.md`** - Development roadmap and current priorities
-- **`docs/ENHANCEMENTS.md`** - Future improvements and enhancement roadmap
-- **`docs/TESTING.md`** - Testing strategy and guidelines
-- **`docs/CLAUDE.md`** - Development standards and patterns
-- **`src/components/acr/README.md`** - ACR Design System documentation
+### Core Documentation
+- **[docs/README.md](docs/README.md)** - Documentation navigation and index
+- **[docs/PLANNING.md](docs/PLANNING.md)** - Technical architecture and implementation strategy
+- **[docs/TASKS.md](docs/TASKS.md)** - Development roadmap and current priorities
+- **[docs/TESTING.md](docs/TESTING.md)** - Testing strategy and guidelines
+- **[CLAUDE.md](CLAUDE.md)** - Development standards and patterns for AI assistants
+
+### Architecture Documentation
+- **[Architecture Overview](docs/architecture/OVERVIEW.md)** - 30,000-foot system architecture view
+- **[API Design](docs/architecture/API_DESIGN.md)** - RESTful patterns and conventions
+- **[Validation](docs/architecture/VALIDATION.md)** - Zod schema patterns and type inference
+- **[Service Layer](docs/architecture/SERVICE_LAYER.md)** - Service pattern and when to use it
+- **[State Management](docs/architecture/STATE_MANAGEMENT.md)** - TanStack Query and Context patterns
+- **[Data Flow](docs/architecture/DATA_FLOW.md)** - Request lifecycle and caching strategy
+- **[Internationalization](docs/architecture/INTERNATIONALIZATION.md)** - Custom i18n system
+- **[Component Architecture](docs/architecture/COMPONENT_ARCHITECTURE.md)** - ACR design system patterns
+
+### Feature Documentation
+- **[Bulk Operations](docs/features/data-management/BULK_OPERATIONS.md)** - Batch create/update/delete API
+- **[Excel Export](docs/features/data-management/EXCEL_EXPORT.md)** - Excel generation with pagination bypass
+- **[Excel Import](docs/features/data-management/EXCEL_IMPORT.md)** - Import validation and processing
+- **[Database Schema](docs/database/DATABASE.md)** - Complete schema and design decisions
+
+### Component Documentation
+- **[ACR Design System](src/components/acr/README.md)** - Custom component library and patterns
+
+### Future Enhancements
+- **[ENHANCEMENTS.md](docs/ENHANCEMENTS.md)** - Roadmap for future improvements
 
 ## 🎯 Project Status
 
