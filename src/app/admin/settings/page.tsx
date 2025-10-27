@@ -5,9 +5,9 @@
 
 "use client";
 
-import { AppHeader } from "@/components/layout/AppHeader";
-import { SettingsPageContent } from "@/components/admin/settings/SettingsPageContent";
-import { withAdminAuth } from "@/components/admin/auth/withAdminAuth";
+import { AppHeader } from "@/components/shared/layout/AppHeader";
+import { SettingsPageContent } from "@/components/features/admin/settings/SettingsPageContent";
+import { withAdminAuth } from "@/components/shared/auth/withAdminAuth";
 
 function SettingsPage() {
   return (

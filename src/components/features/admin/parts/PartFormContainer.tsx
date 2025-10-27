@@ -3,7 +3,7 @@ import { useFilterOptions } from "@/hooks";
 import { PartWithDetails } from "@/types";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { AppHeader } from "@/components/shared/layout/AppHeader";
 import { SkeletonPartForm } from "@/components/ui/skeleton";
 import { PartBasicInfo } from "../part-details/PartBasicInfo";
 import { PartDetailsActions } from "../part-details/PartDetailsActions";

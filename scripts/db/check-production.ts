@@ -6,7 +6,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { supabase } from "../src/lib/supabase/client";
+import { supabase } from "../../src/lib/supabase/client";
 
 async function checkProductionData() {
   console.log("🔍 Checking current production data...");

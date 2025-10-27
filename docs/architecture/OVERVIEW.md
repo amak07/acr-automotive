@@ -108,11 +108,11 @@
 - State management (TanStack Query + Context)
 - Internationalization (custom i18n system)
 
-**Key Files**:
-- [src/app/](../../src/app/) - App Router pages and layouts
-- [src/components/acr/](../../src/components/acr/) - ACR design system
-- [src/hooks/](../../src/hooks/) - Data fetching and UI hooks
-- [src/contexts/](../../src/contexts/) - Global state contexts
+**Organization**:
+- Feature-based component structure (`features/admin/`, `features/public/`, `shared/`)
+- Domain-based hooks (`hooks/api/admin/`, `hooks/api/public/`)
+- ACR design system in dedicated folder
+- App Router pages follow Next.js conventions
 
 **Patterns**:
 - Server components by default
@@ -120,7 +120,7 @@
 - Parallel data fetching with React Suspense
 - No external component libraries (copy, don't import)
 
-**See**: [COMPONENT_ARCHITECTURE.md](COMPONENT_ARCHITECTURE.md), [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md)
+**See**: [CODE_ORGANIZATION.md](CODE_ORGANIZATION.md), [COMPONENT_ARCHITECTURE.md](COMPONENT_ARCHITECTURE.md), [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md)
 
 ---
 
@@ -169,15 +169,15 @@
 - Pagination bypass (PostgREST limits)
 - Data transformation
 
+**Organization**: Services grouped by domain in `src/services/`
+
 **Services**:
-- **BulkOperationsService** ([src/lib/services/BulkOperationsService.ts](../../src/lib/services/BulkOperationsService.ts))
-  - Atomic bulk creates/updates/deletes
+- **BulkOperationsService** - Atomic bulk creates/updates/deletes
   - Field mapping (sku_number → acr_sku)
   - Concurrent operations with Promise.all
 
-- **ExcelExportService** ([src/lib/services/ExcelExportService.ts](../../src/lib/services/ExcelExportService.ts))
+- **ExcelExportService** - Excel file generation
   - Paginated data fetching (bypass 1000-row limit)
-  - ExcelJS workbook generation
   - Hidden columns for import matching
   - Frozen headers and formatting
 
@@ -524,6 +524,7 @@ export async function POST(request: NextRequest) {
 ## Related Documentation
 
 ### Architecture Deep Dives
+- [CODE_ORGANIZATION.md](CODE_ORGANIZATION.md) - File structure & organizational principles ⭐ **NEW**
 - [API_DESIGN.md](API_DESIGN.md) - RESTful patterns, error handling
 - [SERVICE_LAYER.md](SERVICE_LAYER.md) - Service pattern, when to use
 - [DATA_FLOW.md](DATA_FLOW.md) - Request lifecycle, caching strategy

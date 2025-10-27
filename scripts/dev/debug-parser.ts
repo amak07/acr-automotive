@@ -5,7 +5,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { ExcelImportService } from '../src/services/excel/import/ExcelImportService';
+import { ExcelImportService } from '../../src/services/excel/import/ExcelImportService';
 
 const TEST_FILE = path.join(process.cwd(), 'tmp', 'test-export.xlsx');
 

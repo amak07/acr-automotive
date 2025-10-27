@@ -1,8 +1,8 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { AppHeader } from "@/components/layout/AppHeader";
-import { PublicPartDetails } from "@/components/public/parts/PublicPartDetails";
+import { AppHeader } from "@/components/shared/layout/AppHeader";
+import { PublicPartDetails } from "@/components/features/public/parts/PublicPartDetails";
 import { usePublicPartById } from "@/hooks";
 
 export default function PublicPartDetailsPage() {

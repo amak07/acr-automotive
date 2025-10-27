@@ -3,13 +3,13 @@
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import type { Route } from "next";
 import { useMemo, Suspense } from "react";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { AppHeader } from "@/components/shared/layout/AppHeader";
 import {
   PublicSearchFilters,
   PublicSearchTerms,
-} from "@/components/public/search/PublicSearchFilters";
-import { PublicPartsList } from "@/components/public/parts/PublicPartsList";
-import { BannerCarousel } from "@/components/public/BannerCarousel";
+} from "@/components/features/public/search/PublicSearchFilters";
+import { PublicPartsList } from "@/components/features/public/parts/PublicPartsList";
+import { BannerCarousel } from "@/components/features/public/BannerCarousel";
 import { AcrPagination } from "@/components/acr";
 import { usePublicParts } from "@/hooks";
 import { useLocale } from "@/contexts/LocaleContext";

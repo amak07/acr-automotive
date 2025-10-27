@@ -2,11 +2,11 @@
 
 import { useLocale } from "@/contexts/LocaleContext";
 import { useToast } from "@/hooks";
-import { withAdminAuth } from "@/components/admin/auth/withAdminAuth";
+import { withAdminAuth } from "@/components/shared/auth/withAdminAuth";
 import {
   PartFormContainer,
   PartFormData,
-} from "@/components/admin/parts/PartFormContainer";
+} from "@/components/features/admin/parts/PartFormContainer";
 import { useCreatePart } from "@/hooks/admin/useCreatePart";
 import { useRouter } from "next/navigation";
 

@@ -15,15 +15,15 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from "dotenv";
-import { ExcelImportService } from "../src/services/excel/import/ExcelImportService";
-import { ValidationEngine } from "../src/services/excel/validation/ValidationEngine";
-import { DiffEngine } from "../src/services/excel/diff/DiffEngine";
-import type { ExistingDatabaseData } from "../src/services/excel/validation/ValidationEngine";
+import { ExcelImportService } from "../../src/services/excel/import/ExcelImportService";
+import { ValidationEngine } from "../../src/services/excel/validation/ValidationEngine";
+import { DiffEngine } from "../../src/services/excel/diff/DiffEngine";
+import type { ExistingDatabaseData } from "../../src/services/excel/validation/ValidationEngine";
 import type {
   ExcelPartRow,
   ExcelVehicleAppRow,
   ExcelCrossRefRow,
-} from "../src/services/excel/shared/types";
+} from "../../src/services/excel/shared/types";
 import { createClient } from "@supabase/supabase-js";
 
 // Load environment variables

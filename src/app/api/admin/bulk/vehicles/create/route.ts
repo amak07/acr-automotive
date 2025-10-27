@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { BulkOperationsService } from "@/lib/services/BulkOperationsService";
+import { BulkOperationsService } from "@/services/bulk-operations/BulkOperationsService";
 import { bulkCreateVehiclesSchema } from "@/lib/schemas/admin";
 import { ZodError } from "zod";
 
