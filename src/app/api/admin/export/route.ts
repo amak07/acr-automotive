@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ExcelExportService } from '@/lib/services/ExcelExportService';
+import { ExcelExportService } from '@/services/export/ExcelExportService';
 import type { ExportFilters } from '@/services/excel/shared';
 
 /**

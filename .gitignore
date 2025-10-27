@@ -12,6 +12,10 @@ out/
 build/
 dist/
 
+# Deployment
+.vercel/
+.turbo/
+
 # Environment variables
 .env
 .env.test
@@ -49,6 +53,9 @@ coverage/
 # Temporary folders
 tmp/
 temp/
+
+# Archive folder (historical files)
+archive/
 
 # Optional npm cache directory
 .npm

@@ -8,7 +8,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { supabase } from "../src/lib/supabase/client";
+import { supabase } from "../../src/lib/supabase/client";
 
 async function clearProductionData() {
   console.log("⚠️  WARNING: This will clear ALL production data!");

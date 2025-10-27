@@ -6,7 +6,7 @@ import { RotateCw, Upload, Plus, Trash2, CheckCircle2, Loader2 } from "lucide-re
 import { useToast } from "@/hooks/common/use-toast";
 import { useLocale } from "@/contexts/LocaleContext";
 import { AcrButton } from "@/components/acr";
-import { Part360Viewer } from "@/components/public/parts/Part360Viewer";
+import { Part360Viewer } from "@/components/features/public/parts/Part360Viewer";
 import {
   DndContext,
   closestCenter,

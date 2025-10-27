@@ -16,10 +16,10 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { PreciosParser } from '../src/lib/excel/precios-parser';
-import { CatalogacionParser } from '../src/lib/excel/catalogacion-parser';
-import { importPreciosData, importCatalogacionData } from '../src/lib/supabase/import';
-import { supabase } from '../src/lib/supabase/client';
+import { PreciosParser } from '../../src/lib/excel/precios-parser';
+import { CatalogacionParser } from '../../src/lib/excel/catalogacion-parser';
+import { importPreciosData, importCatalogacionData } from '../../src/lib/supabase/import';
+import { supabase } from '../../src/lib/supabase/client';
 
 // Excel file paths (using test files for bootstrap)
 const PRECIOS_FILE = 'src/lib/excel/__tests__/09 LISTA DE PRECIOS ACR 21 07 2024 INV 100725.xlsx';

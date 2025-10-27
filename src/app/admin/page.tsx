@@ -1,11 +1,11 @@
 "use client";
 
 import type { Route } from "next";
-import { AppHeader } from "@/components/layout/AppHeader";
-import { DashboardCards } from "@/components/admin/dashboard/DashboardCards";
-import { SearchFilters, SearchTerms } from "@/components/admin/parts/SearchFilters";
-import { PartsList } from "@/components/admin/parts/PartsList";
-import { withAdminAuth } from "@/components/admin/auth/withAdminAuth";
+import { AppHeader } from "@/components/shared/layout/AppHeader";
+import { DashboardCards } from "@/components/features/admin/dashboard/DashboardCards";
+import { SearchFilters, SearchTerms } from "@/components/features/admin/parts/SearchFilters";
+import { PartsList } from "@/components/features/admin/parts/PartsList";
+import { withAdminAuth } from "@/components/shared/auth/withAdminAuth";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useGetParts } from "@/hooks";
 import { useDebounce } from "use-debounce";

@@ -3,8 +3,8 @@ import { Noto_Sans, Exo_2 } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/toaster";
-import { Footer } from "@/components/layout/Footer";
-import { ContactFabs } from "@/components/layout/ContactFabs";
+import { Footer } from "@/components/shared/layout/Footer";
+import { ContactFabs } from "@/components/shared/layout/ContactFabs";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],

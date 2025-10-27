@@ -3,17 +3,17 @@
 import { useGetPartById } from "@/hooks";
 import { useParams } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
-import { PartDetailsBreadcrumb } from "@/components/admin/layout/PartDetailsBreadcrumb";
-import { PartDetailsHeader } from "@/components/admin/part-details/PartDetailsHeader";
-import { PartMetadata } from "@/components/admin/part-details/PartMetadata";
+import { PartDetailsBreadcrumb } from "@/components/features/admin/layout/PartDetailsBreadcrumb";
+import { PartDetailsHeader } from "@/components/features/admin/part-details/PartDetailsHeader";
+import { PartMetadata } from "@/components/features/admin/part-details/PartMetadata";
 import { useUpdatePartById } from "@/hooks";
 import { useToast } from "@/hooks";
-import { withAdminAuth } from "@/components/admin/auth/withAdminAuth";
+import { withAdminAuth } from "@/components/shared/auth/withAdminAuth";
 import { UpdatePartsParams } from "@/hooks/admin/useUpdatePartById";
 import {
   PartFormContainer,
   PartFormData,
-} from "@/components/admin/parts/PartFormContainer";
+} from "@/components/features/admin/parts/PartFormContainer";
 
 function PartDetailsPage() {
   const params = useParams();

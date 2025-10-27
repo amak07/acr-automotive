@@ -14,7 +14,7 @@ import {
 } from "@/components/acr";
 import { Info } from "lucide-react";
 import { Control, Controller } from "react-hook-form";
-import { PartFormData } from "@/components/admin/parts/PartFormContainer";
+import { PartFormData } from "@/components/features/admin/parts/PartFormContainer";
 import { FilterOptionsResponse } from "@/app/api/admin/filter-options/route";
 import { useFormState } from "react-hook-form";
 import { useToast } from "@/hooks";
