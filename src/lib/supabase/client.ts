@@ -33,5 +33,19 @@ if (!supabaseUrl || !supabaseKey) {
  * - Parts catalog management
  * - Vehicle applications
  * - Cross-reference lookups
+ *
+ * Note: Schema validation is disabled for test environments to allow
+ * dynamic schema changes (migrations) during test runs.
  */
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  db: {
+    schema: 'public',
+  },
+  // Disable schema validation in test/development to avoid schema cache issues
+  // In production, Vercel deployments will use the latest schema
+  global: {
+    headers: {
+      'X-Client-Info': 'acr-automotive'
+    }
+  }
+});

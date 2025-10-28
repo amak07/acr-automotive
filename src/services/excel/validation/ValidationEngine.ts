@@ -299,8 +299,14 @@ export class ValidationEngine {
     parts: ExcelPartRow[],
     existingData: ExistingDatabaseData
   ): void {
-    // Build part ID set from uploaded file
+    // Build part ID set from uploaded file (for _part_id references)
     const partIdsInFile = new Set(parts.map(p => p._id).filter(Boolean));
+
+    // Build ACR_SKU set from uploaded file (for acr_sku references)
+    const partSkusInFile = new Set(parts.map(p => p.acr_sku).filter(Boolean));
+
+    // Combine with existing SKUs from database
+    const allKnownSkus = new Set([...partSkusInFile, ...existingData.partSkus]);
 
     vehicles.forEach((vehicle, index) => {
       const rowNumber = index + 2;
@@ -359,7 +365,19 @@ export class ValidationEngine {
         );
       }
 
-      // E5: Orphaned foreign key (_part_id must reference a part in file)
+      // E5: Orphaned foreign key (ACR_SKU must reference a part in file or database)
+      if (vehicle.acr_sku && !allKnownSkus.has(vehicle.acr_sku)) {
+        this.addError(
+          ValidationErrorCode.E5_ORPHANED_FOREIGN_KEY,
+          `ACR_SKU "${vehicle.acr_sku}" does not reference any existing part`,
+          SHEET_NAMES.VEHICLE_APPLICATIONS,
+          rowNumber,
+          'ACR_SKU',
+          vehicle.acr_sku
+        );
+      }
+
+      // E5: Orphaned foreign key (_part_id must reference a part in file) - only for updates
       if (vehicle._part_id && !partIdsInFile.has(vehicle._part_id)) {
         this.addError(
           ValidationErrorCode.E5_ORPHANED_FOREIGN_KEY,
@@ -497,8 +515,14 @@ export class ValidationEngine {
     parts: ExcelPartRow[],
     existingData: ExistingDatabaseData
   ): void {
-    // Build part ID set from uploaded file
+    // Build part ID set from uploaded file (for _acr_part_id references)
     const partIdsInFile = new Set(parts.map(p => p._id).filter(Boolean));
+
+    // Build ACR_SKU set from uploaded file (for acr_sku references)
+    const partSkusInFile = new Set(parts.map(p => p.acr_sku).filter(Boolean));
+
+    // Combine with existing SKUs from database
+    const allKnownSkus = new Set([...partSkusInFile, ...existingData.partSkus]);
 
     crossRefs.forEach((crossRef, index) => {
       const rowNumber = index + 2;
@@ -547,7 +571,19 @@ export class ValidationEngine {
         );
       }
 
-      // E5: Orphaned foreign key
+      // E5: Orphaned foreign key (ACR_SKU must reference a part in file or database)
+      if (crossRef.acr_sku && !allKnownSkus.has(crossRef.acr_sku)) {
+        this.addError(
+          ValidationErrorCode.E5_ORPHANED_FOREIGN_KEY,
+          `ACR_SKU "${crossRef.acr_sku}" does not reference any existing part`,
+          SHEET_NAMES.CROSS_REFERENCES,
+          rowNumber,
+          'ACR_SKU',
+          crossRef.acr_sku
+        );
+      }
+
+      // E5: Orphaned foreign key (_acr_part_id must reference a part in file) - only for updates
       if (crossRef._acr_part_id && !partIdsInFile.has(crossRef._acr_part_id)) {
         this.addError(
           ValidationErrorCode.E5_ORPHANED_FOREIGN_KEY,

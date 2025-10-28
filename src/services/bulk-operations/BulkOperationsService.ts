@@ -359,26 +359,35 @@ export class BulkOperationsService {
     crossRefs: (UpdateCrossReferenceParams & { id: string })[]
   ): Promise<BulkOperationResult & { data?: any[] }> {
     try {
-      const updatePromises = crossRefs.map(async (crossRef) => {
-        const { id, ...updates } = crossRef;
+      // Process in batches to avoid overwhelming the connection pool
+      const BATCH_SIZE = 100;
+      const allResults: any[] = [];
 
-        const { data, error } = await supabase
-          .from("cross_references")
-          .update(updates)
-          .eq("id", id)
-          .select()
-          .single();
+      for (let i = 0; i < crossRefs.length; i += BATCH_SIZE) {
+        const batch = crossRefs.slice(i, i + BATCH_SIZE);
 
-        if (error) throw error;
-        return data;
-      });
+        const updatePromises = batch.map(async (crossRef) => {
+          const { id, ...updates } = crossRef;
 
-      const results = await Promise.all(updatePromises);
+          const { data, error } = await supabase
+            .from("cross_references")
+            .update(updates)
+            .eq("id", id)
+            .select()
+            .single();
+
+          if (error) throw error;
+          return data;
+        });
+
+        const batchResults = await Promise.all(updatePromises);
+        allResults.push(...batchResults);
+      }
 
       return {
         success: true,
-        updated: results.length,
-        data: results,
+        updated: allResults.length,
+        data: allResults,
       };
     } catch (error: any) {
       return {

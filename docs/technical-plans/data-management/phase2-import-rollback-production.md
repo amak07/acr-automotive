@@ -1639,7 +1639,141 @@ export interface ImportSnapshot {
 
 ---
 
-### 6. API Routes
+### 6. Rollback Conflict Handling
+
+**Problem**: What happens when records are manually edited between import and rollback?
+
+**Scenario**:
+```
+Timeline:
+T1: Import A executed (100 parts updated via Excel)
+    → Snapshot A created (contains pre-import state)
+
+T2: Humberto manually edits Part #42 via Admin UI
+    → Part #42 now differs from both snapshot and import result
+
+T3: Humberto realizes Import A was wrong, wants to rollback
+
+❌ PROBLEM: Part #42's manual edits will be LOST if we blindly restore snapshot
+```
+
+#### MVP Solution: Block Rollback on Conflicts
+
+**Approach**: Detect conflicts and prevent rollback to avoid data loss (safest, simplest)
+
+**Implementation**:
+
+```typescript
+// Add timestamp tracking to all tables
+ALTER TABLE parts ADD COLUMN updated_at TIMESTAMP DEFAULT NOW();
+ALTER TABLE vehicle_applications ADD COLUMN updated_at TIMESTAMP DEFAULT NOW();
+ALTER TABLE cross_references ADD COLUMN updated_at TIMESTAMP DEFAULT NOW();
+
+// Validation function in RollbackService
+async validateRollbackSafety(importId: string, tenantId?: string) {
+  const importRecord = await getImportHistory(importId);
+  const affectedIds = extractIdsFromSnapshot(importRecord.snapshot_data);
+
+  // Check if any affected records were modified AFTER import
+  const conflicts = await db
+    .select()
+    .from(parts)
+    .where(
+      and(
+        inArray(parts.id, affectedIds),
+        gt(parts.updated_at, importRecord.created_at) // Modified AFTER import
+      )
+    );
+
+  if (conflicts.length > 0) {
+    throw new RollbackConflictError({
+      conflictCount: conflicts.length,
+      conflictingParts: conflicts.map(p => p.acr_sku),
+      message: `Cannot rollback: ${conflicts.length} part(s) were manually edited after this import. Rollback would cause data loss.`
+    });
+  }
+
+  // Safe to proceed
+  return true;
+}
+```
+
+**User Experience**:
+
+```typescript
+// UI Flow
+try {
+  await validateRollbackSafety(importId);
+  await executeRollback(importId);
+  toast.success("Import rolled back successfully");
+} catch (error) {
+  if (error instanceof RollbackConflictError) {
+    // Show modal with conflicting parts list
+    showConflictModal({
+      title: "Cannot Rollback",
+      message: `${error.conflictCount} part(s) were manually edited after this import.`,
+      affectedParts: error.conflictingParts,
+      guidance: "To rollback, you must first manually revert changes to these parts, or accept that manual edits will be lost."
+    });
+  }
+}
+```
+
+**Schema Changes Required**:
+
+Add to migration 007 (or create new migration):
+
+```sql
+-- Migration: Add timestamp tracking for rollback conflict detection
+ALTER TABLE parts
+  ADD COLUMN updated_at TIMESTAMP DEFAULT NOW(),
+  ADD COLUMN updated_by TEXT DEFAULT 'manual';
+
+ALTER TABLE vehicle_applications
+  ADD COLUMN updated_at TIMESTAMP DEFAULT NOW(),
+  ADD COLUMN updated_by TEXT DEFAULT 'manual';
+
+ALTER TABLE cross_references
+  ADD COLUMN updated_at TIMESTAMP DEFAULT NOW(),
+  ADD COLUMN updated_by TEXT DEFAULT 'manual';
+
+-- Update trigger to set updated_at on modifications
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_parts_updated_at
+  BEFORE UPDATE ON parts
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_vehicle_applications_updated_at
+  BEFORE UPDATE ON vehicle_applications
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_cross_references_updated_at
+  BEFORE UPDATE ON cross_references
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+```
+
+**Why This Approach**:
+
+✅ **Zero data loss risk** - No manual edits ever lost
+✅ **Simple to implement** - 1-2 hours additional work
+✅ **Clear error messaging** - User understands why rollback blocked
+✅ **Realistic use case** - Imports tested before production, manual edits between imports are rare during data onboarding phase
+
+**Future Enhancement**: See `docs/ENHANCEMENTS.md` for interactive conflict resolution UI (allows per-record decisions: "Keep Manual Edit" vs "Use Snapshot"). This advanced feature is valuable for active editing workflows but not critical for MVP.
+
+---
+
+### 7. API Routes
 
 **Import API**: `src/app/api/admin/import/route.ts`
 
@@ -1749,7 +1883,7 @@ async function loadExistingData(): Promise<ExistingDataSnapshot> {
 }
 ```
 
-**Rollback API**: `src/app/api/admin/rollback/route.ts`
+**Rollback API**: `src/app/api/admin/rollback/route.ts` (updated with conflict detection)
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';

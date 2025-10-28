@@ -2,6 +2,62 @@
 
 > **Philosophy**: Test the critical business logic and core features that directly impact Humberto's business. Focus on clean, simple tests that catch real problems without over-engineering.
 
+## ✅ Current Test Coverage (Phase 8.2)
+
+### ValidationEngine - **100% Coverage** (13/13 tests passing)
+
+**Test Suite**: `tests/unit/excel/validation-engine.test.ts`
+**Run Time**: ~1 second
+**Status**: Production-ready
+
+**Error Codes Tested (E2-E8)**:
+- ✅ E2: Duplicate ACR_SKU detection
+- ✅ E3: Missing required fields (Parts, Vehicle Apps, Cross Refs)
+- ✅ E4: Invalid UUID format validation
+- ✅ E5: Orphaned foreign key detection (ACR_SKU references)
+- ✅ E6: Invalid year range (end_year < start_year)
+- ✅ E7: String max length exceeded (50 chars)
+- ✅ E8: Year out of range (1900-2027)
+
+**Warning Codes Tested (W1-W10)**:
+- ✅ W1: ACR_SKU changed (with mock database state)
+- ✅ W2: Year range narrowed (3 instances)
+- ✅ W3: Part Type changed
+- ✅ W4: Position Type changed
+- ✅ W7: Specifications shortened (>50% reduction)
+- ✅ W8: Vehicle Make changed
+- ✅ W9: Vehicle Model changed
+- ✅ W10: Competitor Brand changed
+
+**Test Fixtures**: 8 Excel files in `fixtures/excel/`
+- `valid-add-new-parts.xlsx` - Happy path (5 parts)
+- `valid-update-existing.xlsx` - Update scenario (requires seed data)
+- `error-missing-required-fields.xlsx` - E3 validation
+- `error-duplicate-skus.xlsx` - E2 validation
+- `error-orphaned-references.xlsx` - E5 validation
+- `error-invalid-formats.xlsx` - E4, E6, E8 validation
+- `error-max-length-exceeded.xlsx` - E7 validation
+- `warning-data-changes.xlsx` - W1-W10 warnings
+
+**Test Helpers**: `scripts/test/helpers/fixture-loader.ts`
+- `loadFixture()` - Load Excel file as File object (Node.js compatible)
+- `emptyDbState()` - Mock empty database for add-only tests
+- `seedDbState()` - Mock database with 4 parts, 3 VAs, 1 cross ref for update tests
+
+**Integration Tests**: `scripts/test/test-all-fixtures.ts`
+- Tests all fixtures through Parse → Validate flow
+- 7/7 fixtures passing (100% success rate)
+- Run with: `npm run test:all-fixtures`
+
+**Full Pipeline Test**: `scripts/test/test-full-import-pipeline.ts`
+- End-to-end test: Parse → Validate → Diff → Import → Rollback
+- 10.5 second total execution time
+- 9,593 rows processed (877 parts, 2,304 VAs, 6,412 cross refs)
+- Validation: 64ms (~150k rows/sec throughput)
+- Run with: `npm run test:full-pipeline`
+
+---
+
 ## 🎯 Testing Priorities (ACR Automotive Specific)
 
 ### **CRITICAL - Must Test (MVP)**
