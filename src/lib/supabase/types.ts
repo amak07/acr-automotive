@@ -21,7 +21,9 @@ export type Database = {
           competitor_sku: string
           created_at: string | null
           id: string
+          tenant_id: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           acr_part_id: string
@@ -29,7 +31,9 @@ export type Database = {
           competitor_sku: string
           created_at?: string | null
           id?: string
+          tenant_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           acr_part_id?: string
@@ -37,7 +41,9 @@ export type Database = {
           competitor_sku?: string
           created_at?: string | null
           id?: string
+          tenant_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -45,6 +51,111 @@ export type Database = {
             columns: ["acr_part_id"]
             isOneToOne: false
             referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cross_references_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_history: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size_bytes: number | null
+          id: string
+          import_summary: Json | null
+          imported_by: string | null
+          rows_imported: number
+          snapshot_data: Json
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size_bytes?: number | null
+          id?: string
+          import_summary?: Json | null
+          imported_by?: string | null
+          rows_imported?: number
+          snapshot_data: Json
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size_bytes?: number | null
+          id?: string
+          import_summary?: Json | null
+          imported_by?: string | null
+          rows_imported?: number
+          snapshot_data?: Json
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      part_360_frames: {
+        Row: {
+          created_at: string | null
+          file_size_bytes: number | null
+          frame_number: number
+          height: number | null
+          id: string
+          image_url: string
+          part_id: string
+          storage_path: string
+          tenant_id: string | null
+          width: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_size_bytes?: number | null
+          frame_number: number
+          height?: number | null
+          id?: string
+          image_url: string
+          part_id: string
+          storage_path: string
+          tenant_id?: string | null
+          width?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          file_size_bytes?: number | null
+          frame_number?: number
+          height?: number | null
+          id?: string
+          image_url?: string
+          part_id?: string
+          storage_path?: string
+          tenant_id?: string | null
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "part_360_frames_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "part_360_frames_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -58,6 +169,7 @@ export type Database = {
           image_url: string
           is_primary: boolean | null
           part_id: string
+          tenant_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -68,6 +180,7 @@ export type Database = {
           image_url: string
           is_primary?: boolean | null
           part_id: string
+          tenant_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -78,6 +191,7 @@ export type Database = {
           image_url?: string
           is_primary?: boolean | null
           part_id?: string
+          tenant_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -86,6 +200,13 @@ export type Database = {
             columns: ["part_id"]
             isOneToOne: false
             referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "part_images_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -97,11 +218,15 @@ export type Database = {
           bolt_pattern: string | null
           created_at: string | null
           drive_type: string | null
+          has_360_viewer: boolean | null
           id: string
           part_type: string
           position_type: string | null
           specifications: string | null
+          tenant_id: string | null
           updated_at: string | null
+          updated_by: string | null
+          viewer_360_frame_count: number | null
         }
         Insert: {
           abs_type?: string | null
@@ -109,11 +234,15 @@ export type Database = {
           bolt_pattern?: string | null
           created_at?: string | null
           drive_type?: string | null
+          has_360_viewer?: boolean | null
           id?: string
           part_type: string
           position_type?: string | null
           specifications?: string | null
+          tenant_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
+          viewer_360_frame_count?: number | null
         }
         Update: {
           abs_type?: string | null
@@ -121,13 +250,25 @@ export type Database = {
           bolt_pattern?: string | null
           created_at?: string | null
           drive_type?: string | null
+          has_360_viewer?: boolean | null
           id?: string
           part_type?: string
           position_type?: string | null
           specifications?: string | null
+          tenant_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
+          viewer_360_frame_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "parts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_settings: {
         Row: {
@@ -156,6 +297,33 @@ export type Database = {
         }
         Relationships: []
       }
+      tenants: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          slug: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          slug: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       vehicle_applications: {
         Row: {
           created_at: string | null
@@ -165,7 +333,9 @@ export type Database = {
           model: string
           part_id: string
           start_year: number
+          tenant_id: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
@@ -175,7 +345,9 @@ export type Database = {
           model: string
           part_id: string
           start_year: number
+          tenant_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
@@ -185,7 +357,9 @@ export type Database = {
           model?: string
           part_id?: string
           start_year?: number
+          tenant_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -195,6 +369,13 @@ export type Database = {
             referencedRelation: "parts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "vehicle_applications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -202,26 +383,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
       search_by_sku: {
         Args: { search_sku: string }
         Returns: {
@@ -254,18 +415,8 @@ export type Database = {
           updated_at: string
         }[]
       }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
-      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       [_ in never]: never

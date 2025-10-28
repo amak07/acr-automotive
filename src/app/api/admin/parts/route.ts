@@ -123,6 +123,7 @@ export async function GET(request: NextRequest) {
         data?.map((part) => ({
           // Base part properties
           id: part.id,
+          tenant_id: part.tenant_id,
           acr_sku: part.acr_sku,
           part_type: part.part_type,
           position_type: part.position_type,
@@ -130,8 +131,11 @@ export async function GET(request: NextRequest) {
           bolt_pattern: part.bolt_pattern,
           drive_type: part.drive_type,
           specifications: part.specifications,
+          has_360_viewer: part.has_360_viewer,
+          viewer_360_frame_count: part.viewer_360_frame_count,
           created_at: part.created_at,
           updated_at: part.updated_at,
+          updated_by: part.updated_by,
           // Add the computed counts
           vehicle_count: part.vehicle_applications?.length || 0,
           cross_reference_count: part.cross_references?.length || 0,

@@ -17,7 +17,7 @@ const env = process.argv[2] || 'dev';
 
 // Determine which env file to use
 const envFile = env === 'prod' ? '.env' : '.env.test';
-const envPath = path.join(__dirname, '..', envFile);
+const envPath = path.join(__dirname, '..', '..', envFile); // Go up two levels to reach project root
 
 // Check if env file exists
 if (!fs.existsSync(envPath)) {
@@ -49,7 +49,7 @@ try {
   const output = execSync(command, { encoding: 'utf-8' });
 
   // Write to types file
-  const typesPath = path.join(__dirname, '..', 'src', 'lib', 'supabase', 'types.ts');
+  const typesPath = path.join(__dirname, '..', '..', 'src', 'lib', 'supabase', 'types.ts');
   fs.writeFileSync(typesPath, output);
 
   console.log('✅ Types generated successfully!\n');

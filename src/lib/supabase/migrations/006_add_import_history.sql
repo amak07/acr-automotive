@@ -12,23 +12,48 @@
 CREATE TABLE IF NOT EXISTS import_history (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id UUID REFERENCES tenants(id),
-    snapshot JSONB NOT NULL,
+    imported_by TEXT,
+    file_name TEXT NOT NULL,
+    file_size_bytes INTEGER,
+    rows_imported INTEGER NOT NULL DEFAULT 0,
+    snapshot_data JSONB NOT NULL,
+    import_summary JSONB,
     created_at TIMESTAMPTZ DEFAULT NOW(),
 
     -- Constraints
     CONSTRAINT valid_snapshot CHECK (
-        snapshot ? 'timestamp' AND
-        snapshot ? 'changes_summary' AND
-        snapshot ? 'rollback_data'
+        snapshot_data ? 'parts' AND
+        snapshot_data ? 'vehicle_applications' AND
+        snapshot_data ? 'cross_references' AND
+        snapshot_data ? 'timestamp'
+    ),
+    CONSTRAINT valid_import_summary CHECK (
+        import_summary IS NULL OR (
+            import_summary ? 'adds' AND
+            import_summary ? 'updates' AND
+            import_summary ? 'deletes'
+        )
     )
 );
 
--- Add helpful comment
+-- Add helpful comments
 COMMENT ON TABLE import_history IS
-    'Stores last 3 import snapshots for rollback feature. JSONB contains inverse operations needed to undo import.';
+    'Stores last 3 import snapshots for rollback feature. snapshot_data contains full pre-import state of all affected records.';
 
-COMMENT ON COLUMN import_history.snapshot IS
-    'JSONB structure: { timestamp, changes_summary: {...}, rollback_data: { parts_to_delete, parts_to_restore, parts_to_revert, ... } }';
+COMMENT ON COLUMN import_history.snapshot_data IS
+    'JSONB structure: { parts: [...], vehicle_applications: [...], cross_references: [...], timestamp: "..." }. Contains complete pre-import snapshot for rollback.';
+
+COMMENT ON COLUMN import_history.import_summary IS
+    'JSONB structure: { adds: N, updates: N, deletes: N }. Summary of changes made during import.';
+
+COMMENT ON COLUMN import_history.file_name IS
+    'Original filename of uploaded Excel file.';
+
+COMMENT ON COLUMN import_history.rows_imported IS
+    'Total number of rows processed (adds + updates + deletes).';
+
+COMMENT ON COLUMN import_history.imported_by IS
+    'Username or ID of user who performed import (for audit trail).';
 
 -- =====================================================
 -- 2. Create indexes for performance
