@@ -22,12 +22,12 @@ This directory contains database migrations for ACR Automotive.
 | 004 | `004_add_360_viewer.sql` | 360° interactive viewer (Phase 7) | ✅ Applied | Oct 17, 2025 |
 | 005 | `005_add_tenant_id.sql` | Multi-tenancy preparation (Phase 8.1) | ✅ Applied | Oct 22, 2025 |
 | 006 | `006_add_import_history.sql` | Import rollback support (Phase 8.1) | ✅ Applied | Oct 22, 2025 |
+| 007 | `007_add_updated_at_tracking.sql` | Automatic timestamp tracking (Phase 8.2) | ✅ Applied | Oct 27, 2025 |
+| 008 | `008_add_atomic_import_transaction.sql` | Atomic import transactions (Phase 8.2) | ✅ Applied | Oct 28, 2025 |
 
 ## Upcoming Migrations
 
-**Phase 8.1 (Ready to Apply)**:
-- **005_add_tenant_id.sql** - Adds tenant_id columns to all tables for future multi-tenancy
-- **006_add_import_history.sql** - Creates import_history table for 3-snapshot rollback system
+_No pending migrations at this time._
 
 ## Important Notes
 
