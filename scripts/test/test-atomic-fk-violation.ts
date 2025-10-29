@@ -162,7 +162,7 @@ async function runTest() {
     if (!validation.valid) {
       console.log(`   ⚠️  Validation caught errors (EXPECTED):`);
       const orphanErrors = validation.errors.filter(e =>
-        e.code === 'E12_ORPHANED_VEHICLE' || e.code === 'E13_ORPHANED_CROSS_REF'
+        e.code === 'E5_ORPHANED_FOREIGN_KEY'
       );
       console.log(`      Found ${orphanErrors.length} orphaned reference error(s)`);
       if (orphanErrors.length > 0) {
@@ -198,8 +198,8 @@ async function runTest() {
     console.log("🔄 Step 6: Generating diff...\n");
     const differ = new DiffEngine();
     const diff = differ.generateDiff(parsed, existingData);
-    console.log(`   Parts to add: ${diff.parts.toAdd.length}`);
-    console.log(`   Vehicles to add: ${diff.vehicleApplications.toAdd.length}`);
+    console.log(`   Parts to add: ${diff.parts.adds.length}`);
+    console.log(`   Vehicles to add: ${diff.vehicleApplications.adds.length}`);
     console.log("");
 
     // STEP 7: Attempt import (should fail at database FK level)
@@ -209,9 +209,11 @@ async function runTest() {
     let importFailed = false;
 
     try {
-      await importer.executeImport(parsed, diff, existingData, {
-        filename: "error-orphaned-references.xlsx",
-        uploadedBy: "test-system",
+      await importer.executeImport(parsed, diff, {
+        fileName: "error-orphaned-references.xlsx",
+        fileSize: 0,
+        uploadedAt: new Date(),
+        importedBy: "test-system",
       });
 
       console.log("   ❌ ERROR: Import should have failed but succeeded!");
