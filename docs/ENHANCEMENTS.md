@@ -90,6 +90,26 @@
 
 ## 🔧 Technical Infrastructure Improvements
 
+### Testing & Quality Assurance (Medium Priority - Future Scope)
+
+**Context**: Current testing covers core functionality (ValidationEngine 100%, ImportService basics, full pipeline end-to-end). The following enhancements would provide additional confidence for production operations:
+
+- **Concurrent import prevention testing** - **Technical Value**: Verify that the system correctly handles or prevents two simultaneous Excel imports. Test scenarios: Two admins uploading files at same time, import triggered while another is in progress. **Current MVP**: Single-user admin workflow makes this rare. **Future need**: When team grows to multiple admins, prevents data race conditions and ensures import integrity. **Implementation**: Add advisory locks or job queue system, test with parallel execution scripts.
+
+- **Multi-tenant isolation verification** - **Technical Value**: Future-proofing for potential multi-business deployment. Ensure tenant_id filtering works correctly in atomic transactions, rollback operations, and API endpoints. **Current MVP**: Single business instance doesn't need this. **Future need**: If expanding to serve multiple ACR branches or white-label solution for other parts distributors. **Implementation**: Create test database with multiple tenant IDs, verify data isolation across all operations.
+
+- **Snapshot size limit testing** - **Technical Value**: Verify system behavior with very large databases (50,000+ parts, 200,000+ vehicle applications). Test snapshot creation performance, JSONB storage limits, rollback restoration time. **Current MVP**: ~1,000 parts baseline. **Future need**: As catalog grows to enterprise scale. **Implementation**: Generate large synthetic datasets, measure snapshot creation/restoration times, identify PostgreSQL JSONB size limits (typically 1GB per field).
+
+- **Automated CI/CD integration** - **Technical Value**: Run all test suites automatically on every git commit/push. Prevents accidental breakage of working features. **Current MVP**: Manual test execution before commits. **Future need**: When multiple developers work on codebase simultaneously. **Implementation**: GitHub Actions workflow running Jest tests, TypeScript checks, and integration tests on pull requests.
+
+- **Load testing (multiple simultaneous users)** - **Technical Value**: Verify system performance when 10+ counter staff search simultaneously, or during bulk import operations. Identify database connection pool limits, query bottlenecks. **Current MVP**: Single/few concurrent users expected. **Future need**: When business scales to multiple locations or high-traffic periods. **Implementation**: Use tools like k6 or Artillery to simulate concurrent search requests, measure response times under load.
+
+- **Chaos engineering (random failures)** - **Technical Value**: Test system resilience by randomly injecting failures (network timeouts, database disconnects, partial responses). Ensures graceful degradation and proper error handling. **Current MVP**: Happy path testing sufficient for initial deployment. **Future need**: Production hardening for 24/7 reliability. **Implementation**: Use libraries like chaos-monkey to inject failures during test runs, verify retry logic and error messages work correctly.
+
+**Priority Rationale**: These tests provide diminishing returns for current single-user, single-tenant, moderate-scale deployment. Implement as business needs evolve (team growth, scale increase, multi-location deployment).
+
+---
+
 ### Performance & Monitoring
 
 - **Application monitoring** - Performance metrics and error tracking
