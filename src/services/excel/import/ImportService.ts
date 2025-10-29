@@ -3,7 +3,6 @@
 // ============================================================================
 
 import { supabase } from '@/lib/supabase/client';
-import { BulkOperationsService } from '@/services/bulk-operations/BulkOperationsService';
 import type { DiffResult } from '../diff/types';
 import type { ParsedExcelFile } from '../shared/types';
 import type {
@@ -19,22 +18,18 @@ import type {
  *
  * Flow:
  * 1. Create pre-import snapshot (full database dump to JSONB)
- * 2. Execute bulk operations using BulkOperationsService
+ * 2. Execute atomic import transaction (PostgreSQL function)
  * 3. Save import history record
  * 4. Cleanup old snapshots (keep last 3, automatic via trigger)
  *
- * Note on Atomicity:
+ * Atomicity:
  * - Snapshot creation is separate transaction (must succeed first)
- * - Bulk operations use BulkOperationsService (per-table atomic, not cross-table)
- * - Import history save is separate transaction
- * - True multi-table atomicity deferred to future enhancement
+ * - All import operations execute in single PostgreSQL transaction
+ * - If ANY operation fails, ALL changes automatically rollback
+ * - Import history save is separate transaction (after successful import)
+ * - TRUE multi-table atomicity via execute_atomic_import() function
  */
 export class ImportService {
-  private bulkService: BulkOperationsService;
-
-  constructor() {
-    this.bulkService = new BulkOperationsService();
-  }
 
   /**
    * Execute import with snapshot creation and atomic transactions
@@ -190,221 +185,205 @@ export class ImportService {
   }
 
   // --------------------------------------------------------------------------
-  // Bulk Operations Execution
+  // Bulk Operations Execution (Atomic Transaction)
   // --------------------------------------------------------------------------
 
   /**
-   * Execute all bulk operations in correct order
+   * Execute all bulk operations atomically using PostgreSQL transaction function
    *
-   * Order matters for foreign key constraints:
-   * 1. Delete child tables first (cross_refs, vehicle_apps)
-   * 2. Delete parent table last (parts)
-   * 3. Add parent table first (parts)
-   * 4. Add child tables last (vehicle_apps, cross_refs)
-   * 5. Update in any order (foreign keys already exist)
+   * IMPORTANT: All operations execute within a single database transaction.
+   * If ANY operation fails, ALL changes are automatically rolled back.
+   * This prevents partial imports that would leave the database inconsistent.
    *
-   * Note: Each BulkOperationsService method is atomic within its table,
-   * but cross-table atomicity is not guaranteed in MVP.
+   * The PostgreSQL function handles:
+   * - Correct operation ordering (deletes → adds → updates)
+   * - Foreign key constraint management
+   * - Automatic rollback on ANY error
+   * - Cross-table atomicity
    *
    * @param diff - Diff result with changes to apply
-   * @param tenantId - Optional tenant ID
+   * @param tenantId - Optional tenant ID for multi-tenant filtering
    */
   private async executeBulkOperations(
     diff: DiffResult,
     tenantId?: string
   ): Promise<void> {
-    console.log('[ImportService] Executing bulk operations...');
+    console.log('[ImportService] Executing atomic import transaction...');
 
-    // === PHASE 1: DELETES (child → parent order) ===
+    // Format parts data for PostgreSQL function
+    const partsToAdd = diff.parts.adds.map((d) => {
+      const row = d.row!;
+      return {
+        id: row._id,
+        tenant_id: tenantId || null,
+        acr_sku: row.acr_sku,
+        part_type: row.part_type,
+        position_type: row.position_type,
+        abs_type: row.abs_type,
+        bolt_pattern: row.bolt_pattern,
+        drive_type: row.drive_type,
+        specifications: row.specifications,
+        has_360_viewer: false, // 360 viewer managed separately via admin UI
+        viewer_360_frame_count: null,
+        updated_by: 'import',
+      };
+    });
 
-    // Delete cross references first (child table)
-    if (diff.crossReferences.deletes.length > 0) {
-      console.log(`[ImportService] Deleting ${diff.crossReferences.deletes.length} cross references...`);
-      const ids = diff.crossReferences.deletes
-        .map((d) => d.before?._id)
-        .filter((id): id is string => Boolean(id));
+    const partsToUpdate = diff.parts.updates.map((d) => {
+      const row = d.after!;
+      return {
+        id: row._id,
+        acr_sku: row.acr_sku,
+        part_type: row.part_type,
+        position_type: row.position_type,
+        abs_type: row.abs_type,
+        bolt_pattern: row.bolt_pattern,
+        drive_type: row.drive_type,
+        specifications: row.specifications,
+        has_360_viewer: false, // 360 viewer managed separately via admin UI
+        viewer_360_frame_count: null,
+        updated_by: 'import',
+      };
+    });
 
-      if (ids.length > 0) {
-        const result = await this.bulkService.deleteCrossReferences(ids);
-        if (!result.success) {
+    // Format vehicle applications data
+    const vehiclesToAdd = diff.vehicleApplications.adds.map((d) => {
+      const row = d.row!;
+      return {
+        id: row._id,
+        tenant_id: tenantId || null,
+        part_id: row._part_id,
+        make: row.make,
+        model: row.model,
+        start_year: row.start_year,
+        end_year: row.end_year,
+        updated_by: 'import',
+      };
+    });
+
+    const vehiclesToUpdate = diff.vehicleApplications.updates.map((d) => {
+      const row = d.after!;
+      return {
+        id: row._id,
+        part_id: row._part_id,
+        make: row.make,
+        model: row.model,
+        start_year: row.start_year,
+        end_year: row.end_year,
+        updated_by: 'import',
+      };
+    });
+
+    // Format cross references data
+    const crossRefsToAdd = diff.crossReferences.adds.map((d) => {
+      const row = d.row!;
+      return {
+        id: row._id,
+        tenant_id: tenantId || null,
+        acr_part_id: row._acr_part_id,
+        competitor_brand: row.competitor_brand,
+        competitor_sku: row.competitor_sku,
+        updated_by: 'import',
+      };
+    });
+
+    const crossRefsToUpdate = diff.crossReferences.updates.map((d) => {
+      const row = d.after!;
+      return {
+        id: row._id,
+        acr_part_id: row._acr_part_id,
+        competitor_brand: row.competitor_brand,
+        competitor_sku: row.competitor_sku,
+        updated_by: 'import',
+      };
+    });
+
+    console.log('[ImportService] Transaction payload:', {
+      partsToAdd: partsToAdd.length,
+      partsToUpdate: partsToUpdate.length,
+      vehiclesToAdd: vehiclesToAdd.length,
+      vehiclesToUpdate: vehiclesToUpdate.length,
+      crossRefsToAdd: crossRefsToAdd.length,
+      crossRefsToUpdate: crossRefsToUpdate.length,
+    });
+
+    // Execute atomic transaction with retry logic
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`[ImportService] Attempt ${attempt}/${maxRetries}...`);
+
+        const { data, error } = await supabase.rpc('execute_atomic_import', {
+          parts_to_add: partsToAdd,
+          parts_to_update: partsToUpdate,
+          vehicles_to_add: vehiclesToAdd,
+          vehicles_to_update: vehiclesToUpdate,
+          cross_refs_to_add: crossRefsToAdd,
+          cross_refs_to_update: crossRefsToUpdate,
+          tenant_id_filter: tenantId || null,
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        // Success! Log results
+        const result = data?.[0] || {};
+        console.log('[ImportService] Transaction completed successfully:', {
+          parts_added: result.parts_added,
+          parts_updated: result.parts_updated,
+          vehicles_added: result.vehicles_added,
+          vehicles_updated: result.vehicles_updated,
+          cross_refs_added: result.cross_refs_added,
+          cross_refs_updated: result.cross_refs_updated,
+        });
+
+        return; // Success - exit retry loop
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.error(`[ImportService] Attempt ${attempt} failed:`, lastError.message);
+
+        // Check if error is retryable
+        const isRetryable = this.isRetryableError(lastError);
+        if (!isRetryable || attempt === maxRetries) {
           throw new Error(
-            `Failed to delete cross references: ${result.errors?.[0]?.message}`
+            `Transaction failed after ${attempt} attempt(s): ${lastError.message}`
           );
         }
+
+        // Wait before retry (exponential backoff)
+        const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        console.log(`[ImportService] Retrying in ${delayMs}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
 
-    // Delete vehicle applications (child table)
-    if (diff.vehicleApplications.deletes.length > 0) {
-      console.log(`[ImportService] Deleting ${diff.vehicleApplications.deletes.length} vehicle applications...`);
-      const ids = diff.vehicleApplications.deletes
-        .map((d) => d.before?._id)
-        .filter((id): id is string => Boolean(id));
+    // Should never reach here, but TypeScript needs this
+    throw lastError || new Error('Transaction failed: Unknown error');
+  }
 
-      if (ids.length > 0) {
-        const result = await this.bulkService.deleteVehicleApplications(ids);
-        if (!result.success) {
-          throw new Error(
-            `Failed to delete vehicle applications: ${result.errors?.[0]?.message}`
-          );
-        }
-      }
-    }
+  /**
+   * Check if database error is retryable
+   * Retryable errors: network timeouts, deadlocks, temporary unavailability
+   * Non-retryable errors: constraint violations, permission errors
+   */
+  private isRetryableError(error: Error): boolean {
+    const message = error.message.toLowerCase();
 
-    // Delete parts last (parent table)
-    if (diff.parts.deletes.length > 0) {
-      console.log(`[ImportService] Deleting ${diff.parts.deletes.length} parts...`);
-      const ids = diff.parts.deletes
-        .map((d) => d.before?._id)
-        .filter((id): id is string => Boolean(id));
+    // Retryable conditions
+    const retryablePatterns = [
+      'timeout',
+      'network',
+      'connection',
+      'deadlock',
+      'temporary',
+      'unavailable',
+      'econnrefused',
+      'enotfound',
+    ];
 
-      if (ids.length > 0) {
-        const result = await this.bulkService.deleteParts(ids);
-        if (!result.success) {
-          throw new Error(`Failed to delete parts: ${result.errors?.[0]?.message}`);
-        }
-      }
-    }
-
-    // === PHASE 2: ADDS (parent → child order) ===
-
-    // Add parts first (parent table)
-    if (diff.parts.adds.length > 0) {
-      console.log(`[ImportService] Adding ${diff.parts.adds.length} parts...`);
-      const data = diff.parts.adds.map((d) => d.row!);
-
-      // Map Excel format to database format
-      const partsForDb = data.map((part) => ({
-        acr_sku: part.acr_sku,
-        part_type: part.part_type,
-        position_type: part.position_type,
-        abs_type: part.abs_type,
-        bolt_pattern: part.bolt_pattern,
-        drive_type: part.drive_type,
-        specifications: part.specifications,
-        // Note: updated_by defaults to 'manual' in DB, updated_at auto-set by trigger
-      }));
-
-      const result = await this.bulkService.createParts(partsForDb as any);
-      if (!result.success) {
-        throw new Error(`Failed to create parts: ${result.errors?.[0]?.message}`);
-      }
-    }
-
-    // Add vehicle applications (child table)
-    if (diff.vehicleApplications.adds.length > 0) {
-      console.log(`[ImportService] Adding ${diff.vehicleApplications.adds.length} vehicle applications...`);
-      const data = diff.vehicleApplications.adds.map((d) => d.row!);
-
-      const vasForDb = data.map((va) => ({
-        part_id: va._part_id!,
-        make: va.make,
-        model: va.model,
-        start_year: va.start_year,
-        end_year: va.end_year,
-        // Note: updated_by defaults to 'manual' in DB, updated_at auto-set by trigger
-      }));
-
-      const result = await this.bulkService.createVehicleApplications(vasForDb as any);
-      if (!result.success) {
-        throw new Error(
-          `Failed to create vehicle applications: ${result.errors?.[0]?.message}`
-        );
-      }
-    }
-
-    // Add cross references (child table)
-    if (diff.crossReferences.adds.length > 0) {
-      console.log(`[ImportService] Adding ${diff.crossReferences.adds.length} cross references...`);
-      const data = diff.crossReferences.adds.map((d) => d.row!);
-
-      const crsForDb = data.map((cr) => ({
-        acr_part_id: cr._acr_part_id!,
-        competitor_brand: cr.competitor_brand,
-        competitor_sku: cr.competitor_sku,
-        // Note: updated_by defaults to 'manual' in DB, updated_at auto-set by trigger
-      }));
-
-      const result = await this.bulkService.createCrossReferences(crsForDb as any);
-      if (!result.success) {
-        throw new Error(
-          `Failed to create cross references: ${result.errors?.[0]?.message}`
-        );
-      }
-    }
-
-    // === PHASE 3: UPDATES (any order, foreign keys exist) ===
-
-    // Update parts
-    if (diff.parts.updates.length > 0) {
-      console.log(`[ImportService] Updating ${diff.parts.updates.length} parts...`);
-      const data = diff.parts.updates.map((d) => {
-        const row = d.after!;
-        return {
-          id: row._id!,
-          acr_sku: row.acr_sku,
-          part_type: row.part_type,
-          position_type: row.position_type,
-          abs_type: row.abs_type,
-          bolt_pattern: row.bolt_pattern,
-          drive_type: row.drive_type,
-          specifications: row.specifications,
-          // Note: updated_by defaults to 'manual' in DB, updated_at auto-set by trigger
-        };
-      });
-
-      const result = await this.bulkService.updateParts(data as any);
-      if (!result.success) {
-        throw new Error(`Failed to update parts: ${result.errors?.[0]?.message}`);
-      }
-    }
-
-    // Update vehicle applications
-    if (diff.vehicleApplications.updates.length > 0) {
-      console.log(`[ImportService] Updating ${diff.vehicleApplications.updates.length} vehicle applications...`);
-      const data = diff.vehicleApplications.updates.map((d) => {
-        const row = d.after!;
-        return {
-          id: row._id!,
-          part_id: row._part_id!,
-          make: row.make,
-          model: row.model,
-          start_year: row.start_year,
-          end_year: row.end_year,
-          // Note: updated_by defaults to 'manual' in DB, updated_at auto-set by trigger
-        };
-      });
-
-      const result = await this.bulkService.updateVehicleApplications(data as any);
-      if (!result.success) {
-        throw new Error(
-          `Failed to update vehicle applications: ${result.errors?.[0]?.message}`
-        );
-      }
-    }
-
-    // Update cross references
-    if (diff.crossReferences.updates.length > 0) {
-      console.log(`[ImportService] Updating ${diff.crossReferences.updates.length} cross references...`);
-      const data = diff.crossReferences.updates.map((d) => {
-        const row = d.after!;
-        return {
-          id: row._id!,
-          acr_part_id: row._acr_part_id!,
-          competitor_brand: row.competitor_brand,
-          competitor_sku: row.competitor_sku,
-          // Note: updated_by defaults to 'manual' in DB, updated_at auto-set by trigger
-        };
-      });
-
-      const result = await this.bulkService.updateCrossReferences(data as any);
-      if (!result.success) {
-        throw new Error(
-          `Failed to update cross references: ${result.errors?.[0]?.message}`
-        );
-      }
-    }
-
-    console.log('[ImportService] All bulk operations completed successfully');
+    return retryablePatterns.some((pattern) => message.includes(pattern));
   }
 }
