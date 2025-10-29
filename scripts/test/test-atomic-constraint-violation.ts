@@ -155,7 +155,7 @@ async function runTest() {
 
     if (!validation.valid) {
       console.log(`   ⚠️  Validation caught errors (EXPECTED):`);
-      const duplicateErrors = validation.errors.filter(e => e.code === 'E2_DUPLICATE_SKU_IN_FILE');
+      const duplicateErrors = validation.errors.filter(e => e.code === 'E2_DUPLICATE_ACR_SKU');
       console.log(`      Found ${duplicateErrors.length} duplicate SKU error(s)`);
       if (duplicateErrors.length > 0) {
         duplicateErrors.forEach(err => {
@@ -190,7 +190,7 @@ async function runTest() {
     console.log("🔄 Step 6: Generating diff...\n");
     const differ = new DiffEngine();
     const diff = differ.generateDiff(parsed, existingData);
-    console.log(`   Parts to add: ${diff.parts.toAdd.length}`);
+    console.log(`   Parts to add: ${diff.parts.adds.length}`);
     console.log("");
 
     // STEP 7: Attempt import (should fail at database level)
@@ -200,9 +200,11 @@ async function runTest() {
     let importFailed = false;
 
     try {
-      await importer.executeImport(parsed, diff, existingData, {
-        filename: "error-duplicate-skus.xlsx",
-        uploadedBy: "test-system",
+      await importer.executeImport(parsed, diff, {
+        fileName: "error-duplicate-skus.xlsx",
+        fileSize: 0,
+        uploadedAt: new Date(),
+        importedBy: "test-system",
       });
 
       console.log("   ❌ ERROR: Import should have failed but succeeded!");
