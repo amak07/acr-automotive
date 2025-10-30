@@ -44,11 +44,11 @@ describe('DiffEngine', () => {
           _id: '',
           acr_sku: 'NEW-001',
           part_type: 'Rotor',
-          position_type: null,
-          abs_type: null,
-          bolt_pattern: null,
-          drive_type: null,
-          specifications: null,
+          position_type: undefined,
+          abs_type: undefined,
+          bolt_pattern: undefined,
+          drive_type: undefined,
+          specifications: undefined,
         },
       ];
 
@@ -60,9 +60,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: uploadedParts, metadata: { rowCount: 1, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: uploadedParts, rowCount: 1, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+        metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -80,9 +81,9 @@ describe('DiffEngine', () => {
         acr_sku: 'EXISTING-001',
         part_type: 'Rotor',
         position_type: 'Front',
-        abs_type: null,
-        bolt_pattern: null,
-        drive_type: null,
+        abs_type: undefined,
+        bolt_pattern: undefined,
+        drive_type: undefined,
         specifications: 'Original specs',
       };
 
@@ -92,9 +93,9 @@ describe('DiffEngine', () => {
           acr_sku: 'EXISTING-001',
           part_type: 'Rotor',
           position_type: 'Rear', // Changed
-          abs_type: null,
-          bolt_pattern: null,
-          drive_type: null,
+          abs_type: undefined,
+          bolt_pattern: undefined,
+          drive_type: undefined,
           specifications: 'Updated specs', // Changed
         },
       ];
@@ -107,9 +108,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: uploadedParts, metadata: { rowCount: 1, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: uploadedParts, rowCount: 1, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -127,11 +129,11 @@ describe('DiffEngine', () => {
         _id: 'part-uuid-1',
         acr_sku: 'TO-DELETE-001',
         part_type: 'Rotor',
-        position_type: null,
-        abs_type: null,
-        bolt_pattern: null,
-        drive_type: null,
-        specifications: null,
+        position_type: undefined,
+        abs_type: undefined,
+        bolt_pattern: undefined,
+        drive_type: undefined,
+        specifications: undefined,
       };
 
       const existingData: ExistingDatabaseData = {
@@ -142,9 +144,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } }, // Empty file
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false }, // Empty file
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -161,9 +164,9 @@ describe('DiffEngine', () => {
         acr_sku: 'UNCHANGED-001',
         part_type: 'Rotor',
         position_type: 'Front',
-        abs_type: null,
-        bolt_pattern: null,
-        drive_type: null,
+        abs_type: undefined,
+        bolt_pattern: undefined,
+        drive_type: undefined,
         specifications: 'Same specs',
       };
 
@@ -173,9 +176,9 @@ describe('DiffEngine', () => {
           acr_sku: 'UNCHANGED-001',
           part_type: 'Rotor',
           position_type: 'Front',
-          abs_type: null,
-          bolt_pattern: null,
-          drive_type: null,
+          abs_type: undefined,
+          bolt_pattern: undefined,
+          drive_type: undefined,
           specifications: 'Same specs',
         },
       ];
@@ -188,9 +191,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: uploadedParts, metadata: { rowCount: 1, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: uploadedParts, rowCount: 1, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -206,11 +210,11 @@ describe('DiffEngine', () => {
         _id: 'part-uuid-1',
         acr_sku: 'NORM-001',
         part_type: 'Rotor',
-        position_type: null,
+        position_type: undefined,
         abs_type: '',
         bolt_pattern: undefined,
-        drive_type: null,
-        specifications: null,
+        drive_type: undefined,
+        specifications: undefined,
       };
 
       const uploadedParts: ExcelPartRow[] = [
@@ -219,8 +223,8 @@ describe('DiffEngine', () => {
           acr_sku: 'NORM-001',
           part_type: 'Rotor',
           position_type: '', // null → empty string (should be UNCHANGED)
-          abs_type: null, // empty string → null (should be UNCHANGED)
-          bolt_pattern: null, // undefined → null (should be UNCHANGED)
+          abs_type: undefined, // empty string → null (should be UNCHANGED)
+          bolt_pattern: undefined, // undefined → null (should be UNCHANGED)
           drive_type: undefined,
           specifications: '',
         },
@@ -234,9 +238,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: uploadedParts, metadata: { rowCount: 1, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: uploadedParts, rowCount: 1, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -278,9 +283,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: uploadedParts, metadata: { rowCount: 1, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: uploadedParts, rowCount: 1, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -327,9 +333,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        vehicleApplications: { data: uploadedVehicles, metadata: { rowCount: 1, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: uploadedVehicles, rowCount: 1, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -371,9 +378,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        vehicleApplications: { data: uploadedVehicles, metadata: { rowCount: 1, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: uploadedVehicles, rowCount: 1, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -403,9 +411,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -439,9 +448,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        vehicleApplications: { data: uploadedVehicles, metadata: { rowCount: 1, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: uploadedVehicles, rowCount: 1, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -483,9 +493,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        vehicleApplications: { data: uploadedVehicles, metadata: { rowCount: 1, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: uploadedVehicles, rowCount: 1, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -529,9 +540,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: uploadedCrossRefs, metadata: { rowCount: 1, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: uploadedCrossRefs, rowCount: 1, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -569,9 +581,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: uploadedCrossRefs, metadata: { rowCount: 1, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: uploadedCrossRefs, rowCount: 1, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -599,9 +612,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -633,9 +647,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: uploadedCrossRefs, metadata: { rowCount: 1, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: uploadedCrossRefs, rowCount: 1, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -673,9 +688,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: uploadedCrossRefs, metadata: { rowCount: 1, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: uploadedCrossRefs, rowCount: 1, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -705,11 +721,11 @@ describe('DiffEngine', () => {
           _id: '',
           acr_sku: 'NEW-001',
           part_type: 'Rotor',
-          position_type: null,
-          abs_type: null,
-          bolt_pattern: null,
-          drive_type: null,
-          specifications: null,
+          position_type: undefined,
+          abs_type: undefined,
+          bolt_pattern: undefined,
+          drive_type: undefined,
+          specifications: undefined,
         },
       ];
 
@@ -746,9 +762,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: uploadedParts, metadata: { rowCount: 1, lastUpdated: new Date() } },
-        vehicleApplications: { data: uploadedVehicles, metadata: { rowCount: 1, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } }, // Empty = DELETE
+        parts: { sheetName: 'Parts', data: uploadedParts, rowCount: 1, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: uploadedVehicles, rowCount: 1, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false }, // Empty = DELETE
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -775,9 +792,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        vehicleApplications: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
-        crossReferences: { data: [], metadata: { rowCount: 0, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: [], rowCount: 0, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: [], rowCount: 0, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);
@@ -800,9 +818,9 @@ describe('DiffEngine', () => {
         acr_sku: 'EXISTING-001',
         part_type: 'Rotor',
         position_type: 'Front',
-        abs_type: null,
-        bolt_pattern: null,
-        drive_type: null,
+        abs_type: undefined,
+        bolt_pattern: undefined,
+        drive_type: undefined,
         specifications: 'Old',
       };
 
@@ -812,20 +830,20 @@ describe('DiffEngine', () => {
           acr_sku: 'EXISTING-001',
           part_type: 'Rotor',
           position_type: 'Front',
-          abs_type: null,
-          bolt_pattern: null,
-          drive_type: null,
+          abs_type: undefined,
+          bolt_pattern: undefined,
+          drive_type: undefined,
           specifications: 'New', // UPDATE
         },
         {
           _id: '',
           acr_sku: 'NEW-001',
           part_type: 'Caliper',
-          position_type: null,
-          abs_type: null,
-          bolt_pattern: null,
-          drive_type: null,
-          specifications: null, // ADD
+          position_type: undefined,
+          abs_type: undefined,
+          bolt_pattern: undefined,
+          drive_type: undefined,
+          specifications: undefined, // ADD
         },
       ];
 
@@ -895,9 +913,10 @@ describe('DiffEngine', () => {
       };
 
       const parsed: ParsedExcelFile = {
-        parts: { data: uploadedParts, metadata: { rowCount: 2, lastUpdated: new Date() } },
-        vehicleApplications: { data: uploadedVehicles, metadata: { rowCount: 3, lastUpdated: new Date() } },
-        crossReferences: { data: uploadedCrossRefs, metadata: { rowCount: 1, lastUpdated: new Date() } },
+        parts: { sheetName: 'Parts', data: uploadedParts, rowCount: 2, hasHiddenIds: false },
+        vehicleApplications: { sheetName: 'Vehicle_Applications', data: uploadedVehicles, rowCount: 3, hasHiddenIds: false },
+        crossReferences: { sheetName: 'Cross_References', data: uploadedCrossRefs, rowCount: 1, hasHiddenIds: false },
+      metadata: { uploadedAt: new Date(), fileName: 'test.xlsx', fileSize: 1000 },
       };
 
       const result = diffEngine.generateDiff(parsed, existingData);

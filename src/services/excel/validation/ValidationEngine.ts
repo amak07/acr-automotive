@@ -160,7 +160,7 @@ export class ValidationEngine {
       const rowNumber = index + 2; // +2 for header and 0-index
 
       // E3: Empty required fields
-      if (!part.acr_sku || part.acr_sku.trim() === '') {
+      if (!part.acr_sku || (typeof part.acr_sku === 'string' && part.acr_sku.trim() === '')) {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
           'ACR_SKU is required',
@@ -170,7 +170,7 @@ export class ValidationEngine {
         );
       }
 
-      if (!part.part_type || part.part_type.trim() === '') {
+      if (!part.part_type || (typeof part.part_type === 'string' && part.part_type.trim() === '')) {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
           'Part_Type is required',
@@ -312,7 +312,7 @@ export class ValidationEngine {
       const rowNumber = index + 2;
 
       // E3: Empty required fields
-      if (!vehicle.acr_sku || vehicle.acr_sku.trim() === '') {
+      if (!vehicle.acr_sku || (typeof vehicle.acr_sku === 'string' && vehicle.acr_sku.trim() === '')) {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
           'ACR_SKU is required',
@@ -322,7 +322,7 @@ export class ValidationEngine {
         );
       }
 
-      if (!vehicle.make || vehicle.make.trim() === '') {
+      if (!vehicle.make || (typeof vehicle.make === 'string' && vehicle.make.trim() === '')) {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
           'Make is required',
@@ -332,7 +332,7 @@ export class ValidationEngine {
         );
       }
 
-      if (!vehicle.model || vehicle.model.trim() === '') {
+      if (!vehicle.model || (typeof vehicle.model === 'string' && vehicle.model.trim() === '')) {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
           'Model is required',
@@ -528,7 +528,7 @@ export class ValidationEngine {
       const rowNumber = index + 2;
 
       // E3: Empty required fields
-      if (!crossRef.acr_sku || crossRef.acr_sku.trim() === '') {
+      if (!crossRef.acr_sku || (typeof crossRef.acr_sku === 'string' && crossRef.acr_sku.trim() === '')) {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
           'ACR_SKU is required',
@@ -538,7 +538,7 @@ export class ValidationEngine {
         );
       }
 
-      if (!crossRef.competitor_sku || crossRef.competitor_sku.trim() === '') {
+      if (!crossRef.competitor_sku || (typeof crossRef.competitor_sku === 'string' && crossRef.competitor_sku.trim() === '')) {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
           'Competitor_SKU is required',

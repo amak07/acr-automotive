@@ -48,6 +48,236 @@ export const translations: Record<
     es: "Catálogo de Piezas",
   },
 
+  // Admin Import
+  "admin.import.title": {
+    en: "Import Data",
+    es: "Importar Datos",
+  },
+  "admin.import.cardDescription": {
+    en: "Bulk upload parts catalog",
+    es: "Cargar catálogo masivo",
+  },
+  "admin.import.pageTitle": {
+    en: "Import Catalog Data",
+    es: "Importar Datos del Catálogo",
+  },
+  "admin.import.pageDescription": {
+    en: "Upload Excel file to bulk update your parts catalog",
+    es: "Sube archivo Excel para actualizar el catálogo de piezas",
+  },
+  "admin.import.steps.upload": {
+    en: "Upload",
+    es: "Cargar",
+  },
+  "admin.import.steps.validate": {
+    en: "Validate",
+    es: "Validar",
+  },
+  "admin.import.steps.preview": {
+    en: "Preview",
+    es: "Vista Previa",
+  },
+  "admin.import.steps.confirm": {
+    en: "Confirm",
+    es: "Confirmar",
+  },
+  "admin.import.buttons.next": {
+    en: "Next",
+    es: "Siguiente",
+  },
+  "admin.import.buttons.back": {
+    en: "Back",
+    es: "Atrás",
+  },
+  "admin.import.buttons.cancel": {
+    en: "Cancel",
+    es: "Cancelar",
+  },
+  "admin.import.buttons.import": {
+    en: "Execute Import",
+    es: "Ejecutar Importación",
+  },
+  "admin.import.buttons.done": {
+    en: "Done",
+    es: "Listo",
+  },
+  "admin.import.buttons.startNew": {
+    en: "Start New Import",
+    es: "Nueva Importación",
+  },
+  "admin.import.buttons.returnToDashboard": {
+    en: "Return to Dashboard",
+    es: "Volver al Panel",
+  },
+  "admin.import.upload.dragDrop": {
+    en: "Drag and drop Excel file here",
+    es: "Arrastra y suelta el archivo Excel aquí",
+  },
+  "admin.import.upload.orClickBrowse": {
+    en: "or click to browse",
+    es: "o haz clic para buscar",
+  },
+  "admin.import.upload.accepted": {
+    en: ".xlsx files up to 10MB",
+    es: "Archivos .xlsx hasta 10MB",
+  },
+  "admin.import.upload.chooseFile": {
+    en: "Choose File",
+    es: "Seleccionar Archivo",
+  },
+  "admin.import.upload.fileUploaded": {
+    en: "File uploaded",
+    es: "Archivo cargado",
+  },
+  "admin.import.upload.parsing": {
+    en: "Parsing file...",
+    es: "Procesando archivo...",
+  },
+  "admin.import.upload.parsed": {
+    en: "Parsed",
+    es: "Procesado",
+  },
+  "admin.import.validation.validating": {
+    en: "Validating data...",
+    es: "Validando datos...",
+  },
+  "admin.import.validation.failed": {
+    en: "Validation Failed",
+    es: "Validación Fallida",
+  },
+  "admin.import.validation.errorsFound": {
+    en: "errors found",
+    es: "errores encontrados",
+  },
+  "admin.import.validation.warningsFound": {
+    en: "warnings detected",
+    es: "advertencias detectadas",
+  },
+  "admin.import.validation.fix": {
+    en: "Fix these errors and re-upload the file",
+    es: "Corrige estos errores y vuelve a cargar el archivo",
+  },
+  "admin.import.validation.acknowledge": {
+    en: "I have reviewed the warnings and want to proceed",
+    es: "He revisado las advertencias y quiero continuar",
+  },
+  "admin.import.validation.errorsBySheet": {
+    en: "Errors by Sheet",
+    es: "Errores por Hoja",
+  },
+  "admin.import.validation.warningsBySheet": {
+    en: "Warnings by Sheet",
+    es: "Advertencias por Hoja",
+  },
+  "admin.import.preview.added": {
+    en: "Added",
+    es: "Agregados",
+  },
+  "admin.import.preview.updated": {
+    en: "Updated",
+    es: "Actualizados",
+  },
+  "admin.import.preview.deleted": {
+    en: "Deleted",
+    es: "Eliminados",
+  },
+  "admin.import.preview.parts": {
+    en: "parts",
+    es: "piezas",
+  },
+  "admin.import.preview.totalChanges": {
+    en: "Total changes across all sheets",
+    es: "Cambios totales en todas las hojas",
+  },
+  "admin.import.preview.warningDeletes": {
+    en: "Warning: Some items will be permanently deleted",
+    es: "Advertencia: Algunos elementos se eliminarán permanentemente",
+  },
+  "admin.import.confirm.ready": {
+    en: "Ready to Import",
+    es: "Listo para Importar",
+  },
+  "admin.import.confirm.changesWillBeApplied": {
+    en: "The following changes will be applied:",
+    es: "Se aplicarán los siguientes cambios:",
+  },
+  "admin.import.confirm.partsAdded": {
+    en: "parts will be added",
+    es: "piezas serán agregadas",
+  },
+  "admin.import.confirm.partsUpdated": {
+    en: "parts will be updated",
+    es: "piezas serán actualizadas",
+  },
+  "admin.import.confirm.partsDeleted": {
+    en: "parts will be deleted",
+    es: "piezas serán eliminadas",
+  },
+  "admin.import.confirm.vehicleAppsAdded": {
+    en: "vehicle applications will be added",
+    es: "aplicaciones vehiculares serán agregadas",
+  },
+  "admin.import.confirm.crossRefsUpdated": {
+    en: "cross references will be updated",
+    es: "referencias cruzadas serán actualizadas",
+  },
+  "admin.import.confirm.snapshotCreated": {
+    en: "A snapshot will be created for rollback",
+    es: "Se creará una instantánea para revertir",
+  },
+  "admin.import.confirm.importing": {
+    en: "Importing Changes...",
+    es: "Importando Cambios...",
+  },
+  "admin.import.confirm.creatingSnapshot": {
+    en: "Creating snapshot",
+    es: "Creando instantánea",
+  },
+  "admin.import.confirm.validatingData": {
+    en: "Validating data",
+    es: "Validando datos",
+  },
+  "admin.import.confirm.applyingChanges": {
+    en: "Applying changes",
+    es: "Aplicando cambios",
+  },
+  "admin.import.confirm.savingHistory": {
+    en: "Saving history",
+    es: "Guardando historial",
+  },
+  "admin.import.confirm.pleaseWait": {
+    en: "This may take up to 30 seconds",
+    es: "Esto puede tardar hasta 30 segundos",
+  },
+  "admin.import.confirm.doNotClose": {
+    en: "Please do not close this page",
+    es: "Por favor no cierres esta página",
+  },
+  "admin.import.success.title": {
+    en: "Import Successful!",
+    es: "¡Importación Exitosa!",
+  },
+  "admin.import.success.importId": {
+    en: "Import ID",
+    es: "ID de Importación",
+  },
+  "admin.import.success.completed": {
+    en: "Completed",
+    es: "Completado",
+  },
+  "admin.import.success.changesApplied": {
+    en: "Changes Applied",
+    es: "Cambios Aplicados",
+  },
+  "admin.import.success.snapshotSaved": {
+    en: "Snapshot saved for rollback",
+    es: "Instantánea guardada para revertir",
+  },
+  "admin.import.success.executionTime": {
+    en: "Execution time",
+    es: "Tiempo de ejecución",
+  },
+
   // Admin Search & Filters
   "admin.search.placeholder": {
     en: "Search by ACR SKU...",
