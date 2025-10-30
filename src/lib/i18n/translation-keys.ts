@@ -15,7 +15,66 @@ export interface TranslationKeys {
   'admin.dashboard.totalParts': string;
   'admin.dashboard.applications': string;
   'admin.dashboard.catalogTitle': string;
-  
+
+  // Admin Import
+  'admin.import.title': string;
+  'admin.import.cardDescription': string;
+  'admin.import.pageTitle': string;
+  'admin.import.pageDescription': string;
+  'admin.import.steps.upload': string;
+  'admin.import.steps.validate': string;
+  'admin.import.steps.preview': string;
+  'admin.import.steps.confirm': string;
+  'admin.import.buttons.next': string;
+  'admin.import.buttons.back': string;
+  'admin.import.buttons.cancel': string;
+  'admin.import.buttons.import': string;
+  'admin.import.buttons.done': string;
+  'admin.import.buttons.startNew': string;
+  'admin.import.buttons.returnToDashboard': string;
+  'admin.import.upload.dragDrop': string;
+  'admin.import.upload.orClickBrowse': string;
+  'admin.import.upload.accepted': string;
+  'admin.import.upload.chooseFile': string;
+  'admin.import.upload.fileUploaded': string;
+  'admin.import.upload.parsing': string;
+  'admin.import.upload.parsed': string;
+  'admin.import.validation.validating': string;
+  'admin.import.validation.failed': string;
+  'admin.import.validation.errorsFound': string;
+  'admin.import.validation.warningsFound': string;
+  'admin.import.validation.fix': string;
+  'admin.import.validation.acknowledge': string;
+  'admin.import.validation.errorsBySheet': string;
+  'admin.import.validation.warningsBySheet': string;
+  'admin.import.preview.added': string;
+  'admin.import.preview.updated': string;
+  'admin.import.preview.deleted': string;
+  'admin.import.preview.parts': string;
+  'admin.import.preview.totalChanges': string;
+  'admin.import.preview.warningDeletes': string;
+  'admin.import.confirm.ready': string;
+  'admin.import.confirm.changesWillBeApplied': string;
+  'admin.import.confirm.partsAdded': string;
+  'admin.import.confirm.partsUpdated': string;
+  'admin.import.confirm.partsDeleted': string;
+  'admin.import.confirm.vehicleAppsAdded': string;
+  'admin.import.confirm.crossRefsUpdated': string;
+  'admin.import.confirm.snapshotCreated': string;
+  'admin.import.confirm.importing': string;
+  'admin.import.confirm.creatingSnapshot': string;
+  'admin.import.confirm.validatingData': string;
+  'admin.import.confirm.applyingChanges': string;
+  'admin.import.confirm.savingHistory': string;
+  'admin.import.confirm.pleaseWait': string;
+  'admin.import.confirm.doNotClose': string;
+  'admin.import.success.title': string;
+  'admin.import.success.importId': string;
+  'admin.import.success.completed': string;
+  'admin.import.success.changesApplied': string;
+  'admin.import.success.snapshotSaved': string;
+  'admin.import.success.executionTime': string;
+
   // Admin Search & Filters
   'admin.search.placeholder': string;
   'admin.search.partType': string;

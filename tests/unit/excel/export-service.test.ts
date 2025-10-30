@@ -84,7 +84,7 @@ describe('ExcelExportService', () => {
 
       // Parse the buffer to verify structure
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       expect(workbook.worksheets.length).toBe(3);
       expect(workbook.worksheets[0].name).toBe('Parts');
@@ -98,7 +98,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       expect(workbook.creator).toBe('ACR Automotive');
       expect(workbook.created).toBeInstanceOf(Date);
@@ -110,11 +110,11 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       workbook.worksheets.forEach((sheet) => {
         expect(sheet.views?.[0]?.state).toBe('frozen');
-        expect(sheet.views?.[0]?.ySplit).toBe(1);
+        expect((sheet.views?.[0] as any)?.ySplit).toBe(1);
       });
     });
   });
@@ -148,7 +148,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const partsSheet = workbook.getWorksheet('Parts');
       expect(partsSheet).toBeDefined();
@@ -188,7 +188,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const partsSheet = workbook.getWorksheet('Parts');
       const idColumn = partsSheet?.getColumn(1); // _id is first column
@@ -217,7 +217,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const partsSheet = workbook.getWorksheet('Parts');
       const dataRow = partsSheet?.getRow(2); // Row 2 is first data row
@@ -254,7 +254,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const partsSheet = workbook.getWorksheet('Parts');
       const dataRow = partsSheet?.getRow(2);
@@ -308,7 +308,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const partsSheet = workbook.getWorksheet('Parts');
 
@@ -347,7 +347,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const vehiclesSheet = workbook.getWorksheet('Vehicle Applications');
       const headerRow = vehiclesSheet?.getRow(1);
@@ -383,7 +383,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const vehiclesSheet = workbook.getWorksheet('Vehicle Applications');
 
@@ -411,7 +411,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const vehiclesSheet = workbook.getWorksheet('Vehicle Applications');
       const dataRow = vehiclesSheet?.getRow(2);
@@ -439,7 +439,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const vehiclesSheet = workbook.getWorksheet('Vehicle Applications');
       const dataRow = vehiclesSheet?.getRow(2);
@@ -477,7 +477,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const crossRefsSheet = workbook.getWorksheet('Cross References');
       const headerRow = crossRefsSheet?.getRow(1);
@@ -509,7 +509,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const crossRefsSheet = workbook.getWorksheet('Cross References');
 
@@ -535,7 +535,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const crossRefsSheet = workbook.getWorksheet('Cross References');
       const dataRow = crossRefsSheet?.getRow(2);
@@ -565,7 +565,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       const crossRefsSheet = workbook.getWorksheet('Cross References');
       const dataRow = crossRefsSheet?.getRow(2);
@@ -585,7 +585,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       expect(workbook.worksheets.length).toBe(3);
 
@@ -616,7 +616,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       expect(workbook.getWorksheet('Parts')?.rowCount).toBe(2); // Header + 1 part
       expect(workbook.getWorksheet('Vehicle Applications')?.rowCount).toBe(1); // Header only
@@ -677,7 +677,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportFiltered({ search: 'NONEXISTENT' });
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       expect(workbook.getWorksheet('Parts')?.rowCount).toBe(1); // Header only
       expect(workbook.getWorksheet('Vehicle Applications')?.rowCount).toBe(1);
@@ -720,7 +720,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportFiltered({ part_type: 'Rotor' });
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       expect(workbook.getWorksheet('Parts')?.rowCount).toBe(2); // Header + 1 part
       expect(workbook.getWorksheet('Vehicle Applications')?.rowCount).toBe(2); // Header + 1 vehicle
@@ -795,7 +795,7 @@ describe('ExcelExportService', () => {
       const buffer = await exportService.exportAllData();
 
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer as any);
 
       // Verify all data is present
       expect(workbook.getWorksheet('Parts')?.rowCount).toBe(3); // Header + 2 parts

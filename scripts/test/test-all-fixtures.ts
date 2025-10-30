@@ -12,7 +12,7 @@ import { loadFixture, emptyDbState } from "./helpers/fixture-loader";
 import * as fs from "fs";
 import * as path from "path";
 
-const FIXTURES_DIR = path.join(process.cwd(), "fixtures", "excel");
+const FIXTURES_DIR = path.join(process.cwd(), "fixtures", "excel", "unit");
 
 interface FixtureTest {
   filename: string;
@@ -46,7 +46,7 @@ const FIXTURE_TESTS: FixtureTest[] = [
     filename: "error-missing-required-fields.xlsx",
     description: "Missing required fields",
     expectedValid: false,
-    expectedErrors: 5, // Parts: missing ACR_SKU + Part_Type, Vehicle Apps: missing ACR_SKU + Make, Cross Refs: missing Competitor_SKU
+    expectedErrors: 2, // Parts: missing ACR_SKU + Part_Type
     expectedWarnings: 0,
     expectedErrorCodes: ["E3_EMPTY_REQUIRED_FIELD"],
   },
@@ -62,18 +62,19 @@ const FIXTURE_TESTS: FixtureTest[] = [
     filename: "error-orphaned-references.xlsx",
     description: "Orphaned foreign key references",
     expectedValid: false,
-    expectedErrors: 2, // Vehicle app + cross ref
+    expectedErrors: 5, // E4: invalid UUIDs (3×), E5: orphaned keys (2×)
     expectedWarnings: 0,
-    expectedErrorCodes: ["E5_ORPHANED_FOREIGN_KEY"],
+    expectedErrorCodes: ["E4_INVALID_UUID_FORMAT", "E5_ORPHANED_FOREIGN_KEY"],
   },
   {
     filename: "error-invalid-formats.xlsx",
     description: "Invalid data formats",
     expectedValid: false,
-    expectedErrors: 4, // 2× E4 (UUID), 1× E6 (year range), 1× E8 (year out of range)
+    expectedErrors: 9, // E4: invalid UUIDs (5×), E5: orphaned keys (2×), E6: year range (1×), E8: year out of range (1×)
     expectedWarnings: 0,
     expectedErrorCodes: [
       "E4_INVALID_UUID_FORMAT",
+      "E5_ORPHANED_FOREIGN_KEY",
       "E6_INVALID_YEAR_RANGE",
       "E8_YEAR_OUT_OF_RANGE",
     ],
@@ -82,7 +83,7 @@ const FIXTURE_TESTS: FixtureTest[] = [
     filename: "error-max-length-exceeded.xlsx",
     description: "String max length exceeded",
     expectedValid: false,
-    expectedErrors: 2, // ACR_SKU + Make
+    expectedErrors: 1, // Part_Type exceeds max length
     expectedWarnings: 0,
     expectedErrorCodes: ["E7_STRING_EXCEEDS_MAX_LENGTH"],
   },

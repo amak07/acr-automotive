@@ -7,7 +7,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-const FIXTURES_DIR = path.join(process.cwd(), "fixtures", "excel");
+const FIXTURES_DIR = path.join(process.cwd(), "fixtures", "excel", "unit");
 
 /**
  * Load Excel fixture as File object (for testing parseFile methods)
