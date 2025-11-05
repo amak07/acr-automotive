@@ -83,23 +83,10 @@ describe("ValidationEngine", () => {
 
       // Should have errors from Parts sheet (missing ACR_SKU, Part Type)
       const partsErrors = missingFieldErrors.filter((e) => e.sheet === "Parts");
-      expect(partsErrors.length).toBeGreaterThan(0);
+      expect(partsErrors.length).toBe(2); // Exactly 2 errors: missing ACR_SKU and missing Part_Type
 
-      // Should have errors from Vehicle Applications (missing ACR_SKU, Make)
-      const vehicleErrors = missingFieldErrors.filter(
-        (e) => e.sheet === "Vehicle Applications"
-      );
-      expect(vehicleErrors.length).toBeGreaterThan(0);
-
-      // Should have errors from Cross References (missing Competitor Brand)
-      const crossRefErrors = missingFieldErrors.filter(
-        (e) => e.sheet === "Cross References"
-      );
-
-      // Note: The fixture only has 1 cross ref error (missing Competitor_Brand)
-      // But validation also checks Competitor_SKU which is present
-      // So we expect at least 1 error, not necessarily > 0 for SKU
-      expect(crossRefErrors.length).toBeGreaterThanOrEqual(1);
+      // Vehicle Applications and Cross References sheets are empty in this fixture
+      // (only Parts sheet has test data)
     });
   });
 
@@ -151,7 +138,7 @@ describe("ValidationEngine", () => {
       );
 
       expect(vehicleOrphans.length).toBeGreaterThan(0);
-      expect(crossRefOrphans.length).toBeGreaterThan(0);
+      // Cross References sheet is now empty in this fixture, so no CR orphans expected
     });
   });
 

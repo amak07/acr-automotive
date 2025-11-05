@@ -60,46 +60,28 @@ export class ImportService {
       console.log(`[ImportService] Bulk operations completed in ${executionTime}ms`);
 
       // Step 3: Save import history
-      // Note: Using REST API directly to bypass schema cache issues
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      const { data: historyRecords, error: historyError } = await supabase
+        .from('import_history')
+        .insert({
+          tenant_id: metadata.tenantId || null,
+          imported_by: metadata.importedBy || null,
+          file_name: metadata.fileName,
+          file_size_bytes: metadata.fileSize,
+          rows_imported: diff.summary.totalChanges,
+          snapshot_data: snapshot,
+          import_summary: {
+            adds: diff.summary.totalAdds,
+            updates: diff.summary.totalUpdates,
+            deletes: diff.summary.totalDeletes,
+          },
+        })
+        .select();
 
-      const historyPayload = {
-        tenant_id: metadata.tenantId || null,
-        imported_by: metadata.importedBy || null,
-        file_name: metadata.fileName,
-        file_size_bytes: metadata.fileSize,
-        rows_imported: diff.summary.totalChanges,
-        snapshot_data: snapshot,
-        import_summary: {
-          adds: diff.summary.totalAdds,
-          updates: diff.summary.totalUpdates,
-          deletes: diff.summary.totalDeletes,
-        },
-      };
-
-      const response = await fetch(`${supabaseUrl}/rest/v1/import_history`, {
-        method: 'POST',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
-        },
-        body: JSON.stringify(historyPayload),
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Failed to save import history: ${error}`);
+      if (historyError || !historyRecords || historyRecords.length === 0) {
+        throw new Error(`Failed to save import history: ${historyError?.message || 'No record returned'}`);
       }
 
-      const historyRecords = await response.json();
       const historyRecord = historyRecords[0];
-
-      if (!historyRecord) {
-        throw new Error('Failed to save import history: No record returned');
-      }
 
       console.log('[ImportService] Import history saved:', historyRecord.id);
       console.log('[ImportService] Auto-cleanup will keep last 3 snapshots');
@@ -214,7 +196,7 @@ export class ImportService {
     const partsToAdd = diff.parts.adds.map((d) => {
       const row = d.row!;
       return {
-        id: row._id,
+        id: row._id || crypto.randomUUID(), // Generate UUID for new parts without IDs
         tenant_id: tenantId || null,
         acr_sku: row.acr_sku,
         part_type: row.part_type,
@@ -250,7 +232,7 @@ export class ImportService {
     const vehiclesToAdd = diff.vehicleApplications.adds.map((d) => {
       const row = d.row!;
       return {
-        id: row._id,
+        id: row._id || crypto.randomUUID(), // Generate UUID for new vehicle apps without IDs
         tenant_id: tenantId || null,
         part_id: row._part_id,
         make: row.make,
@@ -278,7 +260,7 @@ export class ImportService {
     const crossRefsToAdd = diff.crossReferences.adds.map((d) => {
       const row = d.row!;
       return {
-        id: row._id,
+        id: row._id || crypto.randomUUID(), // Generate UUID for new cross-refs without IDs
         tenant_id: tenantId || null,
         acr_part_id: row._acr_part_id,
         competitor_brand: row.competitor_brand,

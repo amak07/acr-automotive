@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, Upload } from "lucide-react";
 import {  createAcrPartsTableColumns } from "./parts-table-config";
 import { AcrPagination } from "@/components/acr";
 import { SearchTerms } from "./SearchFilters";
@@ -75,6 +75,14 @@ export function PartsList(props: PartsListProps) {
           {t("admin.dashboard.catalogTitle")}
         </h2>
         <div className="flex gap-2">
+          <AcrButton
+            variant="secondary"
+            size="default"
+            onClick={() => router.push("/admin/import")}
+          >
+            <Upload className="w-4 h-4" />
+            {t("admin.import.title")}
+          </AcrButton>
           <AcrButton
             variant="secondary"
             size="default"

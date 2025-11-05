@@ -12,7 +12,8 @@
 5. [Running Tests](#running-tests)
 6. [Known Issues](#known-issues)
 7. [Test Architecture](#test-architecture)
-8. [Troubleshooting](#troubleshooting)
+8. [UX Testing](#ux-testing)
+9. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -406,6 +407,32 @@ export interface ParsedExcelFile {
 ```
 
 **Important:** Old tests used per-sheet `metadata` property. This was refactored to file-level metadata on Oct 30, 2025. All tests have been updated.
+
+---
+
+## UX Testing
+
+Manual testing procedures for user experience, accessibility, and browser compatibility.
+
+**See**: **[UX_TESTING_GUIDE.md](./testing/UX_TESTING_GUIDE.md)** for complete manual testing procedures.
+
+### When to Run
+
+- **Pre-release**: Before production deploy (2-4 hours full validation)
+- **After UI changes**: Wizard modifications (30-minute smoke test)
+- **Quarterly**: Accessibility compliance audit (1 hour)
+
+### What's Tested
+
+**Automated tests** (262 passing) cover business logic, UI components, and database operations.
+
+**Manual UX tests** complement automated tests by validating:
+- Real browser behavior (iPad Safari, Chrome, Firefox, etc.)
+- Accessibility (keyboard navigation, screen readers)
+- Error message clarity for non-technical users
+- Performance perception (progress indicators, loading feedback)
+
+**Priority**: iPad Safari is **primary device** for parts counter staff - must work flawlessly.
 
 ---
 

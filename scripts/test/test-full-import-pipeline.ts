@@ -50,7 +50,8 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const TEST_FILE = path.join(process.cwd(), "tmp", "test-export.xlsx");
+// Use baseline-export.xlsx for consistent test data (877 parts)
+const TEST_FILE = path.join(process.cwd(), "tmp", "baseline-export.xlsx");
 
 async function testFullPipeline() {
   console.log("🧪 Testing FULL Import Pipeline (with database modifications)\n");
@@ -61,11 +62,11 @@ async function testFullPipeline() {
   let importId: string | null = null;
 
   try {
-    // Step 1: Check if test file exists
+    // Step 1: Check if baseline file exists
     if (!fs.existsSync(TEST_FILE)) {
-      console.error("❌ Test file not found:", TEST_FILE);
-      console.error("\n💡 Run this first to generate test file:");
-      console.error("   npm run test:export\n");
+      console.error("❌ Baseline file not found:", TEST_FILE);
+      console.error("\n💡 This file should exist in tmp/ directory");
+      console.error("   If missing, restore from backup or regenerate baseline\n");
       process.exit(1);
     }
 
@@ -290,6 +291,34 @@ async function testFullPipeline() {
     }
 
     process.exit(1);
+  } finally {
+    // Safety net: Ensure cleanup even if rollback test fails
+    if (importId) {
+      console.log("\n🔒 Final safety check...");
+      try {
+        const { data: snapshot } = await supabase
+          .from('import_history')
+          .select('id')
+          .eq('id', importId)
+          .single();
+
+        if (snapshot) {
+          console.log("   ⚠️  Import snapshot still exists - cleaning up...");
+          const rollbackService = new RollbackService();
+          await rollbackService.rollbackToImport(importId);
+          console.log("   ✅ Safety cleanup executed");
+        } else {
+          console.log("   ✅ Already cleaned up");
+        }
+      } catch (finalError: any) {
+        // Import already cleaned up - this is fine
+        if (finalError.message?.match(/not found|does not exist|no import snapshots/i)) {
+          console.log("   ✅ Already cleaned up");
+        } else {
+          console.warn(`   ⚠️  Safety check warning: ${finalError.message}`);
+        }
+      }
+    }
   }
 }
 

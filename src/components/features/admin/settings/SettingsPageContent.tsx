@@ -1,11 +1,12 @@
 "use client";
 
-import { Settings, LogOut, Mail, Palette, ArrowLeft } from "lucide-react";
+import { Settings, LogOut, Mail, Palette, ArrowLeft, RotateCcw } from "lucide-react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useRouter } from "next/navigation";
 import { AcrButton, AcrLanguageToggle } from "@/components/acr";
 import { ContactInfoSettings } from "./ContactInfoSettings";
 import { BrandingSettings } from "./BrandingSettings";
+import { ImportHistorySettings } from "./ImportHistorySettings";
 
 export function SettingsPageContent() {
   const { locale, setLocale, t } = useLocale();
@@ -96,6 +97,20 @@ export function SettingsPageContent() {
               </h2>
             </div>
             <BrandingSettings />
+          </section>
+
+          {/* Import History & Rollback Section */}
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <RotateCcw className="w-5 h-5 text-acr-red-600" />
+              <h2 className="text-2xl font-semibold text-acr-gray-900">
+                Import History & Rollback
+              </h2>
+            </div>
+            <p className="text-sm text-acr-gray-600 mb-4">
+              View recent imports and rollback changes if needed. You can only rollback the most recent import.
+            </p>
+            <ImportHistorySettings />
           </section>
         </div>
       </div>
