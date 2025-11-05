@@ -383,6 +383,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      execute_atomic_import: {
+        Args: {
+          cross_refs_to_add?: Json
+          cross_refs_to_update?: Json
+          parts_to_add?: Json
+          parts_to_update?: Json
+          tenant_id_filter?: string
+          vehicles_to_add?: Json
+          vehicles_to_update?: Json
+        }
+        Returns: {
+          cross_refs_added: number
+          cross_refs_updated: number
+          parts_added: number
+          parts_updated: number
+          vehicles_added: number
+          vehicles_updated: number
+        }[]
+      }
       search_by_sku: {
         Args: { search_sku: string }
         Returns: {

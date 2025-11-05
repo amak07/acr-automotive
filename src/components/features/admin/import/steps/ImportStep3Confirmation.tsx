@@ -31,7 +31,7 @@ interface ImportStep4ConfirmationProps {
   isRollingBack?: boolean;
 }
 
-export function ImportStep4Confirmation({
+export function ImportStep3Confirmation({
   isExecuting = false,
   executionProgress,
   importResult,

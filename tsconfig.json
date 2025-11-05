@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@test-utils/*": [
+        "./tests/utils/*"
       ]
     },
     "target": "ES2017"

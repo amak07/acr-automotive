@@ -505,14 +505,14 @@ describe('DiffEngine', () => {
       expect(result.vehicleApplications.updates[0].changes).toEqual(
         expect.arrayContaining([
           '_part_id',
-          'acr_sku',
+          // acr_sku is a computed field (JOIN from parts table) - intentionally excluded from change tracking
           'make',
           'model',
           'start_year',
           'end_year',
         ])
       );
-      expect(result.vehicleApplications.updates[0].changes?.length).toBe(6);
+      expect(result.vehicleApplications.updates[0].changes?.length).toBe(5);
     });
   });
 
@@ -700,12 +700,12 @@ describe('DiffEngine', () => {
       expect(result.crossReferences.updates[0].changes).toEqual(
         expect.arrayContaining([
           '_acr_part_id',
-          'acr_sku',
+          // acr_sku is a computed field (JOIN from parts table) - intentionally excluded from change tracking
           'competitor_brand',
           'competitor_sku',
         ])
       );
-      expect(result.crossReferences.updates[0].changes?.length).toBe(4);
+      expect(result.crossReferences.updates[0].changes?.length).toBe(3);
     });
   });
 

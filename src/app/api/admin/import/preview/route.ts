@@ -84,19 +84,28 @@ export async function POST(request: NextRequest) {
       diff: {
         summary: diffResult.summary,
         parts: {
+          sheetName: diffResult.parts.sheetName,
           adds: diffResult.parts.adds,
           updates: diffResult.parts.updates,
           deletes: diffResult.parts.deletes,
+          unchanged: diffResult.parts.unchanged,
+          summary: diffResult.parts.summary,
         },
         vehicleApplications: {
+          sheetName: diffResult.vehicleApplications.sheetName,
           adds: diffResult.vehicleApplications.adds,
           updates: diffResult.vehicleApplications.updates,
           deletes: diffResult.vehicleApplications.deletes,
+          unchanged: diffResult.vehicleApplications.unchanged,
+          summary: diffResult.vehicleApplications.summary,
         },
         crossReferences: {
+          sheetName: diffResult.crossReferences.sheetName,
           adds: diffResult.crossReferences.adds,
           updates: diffResult.crossReferences.updates,
           deletes: diffResult.crossReferences.deletes,
+          unchanged: diffResult.crossReferences.unchanged,
+          summary: diffResult.crossReferences.summary,
         },
       },
     });

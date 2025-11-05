@@ -1,0 +1,1420 @@
+
+> acr-automotive@1.0.0 test
+> npm run type-check && jest && npm run test:all-fixtures && npm run test:full-pipeline && npm run test:atomic rollback-edge-cases --verbose
+
+
+> acr-automotive@1.0.0 type-check
+> tsc --noEmit
+
+PASS tests/unit/excel/diff-engine.test.ts
+PASS tests/unit/excel/import-service-atomic.test.ts
+PASS src/lib/excel/__tests__/catalogacion-parser.test.ts
+  ● Console
+
+    console.log
+      ⚠️  Skipping test: Excel files not found
+
+      at Object.log (src/lib/excel/__tests__/catalogacion-parser.test.ts:21:17)
+
+    console.log
+      🔍 Starting CATALOGACION parsing...
+
+      at Function.log [as parseFile] (src/lib/excel/catalogacion-parser.ts:26:13)
+
+    console.log
+      📄 Found 0 data rows
+
+      at Function.log [as parseFile] (src/lib/excel/catalogacion-parser.ts:36:15)
+
+    console.log
+      ✅ Parsed 0 valid rows
+
+      at Function.log [as parseFile] (src/lib/excel/catalogacion-parser.ts:40:15)
+
+    console.log
+      🔗 Valid: 0, Orphaned: 0
+
+      at Function.log [as parseFile] (src/lib/excel/catalogacion-parser.ts:47:15)
+
+    console.log
+      ⚡ CATALOGACION parsing completed in 5ms
+
+      at Function.log [as parseFile] (src/lib/excel/catalogacion-parser.ts:61:15)
+
+PASS src/lib/excel/__tests__/precios-parser.test.ts
+  ● Console
+
+    console.log
+      ⚠️  Skipping test: Excel file not found
+
+      at Object.log (src/lib/excel/__tests__/precios-parser.test.ts:19:17)
+
+    console.log
+      🔍 Starting PRECIOS parsing...
+
+      at Function.log [as parseFile] (src/lib/excel/precios-parser.ts:23:13)
+
+    console.log
+      📄 Found 0 data rows
+
+      at Function.log [as parseFile] (src/lib/excel/precios-parser.ts:33:15)
+
+    console.log
+      ✅ Parsed 0 valid rows
+
+      at Function.log [as parseFile] (src/lib/excel/precios-parser.ts:37:15)
+
+    console.log
+      🔗 Generated 0 cross-references
+
+      at Function.log [as parseFile] (src/lib/excel/precios-parser.ts:41:15)
+
+    console.log
+      🏷️  Found 0 unique ACR SKUs
+
+      at Function.log [as parseFile] (src/lib/excel/precios-parser.ts:45:15)
+
+    console.log
+      ⚡ PRECIOS parsing completed in 7ms
+
+      at Function.log [as parseFile] (src/lib/excel/precios-parser.ts:48:15)
+
+PASS tests/integration/malformed-files.test.ts
+  ● Console
+
+    console.log
+      
+      ✅ ALL MALFORMED FILE TESTS COMPLETED
+
+      at log (tests/integration/malformed-files.test.ts:256:11)
+
+    console.log
+      
+      === EMPTY FILE TEST ===
+
+      at Object.log (tests/integration/malformed-files.test.ts:18:13)
+
+    console.log
+      ✅ Empty file rejected as expected
+
+      at Object.log (tests/integration/malformed-files.test.ts:30:13)
+
+    console.log
+      
+      === PLAIN TEXT FILE TEST ===
+
+      at Object.log (tests/integration/malformed-files.test.ts:34:13)
+
+    console.log
+      ✅ Plain text file rejected as expected
+
+      at Object.log (tests/integration/malformed-files.test.ts:52:13)
+
+    console.log
+      
+      === CSV FILE TEST ===
+
+      at Object.log (tests/integration/malformed-files.test.ts:56:13)
+
+    console.log
+      ✅ CSV file rejected as expected
+
+      at Object.log (tests/integration/malformed-files.test.ts:74:13)
+
+    console.log
+      
+      === CORRUPTED EXCEL FILE TEST ===
+
+      at Object.log (tests/integration/malformed-files.test.ts:78:13)
+
+    console.log
+      ✅ Corrupted Excel file rejected as expected
+
+      at Object.log (tests/integration/malformed-files.test.ts:103:13)
+
+    console.log
+      
+      === MISSING SHEETS TEST ===
+
+      at Object.log (tests/integration/malformed-files.test.ts:107:13)
+
+    console.log
+      ✅ Missing sheets validation tested (implementation validated)
+
+      at Object.log (tests/integration/malformed-files.test.ts:114:13)
+
+    console.log
+      
+      === LARGE FILENAME TEST ===
+
+      at Object.log (tests/integration/malformed-files.test.ts:118:13)
+
+    console.log
+      ✅ Long filename handled gracefully
+
+      at Object.log (tests/integration/malformed-files.test.ts:132:13)
+
+    console.log
+      
+      === UNICODE FILENAME TEST ===
+
+      at Object.log (tests/integration/malformed-files.test.ts:136:13)
+
+    console.log
+      ✅ Unicode filename handled correctly
+
+      at Object.log (tests/integration/malformed-files.test.ts:151:13)
+
+    console.log
+      
+      === SPECIAL CHARACTERS IN DATA TEST ===
+
+      at Object.log (tests/integration/malformed-files.test.ts:155:13)
+
+    console.log
+         Validation result: Valid
+
+      at Object.log (tests/integration/malformed-files.test.ts:207:13)
+
+    console.log
+         Errors: 0
+
+      at Object.log (tests/integration/malformed-files.test.ts:208:13)
+
+    console.log
+         Warnings: 0
+
+      at Object.log (tests/integration/malformed-files.test.ts:209:13)
+
+    console.log
+      ✅ Special characters in data handled (validation layer)
+
+      at Object.log (tests/integration/malformed-files.test.ts:215:13)
+
+    console.log
+      
+      === WRONG MIME TYPE TEST ===
+
+      at Object.log (tests/integration/malformed-files.test.ts:219:13)
+
+    console.log
+      ✅ Wrong MIME type handled (content-based validation)
+
+      at Object.log (tests/integration/malformed-files.test.ts:238:13)
+
+    console.log
+      
+      === ZERO-BYTE FILE TEST ===
+
+      at Object.log (tests/integration/malformed-files.test.ts:242:13)
+
+    console.log
+      ✅ Zero-byte file rejected as expected
+
+      at Object.log (tests/integration/malformed-files.test.ts:253:13)
+
+PASS tests/unit/excel/validation-engine.test.ts
+  ● Console
+
+    console.log
+      
+      === ALL ERRORS IN error-invalid-formats.xlsx ===
+
+      at Object.log (tests/unit/excel/validation-engine.test.ts:202:17)
+
+    console.log
+      1. [E4_INVALID_UUID_FORMAT] Invalid UUID format: "invalid-uuid-format" (sheet: Parts, row: 2)
+
+      at log (tests/unit/excel/validation-engine.test.ts:204:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      2. [E4_INVALID_UUID_FORMAT] Invalid UUID format: "va-id-1" (sheet: Vehicle Applications, row: 2)
+
+      at log (tests/unit/excel/validation-engine.test.ts:204:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      3. [E4_INVALID_UUID_FORMAT] Invalid UUID format for _part_id: "part-id-1" (sheet: Vehicle Applications, row: 2)
+
+      at log (tests/unit/excel/validation-engine.test.ts:204:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      4. [E5_ORPHANED_FOREIGN_KEY] _part_id "part-id-1" does not reference any part in the Parts sheet (sheet: Vehicle Applications, row: 2)
+
+      at log (tests/unit/excel/validation-engine.test.ts:204:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      5. [E6_INVALID_YEAR_RANGE] End_Year (2020) cannot be before Start_Year (2025) (sheet: Vehicle Applications, row: 2)
+
+      at log (tests/unit/excel/validation-engine.test.ts:204:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      6. [E4_INVALID_UUID_FORMAT] Invalid UUID format: "va-id-2" (sheet: Vehicle Applications, row: 3)
+
+      at log (tests/unit/excel/validation-engine.test.ts:204:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      7. [E4_INVALID_UUID_FORMAT] Invalid UUID format for _part_id: "part-id-1" (sheet: Vehicle Applications, row: 3)
+
+      at log (tests/unit/excel/validation-engine.test.ts:204:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      8. [E5_ORPHANED_FOREIGN_KEY] _part_id "part-id-1" does not reference any part in the Parts sheet (sheet: Vehicle Applications, row: 3)
+
+      at log (tests/unit/excel/validation-engine.test.ts:204:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      9. [E8_YEAR_OUT_OF_RANGE] Start_Year 1899 is out of valid range (1900-2027) (sheet: Vehicle Applications, row: 3)
+
+      at log (tests/unit/excel/validation-engine.test.ts:204:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      
+      === WARNING CODES DETECTED ===
+
+      at Object.log (tests/unit/excel/validation-engine.test.ts:244:15)
+
+    console.log
+      1. [W1_ACR_SKU_CHANGED] ACR_SKU changed from "SEED-001" to "SEED-001-CHANGED"
+
+      at log (tests/unit/excel/validation-engine.test.ts:246:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      2. [W3_PART_TYPE_CHANGED] Part_Type changed from "Rotor" to "Caliper"
+
+      at log (tests/unit/excel/validation-engine.test.ts:246:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      3. [W4_POSITION_TYPE_CHANGED] Position_Type changed from "Front" to "Rear"
+
+      at log (tests/unit/excel/validation-engine.test.ts:246:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      4. [W7_SPECIFICATIONS_SHORTENED] Specifications shortened from 52 to 16 characters (69% reduction)
+
+      at log (tests/unit/excel/validation-engine.test.ts:246:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      5. [W2_YEAR_RANGE_NARROWED] Year range narrowed from 2010-2015 to 2010-2012
+
+      at log (tests/unit/excel/validation-engine.test.ts:246:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      6. [W8_VEHICLE_MAKE_CHANGED] Make changed from "Honda" to "Toyota"
+
+      at log (tests/unit/excel/validation-engine.test.ts:246:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      7. [W2_YEAR_RANGE_NARROWED] Year range narrowed from 2010-2015 to 2010-2011
+
+      at log (tests/unit/excel/validation-engine.test.ts:246:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      8. [W9_VEHICLE_MODEL_CHANGED] Model changed from "Civic" to "CR-V"
+
+      at log (tests/unit/excel/validation-engine.test.ts:246:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      9. [W2_YEAR_RANGE_NARROWED] Year range narrowed from 2008-2014 to 2010-2012
+
+      at log (tests/unit/excel/validation-engine.test.ts:246:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      10. [W10_COMPETITOR_BRAND_CHANGED] Competitor_Brand changed from "Brembo" to "StopTech"
+
+      at log (tests/unit/excel/validation-engine.test.ts:246:17)
+          at Array.forEach (<anonymous>)
+
+PASS tests/unit/excel/export-service.test.ts
+PASS src/components/features/admin/import/steps/__tests__/ImportStep1Upload.test.tsx
+PASS src/components/features/admin/import/steps/__tests__/ImportStep2DiffPreview.test.tsx
+PASS src/components/features/admin/import/steps/__tests__/ImportStep2Validation.test.tsx
+PASS tests/integration/large-dataset.test.ts
+  ● Console
+
+    console.log
+      
+      === LARGE DATASET GENERATION TEST ===
+
+      at Object.log (tests/integration/large-dataset.test.ts:27:13)
+
+    console.log
+      📊 Generating 10,000 parts...
+
+      at Object.log (tests/integration/large-dataset.test.ts:28:13)
+
+    console.log
+      ✅ Generated in 16ms (625000 parts/sec)
+
+      at Object.log (tests/integration/large-dataset.test.ts:48:13)
+
+    console.log
+      📝 Creating Excel workbook...
+
+      at Object.log (tests/integration/large-dataset.test.ts:51:13)
+
+    console.log
+      ✅ Workbook created in 136ms
+
+      at Object.log (tests/integration/large-dataset.test.ts:96:13)
+
+    console.log
+      💾 Converting to binary...
+
+      at Object.log (tests/integration/large-dataset.test.ts:99:13)
+
+    console.log
+      ✅ Binary created in 666ms (0MB)
+
+      at Object.log (tests/integration/large-dataset.test.ts:104:13)
+
+    console.log
+      
+      ⏱️  Total generation time: 822ms
+
+      at Object.log (tests/integration/large-dataset.test.ts:123:13)
+
+    console.log
+      🔍 Parsing Excel file...
+
+      at Object.log (tests/integration/large-dataset.test.ts:126:13)
+
+    console.log
+      ✅ Parsed in 350ms (28571 parts/sec)
+
+      at Object.log (tests/integration/large-dataset.test.ts:132:13)
+
+    console.log
+      ✔️  Validating data...
+
+      at Object.log (tests/integration/large-dataset.test.ts:142:13)
+
+    console.log
+      ✅ Validated in 10ms
+
+      at Object.log (tests/integration/large-dataset.test.ts:153:13)
+
+    console.log
+      🔄 Generating diff...
+
+      at Object.log (tests/integration/large-dataset.test.ts:169:13)
+
+    console.log
+      ✅ Diff generated in 6ms
+
+      at Object.log (tests/integration/large-dataset.test.ts:180:13)
+
+    console.log
+      
+      📊 Performance Summary:
+
+      at Object.log (tests/integration/large-dataset.test.ts:185:13)
+
+    console.log
+         Generation: 16ms
+
+      at Object.log (tests/integration/large-dataset.test.ts:186:13)
+
+    console.log
+         Workbook:   136ms
+
+      at Object.log (tests/integration/large-dataset.test.ts:187:13)
+
+    console.log
+         Binary:     666ms
+
+      at Object.log (tests/integration/large-dataset.test.ts:188:13)
+
+    console.log
+         Parse:      350ms
+
+      at Object.log (tests/integration/large-dataset.test.ts:189:13)
+
+    console.log
+         Validation: 10ms
+
+      at Object.log (tests/integration/large-dataset.test.ts:190:13)
+
+    console.log
+         Diff:       6ms
+
+      at Object.log (tests/integration/large-dataset.test.ts:191:13)
+
+    console.log
+         Total:      1192ms (1.2s)
+
+      at Object.log (tests/integration/large-dataset.test.ts:192:13)
+
+    console.log
+      
+      ✅ LARGE DATASET MEMORY TEST PASSED
+
+      at Object.log (tests/integration/large-dataset.test.ts:199:13)
+
+    console.log
+      
+      === LARGE DATASET DATABASE IMPORT TEST ===
+
+      at Object.log (tests/integration/large-dataset.test.ts:203:13)
+
+    console.log
+      ⚠️  WARNING: This test will add 10,000 parts to the database!
+
+      at Object.log (tests/integration/large-dataset.test.ts:204:13)
+
+    console.log
+      ⚠️  Only run this on a clean test database
+
+      at Object.log (tests/integration/large-dataset.test.ts:205:13)
+
+    console.log
+      ⏭️  Skipping database import test (requires manual activation)
+
+      at Object.log (tests/integration/large-dataset.test.ts:209:13)
+
+    console.log
+      💡 To enable: Remove the early return in large-dataset.test.ts
+
+      at Object.log (tests/integration/large-dataset.test.ts:210:13)
+
+PASS tests/integration/concurrent-import.test.ts
+  ● Console
+
+    console.log
+      
+      === CONCURRENT IMPORT TEST ===
+
+      at Object.log (tests/integration/concurrent-import.test.ts:32:13)
+
+    console.log
+      📄 Parsing both files...
+
+      at Object.log (tests/integration/concurrent-import.test.ts:40:13)
+
+    console.log
+      ⚡ Executing concurrent imports...
+
+      at Object.log (tests/integration/concurrent-import.test.ts:73:13)
+
+    console.log
+      [ImportService] Starting import execution...
+
+      at ImportService.log [as executeImport] (src/services/excel/import/ImportService.ts:50:15)
+
+    console.log
+      [ImportService] Changes: {
+        totalAdds: 5,
+        totalUpdates: 0,
+        totalDeletes: 0,
+        totalUnchanged: 0,
+        totalChanges: 5,
+        changesBySheet: { parts: 5, vehicleApplications: 0, crossReferences: 0 }
+      }
+
+      at ImportService.log [as executeImport] (src/services/excel/import/ImportService.ts:51:15)
+
+    console.log
+      [ImportService] Starting import execution...
+
+      at ImportService.log [as executeImport] (src/services/excel/import/ImportService.ts:50:15)
+
+    console.log
+      [ImportService] Changes: {
+        totalAdds: 5,
+        totalUpdates: 0,
+        totalDeletes: 0,
+        totalUnchanged: 0,
+        totalChanges: 5,
+        changesBySheet: { parts: 5, vehicleApplications: 0, crossReferences: 0 }
+      }
+
+      at ImportService.log [as executeImport] (src/services/excel/import/ImportService.ts:51:15)
+
+    console.log
+      [ImportService] Snapshot stats: { parts: 882, vehicle_applications: 1000, cross_references: 1000 }
+
+      at ImportService.log [as createSnapshot] (src/services/excel/import/ImportService.ts:172:15)
+          at async Promise.allSettled (index 0)
+
+    console.log
+      [ImportService] Pre-import snapshot created
+
+      at ImportService.log [as executeImport] (src/services/excel/import/ImportService.ts:55:15)
+          at async Promise.allSettled (index 0)
+
+    console.log
+      [ImportService] Executing atomic import transaction...
+
+      at ImportService.log [as executeBulkOperations] (src/services/excel/import/ImportService.ts:211:13)
+          at async Promise.allSettled (index 0)
+
+    console.log
+      [ImportService] Transaction payload: {
+        partsToAdd: 5,
+        partsToUpdate: 0,
+        vehiclesToAdd: 0,
+        vehiclesToUpdate: 0,
+        crossRefsToAdd: 0,
+        crossRefsToUpdate: 0
+      }
+
+      at ImportService.log [as executeBulkOperations] (src/services/excel/import/ImportService.ts:301:13)
+          at async Promise.allSettled (index 0)
+
+    console.log
+      [ImportService] Attempt 1/3...
+
+      at ImportService.log [as executeBulkOperations] (src/services/excel/import/ImportService.ts:316:17)
+          at async Promise.allSettled (index 0)
+
+    console.log
+      [ImportService] Snapshot stats: { parts: 882, vehicle_applications: 1000, cross_references: 1000 }
+
+      at ImportService.log [as createSnapshot] (src/services/excel/import/ImportService.ts:172:15)
+          at async Promise.allSettled (index 1)
+
+    console.log
+      [ImportService] Pre-import snapshot created
+
+      at ImportService.log [as executeImport] (src/services/excel/import/ImportService.ts:55:15)
+          at async Promise.allSettled (index 1)
+
+    console.log
+      [ImportService] Executing atomic import transaction...
+
+      at ImportService.log [as executeBulkOperations] (src/services/excel/import/ImportService.ts:211:13)
+          at async Promise.allSettled (index 1)
+
+    console.log
+      [ImportService] Transaction payload: {
+        partsToAdd: 5,
+        partsToUpdate: 0,
+        vehiclesToAdd: 0,
+        vehiclesToUpdate: 0,
+        crossRefsToAdd: 0,
+        crossRefsToUpdate: 0
+      }
+
+      at ImportService.log [as executeBulkOperations] (src/services/excel/import/ImportService.ts:301:13)
+          at async Promise.allSettled (index 1)
+
+    console.log
+      [ImportService] Attempt 1/3...
+
+      at ImportService.log [as executeBulkOperations] (src/services/excel/import/ImportService.ts:316:17)
+          at async Promise.allSettled (index 1)
+
+    console.log
+      ⏱️  Concurrent execution completed in 830ms
+
+      at Object.log (tests/integration/concurrent-import.test.ts:100:13)
+
+    console.log
+      
+      📊 Results:
+
+      at Object.log (tests/integration/concurrent-import.test.ts:106:13)
+
+    console.log
+         ✅ Successful: 0
+
+      at Object.log (tests/integration/concurrent-import.test.ts:107:13)
+
+    console.log
+         ❌ Failed: 2
+
+      at Object.log (tests/integration/concurrent-import.test.ts:108:13)
+
+    console.log
+      
+      ❌ Import 1 failed with:
+
+      at log (tests/integration/concurrent-import.test.ts:114:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+         Error type: Error
+
+      at log (tests/integration/concurrent-import.test.ts:115:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+         Message: Transaction failed after 1 attempt(s): duplicate key value violates unique constraint "idx_parts_sku_tenant"
+
+      at log (tests/integration/concurrent-import.test.ts:116:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+         Stack (first 500 chars):
+
+      at log (tests/integration/concurrent-import.test.ts:118:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      Error: Transaction failed after 1 attempt(s): duplicate key value violates unique constraint "idx_parts_sku_tenant"
+          at ImportService.executeBulkOperations (C:\Users\abelm\Projects\acr-automotive\src\services\excel\import\ImportService.ts:351:17)
+          at processTicksAndRejections (node:internal/process/task_queues:95:5)
+          at ImportService.executeImport (C:\Users\abelm\Projects\acr-automotive\src\services\excel\import\ImportService.ts:58:7)
+          at async Promise.allSettled (index 0)
+          at Obj
+
+      at log (tests/integration/concurrent-import.test.ts:119:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      
+      ❌ Import 2 failed with:
+
+      at log (tests/integration/concurrent-import.test.ts:114:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+         Error type: Error
+
+      at log (tests/integration/concurrent-import.test.ts:115:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+         Message: Transaction failed after 1 attempt(s): duplicate key value violates unique constraint "idx_parts_sku_tenant"
+
+      at log (tests/integration/concurrent-import.test.ts:116:17)
+          at Array.forEach (<anonymous>)
+
+    console.log
+         Stack (first 500 chars):
+
+      at log (tests/integration/concurrent-import.test.ts:118:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      Error: Transaction failed after 1 attempt(s): duplicate key value violates unique constraint "idx_parts_sku_tenant"
+          at ImportService.executeBulkOperations (C:\Users\abelm\Projects\acr-automotive\src\services\excel\import\ImportService.ts:351:17)
+          at processTicksAndRejections (node:internal/process/task_queues:95:5)
+          at ImportService.executeImport (C:\Users\abelm\Projects\acr-automotive\src\services\excel\import\ImportService.ts:58:7)
+          at async Promise.allSettled (index 1)
+          at Obj
+
+      at log (tests/integration/concurrent-import.test.ts:119:19)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      
+      ⚠️  Both imports failed - likely due to existing data in database
+
+      at Object.log (tests/integration/concurrent-import.test.ts:141:15)
+
+    console.log
+         This is expected behavior if test database has residual data
+
+      at Object.log (tests/integration/concurrent-import.test.ts:142:15)
+
+    console.log
+      
+      🔍 Verifying database integrity...
+
+      at Object.log (tests/integration/concurrent-import.test.ts:164:13)
+
+    console.log
+      ✅ Database integrity verified
+
+      at Object.log (tests/integration/concurrent-import.test.ts:192:13)
+
+    console.log
+         Parts count: 882
+
+      at Object.log (tests/integration/concurrent-import.test.ts:193:13)
+
+    console.log
+         History records: 0
+
+      at Object.log (tests/integration/concurrent-import.test.ts:194:13)
+
+    console.log
+      
+      🎉 CONCURRENT IMPORT TEST PASSED
+
+      at Object.log (tests/integration/concurrent-import.test.ts:196:13)
+
+    console.log
+      
+      === CONCURRENT MODIFICATION TEST ===
+
+      at Object.log (tests/integration/concurrent-import.test.ts:209:13)
+
+    console.log
+      ⏭️  Test implementation pending (requires existing parts in DB)
+
+      at Object.log (tests/integration/concurrent-import.test.ts:215:13)
+
+PASS src/components/features/admin/import/__tests__/ImportWizard.test.tsx
+PASS tests/integration/rollback-edge-cases.test.ts
+  ● Console
+
+    console.log
+      
+      ✅ ALL ROLLBACK EDGE CASE TESTS COMPLETED
+
+      at log (tests/integration/rollback-edge-cases.test.ts:248:11)
+
+    console.log
+      
+      === NO SNAPSHOTS TEST ===
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:26:13)
+
+    console.log
+         Found 0 snapshots
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:32:13)
+
+    console.log
+      ✅ No snapshots available - cannot rollback (expected behavior)
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:35:15)
+
+    console.log
+      [RollbackService] Starting rollback to import: non-existent-id
+
+      at RollbackService.log [as rollbackToImport] (src/services/excel/rollback/RollbackService.ts:50:15)
+
+    console.log
+      ✅ Rollback with invalid ID rejected as expected
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:42:15)
+
+    console.log
+      
+      === DOUBLE ROLLBACK TEST ===
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:49:13)
+
+    console.log
+         Initial snapshots: 0
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:62:13)
+
+    console.log
+      ⏭️  Skipping (no snapshots available for rollback)
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:83:15)
+
+    console.log
+      
+      === CORRUPTED SNAPSHOT TEST ===
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:88:13)
+
+    console.log
+      ⏭️  No snapshots to validate
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:113:15)
+
+    console.log
+      
+      === EMPTY DIFF ROLLBACK TEST ===
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:118:13)
+
+    console.log
+      ⏭️  Test scenario: Rollback of no-op import
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:123:13)
+
+    console.log
+      💡 This would require importing data identical to existing state
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:124:13)
+
+    console.log
+      💡 Then rolling back - snapshot exists but restore is no-op
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:125:13)
+
+    console.log
+      ✅ Conceptual test - implementation handles this correctly
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:126:13)
+
+    console.log
+      
+      === SEQUENTIAL ROLLBACK TEST ===
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:130:13)
+
+    console.log
+      ⏭️  Need at least 2 snapshots to test sequential rollback
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:161:15)
+
+    console.log
+      
+      === DATABASE CONNECTION TEST ===
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:166:13)
+
+    console.log
+         Testing with invalid UUID format...
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:174:13)
+
+    console.log
+      [RollbackService] Starting rollback to import: not-a-valid-uuid
+
+      at RollbackService.log [as rollbackToImport] (src/services/excel/rollback/RollbackService.ts:50:15)
+
+    console.log
+      ✅ Invalid UUID handled gracefully
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:179:13)
+
+    console.log
+         Testing with non-existent UUID...
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:182:13)
+
+    console.log
+      [RollbackService] Starting rollback to import: 00000000-0000-0000-0000-000000000000
+
+      at RollbackService.log [as rollbackToImport] (src/services/excel/rollback/RollbackService.ts:50:15)
+
+    console.log
+      ✅ Non-existent snapshot handled gracefully
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:187:13)
+
+    console.log
+      
+      === LARGE SNAPSHOT TEST ===
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:191:13)
+
+    console.log
+      ⏭️  No snapshots to measure
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:217:15)
+
+    console.log
+      
+      === SNAPSHOT CLEANUP TEST ===
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:222:13)
+
+    console.log
+         Snapshots before: 0
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:227:13)
+
+    console.log
+      ⏭️  No snapshots available for cleanup test
+
+      at Object.log (tests/integration/rollback-edge-cases.test.ts:244:15)
+
+
+Test Suites: 14 passed, 14 total
+Tests:       263 passed, 263 total
+Snapshots:   0 total
+Time:        5.128 s, estimated 7 s
+Ran all test suites.
+
+> acr-automotive@1.0.0 test:all-fixtures
+> cross-env NODE_ENV=test tsx scripts/test/test-all-fixtures.ts
+
+
+🧪 Testing All Fixtures Through Full Pipeline
+
+📁 Fixtures Directory: c:\Users\abelm\Projects\acr-automotive\fixtures\excel\unit
+
+
+================================================================================
+📋 Testing: valid-add-new-parts.xlsx
+   Valid new parts (ADD operations)
+================================================================================
+⏳ Parsing...
+✅ Parsed: 5 parts, 0 vehicle apps, 0 cross refs
+⏳ Validating...
+
+📊 Validation Results:
+   Valid: ✅ (expected: ✅)
+   Errors: 0 (expected: 0)
+   Warnings: 0 (expected: 0)
+
+✅ TEST PASSED
+
+================================================================================
+📋 Testing: valid-update-existing.xlsx
+   Valid updates to existing parts (requires seed data - skip for now)
+================================================================================
+⏳ Parsing...
+✅ Parsed: 3 parts, 0 vehicle apps, 0 cross refs
+⏳ Validating...
+
+📊 Validation Results:
+   Valid: ❌ (expected: ❌)
+   Errors: 3 (expected: 3)
+   Warnings: 0 (expected: 0)
+
+❌ Errors:
+   1. [E4_INVALID_UUID_FORMAT] Invalid UUID format: "existing-id-1"
+   2. [E4_INVALID_UUID_FORMAT] Invalid UUID format: "existing-id-2"
+   3. [E4_INVALID_UUID_FORMAT] Invalid UUID format: "existing-id-3"
+
+✅ TEST PASSED
+
+================================================================================
+📋 Testing: error-missing-required-fields.xlsx
+   Missing required fields
+================================================================================
+⏳ Parsing...
+✅ Parsed: 3 parts, 0 vehicle apps, 0 cross refs
+⏳ Validating...
+
+📊 Validation Results:
+   Valid: ❌ (expected: ❌)
+   Errors: 3 (expected: 3)
+   Warnings: 0 (expected: 0)
+
+❌ Errors:
+   1. [E1_MISSING_HIDDEN_COLUMNS] File does not contain hidden ID columns. Please export from the system first before importing.
+   2. [E3_EMPTY_REQUIRED_FIELD] ACR_SKU is required
+   3. [E3_EMPTY_REQUIRED_FIELD] Part_Type is required
+
+✅ TEST PASSED
+
+================================================================================
+📋 Testing: error-duplicate-skus.xlsx
+   Duplicate ACR_SKU values
+================================================================================
+⏳ Parsing...
+✅ Parsed: 3 parts, 0 vehicle apps, 0 cross refs
+⏳ Validating...
+
+📊 Validation Results:
+   Valid: ❌ (expected: ❌)
+   Errors: 1 (expected: 1)
+   Warnings: 0 (expected: 0)
+
+❌ Errors:
+   1. [E2_DUPLICATE_ACR_SKU] Duplicate ACR_SKU "ACR-DUPLICATE" found in file
+
+✅ TEST PASSED
+
+================================================================================
+📋 Testing: error-orphaned-references.xlsx
+   Orphaned foreign key references
+================================================================================
+⏳ Parsing...
+✅ Parsed: 1 parts, 1 vehicle apps, 0 cross refs
+⏳ Validating...
+
+📊 Validation Results:
+   Valid: ❌ (expected: ❌)
+   Errors: 6 (expected: 6)
+   Warnings: 0 (expected: 0)
+
+❌ Errors:
+   1. [E1_MISSING_HIDDEN_COLUMNS] File does not contain hidden ID columns. Please export from the system first before importing.
+   2. [E4_INVALID_UUID_FORMAT] Invalid UUID format: "real-part-id"
+   3. [E4_INVALID_UUID_FORMAT] Invalid UUID format: "va-id-1"
+   4. [E4_INVALID_UUID_FORMAT] Invalid UUID format for _part_id: "nonexistent-part-id"
+   5. [E5_ORPHANED_FOREIGN_KEY] ACR_SKU "ACR-INVALID" does not reference any existing part
+   6. [E5_ORPHANED_FOREIGN_KEY] _part_id "nonexistent-part-id" does not reference any part in the Parts sheet
+
+✅ TEST PASSED
+
+================================================================================
+📋 Testing: error-invalid-formats.xlsx
+   Invalid data formats
+================================================================================
+⏳ Parsing...
+✅ Parsed: 1 parts, 2 vehicle apps, 0 cross refs
+⏳ Validating...
+
+📊 Validation Results:
+   Valid: ❌ (expected: ❌)
+   Errors: 9 (expected: 9)
+   Warnings: 0 (expected: 0)
+
+❌ Errors:
+   1. [E4_INVALID_UUID_FORMAT] Invalid UUID format: "invalid-uuid-format"
+   2. [E4_INVALID_UUID_FORMAT] Invalid UUID format: "va-id-1"
+   3. [E4_INVALID_UUID_FORMAT] Invalid UUID format for _part_id: "part-id-1"
+   4. [E5_ORPHANED_FOREIGN_KEY] _part_id "part-id-1" does not reference any part in the Parts sheet
+   5. [E6_INVALID_YEAR_RANGE] End_Year (2020) cannot be before Start_Year (2025)
+   6. [E4_INVALID_UUID_FORMAT] Invalid UUID format: "va-id-2"
+   7. [E4_INVALID_UUID_FORMAT] Invalid UUID format for _part_id: "part-id-1"
+   8. [E5_ORPHANED_FOREIGN_KEY] _part_id "part-id-1" does not reference any part in the Parts sheet
+   9. [E8_YEAR_OUT_OF_RANGE] Start_Year 1899 is out of valid range (1900-2027)
+
+✅ TEST PASSED
+
+================================================================================
+📋 Testing: error-max-length-exceeded.xlsx
+   String max length exceeded
+================================================================================
+⏳ Parsing...
+✅ Parsed: 1 parts, 0 vehicle apps, 0 cross refs
+⏳ Validating...
+
+📊 Validation Results:
+   Valid: ❌ (expected: ❌)
+   Errors: 1 (expected: 1)
+   Warnings: 0 (expected: 0)
+
+❌ Errors:
+   1. [E7_STRING_EXCEEDS_MAX_LENGTH] Part_Type exceeds maximum length of 100 characters (got 200)
+
+✅ TEST PASSED
+
+================================================================================
+📊 SUMMARY
+================================================================================
+
+✅ Passed: 7/7
+❌ Failed: 0/7
+
+================================================================================
+
+
+> acr-automotive@1.0.0 test:full-pipeline
+> cross-env NODE_ENV=test tsx scripts/test/test-full-import-pipeline.ts
+
+[dotenv@17.2.3] injecting env (4) from .env.test -- tip: ⚙️  suppress all logs with { quiet: true }
+[dotenv@17.2.3] injecting env (0) from .env.test -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+🧪 Testing FULL Import Pipeline (with database modifications)
+
+⚠️  WARNING: This will modify the database!
+⚠️  Make sure you're using a TEST database
+
+════════════════════════════════════════════════════════════════════════════════
+📁 Test File: c:\Users\abelm\Projects\acr-automotive\tmp\test-export.xlsx
+   Size: 167 KB
+   Modified: 10/29/2025, 3:20:20 PM
+
+════════════════════════════════════════════════════════════════════════════════
+STEP 1: Parse Excel File
+════════════════════════════════════════════════════════════════════════════════
+⏳ Parsing Excel file...
+✅ Parsed in 166ms
+   Parts: 877 rows
+   Vehicle Applications: 1000 rows
+   Cross References: 1000 rows
+
+════════════════════════════════════════════════════════════════════════════════
+STEP 2: Fetch Existing Database Data
+════════════════════════════════════════════════════════════════════════════════
+⏳ Fetching current data from database...
+✅ Fetched in 950ms
+   Parts: 882 records
+   Vehicle Applications: 1000 records
+   Cross References: 1000 records
+
+════════════════════════════════════════════════════════════════════════════════
+STEP 3: Validate Data
+════════════════════════════════════════════════════════════════════════════════
+⏳ Running validation engine...
+✅ Validated in 25ms
+   Valid: ✅ Yes
+   Errors: 0
+   Warnings: 0
+
+════════════════════════════════════════════════════════════════════════════════
+STEP 4: Generate Diff (Change Detection)
+════════════════════════════════════════════════════════════════════════════════
+⏳ Running diff engine...
+✅ Diff generated in 3ms
+
+📊 Changes Detected:
+   ➕ Total Adds: 0
+   🔄 Total Updates: 1000
+   ➖ Total Deletes: 5
+   📝 Total Changes: 1005
+
+════════════════════════════════════════════════════════════════════════════════
+STEP 5: Execute Import (Creates Snapshot)
+════════════════════════════════════════════════════════════════════════════════
+⚠️  About to MODIFY DATABASE...
+⏳ Creating snapshot and executing import...
+
+[ImportService] Starting import execution...
+[ImportService] Changes: {
+  totalAdds: 0,
+  totalUpdates: 1000,
+  totalDeletes: 5,
+  totalUnchanged: 1877,
+  totalChanges: 1005,
+  changesBySheet: { parts: 5, vehicleApplications: 0, crossReferences: 1000 }
+}
+[ImportService] Snapshot stats: { parts: 882, vehicle_applications: 1000, cross_references: 1000 }
+[ImportService] Pre-import snapshot created
+[ImportService] Executing atomic import transaction...
+[ImportService] Transaction payload: {
+  partsToAdd: 0,
+  partsToUpdate: 0,
+  vehiclesToAdd: 0,
+  vehiclesToUpdate: 0,
+  crossRefsToAdd: 0,
+  crossRefsToUpdate: 1000
+}
+[ImportService] Attempt 1/3...
+[ImportService] Transaction completed successfully: {
+  parts_added: 0,
+  parts_updated: 0,
+  vehicles_added: 0,
+  vehicles_updated: 0,
+  cross_refs_added: 0,
+  cross_refs_updated: 1000
+}
+[ImportService] Bulk operations completed in 976ms
+[ImportService] Import history saved: ce13c7e2-8869-44b0-b8b1-9a40b577d73c
+[ImportService] Auto-cleanup will keep last 3 snapshots
+✅ Import completed in 2220ms
+   Import ID: ce13c7e2-8869-44b0-b8b1-9a40b577d73c
+   Changes Applied: 1005
+   Snapshot Created: ✅ Yes
+
+════════════════════════════════════════════════════════════════════════════════
+STEP 6: Verify Snapshot
+════════════════════════════════════════════════════════════════════════════════
+⏳ Fetching import history record...
+✅ Snapshot verified
+
+📋 Import History Record:
+   ID: ce13c7e2-8869-44b0-b8b1-9a40b577d73c
+   File: test-export.xlsx
+   Size: 167 KB
+   Rows Imported: 1005
+   Created At: 11/4/2025, 10:04:59 PM
+
+📊 Snapshot Data:
+   Parts: 882 records
+   Vehicle Apps: 1000 records
+   Cross Refs: 1000 records
+   Timestamp: 2025-11-05T04:04:57.965Z
+
+════════════════════════════════════════════════════════════════════════════════
+STEP 7: Test Rollback
+════════════════════════════════════════════════════════════════════════════════
+⚠️  About to ROLLBACK import (restore snapshot)...
+⏳ Executing rollback...
+
+[RollbackService] Starting rollback to import: ce13c7e2-8869-44b0-b8b1-9a40b577d73c
+[RollbackService] Sequential enforcement validated
+[RollbackService] Import record loaded: {
+  fileName: 'test-export.xlsx',
+  createdAt: '2025-11-05T04:04:59.022225+00:00',
+  rowsImported: 1005
+}
+[RollbackService] Checking for conflicts...
+[RollbackService] Import timestamp: 2025-11-05T04:04:59.022225+00:00
+[RollbackService] No conflicts found - safe to proceed
+[RollbackService] No conflicts detected - safe to rollback
+[RollbackService] Snapshot loaded: { parts: 882, vehicleApplications: 1000, crossReferences: 1000 }
+[RollbackService] Deleting current data...
+[RollbackService] All current data deleted
+[RollbackService] Current data deleted
+[RollbackService] Restoring snapshot data...
+[RollbackService] Restoring 882 parts...
+[RollbackService] Restoring 1000 vehicle applications...
+[RollbackService] Restoring 1000 cross references...
+[RollbackService] Snapshot data restored successfully
+[RollbackService] Snapshot data restored
+[RollbackService] Consumed snapshot deleted
+[RollbackService] Rollback completed in 1786ms
+✅ Rollback completed in 1787ms
+   Import ID: ce13c7e2-8869-44b0-b8b1-9a40b577d73c
+   Parts Restored: 882
+   Vehicle Apps Restored: 1000
+   Cross Refs Restored: 1000
+
+════════════════════════════════════════════════════════════════════════════════
+STEP 8: Verify Rollback
+════════════════════════════════════════════════════════════════════════════════
+⏳ Checking if snapshot was consumed...
+✅ Snapshot consumed (deleted after rollback)
+
+════════════════════════════════════════════════════════════════════════════════
+✅ FULL PIPELINE TEST COMPLETE
+
+📋 Performance Summary:
+   Parse: 166ms
+   Database Fetch: 950ms
+   Validation: 25ms
+   Diff: 3ms
+   Import (with snapshot): 2220ms
+   Rollback (restore snapshot): 1787ms
+   ⏱️  Total: 5151ms
+
+✅ All systems operational!
+   - ImportService ✅
+   - Snapshot creation ✅
+   - RollbackService ✅
+   - Snapshot restoration ✅
+
+════════════════════════════════════════════════════════════════════════════════
+npm verb cli C:\Users\abelm\.nvm\versions\node\v20.12.2\bin\node.exe C:\Users\abelm\.nvm\versions\node\v20.12.2\bin\node_modules\npm\bin\npm-cli.js
+npm info using npm@10.5.0
+npm info using node@v20.12.2
+npm verb title npm run test:atomic rollback-edge-cases
+npm verb argv "run" "test:atomic" "rollback-edge-cases" "--loglevel" "verbose"
+npm verb logfile logs-max:10 dir:C:\Users\abelm\AppData\Local\npm-cache\_logs\2025-11-05T04_05_02_648Z-
+npm verb logfile C:\Users\abelm\AppData\Local\npm-cache\_logs\2025-11-05T04_05_02_648Z-debug-0.log
+
+> acr-automotive@1.0.0 test:atomic
+> npm run test:atomic:constraint && npm run test:atomic:fk rollback-edge-cases
+
+npm verb cli C:\Users\abelm\.nvm\versions\node\v20.12.2\bin\node.exe C:\Users\abelm\.nvm\versions\node\v20.12.2\bin\node_modules\npm\bin\npm-cli.js
+npm info using npm@10.5.0
+npm info using node@v20.12.2
+npm verb title npm prefix
+npm verb argv "prefix" "--global"
+npm verb logfile logs-max:10 dir:C:\Users\abelm\AppData\Local\npm-cache\_logs\2025-11-05T04_05_02_944Z-
+npm verb logfile C:\Users\abelm\AppData\Local\npm-cache\_logs\2025-11-05T04_05_02_944Z-debug-0.log
+npm verb exit 0
+npm info ok 
+npm verb cli C:\Users\abelm\.nvm\versions\node\v20.12.2\bin\node.exe C:\Users\abelm\.nvm\versions\node\v20.12.2\bin\node_modules\npm\bin\npm-cli.js
+npm info using npm@10.5.0
+npm info using node@v20.12.2
+npm verb title npm run test:atomic:constraint
+npm verb argv "run" "test:atomic:constraint"
+npm verb logfile logs-max:10 dir:C:\Users\abelm\AppData\Local\npm-cache\_logs\2025-11-05T04_05_03_203Z-
+npm verb logfile C:\Users\abelm\AppData\Local\npm-cache\_logs\2025-11-05T04_05_03_203Z-debug-0.log
+
+> acr-automotive@1.0.0 test:atomic:constraint
+> tsx scripts/test/test-atomic-constraint-violation.ts
+
+[dotenv@17.2.3] injecting env (4) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env.test -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+🧪 TEST: Atomic Transaction - Constraint Violation Rollback
+
+======================================================================
+
+Fixture: error-duplicate-skus.xlsx
+Expected: Validation catches duplicate, OR database rollback if bypassed
+
+======================================================================
+
+📊 Step 1: Recording initial database state...
+
+   Parts: 865
+   Vehicles: 8824
+   Cross References: 28040
+
+📝 Step 2: Loading fixture with duplicate SKUs...
+
+   ✅ Loaded error-duplicate-skus.xlsx
+   Contains: DUP-001 (twice), DUP-002 (once)
+
+📖 Step 3: Parsing Excel...
+
+   ✅ Parsed 3 parts
+
+🔍 Step 4: Fetching existing database data...
+
+   ✅ Loaded 865 existing SKUs
+
+✅ Step 5: Running validation...
+
+   ⚠️  Validation caught errors (EXPECTED):
+      Found 1 duplicate SKU error(s)
+      - Duplicate ACR_SKU "ACR-DUPLICATE" found in file
+
+   ✅ VALIDATION WORKING: Duplicate caught before database
+   ℹ️  Database protection not needed - validation prevents bad import
+
+======================================================================
+🎉 TEST PASSED: Validation prevented duplicate SKU import!
+======================================================================
+
+npm verb exit 0
+npm info ok 
+npm verb cli C:\Users\abelm\.nvm\versions\node\v20.12.2\bin\node.exe C:\Users\abelm\.nvm\versions\node\v20.12.2\bin\node_modules\npm\bin\npm-cli.js
+npm info using npm@10.5.0
+npm info using node@v20.12.2
+npm verb title npm prefix
+npm verb argv "prefix" "--global"
+npm verb logfile logs-max:10 dir:C:\Users\abelm\AppData\Local\npm-cache\_logs\2025-11-05T04_05_06_879Z-
+npm verb logfile C:\Users\abelm\AppData\Local\npm-cache\_logs\2025-11-05T04_05_06_879Z-debug-0.log
+npm verb exit 0
+npm info ok 
+npm verb cli C:\Users\abelm\.nvm\versions\node\v20.12.2\bin\node.exe C:\Users\abelm\.nvm\versions\node\v20.12.2\bin\node_modules\npm\bin\npm-cli.js
+npm info using npm@10.5.0
+npm info using node@v20.12.2
+npm verb title npm run test:atomic:fk rollback-edge-cases
+npm verb argv "run" "test:atomic:fk" "rollback-edge-cases"
+npm verb logfile logs-max:10 dir:C:\Users\abelm\AppData\Local\npm-cache\_logs\2025-11-05T04_05_07_150Z-
+npm verb logfile C:\Users\abelm\AppData\Local\npm-cache\_logs\2025-11-05T04_05_07_150Z-debug-0.log
+
+> acr-automotive@1.0.0 test:atomic:fk
+> tsx scripts/test/test-atomic-fk-violation.ts rollback-edge-cases
+
+[dotenv@17.2.3] injecting env (4) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env.test -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+🧪 TEST: Atomic Transaction - Foreign Key Violation Rollback
+
+======================================================================
+
+Fixture: error-orphaned-references.xlsx
+Contains:
+  - Part: ORPHAN-001 (valid)
+  - Vehicle: ORPHAN-001 → ORPHAN-001 part (valid FK)
+  - Vehicle: NON-EXISTENT-SKU → ??? (INVALID FK)
+
+Expected: Validation catches orphan, OR database rollback if bypassed
+Critical: If import fails, ORPHAN-001 part should NOT be inserted
+
+======================================================================
+
+📊 Step 1: Recording initial database state...
+
+   Parts: 865
+   Vehicles: 8824
+   Cross References: 28040
+
+📝 Step 2: Loading fixture with orphaned reference...
+
+   ✅ Loaded error-orphaned-references.xlsx
+
+📖 Step 3: Parsing Excel...
+
+   ✅ Parsed 1 parts
+   ✅ Parsed 1 vehicles
+
+🔍 Step 4: Fetching existing database data...
+
+   ✅ Loaded 865 existing SKUs
+
+✅ Step 5: Running validation...
+
+   ⚠️  Validation caught errors (EXPECTED):
+      Found 2 orphaned reference error(s)
+      - ACR_SKU "ACR-INVALID" does not reference any existing part
+      - _part_id "nonexistent-part-id" does not reference any part in the Parts sheet
+
+   ✅ VALIDATION WORKING: Orphaned reference caught before database
+   ℹ️  Database protection not needed - validation prevents bad import
+
+======================================================================
+🎉 TEST PASSED: Validation prevented orphaned reference import!
+======================================================================
+
+npm verb exit 0
+npm info ok 
+npm verb exit 0
+npm info ok 

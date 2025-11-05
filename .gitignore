@@ -91,5 +91,8 @@ uploads/
 *.xlsx
 *.xls
 
+# Exception: Keep test fixtures (tracked in git)
+!fixtures/excel/**/*.xlsx
+
 # Generated types
 /generated/

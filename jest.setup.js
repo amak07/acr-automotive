@@ -5,6 +5,16 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
+// Polyfill fetch for jsdom environment (integration tests)
+// Node.js 18+ has built-in fetch, but jsdom doesn't expose it
+if (typeof global.fetch === 'undefined') {
+  // Import from node:url to get Node.js global fetch
+  const { fetch: nodeFetch } = globalThis
+  if (nodeFetch) {
+    global.fetch = nodeFetch
+  }
+}
+
 // Extend Jest matchers with custom matchers
 // This allows us to use .toBeInTheDocument() and other helpful assertions
 

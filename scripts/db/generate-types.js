@@ -3,17 +3,25 @@
  * Generate TypeScript types from Supabase database
  * Reads project ref from environment files
  *
+ * IMPORTANT: Always generate from TEST database (where migrations are applied first)
+ *
  * Usage:
- *   npm run types:dev    - Generate from dev database
- *   npm run types:prod   - Generate from prod database
+ *   npm run types:generate       - Generate from TEST database (default)
+ *   npm run types:generate:prod  - Generate from PROD database (rare)
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// Get environment argument (dev or prod)
-const env = process.argv[2] || 'dev';
+// Get environment argument (test or prod)
+const env = process.argv[2] || 'test';
+
+// Warn if generating from prod (should be rare)
+if (env === 'prod') {
+  console.warn('\n⚠️  WARNING: Generating types from PRODUCTION database');
+  console.warn('⚠️  Make sure this is intentional - types should normally come from TEST\n');
+}
 
 // Determine which env file to use
 const envFile = env === 'prod' ? '.env' : '.env.test';
@@ -39,7 +47,8 @@ if (!urlMatch || !urlMatch[1]) {
 
 const projectRef = urlMatch[1];
 
-console.log(`\n🔧 Generating TypeScript types for ${env.toUpperCase()} environment...`);
+const envLabel = env === 'prod' ? 'PRODUCTION' : 'TEST';
+console.log(`\n🔧 Generating TypeScript types for ${envLabel} environment...`);
 console.log(`📦 Project ref: ${projectRef}`);
 console.log(`📁 Output: src/lib/supabase/types.ts\n`);
 
@@ -54,7 +63,7 @@ try {
 
   console.log('✅ Types generated successfully!\n');
   console.log(`📝 File updated: src/lib/supabase/types.ts`);
-  console.log(`🎯 Environment: ${env.toUpperCase()} (${projectRef})\n`);
+  console.log(`🎯 Environment: ${envLabel} (${projectRef})\n`);
 } catch (error) {
   console.error('❌ Error generating types:', error.message);
   console.error('\nMake sure you have the Supabase CLI installed:');

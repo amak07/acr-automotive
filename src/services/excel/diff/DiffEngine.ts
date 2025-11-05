@@ -283,7 +283,7 @@ export class DiffEngine {
     const changes: string[] = [];
 
     if (before._part_id !== after._part_id) changes.push('_part_id');
-    if (before.acr_sku !== after.acr_sku) changes.push('acr_sku');
+    // SKIP acr_sku - it's a computed display field (not stored in DB, always empty in 'before')
     if (before.make !== after.make) changes.push('make');
     if (before.model !== after.model) changes.push('model');
     if (before.start_year !== after.start_year) changes.push('start_year');
@@ -379,7 +379,7 @@ export class DiffEngine {
     const changes: string[] = [];
 
     if (before._acr_part_id !== after._acr_part_id) changes.push('_acr_part_id');
-    if (before.acr_sku !== after.acr_sku) changes.push('acr_sku');
+    // SKIP acr_sku - it's a computed display field (not stored in DB, always empty in 'before')
     if (before.competitor_brand !== after.competitor_brand) changes.push('competitor_brand');
     if (before.competitor_sku !== after.competitor_sku) changes.push('competitor_sku');
 

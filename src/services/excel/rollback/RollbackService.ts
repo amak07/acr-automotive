@@ -90,17 +90,23 @@ export class RollbackService {
       await this.restoreSnapshotData(snapshot, tenantId);
       console.log('[RollbackService] Snapshot data restored');
 
-      // Step 7: Delete consumed snapshot
-      const { error: deleteError } = await supabase
-        .from('import_history')
-        .delete()
-        .eq('id', importId);
+      // Step 7: Delete consumed snapshot (but protect golden baseline)
+      const GOLDEN_SNAPSHOT_FILENAME = 'GOLDEN_BASELINE_877.xlsx';
 
-      if (deleteError) {
-        console.error('[RollbackService] Failed to delete snapshot:', deleteError);
-        // Don't fail rollback if cleanup fails
+      if (importRecord.file_name === GOLDEN_SNAPSHOT_FILENAME) {
+        console.log('[RollbackService] Preserving golden baseline snapshot (never deleted)');
       } else {
-        console.log('[RollbackService] Consumed snapshot deleted');
+        const { error: deleteError } = await supabase
+          .from('import_history')
+          .delete()
+          .eq('id', importId);
+
+        if (deleteError) {
+          console.error('[RollbackService] Failed to delete snapshot:', deleteError);
+          // Don't fail rollback if cleanup fails
+        } else {
+          console.log('[RollbackService] Consumed snapshot deleted');
+        }
       }
 
       const executionTime = Date.now() - startTime;

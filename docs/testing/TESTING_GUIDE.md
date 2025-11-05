@@ -1,6 +1,15 @@
 # Testing Guide - ACR Automotive
 
-**Last Updated**: October 28, 2025
+**Last Updated**: October 30, 2025
+
+---
+
+## 📚 Documentation Index
+
+- **[TEST_DATA_MANAGEMENT.md](./TEST_DATA_MANAGEMENT.md)** - Test file generation, organization, and baseline management
+- **[UNIT_TEST_COVERAGE.md](./UNIT_TEST_COVERAGE.md)** - Coverage tracking and metrics
+- **[UX_TESTING_GUIDE.md](./UX_TESTING_GUIDE.md)** - Manual UX, accessibility, and browser testing
+- **This file** - Quick reference and essential test commands
 
 ---
 
@@ -134,8 +143,40 @@ npm run test:import-pipeline
 ```bash
 npm run test:all-fixtures
 ```
-- Tests all validation fixtures (`fixtures/excel/*.xlsx`)
+- Tests all validation fixtures (`fixtures/excel/unit/*.xlsx`)
 - Verifies all error codes work correctly
+
+---
+
+### 5. Test Data Generation
+
+**Generate All Test Data**
+```bash
+npm run test:generate
+```
+- Generates unit test fixtures (8 files)
+- Generates integration scenarios (9 files)
+- Schema-aware: automatically adapts to new columns
+
+**Generate Specific Types**
+```bash
+npm run test:generate:unit        # Unit fixtures only
+npm run test:generate:scenarios   # Integration scenarios only
+```
+
+**Regenerate Test Baseline**
+```bash
+npm run test:export-baseline      # Export TEST database to tmp/test-export.xlsx
+```
+
+**When to regenerate:**
+- After schema changes (new columns)
+- After TEST database changes
+- When validation rules change
+
+**See:** [TEST_DATA_MANAGEMENT.md](./TEST_DATA_MANAGEMENT.md) for complete documentation
+
+---
 
 **Bulk Operations API**
 ```bash

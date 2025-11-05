@@ -46,9 +46,9 @@ const FIXTURE_TESTS: FixtureTest[] = [
     filename: "error-missing-required-fields.xlsx",
     description: "Missing required fields",
     expectedValid: false,
-    expectedErrors: 2, // Parts: missing ACR_SKU + Part_Type
+    expectedErrors: 3, // E1: missing hidden columns + E3: missing ACR_SKU + E3: missing Part_Type
     expectedWarnings: 0,
-    expectedErrorCodes: ["E3_EMPTY_REQUIRED_FIELD"],
+    expectedErrorCodes: ["E1_MISSING_HIDDEN_COLUMNS", "E3_EMPTY_REQUIRED_FIELD"],
   },
   {
     filename: "error-duplicate-skus.xlsx",
@@ -62,9 +62,9 @@ const FIXTURE_TESTS: FixtureTest[] = [
     filename: "error-orphaned-references.xlsx",
     description: "Orphaned foreign key references",
     expectedValid: false,
-    expectedErrors: 5, // E4: invalid UUIDs (3×), E5: orphaned keys (2×)
+    expectedErrors: 6, // E1: missing hidden columns + E4: invalid UUIDs (3×) + E5: orphaned keys (2×)
     expectedWarnings: 0,
-    expectedErrorCodes: ["E4_INVALID_UUID_FORMAT", "E5_ORPHANED_FOREIGN_KEY"],
+    expectedErrorCodes: ["E1_MISSING_HIDDEN_COLUMNS", "E4_INVALID_UUID_FORMAT", "E5_ORPHANED_FOREIGN_KEY"],
   },
   {
     filename: "error-invalid-formats.xlsx",
