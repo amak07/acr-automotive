@@ -77,9 +77,25 @@ export const translations: Record<
     en: "Preview",
     es: "Vista Previa",
   },
+  "admin.import.steps.reviewChanges": {
+    en: "Review Changes",
+    es: "Revisar Cambios",
+  },
   "admin.import.steps.confirm": {
     en: "Confirm",
     es: "Confirmar",
+  },
+  "admin.import.steps.completed": {
+    en: "Completed",
+    es: "Completado",
+  },
+  "admin.import.steps.inProgress": {
+    en: "In Progress",
+    es: "En Progreso",
+  },
+  "admin.import.steps.pending": {
+    en: "Pending",
+    es: "Pendiente",
   },
   "admin.import.buttons.next": {
     en: "Next",
@@ -137,6 +153,137 @@ export const translations: Record<
     en: "Parsed",
     es: "Procesado",
   },
+  "admin.import.upload.error": {
+    en: "Upload Error",
+    es: "Error de Carga",
+  },
+  "admin.import.upload.errorOnlyXlsx": {
+    en: "Only .xlsx files are supported",
+    es: "Solo se admiten archivos .xlsx",
+  },
+  "admin.import.upload.errorFileSize": {
+    en: "File size must be less than {maxSize}MB",
+    es: "El tamaño del archivo debe ser menor a {maxSize}MB",
+  },
+  "admin.import.upload.requirements": {
+    en: "Upload Requirements",
+    es: "Requisitos de Carga",
+  },
+  "admin.import.upload.reqFileFormat": {
+    en: "Excel format (.xlsx) only",
+    es: "Solo formato Excel (.xlsx)",
+  },
+  "admin.import.upload.reqMaxSize": {
+    en: "Maximum file size: {maxSize}MB",
+    es: "Tamaño máximo: {maxSize}MB",
+  },
+  "admin.import.upload.reqSheets": {
+    en: "Must contain Parts, Vehicle_Applications, and Cross_References sheets",
+    es: "Debe contener hojas Parts, Vehicle_Applications y Cross_References",
+  },
+  "admin.import.upload.reqTemplate": {
+    en: "Use the export format as a template",
+    es: "Usa el formato de exportación como plantilla",
+  },
+  "admin.import.upload.uploadCorrectedFile": {
+    en: "Upload Corrected File",
+    es: "Subir Archivo Corregido",
+  },
+  "admin.import.upload.issueFound": {
+    en: "Issue Found",
+    es: "Problema Encontrado",
+  },
+  "admin.import.upload.issuesFound": {
+    en: "Issues Found",
+    es: "Problemas Encontrados",
+  },
+  "admin.import.upload.fixIssuesPrompt": {
+    en: "Please fix these issues in your Excel file and upload again",
+    es: "Por favor corrige estos problemas en tu archivo Excel y vuelve a subirlo",
+  },
+
+  // Validation Error Messages (E1-E19)
+  "admin.import.errors.e1": {
+    en: "Missing required hidden columns (_id, _created_at, _updated_at). Please use the official import template.",
+    es: "Faltan columnas ocultas requeridas (_id, _created_at, _updated_at). Por favor usa la plantilla oficial de importación.",
+  },
+  "admin.import.errors.e2": {
+    en: 'Duplicate ACR SKU "{value}". Each part must have a unique SKU within the file.',
+    es: 'SKU ACR duplicado "{value}". Cada pieza debe tener un SKU único en el archivo.',
+  },
+  "admin.import.errors.e3": {
+    en: 'Required field "{column}" is empty. All required fields must have values.',
+    es: 'El campo requerido "{column}" está vacío. Todos los campos requeridos deben tener valores.',
+  },
+  "admin.import.errors.e4": {
+    en: 'Invalid _id format. UUIDs must follow the standard format (e.g., "550e8400-e29b-41d4-a716-446655440000").',
+    es: 'Formato de _id inválido. Los UUIDs deben seguir el formato estándar (ej., "550e8400-e29b-41d4-a716-446655440000").',
+  },
+  "admin.import.errors.e5.vehicle": {
+    en: "This vehicle application references a part that doesn't exist. Check the ACR_SKU value.",
+    es: "Esta aplicación vehicular referencia una pieza que no existe. Verifica el valor de ACR_SKU.",
+  },
+  "admin.import.errors.e5.crossref": {
+    en: "This cross-reference references a part that doesn't exist. Check the ACR_SKU value.",
+    es: "Esta referencia cruzada referencia una pieza que no existe. Verifica el valor de ACR_SKU.",
+  },
+  "admin.import.errors.e6": {
+    en: "Year range is invalid. Start year must be less than or equal to end year.",
+    es: "Rango de años inválido. El año inicial debe ser menor o igual al año final.",
+  },
+  "admin.import.errors.e7": {
+    en: 'Text in "{column}" is too long (max 500 characters). Please shorten the text.',
+    es: 'Texto en "{column}" es demasiado largo (máx 500 caracteres). Por favor acorta el texto.',
+  },
+  "admin.import.errors.e8": {
+    en: 'Year "{value}" is out of acceptable range (1900-2100). Check Year_Start and Year_End columns.',
+    es: 'Año "{value}" está fuera del rango aceptable (1900-2100). Verifica las columnas Year_Start y Year_End.',
+  },
+  "admin.import.errors.e9": {
+    en: '"{value}" is not a valid number. Please enter numbers only (no text or special characters).',
+    es: '"{value}" no es un número válido. Por favor ingresa solo números (sin texto o caracteres especiales).',
+  },
+  "admin.import.errors.e10": {
+    en: 'Required worksheet "{sheet}" is missing. The file must contain Parts, Vehicle_Applications, and Cross_References sheets.',
+    es: 'Falta la hoja requerida "{sheet}". El archivo debe contener las hojas Parts, Vehicle_Applications y Cross_References.',
+  },
+  "admin.import.errors.e11": {
+    en: 'Column header "{column}" appears multiple times. Each column must have a unique name.',
+    es: 'El encabezado de columna "{column}" aparece múltiples veces. Cada columna debe tener un nombre único.',
+  },
+  "admin.import.errors.e12": {
+    en: 'Required column "{column}" is missing from the "{sheet}" sheet. Please use the official template.',
+    es: 'Falta la columna requerida "{column}" en la hoja "{sheet}". Por favor usa la plantilla oficial.',
+  },
+  "admin.import.errors.e13": {
+    en: 'Worksheet name "{sheet}" is incorrect. Valid sheet names are: Parts, Vehicle_Applications, Cross_References.',
+    es: 'Nombre de hoja "{sheet}" incorrecto. Nombres válidos: Parts, Vehicle_Applications, Cross_References.',
+  },
+  "admin.import.errors.e14": {
+    en: "File format is not valid. Please upload an .xlsx file (Excel 2007 or newer).",
+    es: "Formato de archivo no válido. Por favor sube un archivo .xlsx (Excel 2007 o más reciente).",
+  },
+  "admin.import.errors.e15": {
+    en: "File size exceeds the 10MB limit. Please reduce file size or split into smaller imports.",
+    es: "El tamaño del archivo excede el límite de 10MB. Por favor reduce el tamaño o divide en importaciones más pequeñas.",
+  },
+  "admin.import.errors.e16": {
+    en: "Excel file is corrupted or malformed. Try saving a fresh copy and uploading again.",
+    es: "Archivo Excel está corrupto o malformado. Intenta guardar una copia nueva y subirla de nuevo.",
+  },
+  "admin.import.errors.e17": {
+    en: "File encoding error. Please ensure the file is saved in UTF-8 format.",
+    es: "Error de codificación de archivo. Por favor asegúrate de que el archivo esté guardado en formato UTF-8.",
+  },
+  "admin.import.errors.e18": {
+    en: "Data integrity violation. This record references data that doesn't exist in the database.",
+    es: "Violación de integridad de datos. Este registro referencia datos que no existen en la base de datos.",
+  },
+  "admin.import.errors.e19": {
+    en: 'Part with _id "{value}" doesn\'t exist in the database. Either remove the _id to add as new part, or use an existing part\'s _id.',
+    es: 'La pieza con _id "{value}" no existe en la base de datos. Elimina el _id para agregar como pieza nueva, o usa el _id de una pieza existente.',
+  },
+
   "admin.import.validation.validating": {
     en: "Validating data...",
     es: "Validando datos...",
@@ -169,6 +316,34 @@ export const translations: Record<
     en: "Warnings by Sheet",
     es: "Advertencias por Hoja",
   },
+  "admin.import.validation.success": {
+    en: "Validation Successful",
+    es: "Validación Exitosa",
+  },
+  "admin.import.validation.successDesc": {
+    en: "All data is valid. Ready to preview changes.",
+    es: "Todos los datos son válidos. Listo para vista previa.",
+  },
+  "admin.import.validation.error": {
+    en: "error",
+    es: "error",
+  },
+  "admin.import.validation.warning": {
+    en: "warning",
+    es: "advertencia",
+  },
+  "admin.import.validation.errors": {
+    en: "errors",
+    es: "errores",
+  },
+  "admin.import.validation.warnings": {
+    en: "warnings",
+    es: "advertencias",
+  },
+  "admin.import.validation.reviewWarnings": {
+    en: "Review changes that may affect existing data",
+    es: "Revisa cambios que pueden afectar datos existentes",
+  },
   "admin.import.preview.added": {
     en: "Added",
     es: "Agregados",
@@ -192,6 +367,90 @@ export const translations: Record<
   "admin.import.preview.warningDeletes": {
     en: "Warning: Some items will be permanently deleted",
     es: "Advertencia: Algunos elementos se eliminarán permanentemente",
+  },
+  "admin.import.preview.calculating": {
+    en: "Calculating changes...",
+    es: "Calculando cambios...",
+  },
+  "admin.import.preview.new": {
+    en: "new",
+    es: "nuevos",
+  },
+  "admin.import.preview.systemUpdates": {
+    en: "system updates",
+    es: "actualizaciones del sistema",
+  },
+  "admin.import.preview.partChanges": {
+    en: "Part Changes",
+    es: "Cambios de Piezas",
+  },
+  "admin.import.preview.newParts": {
+    en: "New Parts",
+    es: "Piezas Nuevas",
+  },
+  "admin.import.preview.updatedParts": {
+    en: "Updated Parts",
+    es: "Piezas Actualizadas",
+  },
+  "admin.import.preview.deletedParts": {
+    en: "Deleted Parts",
+    es: "Piezas Eliminadas",
+  },
+  "admin.import.preview.loadMore": {
+    en: "Load 20 more",
+    es: "Cargar 20 más",
+  },
+  "admin.import.preview.showAll": {
+    en: "Show all {count}",
+    es: "Mostrar todos {count}",
+  },
+  "admin.import.preview.cascadeWarning": {
+    en: "Cascade Delete Warning",
+    es: "Advertencia de Eliminación en Cascada",
+  },
+  "admin.import.preview.cascadeDesc": {
+    en: "Deleting {count} {type} will also remove {relatedCount} related {relatedType}. This keeps your database consistent.",
+    es: "Eliminar {count} {type} también removerá {relatedCount} {relatedType} relacionados. Esto mantiene consistente tu base de datos.",
+  },
+  "admin.import.preview.cascadeAck": {
+    en: "I understand these items will be permanently removed",
+    es: "Entiendo que estos elementos serán removidos permanentemente",
+  },
+  "admin.import.preview.dataWarnings": {
+    en: "Data Change Warnings ({count})",
+    es: "Advertencias de Cambio de Datos ({count})",
+  },
+  "admin.import.preview.dataWarningsAck": {
+    en: "I understand these changes and want to proceed",
+    es: "Entiendo estos cambios y quiero continuar",
+  },
+  "admin.import.preview.systemUpdatesDesc": {
+    en: "{count} system metadata updates (routine maintenance)",
+    es: "{count} actualizaciones de metadatos del sistema (mantenimiento rutinario)",
+  },
+  "admin.import.preview.vaMetadata": {
+    en: "{count} vehicle application metadata syncs",
+    es: "{count} sincronizaciones de metadatos de aplicaciones vehiculares",
+  },
+  "admin.import.preview.crMetadata": {
+    en: "{count} cross-reference metadata syncs",
+    es: "{count} sincronizaciones de metadatos de referencias cruzadas",
+  },
+  "admin.import.preview.routineMaintenance": {
+    en: "These updates maintain data integrity and don't modify business data.",
+    es: "Estas actualizaciones mantienen la integridad de datos y no modifican datos de negocio.",
+  },
+  "admin.import.preview.willRemove": {
+    en: "Will be removed from catalog",
+    es: "Será removido del catálogo",
+  },
+  "admin.import.preview.willRemoveItems": {
+    en: "Will also remove {count} vehicle {type}",
+    es: "También removerá {count} {type} vehicular",
+  },
+  "admin.import.preview.andCrossRefs": {
+    en: ", {count} cross-{type}",
+    es: ", {count} {type} cruzada",
   },
   "admin.import.confirm.ready": {
     en: "Ready to Import",
@@ -276,6 +535,190 @@ export const translations: Record<
   "admin.import.success.executionTime": {
     en: "Execution time",
     es: "Tiempo de ejecución",
+  },
+  "admin.import.success.completedDesc": {
+    en: "All changes have been applied successfully to your catalog",
+    es: "Todos los cambios han sido aplicados exitosamente a tu catálogo",
+  },
+  "admin.import.success.importIdLabel": {
+    en: "Import ID",
+    es: "ID de Importación",
+  },
+  "admin.import.success.executionTimeLabel": {
+    en: "Execution Time",
+    es: "Tiempo de Ejecución",
+  },
+  "admin.import.success.viewDetails": {
+    en: "View detailed part list",
+    es: "Ver lista detallada de piezas",
+  },
+  "admin.import.success.hideDetails": {
+    en: "Hide detailed part list",
+    es: "Ocultar lista detallada de piezas",
+  },
+  "admin.import.success.partsLabel": {
+    en: "parts",
+    es: "piezas",
+  },
+  "admin.import.success.partsAdded": {
+    en: "Parts Added",
+    es: "Piezas Agregadas",
+  },
+  "admin.import.success.partsUpdated": {
+    en: "Parts Updated",
+    es: "Piezas Actualizadas",
+  },
+  "admin.import.success.partsDeleted": {
+    en: "Parts Deleted",
+    es: "Piezas Eliminadas",
+  },
+  "admin.import.success.morePartsNotShown": {
+    en: "+ {count} more parts not shown",
+    es: "+ {count} piezas más no mostradas",
+  },
+  "admin.import.success.snapshotInfo": {
+    en: "Snapshot saved for rollback",
+    es: "Instantánea guardada para revertir",
+  },
+  "admin.import.success.snapshotDesc": {
+    en: "Import #{id} has been saved. You can rollback this import from Settings if needed.",
+    es: "Importación #{id} ha sido guardada. Puedes revertir esta importación desde Configuración si es necesario.",
+  },
+  "admin.import.error.title": {
+    en: "Import Failed",
+    es: "Importación Fallida",
+  },
+  "admin.import.error.duplicateParts": {
+    en: "Duplicate Parts Detected",
+    es: "Piezas Duplicadas Detectadas",
+  },
+  "admin.import.error.duplicateDesc": {
+    en: "Some parts in your file already exist in the database. This usually happens when you try to import the same file twice.",
+    es: "Algunas piezas en tu archivo ya existen en la base de datos. Esto generalmente ocurre al importar el mismo archivo dos veces.",
+  },
+  "admin.import.error.duplicateSuggestion": {
+    en: "Export a fresh file from the database and make your changes to that file, or remove the duplicate parts from your current file.",
+    es: "Exporta un archivo actualizado de la base de datos y haz tus cambios en ese archivo, o remueve las piezas duplicadas de tu archivo actual.",
+  },
+  "admin.import.error.foreignKey": {
+    en: "Data Relationship Error",
+    es: "Error de Relación de Datos",
+  },
+  "admin.import.error.foreignKeyDesc": {
+    en: "Some records reference parts that don't exist in the database.",
+    es: "Algunos registros referencian piezas que no existen en la base de datos.",
+  },
+  "admin.import.error.foreignKeySuggestion": {
+    en: "Make sure all vehicle applications and cross-references have valid ACR_SKU values that match existing parts.",
+    es: "Asegúrate que todas las aplicaciones vehiculares y referencias cruzadas tengan valores ACR_SKU válidos que coincidan con piezas existentes.",
+  },
+  "admin.import.error.missingRequired": {
+    en: "Missing Required Data",
+    es: "Datos Requeridos Faltantes",
+  },
+  "admin.import.error.missingRequiredDesc": {
+    en: "Some required fields are empty in your file.",
+    es: "Algunos campos requeridos están vacíos en tu archivo.",
+  },
+  "admin.import.error.missingRequiredSuggestion": {
+    en: "Check that all parts have ACR_SKU and Part_Type filled in, and all vehicle applications have Make, Model, and Year information.",
+    es: "Verifica que todas las piezas tengan ACR_SKU y Part_Type completados, y todas las aplicaciones vehiculares tengan información de Marca, Modelo y Año.",
+  },
+  "admin.import.error.timeout": {
+    en: "Connection Timeout",
+    es: "Tiempo de Conexión Agotado",
+  },
+  "admin.import.error.timeoutDesc": {
+    en: "The import took too long and the connection was lost.",
+    es: "La importación tardó demasiado y la conexión se perdió.",
+  },
+  "admin.import.error.timeoutSuggestion": {
+    en: "Try importing a smaller file, or check your internet connection and try again.",
+    es: "Intenta importar un archivo más pequeño, o verifica tu conexión a internet e intenta nuevamente.",
+  },
+  "admin.import.error.generic": {
+    en: "Import Failed",
+    es: "Importación Fallida",
+  },
+  "admin.import.error.genericSuggestion": {
+    en: "Check your file format and data, then try again. If the problem persists, contact support.",
+    es: "Verifica el formato y datos de tu archivo, luego intenta nuevamente. Si el problema persiste, contacta soporte.",
+  },
+  "admin.import.error.technicalDetails": {
+    en: "Technical Details",
+    es: "Detalles Técnicos",
+  },
+  "admin.import.error.tryAgain": {
+    en: "Try Again",
+    es: "Intentar Nuevamente",
+  },
+  "admin.import.error.suggestionLabel": {
+    en: "Suggestion:",
+    es: "Sugerencia:",
+  },
+  "admin.import.rollback.confirm": {
+    en: "Confirm Rollback",
+    es: "Confirmar Reversión",
+  },
+  "admin.import.rollback.desc": {
+    en: "This will undo the import and restore the database to its state before these changes:",
+    es: "Esto revertirá la importación y restaurará la base de datos a su estado antes de estos cambios:",
+  },
+  "admin.import.rollback.addedRemoved": {
+    en: "{count} Added {type} Will Be Removed",
+    es: "{count} {type} Agregado(s) Será(n) Removido(s)",
+  },
+  "admin.import.rollback.addedRemovedDesc": {
+    en: "All parts, vehicle applications, and cross-references added in this import will be deleted.",
+    es: "Todas las piezas, aplicaciones vehiculares y referencias cruzadas agregadas en esta importación serán eliminadas.",
+  },
+  "admin.import.rollback.updatedReverted": {
+    en: "{count} Updated {type} Will Revert",
+    es: "{count} {type} Actualizado(s) Será(n) Revertido(s)",
+  },
+  "admin.import.rollback.updatedRevertedDesc": {
+    en: "All modifications to existing records will be undone, restoring previous values.",
+    es: "Todas las modificaciones a registros existentes serán deshechas, restaurando valores previos.",
+  },
+  "admin.import.rollback.deletedRestored": {
+    en: "{count} Deleted {type} Will Be Restored",
+    es: "{count} {type} Eliminado(s) Será(n) Restaurado(s)",
+  },
+  "admin.import.rollback.deletedRestoredDesc": {
+    en: "All records deleted during this import will be brought back with their original data.",
+    es: "Todos los registros eliminados durante esta importación serán recuperados con sus datos originales.",
+  },
+  "admin.import.rollback.warning": {
+    en: "This action cannot be undone. The snapshot will be consumed and deleted.",
+    es: "Esta acción no puede ser deshecha. La instantánea será consumida y eliminada.",
+  },
+  "admin.import.rollback.cancel": {
+    en: "Cancel",
+    es: "Cancelar",
+  },
+  "admin.import.rollback.confirm.button": {
+    en: "Yes, Rollback Import",
+    es: "Sí, Revertir Importación",
+  },
+  "admin.import.rollback.inProgress": {
+    en: "Rolling back...",
+    es: "Revirtiendo...",
+  },
+  "admin.import.rollback.button": {
+    en: "Rollback Import",
+    es: "Revertir Importación",
+  },
+  "admin.import.rollback.record": {
+    en: "Record",
+    es: "Registro",
+  },
+  "admin.import.rollback.records": {
+    en: "Records",
+    es: "Registros",
+  },
+  "admin.import.processing": {
+    en: "Processing...",
+    es: "Procesando...",
   },
 
   // Admin Search & Filters

@@ -18,7 +18,7 @@ export function ImportStepIndicator({ currentStep, onStepClick, isImportComplete
 
   const steps = [
     { number: 1, label: t("admin.import.steps.upload") },
-    { number: 2, label: "Review Changes" }, // Combined validate + preview
+    { number: 2, label: t("admin.import.steps.reviewChanges") },
     { number: 3, label: t("admin.import.steps.confirm") },
   ] as const;
 
@@ -94,39 +94,96 @@ export function ImportStepIndicator({ currentStep, onStepClick, isImportComplete
         })}
       </div>
 
-      {/* Mobile: Compact stepper */}
-      <div className="sm:hidden">
-        <div className="flex items-center justify-between px-4 py-3 bg-acr-gray-50 rounded-lg">
-          <div className="flex items-center gap-3">
-            {steps.map((step) => {
-              const status = getStepStatus(step.number);
-              return (
-                <button
-                  key={step.number}
-                  onClick={() => canNavigateToStep(step.number) && onStepClick?.(step.number)}
-                  disabled={!canNavigateToStep(step.number)}
+      {/* Mobile: Enhanced vertical stepper */}
+      <div className="sm:hidden space-y-3">
+        {steps.map((step, index) => {
+          const status = getStepStatus(step.number);
+          const canNavigate = canNavigateToStep(step.number);
+          const isActive = status === "current";
+          const isComplete = status === "complete";
+          const isPending = status === "pending";
+
+          return (
+            <div key={step.number} className="relative">
+              <button
+                onClick={() => canNavigate && onStepClick?.(step.number)}
+                disabled={!canNavigate}
+                className={cn(
+                  "w-full flex items-center gap-4 p-4 rounded-xl transition-all",
+                  "focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:ring-offset-2",
+                  isActive && "bg-gradient-to-r from-acr-red-50 to-acr-red-100/50 border-2 border-acr-red-500 shadow-md",
+                  isComplete && "bg-gradient-to-r from-green-50 to-green-100/50 border-2 border-green-500 hover:shadow-md cursor-pointer",
+                  isPending && "bg-acr-gray-50 border-2 border-acr-gray-200 cursor-not-allowed opacity-60"
+                )}
+                aria-current={isActive ? "step" : undefined}
+                aria-label={`${step.label} - ${status}`}
+              >
+                {/* Step number/icon */}
+                <div
                   className={cn(
-                    "flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-all",
-                    status === "complete" && "bg-green-600 text-white",
-                    status === "current" && "bg-acr-red-600 text-white ring-2 ring-acr-red-300",
-                    status === "pending" && "bg-acr-gray-300 text-acr-gray-600"
+                    "flex items-center justify-center w-12 h-12 rounded-full font-bold text-lg flex-shrink-0 transition-all",
+                    isActive && "bg-acr-red-600 text-white shadow-lg",
+                    isComplete && "bg-green-600 text-white",
+                    isPending && "bg-acr-gray-300 text-acr-gray-600"
                   )}
-                  aria-current={status === "current" ? "step" : undefined}
-                  aria-label={step.label}
                 >
-                  {status === "complete" ? (
-                    <CheckCircle className="w-4 h-4" />
+                  {isComplete ? (
+                    <CheckCircle className="w-6 h-6" strokeWidth={2.5} />
                   ) : (
                     step.number
                   )}
-                </button>
-              );
-            })}
-          </div>
-          <div className="text-sm font-medium text-acr-gray-700">
-            {steps.find((s) => s.number === currentStep)?.label}
-          </div>
-        </div>
+                </div>
+
+                {/* Step label and description */}
+                <div className="flex-1 text-left">
+                  <div
+                    className={cn(
+                      "font-semibold text-base transition-colors",
+                      isActive && "text-acr-red-900",
+                      isComplete && "text-green-900",
+                      isPending && "text-acr-gray-600"
+                    )}
+                  >
+                    {step.label}
+                  </div>
+                  <div
+                    className={cn(
+                      "text-xs mt-0.5 transition-colors",
+                      isActive && "text-acr-red-700",
+                      isComplete && "text-green-700",
+                      isPending && "text-acr-gray-500"
+                    )}
+                  >
+                    {isComplete && t("admin.import.steps.completed")}
+                    {isActive && t("admin.import.steps.inProgress")}
+                    {isPending && t("admin.import.steps.pending")}
+                  </div>
+                </div>
+
+                {/* Progress indicator badge */}
+                <div className="flex-shrink-0">
+                  {isActive && (
+                    <div className="w-2 h-2 rounded-full bg-acr-red-600 animate-pulse" />
+                  )}
+                  {isComplete && (
+                    <div className="text-green-600 text-xs font-semibold">✓</div>
+                  )}
+                </div>
+              </button>
+
+              {/* Connecting line to next step */}
+              {index < steps.length - 1 && (
+                <div
+                  className={cn(
+                    "absolute left-10 top-16 w-0.5 h-3 transition-colors",
+                    isComplete && "bg-green-500",
+                    !isComplete && "bg-acr-gray-300"
+                  )}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Progress bar for screen readers */}

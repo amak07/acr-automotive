@@ -109,7 +109,7 @@ export function ImportStep2DiffPreview({
       <div className="flex flex-col items-center justify-center py-12">
         <div className="w-16 h-16 border-4 border-acr-red-600 border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-lg font-medium text-acr-gray-900">
-          Calculating changes...
+          {t("admin.import.preview.calculating")}
         </p>
         <p className="text-sm text-acr-gray-600 mt-2">
           {t("admin.import.confirm.pleaseWait")}
@@ -142,19 +142,19 @@ export function ImportStep2DiffPreview({
             <div className="flex items-center gap-2">
               <PlusCircle className="w-4 h-4 text-green-600" />
               <span className="font-semibold text-acr-gray-900">{diffResult.parts.summary.totalAdds}</span>
-              <span className="text-acr-gray-600">new</span>
+              <span className="text-acr-gray-600">{t("admin.import.preview.new")}</span>
             </div>
             <div className="w-px h-6 bg-acr-gray-300" />
             <div className="flex items-center gap-2">
               <Edit className="w-4 h-4 text-blue-600" />
               <span className="font-semibold text-acr-gray-900">{diffResult.parts.summary.totalUpdates}</span>
-              <span className="text-acr-gray-600">updated</span>
+              <span className="text-acr-gray-600">{t("admin.import.preview.updated").toLowerCase()}</span>
             </div>
             <div className="w-px h-6 bg-acr-gray-300" />
             <div className="flex items-center gap-2">
               <Trash2 className="w-4 h-4 text-red-600" />
               <span className="font-semibold text-acr-gray-900">{diffResult.parts.summary.totalDeletes}</span>
-              <span className="text-acr-gray-600">deleted</span>
+              <span className="text-acr-gray-600">{t("admin.import.preview.deleted").toLowerCase()}</span>
             </div>
             {systemUpdateCount > 0 && (
               <>
@@ -162,7 +162,7 @@ export function ImportStep2DiffPreview({
                 <div className="flex items-center gap-2 text-acr-gray-500">
                   <Info className="w-4 h-4" />
                   <span className="font-semibold">{systemUpdateCount}</span>
-                  <span>system updates</span>
+                  <span>{t("admin.import.preview.systemUpdates")}</span>
                 </div>
               </>
             )}
@@ -174,13 +174,13 @@ export function ImportStep2DiffPreview({
       {hasPartChanges && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-acr-gray-900">
-            Part Changes
+            {t("admin.import.preview.partChanges")}
           </h3>
 
           {/* New Parts */}
           {diffResult.parts.summary.totalAdds > 0 && (
             <ChangeSection
-              title="New Parts"
+              title={t("admin.import.preview.newParts")}
               count={diffResult.parts.summary.totalAdds}
               icon={<PlusCircle className="w-5 h-5 text-green-600" />}
               colorClass="border-green-300 bg-green-50"
@@ -198,14 +198,14 @@ export function ImportStep2DiffPreview({
                       size="sm"
                       onClick={() => loadMore('adds')}
                     >
-                      Load 20 more
+                      {t("admin.import.preview.loadMore")}
                     </AcrButton>
                     <AcrButton
                       variant="ghost"
                       size="sm"
                       onClick={() => showAll('adds', diffResult.parts.adds.length)}
                     >
-                      Show all {diffResult.parts.adds.length}
+                      {t("admin.import.preview.showAll").replace("{count}", diffResult.parts.adds.length.toString())}
                     </AcrButton>
                   </div>
                 )}
@@ -216,7 +216,7 @@ export function ImportStep2DiffPreview({
           {/* Updated Parts */}
           {diffResult.parts.summary.totalUpdates > 0 && (
             <ChangeSection
-              title="Updated Parts"
+              title={t("admin.import.preview.updatedParts")}
               count={diffResult.parts.summary.totalUpdates}
               icon={<Edit className="w-5 h-5 text-blue-600" />}
               colorClass="border-blue-300 bg-blue-50"
@@ -234,14 +234,14 @@ export function ImportStep2DiffPreview({
                       size="sm"
                       onClick={() => loadMore('updates')}
                     >
-                      Load 20 more
+                      {t("admin.import.preview.loadMore")}
                     </AcrButton>
                     <AcrButton
                       variant="ghost"
                       size="sm"
                       onClick={() => showAll('updates', diffResult.parts.updates.length)}
                     >
-                      Show all {diffResult.parts.updates.length}
+                      {t("admin.import.preview.showAll").replace("{count}", diffResult.parts.updates.length.toString())}
                     </AcrButton>
                   </div>
                 )}
@@ -252,7 +252,7 @@ export function ImportStep2DiffPreview({
           {/* Deleted Parts */}
           {diffResult.parts.summary.totalDeletes > 0 && (
             <ChangeSection
-              title="Deleted Parts"
+              title={t("admin.import.preview.deletedParts")}
               count={diffResult.parts.summary.totalDeletes}
               icon={<Trash2 className="w-5 h-5 text-red-600" />}
               colorClass="border-red-300 bg-red-50"
@@ -274,14 +274,14 @@ export function ImportStep2DiffPreview({
                         size="sm"
                         onClick={() => loadMore('deletes')}
                       >
-                        Load 20 more
+                        {t("admin.import.preview.loadMore")}
                       </AcrButton>
                       <AcrButton
                         variant="ghost"
                         size="sm"
                         onClick={() => showAll('deletes', diffResult.parts.deletes.length)}
                       >
-                        Show all {diffResult.parts.deletes.length}
+                        {t("admin.import.preview.showAll").replace("{count}", diffResult.parts.deletes.length.toString())}
                       </AcrButton>
                     </div>
                   )}
@@ -299,10 +299,14 @@ export function ImportStep2DiffPreview({
               <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <h4 className="font-medium text-amber-900 mb-2">
-                  Cascade Delete Warning
+                  {t("admin.import.preview.cascadeWarning")}
                 </h4>
                 <p className="text-sm text-amber-800 mb-3">
-                  Deleting {diffResult.parts.summary.totalDeletes} {diffResult.parts.summary.totalDeletes === 1 ? 'part' : 'parts'} will also remove <strong>{cascadeWarnings.length} related {cascadeWarnings.length === 1 ? 'item' : 'items'}</strong> (vehicle applications and cross-references). This keeps your database consistent.
+                  {t("admin.import.preview.cascadeDesc")
+                    .replace("{count}", diffResult.parts.summary.totalDeletes.toString())
+                    .replace("{type}", diffResult.parts.summary.totalDeletes === 1 ? 'part' : 'parts')
+                    .replace("{relatedCount}", cascadeWarnings.length.toString())
+                    .replace("{relatedType}", cascadeWarnings.length === 1 ? 'item' : 'items')}
                 </p>
                 {onAcknowledgeWarnings && (
                   <label className="flex items-start gap-2 cursor-pointer">
@@ -313,7 +317,7 @@ export function ImportStep2DiffPreview({
                       className="mt-0.5 w-4 h-4 text-acr-red-600 border-amber-400 rounded focus:ring-acr-red-500"
                     />
                     <span className="text-sm text-amber-900 font-medium">
-                      I understand these items will be permanently removed
+                      {t("admin.import.preview.cascadeAck")}
                     </span>
                   </label>
                 )}
@@ -331,7 +335,7 @@ export function ImportStep2DiffPreview({
               <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <h4 className="font-medium text-amber-900 mb-2">
-                  Data Change Warnings ({validationWarnings.length})
+                  {t("admin.import.preview.dataWarnings").replace("{count}", validationWarnings.length.toString())}
                 </h4>
                 <div className="space-y-2 mb-3">
                   {validationWarnings.map((warning, idx) => (
@@ -348,7 +352,7 @@ export function ImportStep2DiffPreview({
                     className="mt-0.5 w-4 h-4 text-acr-red-600 border-amber-400 rounded focus:ring-acr-red-500"
                   />
                   <span className="text-sm text-amber-900 font-medium">
-                    I understand these changes and want to proceed
+                    {t("admin.import.preview.dataWarningsAck")}
                   </span>
                 </label>
               </div>
@@ -372,14 +376,14 @@ export function ImportStep2DiffPreview({
               )}
               <Info className="w-4 h-4" />
               <span>
-                {systemUpdateCount} system metadata updates (routine maintenance)
+                {t("admin.import.preview.systemUpdatesDesc").replace("{count}", systemUpdateCount.toString())}
               </span>
             </button>
             {showSystemUpdates && (
               <div className="mt-4 text-xs text-acr-gray-600 space-y-2">
-                <p>• {diffResult.vehicleApplications.summary.totalUpdates} vehicle application metadata syncs</p>
-                <p>• {diffResult.crossReferences.summary.totalUpdates} cross-reference metadata syncs</p>
-                <p className="italic pt-2">These updates maintain data integrity and don't modify business data.</p>
+                <p>• {t("admin.import.preview.vaMetadata").replace("{count}", diffResult.vehicleApplications.summary.totalUpdates.toString())}</p>
+                <p>• {t("admin.import.preview.crMetadata").replace("{count}", diffResult.crossReferences.summary.totalUpdates.toString())}</p>
+                <p className="italic pt-2">{t("admin.import.preview.routineMaintenance")}</p>
               </div>
             )}
           </div>
@@ -525,21 +529,21 @@ function PartUpdateItem({ item }: { item: DiffItem }) {
                 </div>
                 {wasEmpty && !isNowEmpty && (
                   <div className="text-acr-gray-700">
-                    Added: <span className="font-medium text-green-700">"{change.after}"</span>
+                    Added: <span className="font-medium text-green-700">&quot;{change.after}&quot;</span>
                   </div>
                 )}
                 {!wasEmpty && isNowEmpty && (
                   <div className="text-acr-gray-700">
-                    Removed: <span className="font-medium text-red-700 line-through">"{change.before}"</span>
+                    Removed: <span className="font-medium text-red-700 line-through">&quot;{change.before}&quot;</span>
                   </div>
                 )}
                 {!wasEmpty && !isNowEmpty && (
                   <div className="space-y-0.5">
                     <div className="text-acr-gray-600">
-                      Was: <span className="font-medium">"{change.before}"</span>
+                      Was: <span className="font-medium">&quot;{change.before}&quot;</span>
                     </div>
                     <div className="text-acr-gray-600">
-                      Now: <span className="font-medium">"{change.after}"</span>
+                      Now: <span className="font-medium">&quot;{change.after}&quot;</span>
                     </div>
                   </div>
                 )}
@@ -553,6 +557,7 @@ function PartUpdateItem({ item }: { item: DiffItem }) {
 }
 
 function PartDeleteItem({ item, cascadeWarnings = [] }: { item: DiffItem; cascadeWarnings?: ValidationWarning[] }) {
+  const { t } = useLocale();
   const [showCascadeDetails, setShowCascadeDetails] = useState(false);
   const part = item.row || item.before;
   if (!part) return null;
@@ -590,8 +595,12 @@ function PartDeleteItem({ item, cascadeWarnings = [] }: { item: DiffItem; cascad
               className="text-xs text-amber-700 hover:text-amber-800 font-medium flex items-center gap-1"
             >
               {showCascadeDetails ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-              Will also remove {vehicleAppWarnings.length} vehicle {vehicleAppWarnings.length === 1 ? 'application' : 'applications'}
-              {crossRefWarnings.length > 0 && `, ${crossRefWarnings.length} cross-${crossRefWarnings.length === 1 ? 'reference' : 'references'}`}
+              {t("admin.import.preview.willRemoveItems")
+                .replace("{count}", vehicleAppWarnings.length.toString())
+                .replace("{type}", vehicleAppWarnings.length === 1 ? 'application' : 'applications')}
+              {crossRefWarnings.length > 0 && t("admin.import.preview.andCrossRefs")
+                .replace("{count}", crossRefWarnings.length.toString())
+                .replace("{type}", crossRefWarnings.length === 1 ? 'reference' : 'references')}
             </button>
 
             {showCascadeDetails && (
@@ -615,7 +624,7 @@ function PartDeleteItem({ item, cascadeWarnings = [] }: { item: DiffItem; cascad
 
         {relatedWarnings.length === 0 && (
           <div className="text-xs text-red-600 mt-1">
-            Will be removed from catalog
+            {t("admin.import.preview.willRemove")}
           </div>
         )}
       </div>
