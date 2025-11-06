@@ -6,6 +6,8 @@ import { Upload } from "lucide-react";
 import { AcrCard, AcrButton } from "@/components/acr";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/common/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/hooks/common/queryKeys";
 import { ImportStepIndicator } from "./ImportStepIndicator";
 import { ImportStep1Upload } from "./steps/ImportStep1Upload";
 import { ImportStep2Validation } from "./steps/ImportStep2Validation";
@@ -89,6 +91,7 @@ export function ImportWizard() {
   const { t } = useLocale();
   const router = useRouter();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [state, setState] = useState<WizardState>({
     currentStep: 1,
@@ -272,6 +275,9 @@ export function ImportWizard() {
         isProcessing: false,
       }));
 
+      // Invalidate parts cache so dashboard refreshes
+      queryClient.invalidateQueries({ queryKey: queryKeys.parts.all });
+
       toast({
         title: "Import Successful",
         description: `Imported ${importResult.summary.totalChanges} changes successfully: ${importResult.summary.totalAdds} added, ${importResult.summary.totalUpdates} updated, ${importResult.summary.totalDeletes} deleted`,
@@ -326,6 +332,9 @@ export function ImportWizard() {
         description: `Restored ${result.restoredCounts.parts} parts, ${result.restoredCounts.vehicleApplications} vehicle applications, and ${result.restoredCounts.crossReferences} cross-references`,
         className: "bg-green-50 border-green-200",
       });
+
+      // Invalidate parts cache so dashboard refreshes
+      queryClient.invalidateQueries({ queryKey: queryKeys.parts.all });
 
       // Reset wizard to initial state after successful rollback
       setState({
@@ -387,7 +396,11 @@ export function ImportWizard() {
       </div>
 
       {/* Step Indicator */}
-      <ImportStepIndicator currentStep={state.currentStep} onStepClick={handleStepClick} />
+      <ImportStepIndicator
+        currentStep={state.currentStep}
+        onStepClick={handleStepClick}
+        isImportComplete={state.importResult !== null}
+      />
 
       {/* Step Content */}
       <AcrCard variant="default" padding="none">
@@ -437,6 +450,7 @@ export function ImportWizard() {
             <ImportStep3Confirmation
               isExecuting={state.isProcessing}
               importResult={state.importResult}
+              diffResult={state.diffResult}
               error={state.error}
               onStartNewImport={handleStartNewImport}
               onRollback={handleRollback}

@@ -10,9 +10,10 @@ import { cn } from "@/lib/utils";
 interface ImportStepIndicatorProps {
   currentStep: 1 | 2 | 3;
   onStepClick?: (step: 1 | 2 | 3) => void;
+  isImportComplete?: boolean; // When true, Step 3 will show as complete (green)
 }
 
-export function ImportStepIndicator({ currentStep, onStepClick }: ImportStepIndicatorProps) {
+export function ImportStepIndicator({ currentStep, onStepClick, isImportComplete }: ImportStepIndicatorProps) {
   const { t } = useLocale();
 
   const steps = [
@@ -23,7 +24,11 @@ export function ImportStepIndicator({ currentStep, onStepClick }: ImportStepIndi
 
   const getStepStatus = (stepNumber: number): "complete" | "current" | "pending" => {
     if (stepNumber < currentStep) return "complete";
-    if (stepNumber === currentStep) return "current";
+    if (stepNumber === currentStep) {
+      // If we're on step 3 and import is complete, show it as complete
+      if (stepNumber === 3 && isImportComplete) return "complete";
+      return "current";
+    }
     return "pending";
   };
 

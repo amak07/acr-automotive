@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { RotateCcw, Clock, FileText, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
 import { AcrCard, AcrButton } from "@/components/acr";
 import { useToast } from "@/hooks/common/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/hooks/common/queryKeys";
 
 interface ImportSnapshot {
   id: string;
@@ -20,6 +22,7 @@ interface ImportSnapshot {
 
 export function ImportHistorySettings() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [snapshots, setSnapshots] = useState<ImportSnapshot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRollingBack, setIsRollingBack] = useState<string | null>(null);
@@ -88,6 +91,9 @@ export function ImportHistorySettings() {
         description: `Restored ${result.restoredCounts.parts} parts, ${result.restoredCounts.vehicleApplications} vehicle applications, and ${result.restoredCounts.crossReferences} cross-references`,
         className: "bg-green-50 border-green-200",
       });
+
+      // Invalidate parts cache so dashboard refreshes
+      queryClient.invalidateQueries({ queryKey: queryKeys.parts.all });
 
       // Refresh the list
       await fetchSnapshots();

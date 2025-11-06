@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { CheckCircle, Loader2, AlertCircle, RotateCcw } from "lucide-react";
+import { CheckCircle, Loader2, AlertCircle, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { AcrCard, AcrButton } from "@/components/acr";
 import { useRouter } from "next/navigation";
 
@@ -18,6 +18,31 @@ interface ImportResult {
   executionTime: number; // in milliseconds
 }
 
+interface DiffResult {
+  parts: {
+    adds: any[];
+    updates: any[];
+    deletes: any[];
+  };
+  vehicleApplications: {
+    adds: any[];
+    updates: any[];
+    deletes: any[];
+  };
+  crossReferences: {
+    adds: any[];
+    updates: any[];
+    deletes: any[];
+  };
+  summary: {
+    totalAdds: number;
+    totalUpdates: number;
+    totalDeletes: number;
+    totalUnchanged: number;
+    totalChanges: number;
+  };
+}
+
 interface ImportStep4ConfirmationProps {
   isExecuting?: boolean;
   executionProgress?: {
@@ -25,6 +50,7 @@ interface ImportStep4ConfirmationProps {
     message?: string;
   };
   importResult?: ImportResult | null;
+  diffResult?: DiffResult | null;
   error?: string | null;
   onStartNewImport?: () => void;
   onRollback?: (importId: string) => void;
@@ -35,6 +61,7 @@ export function ImportStep3Confirmation({
   isExecuting = false,
   executionProgress,
   importResult,
+  diffResult,
   error,
   onStartNewImport,
   onRollback,
@@ -43,6 +70,7 @@ export function ImportStep3Confirmation({
   const { t, locale } = useLocale();
   const router = useRouter();
   const [showRollbackConfirm, setShowRollbackConfirm] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -202,96 +230,249 @@ export function ImportStep3Confirmation({
   // Success State
   if (importResult) {
     return (
-      <div className="space-y-6">
-        {/* Success Banner */}
-        <AcrCard variant="default" className="border-green-500 bg-green-50">
-          <div className="flex items-center gap-4 p-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <CheckCircle className="w-10 h-10 text-green-600" />
+      <div className="space-y-8">
+        {/* Success Banner - Modernized */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-green-600 p-8 shadow-lg">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl -ml-24 -mb-24" />
+
+          <div className="relative flex items-center gap-5">
+            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl">
+              <CheckCircle className="w-12 h-12 text-white" strokeWidth={2.5} />
             </div>
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-green-900">
+              <h2 className="text-3xl font-bold text-white mb-1.5">
                 {t("admin.import.success.title")}
               </h2>
-              <p className="text-sm text-green-700 mt-1">
-                All changes have been applied successfully
+              <p className="text-green-50 text-base">
+                All changes have been applied successfully to your catalog
               </p>
             </div>
           </div>
-        </AcrCard>
+        </div>
 
-        {/* Import Metadata */}
-        <AcrCard variant="default" padding="default">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-acr-gray-600 mb-1">
-                  {t("admin.import.success.importId")}
-                </p>
-                <p className="text-lg font-mono font-semibold text-acr-gray-900">
-                  #{importResult.importId.slice(0, 8)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-acr-gray-600 mb-1">
-                  {t("admin.import.success.executionTime")}
-                </p>
-                <p className="text-lg font-semibold text-acr-gray-900">
-                  {(importResult.executionTime / 1000).toFixed(1)}s
-                </p>
-              </div>
+        {/* Import Metadata - Refined */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-gradient-to-br from-acr-gray-50 to-white rounded-xl border border-acr-gray-200 p-5 shadow-sm">
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-medium text-acr-gray-500 uppercase tracking-wide">
+                Import ID
+              </span>
             </div>
+            <p className="text-2xl font-bold font-mono text-acr-gray-900 mt-2">
+              #{importResult.importId.slice(0, 8)}
+            </p>
           </div>
-        </AcrCard>
+          <div className="bg-gradient-to-br from-acr-gray-50 to-white rounded-xl border border-acr-gray-200 p-5 shadow-sm">
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-medium text-acr-gray-500 uppercase tracking-wide">
+                Execution Time
+              </span>
+            </div>
+            <p className="text-2xl font-bold text-acr-gray-900 mt-2">
+              {(importResult.executionTime / 1000).toFixed(1)}s
+            </p>
+          </div>
+        </div>
 
-        {/* Changes Summary */}
-        <AcrCard variant="outlined">
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-acr-gray-900 mb-4">
+        {/* Changes Summary - Modernized */}
+        <div className="bg-white rounded-xl border border-acr-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-acr-gray-100 bg-gradient-to-r from-acr-gray-50 to-white">
+            <h3 className="text-lg font-bold text-acr-gray-900">
               {t("admin.import.success.changesApplied")}
             </h3>
-            <div className="grid grid-cols-3 gap-6 text-center">
-              <div>
-                <div className="text-3xl font-bold text-green-600">
-                  +{importResult.summary.totalAdds}
-                </div>
-                <div className="text-sm text-acr-gray-600 mt-2">Added</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-blue-600">
-                  ~{importResult.summary.totalUpdates}
-                </div>
-                <div className="text-sm text-acr-gray-600 mt-2">Updated</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-red-600">
-                  -{importResult.summary.totalDeletes}
-                </div>
-                <div className="text-sm text-acr-gray-600 mt-2">Deleted</div>
-              </div>
-            </div>
-            <div className="mt-4 pt-4 border-t border-acr-gray-200 text-center">
-              <p className="text-sm text-acr-gray-600">
-                <span className="font-semibold text-acr-gray-900">{importResult.summary.totalChanges}</span> total changes applied
-              </p>
-            </div>
+            <p className="text-sm text-acr-gray-600 mt-0.5">
+              Summary of all modifications made to your catalog
+            </p>
           </div>
-        </AcrCard>
 
-        {/* Rollback Info */}
-        <AcrCard variant="outlined" className="border-blue-300 bg-blue-50">
-          <div className="flex items-start gap-3 p-4">
-            <div className="text-blue-600 text-xl">ℹ️</div>
-            <div className="flex-1 text-sm text-blue-900">
-              <p className="font-medium mb-1">
+          <div className="p-6">
+            {/* Summary Stats - Enhanced Pills */}
+            <div className="flex flex-wrap gap-3 mb-6">
+              {importResult.summary.totalAdds > 0 && (
+                <div className="inline-flex items-center gap-3 px-5 py-3 bg-gradient-to-br from-green-50 to-green-100/50 border-2 border-green-300 rounded-xl shadow-sm">
+                  <span className="text-3xl font-black text-green-700">+{importResult.summary.totalAdds}</span>
+                  <span className="text-sm font-semibold text-green-700 uppercase tracking-wide">Added</span>
+                </div>
+              )}
+              {importResult.summary.totalUpdates > 0 && (
+                <div className="inline-flex items-center gap-3 px-5 py-3 bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-blue-300 rounded-xl shadow-sm">
+                  <span className="text-3xl font-black text-blue-700">~{importResult.summary.totalUpdates}</span>
+                  <span className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Updated</span>
+                </div>
+              )}
+              {importResult.summary.totalDeletes > 0 && (
+                <div className="inline-flex items-center gap-3 px-5 py-3 bg-gradient-to-br from-red-50 to-red-100/50 border-2 border-red-300 rounded-xl shadow-sm">
+                  <span className="text-3xl font-black text-red-700">-{importResult.summary.totalDeletes}</span>
+                  <span className="text-sm font-semibold text-red-700 uppercase tracking-wide">Deleted</span>
+                </div>
+              )}
+            </div>
+
+            {/* Expandable Details */}
+            {diffResult && (importResult.summary.totalAdds > 0 || importResult.summary.totalUpdates > 0 || importResult.summary.totalDeletes > 0) && (
+              <div className="border-t border-acr-gray-200 pt-5">
+                <button
+                  onClick={() => setShowDetails(!showDetails)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gradient-to-r hover:from-acr-gray-50 hover:to-transparent rounded-xl transition-all duration-200 group"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-acr-gray-700 group-hover:text-acr-gray-900">
+                      {showDetails ? 'Hide' : 'View'} detailed part list
+                    </span>
+                    <span className="text-xs text-acr-gray-500 bg-acr-gray-100 px-2 py-0.5 rounded-full">
+                      {(diffResult.parts.adds.length + diffResult.parts.updates.length + diffResult.parts.deletes.length).toLocaleString()} parts
+                    </span>
+                  </div>
+                  {showDetails ? (
+                    <ChevronUp className="w-5 h-5 text-acr-gray-400 group-hover:text-acr-gray-600 transition-colors" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-acr-gray-400 group-hover:text-acr-gray-600 transition-colors" />
+                  )}
+                </button>
+
+                {showDetails && (
+                  <div className="mt-5 space-y-4">
+                    {/* Added Parts */}
+                    {diffResult.parts.adds.length > 0 && (
+                      <div className="rounded-xl border-2 border-green-200 overflow-hidden shadow-sm">
+                        <div className="bg-gradient-to-r from-green-50 to-green-100/50 px-5 py-3 border-b-2 border-green-200">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-bold text-green-900 uppercase tracking-wide">
+                              Parts Added
+                            </h4>
+                            <span className="text-xs font-semibold text-green-700 bg-green-200 px-2.5 py-1 rounded-full">
+                              {diffResult.parts.adds.length.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-5 max-h-64 overflow-y-auto">
+                          <div className="space-y-2.5">
+                            {diffResult.parts.adds.slice(0, 50).map((part: any, idx: number) => (
+                              <div key={idx} className="flex items-start gap-3 text-sm py-2 px-3 rounded-lg hover:bg-green-50/50 transition-colors">
+                                <span className="text-green-600 font-bold mt-0.5">+</span>
+                                <div className="flex-1 font-mono text-acr-gray-800">
+                                  <span className="font-bold text-green-900">{part.after?.acr_sku || part.row?.ACR_SKU}</span>
+                                  <span className="text-acr-gray-400 mx-2">•</span>
+                                  <span className="text-acr-gray-700">{part.after?.part_type || part.row?.Part_Type}</span>
+                                  {(part.after?.position_type || part.row?.Position_Type) && (
+                                    <span className="text-acr-gray-500"> ({part.after?.position_type || part.row?.Position_Type})</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                            {diffResult.parts.adds.length > 50 && (
+                              <div className="text-center pt-3 border-t-2 border-dashed border-green-100">
+                                <p className="text-xs font-medium text-acr-gray-500">
+                                  + {diffResult.parts.adds.length - 50} more parts not shown
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Updated Parts */}
+                    {diffResult.parts.updates.length > 0 && (
+                      <div className="rounded-xl border-2 border-blue-200 overflow-hidden shadow-sm">
+                        <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 px-5 py-3 border-b-2 border-blue-200">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-bold text-blue-900 uppercase tracking-wide">
+                              Parts Updated
+                            </h4>
+                            <span className="text-xs font-semibold text-blue-700 bg-blue-200 px-2.5 py-1 rounded-full">
+                              {diffResult.parts.updates.length.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-5 max-h-64 overflow-y-auto">
+                          <div className="space-y-2.5">
+                            {diffResult.parts.updates.slice(0, 50).map((part: any, idx: number) => (
+                              <div key={idx} className="flex items-start gap-3 text-sm py-2 px-3 rounded-lg hover:bg-blue-50/50 transition-colors">
+                                <span className="text-blue-600 font-bold mt-0.5">~</span>
+                                <div className="flex-1 font-mono text-acr-gray-800">
+                                  <span className="font-bold text-blue-900">{part.after?.acr_sku || part.row?.ACR_SKU}</span>
+                                  <span className="text-acr-gray-400 mx-2">•</span>
+                                  <span className="text-acr-gray-700">{part.after?.part_type || part.row?.Part_Type}</span>
+                                </div>
+                              </div>
+                            ))}
+                            {diffResult.parts.updates.length > 50 && (
+                              <div className="text-center pt-3 border-t-2 border-dashed border-blue-100">
+                                <p className="text-xs font-medium text-acr-gray-500">
+                                  + {diffResult.parts.updates.length - 50} more parts not shown
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Deleted Parts */}
+                    {diffResult.parts.deletes.length > 0 && (
+                      <div className="rounded-xl border-2 border-red-200 overflow-hidden shadow-sm">
+                        <div className="bg-gradient-to-r from-red-50 to-red-100/50 px-5 py-3 border-b-2 border-red-200">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-bold text-red-900 uppercase tracking-wide">
+                              Parts Deleted
+                            </h4>
+                            <span className="text-xs font-semibold text-red-700 bg-red-200 px-2.5 py-1 rounded-full">
+                              {diffResult.parts.deletes.length.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-5 max-h-64 overflow-y-auto">
+                          <div className="space-y-2.5">
+                            {diffResult.parts.deletes.slice(0, 50).map((part: any, idx: number) => (
+                              <div key={idx} className="flex items-start gap-3 text-sm py-2 px-3 rounded-lg hover:bg-red-50/50 transition-colors">
+                                <span className="text-red-600 font-bold mt-0.5">-</span>
+                                <div className="flex-1 font-mono text-acr-gray-800">
+                                  <span className="font-bold text-red-900">{part.before?.acr_sku || part.row?.ACR_SKU}</span>
+                                  <span className="text-acr-gray-400 mx-2">•</span>
+                                  <span className="text-acr-gray-700">{part.before?.part_type || part.row?.Part_Type}</span>
+                                </div>
+                              </div>
+                            ))}
+                            {diffResult.parts.deletes.length > 50 && (
+                              <div className="text-center pt-3 border-t-2 border-dashed border-red-100">
+                                <p className="text-xs font-medium text-acr-gray-500">
+                                  + {diffResult.parts.deletes.length - 50} more parts not shown
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Rollback Info - Refined */}
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-2 border-blue-300/50 p-6 shadow-sm">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/10 rounded-full blur-2xl -mr-16 -mt-16" />
+
+          <div className="relative flex items-start gap-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+              <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-base font-bold text-blue-900 mb-1">
                 {t("admin.import.success.snapshotSaved")}
-              </p>
-              <p className="text-blue-800">
-                Import #{importResult.importId.slice(0, 8)} • You can rollback this import from Settings if needed
+              </h4>
+              <p className="text-sm text-blue-800 leading-relaxed">
+                Import <span className="font-mono font-semibold">#{importResult.importId.slice(0, 8)}</span> has been saved. You can rollback this import from Settings if needed.
               </p>
             </div>
           </div>
-        </AcrCard>
+        </div>
 
         {/* Rollback Confirmation Dialog */}
         {showRollbackConfirm && (
@@ -371,13 +552,14 @@ export function ImportStep3Confirmation({
           </AcrCard>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 justify-center pt-4">
+        {/* Action Buttons - Enhanced */}
+        <div className="flex gap-4 justify-center pt-6">
           <AcrButton
             variant="secondary"
             size="default"
             onClick={() => router.push("/admin")}
             disabled={isRollingBack || showRollbackConfirm}
+            className="px-6 h-11 text-sm font-semibold"
           >
             {t("admin.import.buttons.returnToDashboard")}
           </AcrButton>
@@ -387,7 +569,7 @@ export function ImportStep3Confirmation({
               size="default"
               onClick={() => setShowRollbackConfirm(true)}
               disabled={isRollingBack}
-              className="border-amber-500 text-amber-700 hover:bg-amber-50"
+              className="border-2 border-amber-500 text-amber-700 hover:bg-amber-50 hover:border-amber-600 px-6 h-11 text-sm font-semibold transition-all"
             >
               {isRollingBack ? "Rolling back..." : "Rollback Import"}
             </AcrButton>
@@ -398,6 +580,7 @@ export function ImportStep3Confirmation({
               size="default"
               onClick={onStartNewImport}
               disabled={isRollingBack}
+              className="px-8 h-11 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
             >
               {t("admin.import.buttons.startNew")}
             </AcrButton>
