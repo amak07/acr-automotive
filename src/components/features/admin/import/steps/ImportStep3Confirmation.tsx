@@ -140,37 +140,37 @@ export function ImportStep3Confirmation({
   const parseErrorMessage = (error: string): { title: string; message: string; suggestion: string } => {
     if (error.includes('duplicate key') && error.includes('idx_parts_sku_tenant')) {
       return {
-        title: 'Duplicate Parts Detected',
-        message: 'Some parts in your file already exist in the database. This usually happens when you try to import the same file twice.',
-        suggestion: 'Export a fresh file from the database and make your changes to that file, or remove the duplicate parts from your current file.'
+        title: t("admin.import.error.duplicateParts"),
+        message: t("admin.import.error.duplicateDesc"),
+        suggestion: t("admin.import.error.duplicateSuggestion")
       };
     }
     if (error.includes('foreign key') || error.includes('orphaned')) {
       return {
-        title: 'Data Relationship Error',
-        message: 'Some records reference parts that don\'t exist in the database.',
-        suggestion: 'Make sure all vehicle applications and cross-references have valid ACR_SKU values that match existing parts.'
+        title: t("admin.import.error.foreignKey"),
+        message: t("admin.import.error.foreignKeyDesc"),
+        suggestion: t("admin.import.error.foreignKeySuggestion")
       };
     }
     if (error.includes('null value') && error.includes('violates not-null constraint')) {
       return {
-        title: 'Missing Required Data',
-        message: 'Some required fields are empty in your file.',
-        suggestion: 'Check that all parts have ACR_SKU and Part_Type filled in, and all vehicle applications have Make, Model, and Year information.'
+        title: t("admin.import.error.missingRequired"),
+        message: t("admin.import.error.missingRequiredDesc"),
+        suggestion: t("admin.import.error.missingRequiredSuggestion")
       };
     }
     if (error.includes('timeout') || error.includes('ECONNRESET')) {
       return {
-        title: 'Connection Timeout',
-        message: 'The import took too long and the connection was lost.',
-        suggestion: 'Try importing a smaller file, or check your internet connection and try again.'
+        title: t("admin.import.error.timeout"),
+        message: t("admin.import.error.timeoutDesc"),
+        suggestion: t("admin.import.error.timeoutSuggestion")
       };
     }
     // Generic fallback
     return {
-      title: 'Import Failed',
+      title: t("admin.import.error.generic"),
       message: error,
-      suggestion: 'Check your file format and data, then try again. If the problem persists, contact support.'
+      suggestion: t("admin.import.error.genericSuggestion")
     };
   };
 
@@ -191,12 +191,12 @@ export function ImportStep3Confirmation({
                 {parsedError.message}
               </p>
               <div className="bg-red-100 border border-red-200 rounded-md p-3 mb-4">
-                <p className="text-xs font-medium text-red-900 mb-1">💡 Suggestion:</p>
+                <p className="text-xs font-medium text-red-900 mb-1">💡 {t("admin.import.error.suggestionLabel")}</p>
                 <p className="text-xs text-red-800">{parsedError.suggestion}</p>
               </div>
               <details className="mb-4">
                 <summary className="text-xs text-red-700 cursor-pointer hover:text-red-900">
-                  Technical Details
+                  {t("admin.import.error.technicalDetails")}
                 </summary>
                 <pre className="mt-2 text-xs bg-red-100 p-2 rounded border border-red-200 overflow-x-auto">
                   {error}
@@ -216,7 +216,7 @@ export function ImportStep3Confirmation({
                     size="default"
                     onClick={onStartNewImport}
                   >
-                    Try Again
+                    {t("admin.import.error.tryAgain")}
                   </AcrButton>
                 )}
               </div>
@@ -245,7 +245,7 @@ export function ImportStep3Confirmation({
                 {t("admin.import.success.title")}
               </h2>
               <p className="text-green-50 text-base">
-                All changes have been applied successfully to your catalog
+                {t("admin.import.success.completedDesc")}
               </p>
             </div>
           </div>
@@ -256,7 +256,7 @@ export function ImportStep3Confirmation({
           <div className="bg-gradient-to-br from-acr-gray-50 to-white rounded-xl border border-acr-gray-200 p-5 shadow-sm">
             <div className="flex items-baseline gap-2">
               <span className="text-sm font-medium text-acr-gray-500 uppercase tracking-wide">
-                Import ID
+                {t("admin.import.success.importIdLabel")}
               </span>
             </div>
             <p className="text-2xl font-bold font-mono text-acr-gray-900 mt-2">
@@ -266,7 +266,7 @@ export function ImportStep3Confirmation({
           <div className="bg-gradient-to-br from-acr-gray-50 to-white rounded-xl border border-acr-gray-200 p-5 shadow-sm">
             <div className="flex items-baseline gap-2">
               <span className="text-sm font-medium text-acr-gray-500 uppercase tracking-wide">
-                Execution Time
+                {t("admin.import.success.executionTimeLabel")}
               </span>
             </div>
             <p className="text-2xl font-bold text-acr-gray-900 mt-2">
@@ -282,7 +282,7 @@ export function ImportStep3Confirmation({
               {t("admin.import.success.changesApplied")}
             </h3>
             <p className="text-sm text-acr-gray-600 mt-0.5">
-              Summary of all modifications made to your catalog
+              {t("admin.import.success.completed")}
             </p>
           </div>
 
@@ -292,19 +292,19 @@ export function ImportStep3Confirmation({
               {importResult.summary.totalAdds > 0 && (
                 <div className="inline-flex items-center gap-3 px-5 py-3 bg-gradient-to-br from-green-50 to-green-100/50 border-2 border-green-300 rounded-xl shadow-sm">
                   <span className="text-3xl font-black text-green-700">+{importResult.summary.totalAdds}</span>
-                  <span className="text-sm font-semibold text-green-700 uppercase tracking-wide">Added</span>
+                  <span className="text-sm font-semibold text-green-700 uppercase tracking-wide">{t("admin.import.preview.added")}</span>
                 </div>
               )}
               {importResult.summary.totalUpdates > 0 && (
                 <div className="inline-flex items-center gap-3 px-5 py-3 bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-blue-300 rounded-xl shadow-sm">
                   <span className="text-3xl font-black text-blue-700">~{importResult.summary.totalUpdates}</span>
-                  <span className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Updated</span>
+                  <span className="text-sm font-semibold text-blue-700 uppercase tracking-wide">{t("admin.import.preview.updated")}</span>
                 </div>
               )}
               {importResult.summary.totalDeletes > 0 && (
                 <div className="inline-flex items-center gap-3 px-5 py-3 bg-gradient-to-br from-red-50 to-red-100/50 border-2 border-red-300 rounded-xl shadow-sm">
                   <span className="text-3xl font-black text-red-700">-{importResult.summary.totalDeletes}</span>
-                  <span className="text-sm font-semibold text-red-700 uppercase tracking-wide">Deleted</span>
+                  <span className="text-sm font-semibold text-red-700 uppercase tracking-wide">{t("admin.import.preview.deleted")}</span>
                 </div>
               )}
             </div>
@@ -318,10 +318,10 @@ export function ImportStep3Confirmation({
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-acr-gray-700 group-hover:text-acr-gray-900">
-                      {showDetails ? 'Hide' : 'View'} detailed part list
+                      {showDetails ? t("admin.import.success.hideDetails") : t("admin.import.success.viewDetails")}
                     </span>
                     <span className="text-xs text-acr-gray-500 bg-acr-gray-100 px-2 py-0.5 rounded-full">
-                      {(diffResult.parts.adds.length + diffResult.parts.updates.length + diffResult.parts.deletes.length).toLocaleString()} parts
+                      {(diffResult.parts.adds.length + diffResult.parts.updates.length + diffResult.parts.deletes.length).toLocaleString()} {t("admin.import.success.partsLabel")}
                     </span>
                   </div>
                   {showDetails ? (
@@ -339,7 +339,7 @@ export function ImportStep3Confirmation({
                         <div className="bg-gradient-to-r from-green-50 to-green-100/50 px-5 py-3 border-b-2 border-green-200">
                           <div className="flex items-center justify-between">
                             <h4 className="text-sm font-bold text-green-900 uppercase tracking-wide">
-                              Parts Added
+                              {t("admin.import.success.partsAdded")}
                             </h4>
                             <span className="text-xs font-semibold text-green-700 bg-green-200 px-2.5 py-1 rounded-full">
                               {diffResult.parts.adds.length.toLocaleString()}
@@ -364,7 +364,7 @@ export function ImportStep3Confirmation({
                             {diffResult.parts.adds.length > 50 && (
                               <div className="text-center pt-3 border-t-2 border-dashed border-green-100">
                                 <p className="text-xs font-medium text-acr-gray-500">
-                                  + {diffResult.parts.adds.length - 50} more parts not shown
+                                  {t("admin.import.success.morePartsNotShown").replace("{count}", (diffResult.parts.adds.length - 50).toString())}
                                 </p>
                               </div>
                             )}
@@ -379,7 +379,7 @@ export function ImportStep3Confirmation({
                         <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 px-5 py-3 border-b-2 border-blue-200">
                           <div className="flex items-center justify-between">
                             <h4 className="text-sm font-bold text-blue-900 uppercase tracking-wide">
-                              Parts Updated
+                              {t("admin.import.success.partsUpdated")}
                             </h4>
                             <span className="text-xs font-semibold text-blue-700 bg-blue-200 px-2.5 py-1 rounded-full">
                               {diffResult.parts.updates.length.toLocaleString()}
@@ -401,7 +401,7 @@ export function ImportStep3Confirmation({
                             {diffResult.parts.updates.length > 50 && (
                               <div className="text-center pt-3 border-t-2 border-dashed border-blue-100">
                                 <p className="text-xs font-medium text-acr-gray-500">
-                                  + {diffResult.parts.updates.length - 50} more parts not shown
+                                  {t("admin.import.success.morePartsNotShown").replace("{count}", (diffResult.parts.updates.length - 50).toString())}
                                 </p>
                               </div>
                             )}
@@ -416,7 +416,7 @@ export function ImportStep3Confirmation({
                         <div className="bg-gradient-to-r from-red-50 to-red-100/50 px-5 py-3 border-b-2 border-red-200">
                           <div className="flex items-center justify-between">
                             <h4 className="text-sm font-bold text-red-900 uppercase tracking-wide">
-                              Parts Deleted
+                              {t("admin.import.success.partsDeleted")}
                             </h4>
                             <span className="text-xs font-semibold text-red-700 bg-red-200 px-2.5 py-1 rounded-full">
                               {diffResult.parts.deletes.length.toLocaleString()}
@@ -438,7 +438,7 @@ export function ImportStep3Confirmation({
                             {diffResult.parts.deletes.length > 50 && (
                               <div className="text-center pt-3 border-t-2 border-dashed border-red-100">
                                 <p className="text-xs font-medium text-acr-gray-500">
-                                  + {diffResult.parts.deletes.length - 50} more parts not shown
+                                  {t("admin.import.success.morePartsNotShown").replace("{count}", (diffResult.parts.deletes.length - 50).toString())}
                                 </p>
                               </div>
                             )}
@@ -468,7 +468,7 @@ export function ImportStep3Confirmation({
                 {t("admin.import.success.snapshotSaved")}
               </h4>
               <p className="text-sm text-blue-800 leading-relaxed">
-                Import <span className="font-mono font-semibold">#{importResult.importId.slice(0, 8)}</span> has been saved. You can rollback this import from Settings if needed.
+                {t("admin.import.success.snapshotInfo").replace("{importId}", importResult.importId.slice(0, 8))}
               </p>
             </div>
           </div>
@@ -482,47 +482,53 @@ export function ImportStep3Confirmation({
                 <RotateCcw className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-amber-900 mb-2">
-                    Confirm Rollback
+                    {t("admin.import.rollback.confirm")}
                   </h3>
                   <p className="text-sm text-amber-800 mb-3">
-                    This will undo the import and restore the database to its state before these changes:
+                    {t("admin.import.rollback.desc")}
                   </p>
                   <div className="bg-amber-100 rounded-md p-3 mb-4 max-h-60 overflow-y-auto">
                     <div className="text-sm text-amber-900 space-y-3">
                       {importResult.summary.totalAdds > 0 && (
                         <div>
                           <p className="font-semibold mb-1">
-                            ❌ {importResult.summary.totalAdds} Added {importResult.summary.totalAdds === 1 ? 'Record' : 'Records'} Will Be Removed
+                            ❌ {t("admin.import.rollback.addedRemoved")
+                              .replace("{count}", importResult.summary.totalAdds.toString())
+                              .replace("{type}", importResult.summary.totalAdds === 1 ? t("admin.import.rollback.record") : t("admin.import.rollback.records"))}
                           </p>
                           <p className="text-xs text-amber-800">
-                            All parts, vehicle applications, and cross-references added in this import will be deleted.
+                            {t("admin.import.rollback.addedRemovedDesc")}
                           </p>
                         </div>
                       )}
                       {importResult.summary.totalUpdates > 0 && (
                         <div>
                           <p className="font-semibold mb-1">
-                            ↩️ {importResult.summary.totalUpdates} Updated {importResult.summary.totalUpdates === 1 ? 'Record' : 'Records'} Will Revert
+                            ↩️ {t("admin.import.rollback.updatedReverted")
+                              .replace("{count}", importResult.summary.totalUpdates.toString())
+                              .replace("{type}", importResult.summary.totalUpdates === 1 ? t("admin.import.rollback.record") : t("admin.import.rollback.records"))}
                           </p>
                           <p className="text-xs text-amber-800">
-                            All modifications to existing records will be undone, restoring previous values.
+                            {t("admin.import.rollback.updatedRevertedDesc")}
                           </p>
                         </div>
                       )}
                       {importResult.summary.totalDeletes > 0 && (
                         <div>
                           <p className="font-semibold mb-1">
-                            ✅ {importResult.summary.totalDeletes} Deleted {importResult.summary.totalDeletes === 1 ? 'Record' : 'Records'} Will Be Restored
+                            ✅ {t("admin.import.rollback.deletedRestored")
+                              .replace("{count}", importResult.summary.totalDeletes.toString())
+                              .replace("{type}", importResult.summary.totalDeletes === 1 ? t("admin.import.rollback.record") : t("admin.import.rollback.records"))}
                           </p>
                           <p className="text-xs text-amber-800">
-                            All records deleted during this import will be brought back with their original data.
+                            {t("admin.import.rollback.deletedRestoredDesc")}
                           </p>
                         </div>
                       )}
                     </div>
                   </div>
                   <p className="text-xs text-amber-700 mb-4">
-                    ⚠️ This action cannot be undone. The snapshot will be consumed and deleted.
+                    ⚠️ {t("admin.import.rollback.warning")}
                   </p>
                   <div className="flex gap-3">
                     <AcrButton
@@ -531,7 +537,7 @@ export function ImportStep3Confirmation({
                       onClick={() => setShowRollbackConfirm(false)}
                       disabled={isRollingBack}
                     >
-                      Cancel
+                      {t("admin.import.rollback.cancel")}
                     </AcrButton>
                     <AcrButton
                       variant="secondary"
@@ -543,7 +549,7 @@ export function ImportStep3Confirmation({
                       disabled={isRollingBack}
                       className="bg-amber-600 text-white hover:bg-amber-700 border-amber-600"
                     >
-                      {isRollingBack ? "Rolling back..." : "Yes, Rollback Import"}
+                      {isRollingBack ? t("admin.import.rollback.inProgress") : t("admin.import.rollback.confirm.button")}
                     </AcrButton>
                   </div>
                 </div>
@@ -571,7 +577,7 @@ export function ImportStep3Confirmation({
               disabled={isRollingBack}
               className="border-2 border-amber-500 text-amber-700 hover:bg-amber-50 hover:border-amber-600 px-6 h-11 text-sm font-semibold transition-all"
             >
-              {isRollingBack ? "Rolling back..." : "Rollback Import"}
+              {isRollingBack ? t("admin.import.rollback.inProgress") : t("admin.import.rollback.button")}
             </AcrButton>
           )}
           {onStartNewImport && !showRollbackConfirm && (

@@ -2,14 +2,41 @@
 
 import { useState, useRef, ChangeEvent, DragEvent } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { Upload, FileSpreadsheet, CheckCircle, Loader2 } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle, Loader2, AlertCircle, XCircle } from "lucide-react";
 import { AcrCard, AcrButton } from "@/components/acr";
 import { cn } from "@/lib/utils";
+
+interface ValidationResult {
+  valid: boolean;
+  errors: Array<{
+    code: string;
+    severity: "error" | "warning";
+    message: string;
+    sheet?: string;
+    row?: number;
+    column?: string;
+    value?: any;
+  }>;
+  warnings: Array<{
+    code: string;
+    severity: "error" | "warning";
+    message: string;
+    sheet?: string;
+    row?: number;
+    column?: string;
+    value?: any;
+  }>;
+  summary: {
+    totalErrors: number;
+    totalWarnings: number;
+  };
+}
 
 interface ImportStep1UploadProps {
   onFileSelected: (file: File) => void;
   isProcessing?: boolean;
   uploadedFile?: File | null;
+  validationResult?: ValidationResult | null;
   parseProgress?: {
     isParsing: boolean;
     rowCount?: {
@@ -24,10 +51,20 @@ const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const ACCEPTED_FILE_TYPE = ".xlsx";
 
+// Helper function to replace tokens in translation strings
+const replaceTokens = (text: string, replacements: Record<string, string>): string => {
+  let result = text;
+  Object.entries(replacements).forEach(([key, value]) => {
+    result = result.replace(`{${key}}`, value);
+  });
+  return result;
+};
+
 export function ImportStep1Upload({
   onFileSelected,
   isProcessing = false,
   uploadedFile = null,
+  validationResult = null,
   parseProgress,
 }: ImportStep1UploadProps) {
   const { t } = useLocale();
@@ -38,12 +75,12 @@ export function ImportStep1Upload({
   const validateFile = (file: File): string | null => {
     // Check file type
     if (!file.name.endsWith(".xlsx")) {
-      return "Only .xlsx files are supported";
+      return t("admin.import.upload.errorOnlyXlsx");
     }
 
     // Check file size
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      return `File size must be less than ${MAX_FILE_SIZE_MB}MB`;
+      return t("admin.import.upload.errorFileSize").replace("{maxSize}", MAX_FILE_SIZE_MB.toString());
     }
 
     return null;
@@ -65,6 +102,10 @@ export function ImportStep1Upload({
     const file = e.target.files?.[0];
     if (file) {
       handleFileSelection(file);
+    }
+    // Reset the input value so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -108,6 +149,16 @@ export function ImportStep1Upload({
 
   return (
     <div className="space-y-6">
+      {/* Hidden file input - must always be in DOM for "Upload Corrected File" button */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ACCEPTED_FILE_TYPE}
+        onChange={handleFileInputChange}
+        className="hidden"
+        aria-label="File upload"
+      />
+
       {/* File Upload Zone */}
       {!uploadedFile && (
         <div
@@ -151,15 +202,6 @@ export function ImportStep1Upload({
               {t("admin.import.upload.accepted")}
             </p>
           </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPTED_FILE_TYPE}
-            onChange={handleFileInputChange}
-            className="hidden"
-            aria-label="File upload"
-          />
         </div>
       )}
 
@@ -169,7 +211,7 @@ export function ImportStep1Upload({
           <div className="flex items-start gap-3 p-4">
             <div className="w-5 h-5 text-red-600 mt-0.5">⚠️</div>
             <div className="flex-1">
-              <h4 className="font-medium text-red-900">Upload Error</h4>
+              <h4 className="font-medium text-red-900">{t("admin.import.upload.error")}</h4>
               <p className="text-sm text-red-700 mt-1">{error}</p>
             </div>
           </div>
@@ -218,41 +260,163 @@ export function ImportStep1Upload({
               </div>
             )}
 
-            {/* Parsed Results */}
-            {parseProgress?.rowCount && !parseProgress.isParsing && (
+            {/* Validation Results */}
+            {validationResult && !parseProgress?.isParsing && (
               <div className="pt-4 border-t border-acr-gray-200">
-                <div className="flex items-center gap-3 mb-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <p className="text-sm font-medium text-green-900">
-                    {t("admin.import.upload.parsed")}
-                  </p>
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-acr-gray-900">
-                      {parseProgress.rowCount.parts.toLocaleString()}
+                {/* Validation Errors */}
+                {validationResult.summary.totalErrors > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <XCircle className="w-6 h-6 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base sm:text-sm font-bold text-red-900">
+                          {validationResult.summary.totalErrors}{" "}
+                          {validationResult.summary.totalErrors === 1
+                            ? t("admin.import.upload.issueFound")
+                            : t("admin.import.upload.issuesFound")}
+                        </p>
+                        <p className="text-sm sm:text-xs text-red-700 mt-1">
+                          {t("admin.import.upload.fixIssuesPrompt")}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-xs text-acr-gray-600 mt-1">
-                      {t("admin.import.preview.parts")}
+
+                    {/* Show all errors - Mobile optimized */}
+                    <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                      {validationResult.errors.map((err, idx) => {
+                        // Get user-friendly translated error message
+                        let userMessage: string;
+
+                        switch (err.code) {
+                          case "E1_MISSING_HIDDEN_COLUMNS":
+                            userMessage = t("admin.import.errors.e1");
+                            break;
+                          case "E2_DUPLICATE_ACR_SKU":
+                            userMessage = replaceTokens(t("admin.import.errors.e2"), { value: String(err.value || "") });
+                            break;
+                          case "E3_EMPTY_REQUIRED_FIELD":
+                            userMessage = replaceTokens(t("admin.import.errors.e3"), { column: String(err.column || "") });
+                            break;
+                          case "E4_INVALID_UUID_FORMAT":
+                            userMessage = t("admin.import.errors.e4");
+                            break;
+                          case "E5_ORPHANED_FOREIGN_KEY":
+                            userMessage = err.sheet === "Vehicle_Applications"
+                              ? t("admin.import.errors.e5.vehicle")
+                              : t("admin.import.errors.e5.crossref");
+                            break;
+                          case "E6_INVALID_YEAR_RANGE":
+                            userMessage = t("admin.import.errors.e6");
+                            break;
+                          case "E7_STRING_EXCEEDS_MAX_LENGTH":
+                            userMessage = replaceTokens(t("admin.import.errors.e7"), { column: String(err.column || "") });
+                            break;
+                          case "E8_YEAR_OUT_OF_RANGE":
+                            userMessage = replaceTokens(t("admin.import.errors.e8"), { value: String(err.value || "") });
+                            break;
+                          case "E9_INVALID_NUMBER_FORMAT":
+                            userMessage = replaceTokens(t("admin.import.errors.e9"), { value: String(err.value || "") });
+                            break;
+                          case "E10_REQUIRED_SHEET_MISSING":
+                            userMessage = replaceTokens(t("admin.import.errors.e10"), { sheet: String(err.sheet || "") });
+                            break;
+                          case "E11_DUPLICATE_HEADER_COLUMNS":
+                            userMessage = replaceTokens(t("admin.import.errors.e11"), { column: String(err.column || "") });
+                            break;
+                          case "E12_MISSING_REQUIRED_HEADERS":
+                            userMessage = replaceTokens(t("admin.import.errors.e12"), {
+                              column: String(err.column || ""),
+                              sheet: String(err.sheet || "")
+                            });
+                            break;
+                          case "E13_INVALID_SHEET_NAME":
+                            userMessage = replaceTokens(t("admin.import.errors.e13"), { sheet: String(err.sheet || "") });
+                            break;
+                          case "E14_FILE_FORMAT_INVALID":
+                            userMessage = t("admin.import.errors.e14");
+                            break;
+                          case "E15_FILE_SIZE_EXCEEDS_LIMIT":
+                            userMessage = t("admin.import.errors.e15");
+                            break;
+                          case "E16_MALFORMED_EXCEL_FILE":
+                            userMessage = t("admin.import.errors.e16");
+                            break;
+                          case "E17_ENCODING_ERROR":
+                            userMessage = t("admin.import.errors.e17");
+                            break;
+                          case "E18_REFERENTIAL_INTEGRITY_VIOLATION":
+                            userMessage = t("admin.import.errors.e18");
+                            break;
+                          case "E19_UUID_NOT_IN_DATABASE":
+                            userMessage = replaceTokens(t("admin.import.errors.e19"), { value: String(err.value || "") });
+                            break;
+                          default:
+                            // Fallback to original message if no translation exists
+                            userMessage = err.message;
+                        }
+
+                        return (
+                          <div key={idx} className="bg-red-50 border-l-4 border-red-500 rounded-r-lg p-3 sm:p-2.5 shadow-sm">
+                            <div className="flex flex-col gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {err.row && (
+                                  <span className="px-2 py-0.5 bg-red-600 text-white rounded text-xs font-bold">
+                                    Row {err.row}
+                                  </span>
+                                )}
+                                {err.column && (
+                                  <span className="px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-semibold">
+                                    {err.column}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm sm:text-xs text-red-900 font-medium break-words">
+                                {userMessage}
+                              </p>
+                              {err.value && err.code !== "E19_UUID_NOT_IN_DATABASE" && err.code !== "E2_DUPLICATE_ACR_SKU" && (
+                                <p className="text-xs text-red-700 bg-red-100 px-2 py-1 rounded font-mono break-all">
+                                  Value: {String(err.value)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Upload New File Button */}
+                    <div className="pt-4 border-t border-red-200">
+                      <AcrButton
+                        variant="secondary"
+                        size="default"
+                        onClick={handleBrowseClick}
+                        disabled={isProcessing}
+                        className="w-full sm:w-auto"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {t("admin.import.upload.uploadCorrectedFile")}
+                      </AcrButton>
                     </div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-acr-gray-900">
-                      {parseProgress.rowCount.vehicleApplications.toLocaleString()}
-                    </div>
-                    <div className="text-xs text-acr-gray-600 mt-1">
-                      {t("admin.dashboard.applications")}
+                )}
+
+                {/* Validation Success */}
+                {validationResult.summary.totalErrors === 0 && (
+                  <div className="flex items-start sm:items-center gap-3">
+                    <CheckCircle className="w-6 h-6 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base sm:text-sm font-semibold text-green-900">
+                        {t("admin.import.upload.parsed")}
+                      </p>
+                      {validationResult.summary.totalWarnings > 0 && (
+                        <p className="text-sm sm:text-xs text-amber-700 mt-1">
+                          {validationResult.summary.totalWarnings}{" "}
+                          {validationResult.summary.totalWarnings === 1 ? t("admin.import.validation.warning") : t("admin.import.validation.warnings")}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-acr-gray-900">
-                      {parseProgress.rowCount.crossReferences.toLocaleString()}
-                    </div>
-                    <div className="text-xs text-acr-gray-600 mt-1">
-                      {t("admin.dashboard.crossReferences")}
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -264,12 +428,12 @@ export function ImportStep1Upload({
         <div className="flex items-start gap-3 p-4">
           <div className="w-5 h-5 text-blue-600 mt-0.5">ℹ️</div>
           <div className="flex-1 text-sm text-blue-900">
-            <p className="font-medium mb-1">Upload Requirements</p>
+            <p className="font-medium mb-1">{t("admin.import.upload.requirements")}</p>
             <ul className="space-y-1 text-blue-800">
-              <li>• Excel format (.xlsx) only</li>
-              <li>• Maximum file size: {MAX_FILE_SIZE_MB}MB</li>
-              <li>• Must contain Parts, Vehicle_Applications, and Cross_References sheets</li>
-              <li>• Use the export format as a template</li>
+              <li>• {t("admin.import.upload.reqFileFormat")}</li>
+              <li>• {t("admin.import.upload.reqMaxSize").replace("{maxSize}", MAX_FILE_SIZE_MB.toString())}</li>
+              <li>• {t("admin.import.upload.reqSheets")}</li>
+              <li>• {t("admin.import.upload.reqTemplate")}</li>
             </ul>
           </div>
         </div>

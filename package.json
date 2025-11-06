@@ -19,6 +19,7 @@
     "test:import-pipeline": "tsx scripts/test/test-import-pipeline.ts",
     "test:full-pipeline": "cross-env NODE_ENV=test tsx scripts/test/test-full-import-pipeline.ts",
     "test:reset-db": "cross-env NODE_ENV=test tsx scripts/test/reset-test-db.ts",
+    "test:delete-all": "cross-env NODE_ENV=test tsx scripts/test/delete-all-data.ts",
     "test:setup-baseline": "cross-env NODE_ENV=test tsx scripts/test/setup-baseline-snapshot.ts",
     "test:generate": "tsx scripts/test/generate-all-test-data.ts all",
     "test:generate:unit": "tsx scripts/test/generate-all-test-data.ts unit",

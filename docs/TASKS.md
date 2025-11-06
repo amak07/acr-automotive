@@ -1,6 +1,6 @@
 # TASKS.md - ACR Automotive Development Tasks
 
-_Last Updated: October 28, 2025_
+_Last Updated: November 5, 2025_
 
 ---
 
@@ -25,9 +25,11 @@ _Last Updated: October 28, 2025_
 | 18 | Oct 28, 2025 | (manual) | (manual) | 3h 30m | ValidationEngine testing complete: Fixed critical ACR_SKU FK bug, fixture column headers, created seedDbState() mock, enabled warning code tests (W1-W10), 13/13 tests passing (100%), full import/rollback pipeline verified (10.5s), comprehensive test suite created |
 | 19 | Oct 28, 2025 | (session) | (session) | ~2h 15m | Unit test coverage improvements: DiffEngine (97.32%), ExcelExportService (92.56%), 69 total tests passing, comprehensive test documentation |
 | 20 | Oct 29, 2025 | (manual) | (manual) | 5h 00m | Import Wizard UI E2E complete: Built 4-step wizard (Upload→Validation→Preview→Confirmation), rollback UI with confirmation dialogs, Settings import history page, emergency database restore after rollback bug, test infrastructure consolidation (schema-aware test generation, organized fixtures, comprehensive documentation) |
+| 21 | Oct 30, 2025 | (manual) | (manual) | 4h 00m | Test infrastructure polish: Fixed duplicate headers bug, added type safety to ValidationEngine, accurate fixture expectations (7/7 passing), master test suite (npm test), TypeScript error fixes across all test files |
+| 22 | Nov 5, 2025 | (session) | (session) | ~3h 00m | Import UX improvements + testing infrastructure: Step indicator turns green on success, TanStack Query cache invalidation (auto-refresh dashboard), fixed success page data structure, dynamic fixture generator for ADD/UPDATE testing, comprehensive manual testing workflow documentation |
 
 **Phase 8.1 Actual Time**: 4h 17m / 30-38h estimated
-**Phase 8.2 Actual Time**: 13h 15m / 48-57h estimated
+**Phase 8.2 Actual Time**: 25h 15m / 48-57h estimated (52% complete - UI testing and polish phase)
 
 ---
 
@@ -61,9 +63,9 @@ _Last Updated: October 28, 2025_
 
 ## 📊 Phase 8: Category 1 Data Management System (Current Phase)
 
-**Status**: 🚀 **90% COMPLETE - UI Implementation Remaining**
-**Time Spent**: ~12h 32m / 78-95h estimated
-**Estimated Remaining**: 6-10 hours (UI only)
+**Status**: ✅ **95% COMPLETE - Testing & Polish Phase**
+**Time Spent**: ~25h 15m / 78-95h estimated
+**Estimated Remaining**: 2-4 hours (manual testing, final polish)
 **Technical Plan**: `docs/technical-plans/data-management/cat1-production-plan.md`
 **Priority**: High - Critical for scaling catalog management
 
@@ -72,7 +74,9 @@ _Last Updated: October 28, 2025_
 - ✅ Phase 8.2 Backend: 100% complete (import/validation/diff/rollback services)
 - ✅ API Routes: 100% complete (6 endpoints fully implemented)
 - ✅ Testing: Comprehensive test coverage (ValidationEngine, DiffEngine, ExcelExportService)
-- 🚧 Frontend UI: Not started (Import Wizard + Rollback Manager)
+- ✅ Frontend UI: 100% complete (Import Wizard + Rollback Manager)
+- ✅ UX Polish: Cache invalidation, step indicators, modern success page
+- 🚧 Manual Testing: In progress (ADD/UPDATE/Rollback workflows)
 
 ### Overview
 
@@ -159,8 +163,19 @@ Build production-grade bulk data management system enabling efficient bulk opera
   - [x] `/api/admin/import/history` - List import history
   - [x] `/api/admin/rollback/available` - List rollback-able imports
   - [x] `/api/admin/rollback/execute` - Execute rollback with enforcement
-- [ ] Import wizard UI (4-step flow)
-- [ ] Rollback manager UI (admin settings)
+- [x] Import wizard UI (4-step flow - modernized in Session 20/22)
+- [x] Rollback manager UI (admin settings - Session 20)
+- [x] UX improvements (Session 22)
+  - [x] Step indicator turns green on import success
+  - [x] TanStack Query cache invalidation (auto-refresh dashboard)
+  - [x] Fixed success page diff data structure
+  - [x] Modern gradient-based UI design
+- [x] Testing infrastructure (Session 21/22)
+  - [x] Dynamic fixture generator for ADD/UPDATE workflows
+  - [x] Manual testing workflow documentation
+  - [x] Comprehensive test suite (69 tests, 7 fixtures)
+- [ ] Manual QA testing (ADD/UPDATE/Rollback workflows)
+- [ ] Production deployment prep
 
 ### Success Criteria
 
@@ -219,33 +234,57 @@ Build production-grade bulk data management system enabling efficient bulk opera
 
 ## 🔄 Current Session State
 
-### Latest Session: October 28, 2025 (Session 20 - Build Fixes & Progress Review)
+### Latest Session: November 5, 2025 (Session 22 - UI Polish & Testing Infrastructure)
 
-**Focus**: Fixed Next.js build TypeScript errors and reviewed Phase 8 completion status
+**Focus**: Import UX improvements, cache invalidation, and manual testing workflow
 
 **Session Time**:
-- Duration: ~30 minutes
+- Duration: ~3 hours
 
 **Session Summary**:
-- ✅ **Fixed Build Errors**: Updated test files to match current API types
-  - Fixed validation error codes (E2_DUPLICATE_ACR_SKU, E5_ORPHANED_FOREIGN_KEY)
-  - Updated DiffResult property access (toAdd → adds)
-  - Corrected ImportMetadata interface (fileName, fileSize, uploadedAt, importedBy)
-  - Removed obsolete executeImport parameter (existingData)
-- ✅ **Verified API Routes**: Confirmed all 6 import/rollback API endpoints are complete
-- ✅ **Updated TASKS.md**: Marked API routes as complete, clarified remaining work
+- ✅ **UX Improvements**: Enhanced import wizard visual feedback
+  - Step 3 indicator now turns green on successful import (was staying red)
+  - Fixed success page detail list data structure (after/before/row properties)
+  - Modern gradient-based success page design with expandable sections
+
+- ✅ **Cache Invalidation**: Automatic dashboard refresh
+  - Added TanStack Query invalidation after successful imports
+  - Added cache invalidation after rollback from Settings
+  - Dashboard auto-refreshes without manual page reload
+  - Uses centralized `queryKeys` for consistency
+
+- ✅ **Dynamic Fixture Generator**: Solved UUID mismatch problem
+  - Created `generate-test-parts-with-uuids.ts` script
+  - Generates ADD fixture with empty _id (database assigns UUIDs)
+  - Generates UPDATE fixture by querying database for real UUIDs
+  - Prevents E19 UUID validation errors in manual testing
+  - Comprehensive documentation in `fixtures/excel/unit/README.md`
+
+- ✅ **Documentation**: Complete manual testing workflow guide
+  - Step-by-step ADD → UPDATE → Rollback test sequence
+  - Explains why UPDATE fixture needs regeneration (UUID alignment)
+  - Quick reference commands for test cycles
+  - Verification checkpoints for each test step
 
 **Key Files Modified**:
-- `scripts/test/test-atomic-constraint-violation.ts` - Fixed API type mismatches
-- `scripts/test/test-atomic-fk-violation.ts` - Fixed API type mismatches
-- `docs/TASKS.md` - Updated Phase 8.2 checklist
+- `ImportStepIndicator.tsx` - Added `isImportComplete` prop for green success state
+- `ImportWizard.tsx` - Added cache invalidation for imports and rollbacks
+- `ImportStep3Confirmation.tsx` - Fixed diff data access, modernized UI
+- `ImportHistorySettings.tsx` - Added cache invalidation after rollback
+- `scripts/test/generate-test-parts-with-uuids.ts` - New dynamic fixture generator
+- `fixtures/excel/unit/README.md` - Complete manual testing guide
+- `docs/TESTING.md` - Updated with Session 22 improvements
 
-**Build Status**: ✅ Next.js production build passing
+**Git Commits**:
+1. `fix: Improve import UX with step indicator and cache invalidation`
+2. `test: Add fixture generator for ADD/UPDATE testing workflows`
 
 **Phase 8 Status**:
-- **Backend**: 100% complete (all services, API routes, tests)
-- **Remaining**: Only Import Wizard UI + Rollback Manager UI (frontend)
-- **Estimated remaining**: 6-10 hours for UI implementation
+- **Backend**: 100% complete
+- **Frontend**: 100% complete
+- **UX Polish**: 100% complete
+- **Testing Infrastructure**: 100% complete
+- **Remaining**: Manual QA testing and production deployment prep
 
 **Next Priorities**: Begin Import Wizard UI (4-step flow) or Rollback Manager UI
 

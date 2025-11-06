@@ -1,7 +1,7 @@
 # Testing Infrastructure Documentation
 
-> **Last Updated**: October 30, 2025 (Session 21)
-> **Status**: Testing infrastructure consolidated and operational
+> **Last Updated**: November 5, 2025 (Session 22)
+> **Status**: UI testing improvements and dynamic fixture generation added
 
 ## Table of Contents
 
@@ -172,13 +172,37 @@ npm run test:generate:unit
 
 **Generated Files:**
 1. `valid-add-new-parts.xlsx` - 5 new parts
-2. `valid-update-existing.xlsx` - 3 parts with existing IDs
+2. `valid-update-existing.xlsx` - 3 parts with existing IDs (requires database seed)
 3. `error-duplicate-skus.xlsx` - Duplicate SKU errors
 4. `error-missing-required-fields.xlsx` - Missing ACR_SKU and Part_Type
 5. `error-orphaned-references.xlsx` - Invalid foreign keys
 6. `error-invalid-formats.xlsx` - Invalid UUIDs, year ranges
 7. `error-max-length-exceeded.xlsx` - String length violations
 8. `warning-data-changes.xlsx` - Data change warnings (not tested - needs DB seed)
+
+### Dynamic ADD/UPDATE Fixture Generation (New in Session 22)
+
+For manual UI testing of import operations, use the dynamic fixture generator:
+
+```bash
+# Generate ADD fixture (standalone)
+npx tsx scripts/test/generate-test-parts-with-uuids.ts add
+
+# Import valid-add-new-parts.xlsx through UI
+
+# Generate UPDATE fixture (requires database with imported parts)
+npx tsx scripts/test/generate-test-parts-with-uuids.ts update
+
+# Import valid-update-existing.xlsx through UI
+```
+
+**Why this approach?**
+- UPDATE fixtures need real UUIDs from database to prevent E19 validation errors
+- Script queries database for test parts (ACR-TEST-001 through ACR-TEST-005)
+- Uses actual UUIDs in Excel file's hidden `_id` column
+- Enables repeatable test workflow without UUID conflicts
+
+**See**: `fixtures/excel/unit/README.md` for complete testing workflow
 
 ### Generate Integration Scenarios Only
 
@@ -527,6 +551,49 @@ expect(result.errors.length).toBe(5); // Changed from 2 to 5 because test failed
 ---
 
 ## Recent Changes Log
+
+### Session 22 (November 5, 2025)
+
+**Completed:**
+1. ✅ **Import UX improvements**
+   - Step 3 indicator now turns green on success (was staying red)
+   - Fixed success page detail list data structure (after/before/row properties)
+   - Modern gradient-based success page design with expandable sections
+
+2. ✅ **TanStack Query cache invalidation**
+   - Dashboard auto-refreshes after import (no manual reload needed)
+   - Settings rollback auto-refreshes dashboard
+   - Uses centralized `queryKeys` for consistency
+   - Added to both `ImportWizard` and `ImportHistorySettings`
+
+3. ✅ **Dynamic fixture generator for ADD/UPDATE testing**
+   - Created `generate-test-parts-with-uuids.ts` script
+   - Generates ADD fixture with 5 test parts (empty _id)
+   - Generates UPDATE fixture by querying database for real UUIDs
+   - Prevents E19 UUID validation errors
+   - Comprehensive documentation in `fixtures/excel/unit/README.md`
+
+4. ✅ **Manual testing workflow documentation**
+   - Complete step-by-step guide for UI testing
+   - Explains why UPDATE fixture needs regeneration
+   - Quick reference commands for test cycles
+   - Verification checkpoints for each test step
+
+**Components Modified:**
+- `ImportStepIndicator.tsx` - Added `isImportComplete` prop
+- `ImportWizard.tsx` - Added cache invalidation
+- `ImportStep3Confirmation.tsx` - Fixed diff data access, modernized design
+- `ImportHistorySettings.tsx` - Added cache invalidation after rollback
+
+**Scripts Added:**
+- `scripts/test/generate-test-parts-with-uuids.ts` - Dynamic fixture generator
+- `fixtures/excel/unit/README.md` - Complete testing workflow guide
+
+**Testing Improvements:**
+- Repeatable ADD → UPDATE → Rollback test workflow
+- No more E19 UUID errors in UPDATE fixtures
+- Dashboard cache properly invalidated on mutations
+- Clear documentation for manual UI testing
 
 ### Session 21 (October 30, 2025)
 

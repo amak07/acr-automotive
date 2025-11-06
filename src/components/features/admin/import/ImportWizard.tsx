@@ -410,6 +410,7 @@ export function ImportWizard() {
               onFileSelected={handleFileSelected}
               isProcessing={state.isProcessing}
               uploadedFile={state.file}
+              validationResult={state.validationResult}
               parseProgress={{
                 isParsing: state.isProcessing,
                 rowCount: state.validationResult
@@ -475,7 +476,7 @@ export function ImportWizard() {
             onClick={handleNext}
             disabled={!canProceedToNext || state.isProcessing || state.currentStep === 3}
           >
-            {state.isProcessing ? "Processing..." : getNextButtonLabel()}
+            {state.isProcessing ? t("admin.import.processing") : getNextButtonLabel()}
           </AcrButton>
         </div>
       )}

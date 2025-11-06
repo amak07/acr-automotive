@@ -97,10 +97,10 @@ export function ImportStep2Validation({
             <CheckCircle className="w-8 h-8 text-green-600 flex-shrink-0" />
             <div>
               <h3 className="text-lg font-semibold text-green-900">
-                Validation Successful
+                {t("admin.import.validation.success")}
               </h3>
               <p className="text-sm text-green-700 mt-1">
-                All data is valid. Ready to preview changes.
+                {t("admin.import.validation.successDesc")}
               </p>
             </div>
           </div>
@@ -147,7 +147,7 @@ export function ImportStep2Validation({
                         {sheet}
                       </h5>
                       <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                        {issues.length} {issues.length === 1 ? "error" : "errors"}
+                        {issues.length} {issues.length === 1 ? t("admin.import.validation.error") : t("admin.import.validation.errors")}
                       </span>
                     </div>
                   </button>
@@ -200,7 +200,7 @@ export function ImportStep2Validation({
                   {t("admin.import.validation.warningsFound")}
                 </h3>
                 <p className="text-sm text-amber-700 mt-1">
-                  Review changes that may affect existing data
+                  {t("admin.import.validation.reviewWarnings")}
                 </p>
               </div>
             </div>
@@ -228,7 +228,7 @@ export function ImportStep2Validation({
                         {sheet}
                       </h5>
                       <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
-                        {issues.length} {issues.length === 1 ? "warning" : "warnings"}
+                        {issues.length} {issues.length === 1 ? t("admin.import.validation.warning") : t("admin.import.validation.warnings")}
                       </span>
                     </div>
                   </button>
