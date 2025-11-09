@@ -182,7 +182,9 @@ export async function importVehicleApplications(
     start_year: number;
     end_year: number;
   }> = [];
+  const applicationSet = new Set<string>(); // Track unique combinations
   let skippedOrphaned = 0;
+  let skippedDuplicates = 0;
 
   applications.forEach((app) => {
     const partId = partIdMap.get(app.acrSku);
@@ -193,6 +195,14 @@ export async function importVehicleApplications(
       );
       return;
     }
+
+    // Create unique key to detect duplicates (matches idx_vehicle_apps_unique_per_tenant constraint)
+    const uniqueKey = `${partId}|${app.make}|${app.model}|${app.startYear}`;
+    if (applicationSet.has(uniqueKey)) {
+      skippedDuplicates++;
+      return; // Skip duplicate
+    }
+    applicationSet.add(uniqueKey);
 
     databaseApplications.push({
       part_id: partId,
@@ -206,6 +216,11 @@ export async function importVehicleApplications(
   if (skippedOrphaned > 0) {
     console.log(
       `📊 Skipped ${skippedOrphaned} applications for orphaned ACR SKUs`
+    );
+  }
+  if (skippedDuplicates > 0) {
+    console.log(
+      `📊 Skipped ${skippedDuplicates} duplicate applications (data entry cleanup)`
     );
   }
   console.log(

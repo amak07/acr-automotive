@@ -225,6 +225,14 @@ describe("ValidationEngine", () => {
       const parsed = await parser.parseFile(file);
       const result = await validator.validate(parsed, seedDbState());
 
+      // Debug: Log errors if any
+      if (result.errors.length > 0) {
+        console.log("\n=== UNEXPECTED ERRORS IN warning-data-changes.xlsx ===");
+        result.errors.forEach((e, i) => {
+          console.log(`${i + 1}. [${e.code}] ${e.message} (sheet: ${e.sheet}, row: ${e.row})`);
+        });
+      }
+
       // Warnings don't block - file should still be valid
       expect(result.valid).toBe(true);
       expect(result.warnings.length).toBeGreaterThan(0);
@@ -280,6 +288,14 @@ describe("ValidationEngine", () => {
       const file = loadFixture("warning-data-changes.xlsx");
       const parsed = await parser.parseFile(file);
       const result = await validator.validate(parsed, seedDbState());
+
+      // Debug: Log errors if any
+      if (result.errors.length > 0) {
+        console.log("\n=== UNEXPECTED ERRORS IN valid=true test ===");
+        result.errors.forEach((e, i) => {
+          console.log(`${i + 1}. [${e.code}] ${e.message} (sheet: ${e.sheet}, row: ${e.row})`);
+        });
+      }
 
       // Should be valid despite warnings
       expect(result.valid).toBe(true);

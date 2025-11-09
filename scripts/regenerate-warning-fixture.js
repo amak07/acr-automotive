@@ -9,10 +9,11 @@ const fixturePath = path.join(__dirname, '../fixtures/excel/unit/warning-data-ch
 const wb = xlsx.utils.book_new();
 
 // Parts sheet - with changes that trigger warnings
+// NOTE: Updated to use "ACR-SEED-" prefix per Migration 009 SKU normalization requirement
 const partsData = [
   {
     '_id': '00000000-0000-0000-0000-000000000001',
-    'ACR_SKU': 'SEED-001-CHANGED',  // W1: ACR_SKU changed from SEED-001
+    'ACR_SKU': 'ACR-SEED-001-CHANGED',  // W1: ACR_SKU changed from ACR-SEED-001
     'Part_Type': 'Rotor',
     'Position_Type': 'Front',
     'ABS_Type': 'ABS',
@@ -22,7 +23,7 @@ const partsData = [
   },
   {
     '_id': '00000000-0000-0000-0000-000000000002',
-    'ACR_SKU': 'SEED-002',
+    'ACR_SKU': 'ACR-SEED-002',
     'Part_Type': 'Caliper',  // W3: Part_Type changed from Rotor to Caliper
     'Position_Type': 'Rear',
     'ABS_Type': 'Non-ABS',
@@ -32,7 +33,7 @@ const partsData = [
   },
   {
     '_id': '00000000-0000-0000-0000-000000000003',
-    'ACR_SKU': 'SEED-003',
+    'ACR_SKU': 'ACR-SEED-003',
     'Part_Type': 'Rotor',
     'Position_Type': 'Rear',  // W4: Position_Type changed from Front to Rear
     'ABS_Type': 'ABS',
@@ -42,7 +43,7 @@ const partsData = [
   },
   {
     '_id': '00000000-0000-0000-0000-000000000004',
-    'ACR_SKU': 'SEED-004',
+    'ACR_SKU': 'ACR-SEED-004',
     'Part_Type': 'Pad Set',
     'Position_Type': 'Front',
     'ABS_Type': 'ABS',
@@ -57,7 +58,7 @@ const vaData = [
   {
     '_id': '10000000-0000-0000-0000-000000000001',
     '_part_id': '00000000-0000-0000-0000-000000000001',
-    'ACR_SKU': 'SEED-001-CHANGED',  // Must match the changed SKU
+    'ACR_SKU': 'ACR-SEED-001-CHANGED',  // Must match the changed SKU
     'Make': 'Toyota',  // W8: Make changed from Honda to Toyota
     'Model': 'Accord',
     'Start_Year': 2010,
@@ -66,7 +67,7 @@ const vaData = [
   {
     '_id': '10000000-0000-0000-0000-000000000002',
     '_part_id': '00000000-0000-0000-0000-000000000001',
-    'ACR_SKU': 'SEED-001-CHANGED',
+    'ACR_SKU': 'ACR-SEED-001-CHANGED',
     'Make': 'Honda',
     'Model': 'CR-V',  // W9: Model changed from Civic to CR-V
     'Start_Year': 2010,
@@ -75,7 +76,7 @@ const vaData = [
   {
     '_id': '10000000-0000-0000-0000-000000000003',
     '_part_id': '00000000-0000-0000-0000-000000000001',
-    'ACR_SKU': 'SEED-001-CHANGED',
+    'ACR_SKU': 'ACR-SEED-001-CHANGED',
     'Make': 'Acura',
     'Model': 'TSX',
     'Start_Year': 2010,  // W2: Year range narrowed (was 2008)
@@ -88,7 +89,7 @@ const crData = [
   {
     '_id': '20000000-0000-0000-0000-000000000001',
     '_acr_part_id': '00000000-0000-0000-0000-000000000001',
-    'ACR_SKU': 'SEED-001-CHANGED',  // Must match the changed SKU
+    'ACR_SKU': 'ACR-SEED-001-CHANGED',  // Must match the changed SKU
     'Competitor_Brand': 'StopTech',  // W10: Competitor_Brand changed from Brembo to StopTech
     'Competitor_SKU': 'BR-09-A234'
   }
@@ -124,7 +125,7 @@ xlsx.writeFile(wb, fixturePath);
 
 console.log('✅ Regenerated warning-data-changes.xlsx');
 console.log('\nExpected warnings:');
-console.log('  W1: ACR_SKU changed (SEED-001 → SEED-001-CHANGED)');
+console.log('  W1: ACR_SKU changed (ACR-SEED-001 → ACR-SEED-001-CHANGED)');
 console.log('  W2: Year range narrowed (multiple VAs)');
 console.log('  W3: Part_Type changed (Rotor → Caliper)');
 console.log('  W4: Position_Type changed (Front → Rear)');

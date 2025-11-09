@@ -8,6 +8,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ImportWizard } from '../ImportWizard';
 import { createSuccessValidationResult, createErrorValidationResult } from '@test-utils/component-mocks/validation-mocks';
 import { createMixedDiffResult } from '@test-utils/component-mocks/diff-mocks';
+import { TestWrapper } from '@test-utils/test-wrapper';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -112,6 +113,15 @@ jest.mock('lucide-react', () => ({
 }));
 
 describe('ImportWizard', () => {
+  // Helper to render with required providers
+  const renderImportWizard = () => {
+    return render(
+      <TestWrapper>
+        <ImportWizard />
+      </TestWrapper>
+    );
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     global.fetch = jest.fn();
@@ -119,33 +129,33 @@ describe('ImportWizard', () => {
 
   describe('Initial State', () => {
     it('should start on step 1', () => {
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const stepIndicator = screen.getByTestId('step-indicator');
       expect(stepIndicator).toHaveAttribute('data-current-step', '1');
     });
 
     it('should display step 1 upload component', () => {
-      render(<ImportWizard />);
+      renderImportWizard();
 
       expect(screen.getByTestId('step-1-upload')).toBeInTheDocument();
     });
 
     it('should show cancel button on step 1', () => {
-      render(<ImportWizard />);
+      renderImportWizard();
 
       expect(screen.getByText('admin.import.buttons.cancel')).toBeInTheDocument();
     });
 
     it('should have next button disabled initially', () => {
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const nextButton = screen.getByText('admin.import.buttons.next');
       expect(nextButton).toBeDisabled();
     });
 
     it('should display page title and description', () => {
-      render(<ImportWizard />);
+      renderImportWizard();
 
       expect(screen.getByText('admin.import.pageTitle')).toBeInTheDocument();
       expect(screen.getByText('admin.import.pageDescription')).toBeInTheDocument();
@@ -167,7 +177,7 @@ describe('ImportWizard', () => {
           json: async () => ({ diff: diffResult }),
         });
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);
@@ -190,7 +200,7 @@ describe('ImportWizard', () => {
         })
       );
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);
@@ -224,7 +234,7 @@ describe('ImportWizard', () => {
           json: async () => ({ diff: diffResult }),
         });
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);
@@ -240,7 +250,7 @@ describe('ImportWizard', () => {
         ok: false,
       });
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);
@@ -267,7 +277,7 @@ describe('ImportWizard', () => {
           ok: false,
         });
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);
@@ -300,7 +310,7 @@ describe('ImportWizard', () => {
           json: async () => ({ diff: diffResult }),
         });
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);
@@ -354,7 +364,7 @@ describe('ImportWizard', () => {
           json: async () => ({ diff: diffResult }),
         });
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);
@@ -409,7 +419,7 @@ describe('ImportWizard', () => {
           json: async () => ({ diff: diffResult }),
         });
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);
@@ -455,7 +465,7 @@ describe('ImportWizard', () => {
           json: async () => ({ diff: diffResult }),
         });
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);
@@ -639,7 +649,7 @@ describe('ImportWizard', () => {
           json: async () => ({ diff: diffResult }),
         });
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);
@@ -802,7 +812,7 @@ describe('ImportWizard', () => {
           json: async () => ({ diff: diffResult }),
         });
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);
@@ -853,7 +863,7 @@ describe('ImportWizard', () => {
 
   describe('Cancel Navigation', () => {
     it('should navigate to admin page when cancel clicked', () => {
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const cancelButton = screen.getByText('admin.import.buttons.cancel');
       fireEvent.click(cancelButton);
@@ -885,7 +895,7 @@ describe('ImportWizard', () => {
           json: async () => ({ diff: diffResult }),
         });
 
-      render(<ImportWizard />);
+      renderImportWizard();
 
       const uploadButton = screen.getByText('Upload File');
       fireEvent.click(uploadButton);

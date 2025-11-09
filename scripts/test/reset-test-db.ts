@@ -1,7 +1,7 @@
 /**
  * Reset Test Database to Baseline State
  *
- * Restores test database to golden baseline snapshot (877 parts).
+ * Restores test database to golden baseline snapshot (865 parts - count may vary after reseed).
  * Uses snapshot-based rollback for speed and consistency.
  *
  * This script will:
@@ -21,7 +21,7 @@ import * as path from 'path';
 // Load test environment
 dotenv.config({ path: path.join(process.cwd(), '.env.test') });
 
-const GOLDEN_SNAPSHOT_FILENAME = 'GOLDEN_BASELINE_877.xlsx';
+const GOLDEN_SNAPSHOT_FILENAME = 'GOLDEN_BASELINE_865.xlsx'; // Updated from 877 - may vary after reseed
 const TEST_PROJECT_ID = 'fzsdaqpwwbuwkvbzyiax';
 
 async function resetTestDatabase() {
@@ -147,7 +147,7 @@ async function resetTestDatabase() {
     console.log('═'.repeat(80));
     console.log('✅ DATABASE RESET COMPLETE!');
     console.log('═'.repeat(80));
-    console.log('Your test database has been restored to the 877-part baseline state.');
+    console.log('Your test database has been restored to the baseline state (865 parts).');
     console.log('');
 
   } catch (error: any) {

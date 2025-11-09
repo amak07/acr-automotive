@@ -139,7 +139,7 @@ npm run test:generate:unit
 
 **Location:** `fixtures/excel/scenarios/`
 
-**Size:** ~165KB each (877 parts + vehicle apps + cross-refs)
+**Size:** ~165KB each (865 parts + vehicle apps + cross-refs)
 
 **Used By:**
 - Integration tests
@@ -249,7 +249,7 @@ npm run test:export-baseline
 
 **Usage:**
 ```bash
-# Reset test database to 877-part baseline
+# Reset test database to 865-part baseline
 npm run test:reset-db
 ```
 
@@ -276,7 +276,7 @@ npm run test:reset-db
 |--------|---------|---------|
 | `generate-test-baseline.ts` | `npm run test:export-baseline` | Export TEST database to tmp/test-export.xlsx |
 | `test-export-api.ts` | `npm run test:export-api` | Test /api/admin/export endpoint (requires dev server) |
-| `reset-test-db.ts` | `npm run test:reset-db` | Reset database to 877-part baseline from baseline-export.xlsx |
+| `reset-test-db.ts` | `npm run test:reset-db` | Reset database to 865-part baseline from baseline-export.xlsx |
 
 ### Verification
 
@@ -624,7 +624,7 @@ npm run test:reset-db
 # 2. Verify restoration
 NODE_ENV=test tsx scripts/verify-baseline.ts
 
-# 3. Confirm counts match baseline (877 parts)
+# 3. Confirm counts match baseline (865 parts)
 ```
 
 ### Missing Test Files

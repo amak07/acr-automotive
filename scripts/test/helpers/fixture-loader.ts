@@ -99,7 +99,7 @@ export function seedDbState() {
   // Seed Parts (original values before changes in warning fixture)
   parts.set("00000000-0000-0000-0000-000000000001", {
     _id: "00000000-0000-0000-0000-000000000001",
-    acr_sku: "SEED-001", // WARNING fixture changes to "SEED-001-CHANGED" (W1)
+    acr_sku: "ACR-SEED-001", // WARNING fixture changes to "ACR-SEED-001-CHANGED" (W1)
     part_type: "Rotor",
     position_type: "Front",
     abs_type: "ABS",
@@ -110,7 +110,7 @@ export function seedDbState() {
 
   parts.set("00000000-0000-0000-0000-000000000002", {
     _id: "00000000-0000-0000-0000-000000000002",
-    acr_sku: "SEED-002",
+    acr_sku: "ACR-SEED-002",
     part_type: "Rotor", // WARNING fixture changes to "Caliper" (W3)
     position_type: "Rear",
     abs_type: "Non-ABS",
@@ -121,7 +121,7 @@ export function seedDbState() {
 
   parts.set("00000000-0000-0000-0000-000000000003", {
     _id: "00000000-0000-0000-0000-000000000003",
-    acr_sku: "SEED-003",
+    acr_sku: "ACR-SEED-003",
     part_type: "Rotor",
     position_type: "Front", // WARNING fixture changes to "Rear" (W4)
     abs_type: "ABS",
@@ -132,7 +132,7 @@ export function seedDbState() {
 
   parts.set("00000000-0000-0000-0000-000000000004", {
     _id: "00000000-0000-0000-0000-000000000004",
-    acr_sku: "SEED-004",
+    acr_sku: "ACR-SEED-004",
     part_type: "Pad Set",
     position_type: "Front",
     abs_type: "ABS",
@@ -186,10 +186,10 @@ export function seedDbState() {
     vehicleApplications,
     crossReferences,
     partSkus: new Set([
-      "SEED-001",
-      "SEED-002",
-      "SEED-003",
-      "SEED-004",
+      "ACR-SEED-001",
+      "ACR-SEED-002",
+      "ACR-SEED-003",
+      "ACR-SEED-004",
     ]),
   };
 }

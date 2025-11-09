@@ -85,8 +85,8 @@ describe('ImportStep2Validation', () => {
       render(<ImportStep2Validation validationResult={result} />);
 
       expect(screen.getByTestId('check-circle-icon')).toBeInTheDocument();
-      expect(screen.getByText('Validation Successful')).toBeInTheDocument();
-      expect(screen.getByText('All data is valid. Ready to preview changes.')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.validation.success')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.validation.successDesc')).toBeInTheDocument();
     });
 
     it('should not show error or warning sections', () => {
@@ -200,15 +200,15 @@ describe('ImportStep2Validation', () => {
 
       // Parts sheet has 2 errors
       const partsSection = screen.getByText('Parts').closest('button');
-      expect(within(partsSection!).getByText('2 errors')).toBeInTheDocument();
+      expect(within(partsSection!).getByText(/2\s+admin\.import\.validation\.errors/)).toBeInTheDocument();
 
       // Vehicle Applications has 2 errors
       const vehicleSection = screen.getByText('Vehicle Applications').closest('button');
-      expect(within(vehicleSection!).getByText('2 errors')).toBeInTheDocument();
+      expect(within(vehicleSection!).getByText(/2\s+admin\.import\.validation\.errors/)).toBeInTheDocument();
 
       // Cross References has 1 error
       const crossRefSection = screen.getByText('Cross References').closest('button');
-      expect(within(crossRefSection!).getByText('1 error')).toBeInTheDocument();
+      expect(within(crossRefSection!).getByText(/1\s+admin\.import\.validation\.error/)).toBeInTheDocument();
     });
 
     it('should toggle sheet expansion on click', () => {
