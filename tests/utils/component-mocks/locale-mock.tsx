@@ -3,11 +3,13 @@
 // ============================================================================
 
 import React from 'react';
+import { mockT as mockTranslationFunction } from '../mock-translations';
 
 /**
- * Mock translation function that returns the key
+ * Mock translation function that returns English translations
+ * Falls back to key if translation not found
  */
-export const mockT = (key: string): string => key;
+export const mockT = mockTranslationFunction;
 
 /**
  * Mock locale context provider for tests

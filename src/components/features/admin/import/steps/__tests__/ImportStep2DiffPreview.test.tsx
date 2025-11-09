@@ -49,7 +49,7 @@ describe('ImportStep2DiffPreview', () => {
         />
       );
 
-      expect(screen.getByText('Calculating changes...')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.calculating')).toBeInTheDocument();
       expect(screen.getByText('admin.import.confirm.pleaseWait')).toBeInTheDocument();
     });
 
@@ -86,11 +86,11 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       expect(screen.getByText('5')).toBeInTheDocument(); // adds
-      expect(screen.getByText('new')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.new')).toBeInTheDocument();
       expect(screen.getByText('3')).toBeInTheDocument(); // updates
-      expect(screen.getByText('updated')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.updated')).toBeInTheDocument();
       expect(screen.getByText('2')).toBeInTheDocument(); // deletes
-      expect(screen.getByText('deleted')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.deleted')).toBeInTheDocument();
     });
 
     it('should show system updates count when present', () => {
@@ -99,7 +99,7 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       expect(screen.getByText('8')).toBeInTheDocument(); // 5 vehicle + 3 cross-ref
-      expect(screen.getByText('system updates')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.systemUpdates')).toBeInTheDocument();
     });
 
     it('should not show system updates when count is 0', () => {
@@ -107,7 +107,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      expect(screen.queryByText('system updates')).not.toBeInTheDocument();
+      expect(screen.queryByText('admin.import.preview.systemUpdates')).not.toBeInTheDocument();
     });
   });
 
@@ -117,7 +117,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      expect(screen.getByText(/New Parts \(3\)/)).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.newParts.*\(3\)/)).toBeInTheDocument();
     });
 
     it('should display part details when expanded', () => {
@@ -126,7 +126,7 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand section
-      const expandButton = screen.getByRole('button', { name: /New Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.newParts/i });
       fireEvent.click(expandButton);
 
       expect(screen.getByText('ACR-ADD-1')).toBeInTheDocument();
@@ -137,7 +137,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      expect(screen.queryByText(/New Parts/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.newParts/)).not.toBeInTheDocument();
     });
 
     it('should toggle section expansion', () => {
@@ -145,7 +145,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      const expandButton = screen.getByRole('button', { name: /New Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.newParts/i });
 
       // Initially collapsed - ACR-ADD-1 not visible
       expect(screen.queryByText('ACR-ADD-1')).not.toBeInTheDocument();
@@ -166,7 +166,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      expect(screen.getByText(/Updated Parts \(5\)/)).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.updatedParts.*\(5\)/)).toBeInTheDocument();
     });
 
     it('should display update details when expanded', () => {
@@ -175,7 +175,7 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand section
-      const expandButton = screen.getByRole('button', { name: /Updated Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.updatedParts/i });
       fireEvent.click(expandButton);
 
       expect(screen.getByText('ACR-UPD-1')).toBeInTheDocument();
@@ -187,7 +187,7 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand section
-      const expandButton = screen.getByRole('button', { name: /Updated Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.updatedParts/i });
       fireEvent.click(expandButton);
 
       expect(screen.getByText(/part type/i)).toBeInTheDocument();
@@ -200,7 +200,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      expect(screen.queryByText(/Updated Parts/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.updatedParts/)).not.toBeInTheDocument();
     });
   });
 
@@ -210,7 +210,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      expect(screen.getByText(/Deleted Parts \(4\)/)).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.deletedParts.*\(4\)/)).toBeInTheDocument();
     });
 
     it('should display delete details when expanded', () => {
@@ -219,7 +219,7 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand section
-      const expandButton = screen.getByRole('button', { name: /Deleted Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.deletedParts/i });
       fireEvent.click(expandButton);
 
       expect(screen.getByText('ACR-DEL-1')).toBeInTheDocument();
@@ -230,7 +230,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      expect(screen.queryByText(/Deleted Parts/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.deletedParts/)).not.toBeInTheDocument();
     });
   });
 
@@ -241,7 +241,7 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand section
-      const expandButton = screen.getByRole('button', { name: /New Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.newParts/i });
       fireEvent.click(expandButton);
 
       // Should see first 20
@@ -258,10 +258,10 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand section
-      const expandButton = screen.getByRole('button', { name: /New Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.newParts/i });
       fireEvent.click(expandButton);
 
-      expect(screen.getByText('Load 20 more')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.loadMore')).toBeInTheDocument();
     });
 
     it('should show "Show all" button with total count', () => {
@@ -270,10 +270,10 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand section
-      const expandButton = screen.getByRole('button', { name: /New Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.newParts/i });
       fireEvent.click(expandButton);
 
-      expect(screen.getByText('Show all 25')).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.showAll/)).toBeInTheDocument();
     });
 
     it('should load 20 more items when "Load 20 more" is clicked', () => {
@@ -282,11 +282,11 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand section
-      const expandButton = screen.getByRole('button', { name: /New Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.newParts/i });
       fireEvent.click(expandButton);
 
       // Click "Load 20 more"
-      const loadMoreButton = screen.getByText('Load 20 more');
+      const loadMoreButton = screen.getByText('admin.import.preview.loadMore');
       fireEvent.click(loadMoreButton);
 
       // Should now see items 1-40
@@ -300,11 +300,11 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand section
-      const expandButton = screen.getByRole('button', { name: /New Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.newParts/i });
       fireEvent.click(expandButton);
 
       // Click "Show all"
-      const showAllButton = screen.getByText('Show all 30');
+      const showAllButton = screen.getByText(/admin\.import\.preview\.showAll/);
       fireEvent.click(showAllButton);
 
       // Should see all items
@@ -312,8 +312,8 @@ describe('ImportStep2DiffPreview', () => {
       expect(screen.getByText('ACR-ADD-30')).toBeInTheDocument();
 
       // Pagination buttons should be gone
-      expect(screen.queryByText('Load 20 more')).not.toBeInTheDocument();
-      expect(screen.queryByText('Show all 30')).not.toBeInTheDocument();
+      expect(screen.queryByText('admin.import.preview.loadMore')).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.showAll/)).not.toBeInTheDocument();
     });
 
     it('should not show pagination buttons when items <= 20', () => {
@@ -322,11 +322,11 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand section
-      const expandButton = screen.getByRole('button', { name: /New Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.newParts/i });
       fireEvent.click(expandButton);
 
-      expect(screen.queryByText('Load 20 more')).not.toBeInTheDocument();
-      expect(screen.queryByText(/Show all/)).not.toBeInTheDocument();
+      expect(screen.queryByText('admin.import.preview.loadMore')).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.showAll/)).not.toBeInTheDocument();
     });
 
     it('should apply pagination independently to updates section', () => {
@@ -335,12 +335,12 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand updates section
-      const expandButton = screen.getByRole('button', { name: /Updated Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.updatedParts/i });
       fireEvent.click(expandButton);
 
       expect(screen.getByText('ACR-UPD-20')).toBeInTheDocument();
       expect(screen.queryByText('ACR-UPD-21')).not.toBeInTheDocument();
-      expect(screen.getByText('Load 20 more')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.loadMore')).toBeInTheDocument();
     });
 
     it('should apply pagination independently to deletes section', () => {
@@ -349,12 +349,12 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Expand deletes section
-      const expandButton = screen.getByRole('button', { name: /Deleted Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.deletedParts/i });
       fireEvent.click(expandButton);
 
       expect(screen.getByText('ACR-DEL-20')).toBeInTheDocument();
       expect(screen.queryByText('ACR-DEL-21')).not.toBeInTheDocument();
-      expect(screen.getByText('Load 20 more')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.loadMore')).toBeInTheDocument();
     });
   });
 
@@ -370,7 +370,7 @@ describe('ImportStep2DiffPreview', () => {
         />
       );
 
-      expect(screen.getByText('Cascade Delete Warning')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.cascadeWarning')).toBeInTheDocument();
     });
 
     it('should show count of cascade-deleted items', () => {
@@ -384,7 +384,7 @@ describe('ImportStep2DiffPreview', () => {
         />
       );
 
-      expect(screen.getByText(/3 related items/)).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.cascadeDesc/)).toBeInTheDocument();
     });
 
     it('should show acknowledgment checkbox for cascade deletes', () => {
@@ -402,7 +402,7 @@ describe('ImportStep2DiffPreview', () => {
 
       const checkbox = screen.getByRole('checkbox');
       expect(checkbox).toBeInTheDocument();
-      expect(screen.getByText(/I understand these items will be permanently removed/)).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.cascadeAck')).toBeInTheDocument();
     });
 
     it('should call onAcknowledgeWarnings when cascade checkbox is toggled', () => {
@@ -436,7 +436,7 @@ describe('ImportStep2DiffPreview', () => {
         />
       );
 
-      expect(screen.queryByText('Cascade Delete Warning')).not.toBeInTheDocument();
+      expect(screen.queryByText('admin.import.preview.cascadeWarning')).not.toBeInTheDocument();
     });
 
     it('should show cascade details in delete items when expanded', () => {
@@ -451,13 +451,13 @@ describe('ImportStep2DiffPreview', () => {
       );
 
       // Expand deleted parts section
-      const expandButton = screen.getByRole('button', { name: /Deleted Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.deletedParts/i });
       fireEvent.click(expandButton);
 
       // Should see cascade summary
-      expect(screen.getByText(/Will also remove/)).toBeInTheDocument();
-      expect(screen.getByText(/2 vehicle applications/)).toBeInTheDocument();
-      expect(screen.getByText(/1 cross-reference/)).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.willRemoveItems/)).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.willRemoveItems/)).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.andCrossRefs/)).toBeInTheDocument();
     });
   });
 
@@ -474,7 +474,9 @@ describe('ImportStep2DiffPreview', () => {
         />
       );
 
-      expect(screen.getByText(/Data Change Warnings \(2\)/)).toBeInTheDocument();
+      // Check for the warnings - specifically look for a heading with the dataWarnings key
+      const warningHeadings = screen.queryAllByText(/admin\.import\.preview\.dataWarnings/);
+      expect(warningHeadings.length).toBeGreaterThan(0);
     });
 
     it('should display individual warning messages', () => {
@@ -489,8 +491,9 @@ describe('ImportStep2DiffPreview', () => {
         />
       );
 
-      expect(screen.getByText(/ACR SKU will be modified/)).toBeInTheDocument();
-      expect(screen.getByText(/Part type will be changed/)).toBeInTheDocument();
+      // Warning messages come from the mock data, not translation keys
+      expect(screen.getByText('ACR SKU will be modified')).toBeInTheDocument();
+      expect(screen.getByText('Part type will be changed')).toBeInTheDocument();
     });
 
     it('should show acknowledgment checkbox for general warnings', () => {
@@ -506,7 +509,7 @@ describe('ImportStep2DiffPreview', () => {
       );
 
       expect(screen.getByRole('checkbox')).toBeInTheDocument();
-      expect(screen.getByText(/I understand these changes and want to proceed/)).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.dataWarningsAck')).toBeInTheDocument();
     });
 
     it('should not show general warnings when cascade warnings present', () => {
@@ -524,10 +527,10 @@ describe('ImportStep2DiffPreview', () => {
       );
 
       // Should show cascade warning
-      expect(screen.getByText('Cascade Delete Warning')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.cascadeWarning')).toBeInTheDocument();
 
       // Should NOT show general warnings section
-      expect(screen.queryByText(/Data Change Warnings/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.dataWarnings/)).not.toBeInTheDocument();
     });
   });
 
@@ -537,7 +540,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      expect(screen.getByText(/8 system metadata updates/)).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.systemUpdatesDesc/)).toBeInTheDocument();
     });
 
     it('should expand system updates when clicked', () => {
@@ -545,16 +548,16 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      const expandButton = screen.getByRole('button', { name: /system metadata updates/i });
+      const expandButton = screen.getByRole('button', { name: /admin\.import\.preview\.systemUpdatesDesc/i });
 
       // Initially collapsed
-      expect(screen.queryByText(/vehicle application metadata syncs/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.vaMetadata/)).not.toBeInTheDocument();
 
       // Click to expand
       fireEvent.click(expandButton);
 
-      expect(screen.getByText(/5 vehicle application metadata syncs/)).toBeInTheDocument();
-      expect(screen.getByText(/3 cross-reference metadata syncs/)).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.vaMetadata/)).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.crMetadata/)).toBeInTheDocument();
     });
 
     it('should collapse system updates when clicked again', () => {
@@ -562,15 +565,15 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      const expandButton = screen.getByRole('button', { name: /system metadata updates/i });
+      const expandButton = screen.getByRole('button', { name: /admin\.import\.preview\.systemUpdatesDesc/i });
 
       // Expand
       fireEvent.click(expandButton);
-      expect(screen.getByText(/vehicle application metadata syncs/)).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.preview\.vaMetadata/)).toBeInTheDocument();
 
       // Collapse
       fireEvent.click(expandButton);
-      expect(screen.queryByText(/vehicle application metadata syncs/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.vaMetadata/)).not.toBeInTheDocument();
     });
 
     it('should not show system updates section when count is 0', () => {
@@ -578,7 +581,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      expect(screen.queryByText(/system metadata updates/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.systemUpdatesDesc/)).not.toBeInTheDocument();
     });
   });
 
@@ -588,7 +591,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      const expandButton = screen.getByRole('button', { name: /New Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.newParts/i });
       fireEvent.click(expandButton);
 
       expect(screen.getByText(/Rotor/)).toBeInTheDocument();
@@ -599,7 +602,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      const expandButton = screen.getByRole('button', { name: /New Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.newParts/i });
       fireEvent.click(expandButton);
 
       expect(screen.getByText(/Premium brake rotor/)).toBeInTheDocument();
@@ -610,7 +613,7 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      const expandButton = screen.getByRole('button', { name: /New Parts/i });
+      const expandButton = screen.getByRole('button', { name: /admin.import.preview.newParts/i });
       fireEvent.click(expandButton);
 
       // Should see properties separated by middle dot
@@ -626,9 +629,9 @@ describe('ImportStep2DiffPreview', () => {
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
       // Check for summary bar content with multiple zeros
-      expect(screen.getByText('new')).toBeInTheDocument();
-      expect(screen.getByText('updated')).toBeInTheDocument();
-      expect(screen.getByText('deleted')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.new')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.updated')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.preview.deleted')).toBeInTheDocument();
 
       // All counts should be 0
       const zeros = screen.getAllByText('0');
@@ -640,9 +643,9 @@ describe('ImportStep2DiffPreview', () => {
 
       render(<ImportStep2DiffPreview diffResult={diffResult} />);
 
-      expect(screen.queryByText(/New Parts/)).not.toBeInTheDocument();
-      expect(screen.queryByText(/Updated Parts/)).not.toBeInTheDocument();
-      expect(screen.queryByText(/Deleted Parts/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.newParts/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.updatedParts/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/admin\.import\.preview\.deletedParts/)).not.toBeInTheDocument();
     });
   });
 

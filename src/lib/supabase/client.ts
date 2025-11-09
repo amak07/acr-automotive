@@ -13,7 +13,8 @@ if (typeof window === "undefined" && process.env.NODE_ENV !== "production") {
   const dotenv = require("dotenv");
 
   if (process.env.NODE_ENV === "test") {
-    dotenv.config({ path: ".env.test" });
+    // CRITICAL: Use override:true to ensure .env.test takes precedence over .env
+    dotenv.config({ path: ".env.test", override: true });
   } else {
     dotenv.config();
   }

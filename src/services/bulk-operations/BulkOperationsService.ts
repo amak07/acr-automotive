@@ -33,8 +33,11 @@ export class BulkOperationsService {
   ): Promise<BulkOperationResult & { data?: any[] }> {
     try {
       // Map sku_number to acr_sku (database column name)
+      // Add ACR prefix if not already present (Migration 009 compatibility)
       const partsForDb = parts.map((part) => ({
-        acr_sku: part.sku_number,
+        acr_sku: part.sku_number.toUpperCase().startsWith('ACR')
+          ? part.sku_number
+          : `ACR${part.sku_number}`,
         part_type: part.part_type,
         position_type: part.position_type,
         abs_type: part.abs_type,
@@ -96,9 +99,12 @@ export class BulkOperationsService {
         const { id, ...updates } = part;
 
         // Map sku_number to acr_sku if present
+        // Add ACR prefix if not already present (Migration 009 compatibility)
         const dbUpdates: any = { ...updates };
         if ("sku_number" in dbUpdates) {
-          dbUpdates.acr_sku = dbUpdates.sku_number;
+          dbUpdates.acr_sku = dbUpdates.sku_number.toUpperCase().startsWith('ACR')
+            ? dbUpdates.sku_number
+            : `ACR${dbUpdates.sku_number}`;
           delete dbUpdates.sku_number;
         }
 

@@ -227,6 +227,18 @@ export class ValidationEngine {
       this.validateMaxLength(part.bolt_pattern, MAX_LENGTHS.BOLT_PATTERN, 'Bolt_Pattern', SHEET_NAMES.PARTS, rowNumber);
       this.validateMaxLength(part.drive_type, MAX_LENGTHS.DRIVE_TYPE, 'Drive_Type', SHEET_NAMES.PARTS, rowNumber);
 
+      // E20: ACR_SKU must start with "ACR" prefix (only check if acr_sku exists)
+      if (part.acr_sku && typeof part.acr_sku === 'string' && !part.acr_sku.toUpperCase().startsWith('ACR')) {
+        this.addError(
+          ValidationErrorCode.E20_INVALID_ACR_SKU_FORMAT,
+          `ACR_SKU must start with "ACR" prefix. Found: "${part.acr_sku}". Please update the Excel file with the correct format (e.g., "ACR15002").`,
+          SHEET_NAMES.PARTS,
+          rowNumber,
+          'ACR_SKU',
+          part.acr_sku
+        );
+      }
+
       // Warnings: Compare with existing data
       if (part._id && existingData.parts.has(part._id)) {
         const existing = existingData.parts.get(part._id)!;

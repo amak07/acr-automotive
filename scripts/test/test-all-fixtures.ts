@@ -37,7 +37,7 @@ const FIXTURE_TESTS: FixtureTest[] = [
     filename: "valid-update-existing.xlsx",
     description: "Valid updates to existing parts (requires seed data - skip for now)",
     expectedValid: false, // Will fail without seed data in DB
-    expectedErrors: 3, // E19: UUIDs not found
+    expectedErrors: 5, // E19: UUIDs not found (5 parts in fixture)
     expectedWarnings: 0,
   },
 

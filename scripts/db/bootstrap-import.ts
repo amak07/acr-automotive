@@ -21,12 +21,15 @@ import { CatalogacionParser } from '../../src/lib/excel/catalogacion-parser';
 import { importPreciosData, importCatalogacionData } from '../../src/lib/supabase/import';
 import { supabase } from '../../src/lib/supabase/client';
 
-// Excel file paths (using test files for bootstrap)
-const PRECIOS_FILE = 'src/lib/excel/__tests__/09 LISTA DE PRECIOS ACR 21 07 2024 INV 100725.xlsx';
-const CATALOGACION_FILE = 'src/lib/excel/__tests__/CATALOGACION ACR CLIENTES.xlsx';
+// Excel file paths (original client files)
+const PRECIOS_FILE = 'archive/original-client-files/09 LISTA DE PRECIOS ACR 21 07 2024 INV 100725.xlsx';
+const CATALOGACION_FILE = 'archive/original-client-files/CATALOGACION ACR CLIENTES.xlsx';
 
 async function main() {
   console.log('🚀 ACR Automotive Bootstrap Import Starting...\n');
+  console.log(`📍 NODE_ENV: ${process.env.NODE_ENV}`);
+  console.log(`📍 Supabase URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}`);
+  console.log('');
 
   try {
     // Step 1: Check if Excel files exist

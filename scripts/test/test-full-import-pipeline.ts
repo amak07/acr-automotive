@@ -32,7 +32,8 @@ import type {
 } from "../../src/services/excel/shared/types";
 import { createClient } from "@supabase/supabase-js";
 
-// Load environment variables
+// Load environment variables (local Docker first, then remote Supabase)
+dotenv.config({ path: path.join(process.cwd(), ".env.test.local") });
 dotenv.config({ path: path.join(process.cwd(), ".env.test") });
 
 // Initialize Supabase client
@@ -50,7 +51,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Use baseline-export.xlsx for consistent test data (877 parts)
+// Use baseline-export.xlsx for consistent test data (865 parts - count may vary after reseed)
 const TEST_FILE = path.join(process.cwd(), "tmp", "baseline-export.xlsx");
 
 async function testFullPipeline() {

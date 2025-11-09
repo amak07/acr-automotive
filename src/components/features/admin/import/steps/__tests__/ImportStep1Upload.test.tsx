@@ -60,9 +60,9 @@ describe('ImportStep1Upload', () => {
     it('should display upload requirements', () => {
       render(<ImportStep1Upload onFileSelected={mockOnFileSelected} />);
 
-      expect(screen.getByText('Upload Requirements')).toBeInTheDocument();
-      expect(screen.getByText(/Excel format \(\.xlsx\) only/)).toBeInTheDocument();
-      expect(screen.getByText(/Maximum file size: 10MB/)).toBeInTheDocument();
+      expect(screen.getByText('admin.import.upload.requirements')).toBeInTheDocument();
+      expect(screen.getByText(/• admin\.import\.upload\.reqFileFormat/)).toBeInTheDocument();
+      expect(screen.getByText(/• admin\.import\.upload\.reqMaxSize/)).toBeInTheDocument();
     });
 
     it('should have hidden file input', () => {
@@ -137,8 +137,8 @@ describe('ImportStep1Upload', () => {
       fireEvent.change(fileInput);
 
       expect(mockOnFileSelected).not.toHaveBeenCalled();
-      expect(screen.getByText('Upload Error')).toBeInTheDocument();
-      expect(screen.getByText('Only .xlsx files are supported')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.upload.error')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.upload.errorOnlyXlsx')).toBeInTheDocument();
     });
 
     it('should reject files larger than 10MB', () => {
@@ -160,8 +160,8 @@ describe('ImportStep1Upload', () => {
       fireEvent.change(fileInput);
 
       expect(mockOnFileSelected).not.toHaveBeenCalled();
-      expect(screen.getByText('Upload Error')).toBeInTheDocument();
-      expect(screen.getByText('File size must be less than 10MB')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.upload.error')).toBeInTheDocument();
+      expect(screen.getByText(/admin\.import\.upload\.errorFileSize/)).toBeInTheDocument();
     });
 
     it('should accept valid .xlsx file under 10MB', () => {
@@ -180,7 +180,7 @@ describe('ImportStep1Upload', () => {
       fireEvent.change(fileInput);
 
       expect(mockOnFileSelected).toHaveBeenCalledWith(file);
-      expect(screen.queryByText('Upload Error')).not.toBeInTheDocument();
+      expect(screen.queryByText('admin.import.upload.error')).not.toBeInTheDocument();
     });
 
     it('should clear previous error when valid file selected', () => {
@@ -197,7 +197,7 @@ describe('ImportStep1Upload', () => {
       });
       fireEvent.change(fileInput);
 
-      expect(screen.getByText('Upload Error')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.upload.error')).toBeInTheDocument();
 
       // Re-render to get fresh component
       rerender(<ImportStep1Upload onFileSelected={mockOnFileSelected} />);
@@ -214,7 +214,7 @@ describe('ImportStep1Upload', () => {
       });
       fireEvent.change(fileInput2);
 
-      expect(screen.queryByText('Upload Error')).not.toBeInTheDocument();
+      expect(screen.queryByText('admin.import.upload.error')).not.toBeInTheDocument();
     });
   });
 
@@ -274,7 +274,7 @@ describe('ImportStep1Upload', () => {
       fireEvent(dropZone, dropEvent);
 
       expect(mockOnFileSelected).not.toHaveBeenCalled();
-      expect(screen.getByText('Only .xlsx files are supported')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.upload.errorOnlyXlsx')).toBeInTheDocument();
     });
 
     it('should remove drag highlight after drop', () => {
@@ -427,7 +427,19 @@ describe('ImportStep1Upload', () => {
       expect(screen.getByTestId('loader-icon')).toBeInTheDocument();
     });
 
-    it('should show row counts when parsing complete', () => {
+    it('should show parsed success when parsing complete and no errors', () => {
+      const mockValidationResult = {
+        valid: true,
+        errors: [],
+        warnings: [],
+        summary: {
+          totalErrors: 0,
+          totalWarnings: 0,
+          errorsBySheet: {},
+          warningsBySheet: {},
+        },
+      };
+
       render(
         <ImportStep1Upload
           onFileSelected={mockOnFileSelected}
@@ -440,15 +452,26 @@ describe('ImportStep1Upload', () => {
               crossReferences: 500,
             },
           }}
+          validationResult={mockValidationResult}
         />
       );
 
-      expect(screen.getByText('100')).toBeInTheDocument();
-      expect(screen.getByText('250')).toBeInTheDocument();
-      expect(screen.getByText('500')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.upload.parsed')).toBeInTheDocument();
     });
 
-    it('should format large row counts with locale separators', () => {
+    it('should show warnings count when parsing complete with warnings', () => {
+      const mockValidationResult = {
+        valid: true,
+        errors: [],
+        warnings: [{ code: 'W1', severity: 'warning' as const, message: 'Test warning', sheet: 'Parts' }],
+        summary: {
+          totalErrors: 0,
+          totalWarnings: 1,
+          errorsBySheet: {},
+          warningsBySheet: { Parts: 1 },
+        },
+      };
+
       render(
         <ImportStep1Upload
           onFileSelected={mockOnFileSelected}
@@ -461,16 +484,27 @@ describe('ImportStep1Upload', () => {
               crossReferences: 10000,
             },
           }}
+          validationResult={mockValidationResult}
         />
       );
 
-      // toLocaleString() adds commas for thousands
-      expect(screen.getByText('1,000')).toBeInTheDocument();
-      expect(screen.getByText('2,500')).toBeInTheDocument();
-      expect(screen.getByText('10,000')).toBeInTheDocument();
+      expect(screen.getByText('admin.import.upload.parsed')).toBeInTheDocument();
+      expect(screen.getByText(/1\s+admin\.import\.validation\.warning/)).toBeInTheDocument();
     });
 
-    it('should show parsed success message when parsing complete', () => {
+    it('should show parsed success message when parsing complete and validation passed', () => {
+      const mockValidationResult = {
+        valid: true,
+        errors: [],
+        warnings: [],
+        summary: {
+          totalErrors: 0,
+          totalWarnings: 0,
+          errorsBySheet: {},
+          warningsBySheet: {},
+        },
+      };
+
       render(
         <ImportStep1Upload
           onFileSelected={mockOnFileSelected}
@@ -483,6 +517,7 @@ describe('ImportStep1Upload', () => {
               crossReferences: 500,
             },
           }}
+          validationResult={mockValidationResult}
         />
       );
 
@@ -552,7 +587,7 @@ describe('ImportStep1Upload', () => {
       fireEvent.change(fileInput2);
 
       // Check error card is displayed
-      expect(screen.getAllByText('Upload Error').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('admin.import.upload.error').length).toBeGreaterThan(0);
     });
   });
 });

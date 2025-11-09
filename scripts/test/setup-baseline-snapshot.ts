@@ -1,12 +1,12 @@
 /**
  * Setup Golden Baseline Snapshot
  *
- * Creates a reusable snapshot from baseline-export.xlsx (877 parts).
+ * Creates a reusable snapshot from baseline-export.xlsx (865 parts - count may vary after reseed).
  * This snapshot is used by all tests for fast, consistent database resets.
  *
  * The golden snapshot is:
  * - Created once and reused across all test runs
- * - Tagged with description: "GOLDEN_BASELINE_877"
+ * - Tagged with description: "GOLDEN_BASELINE_865"
  * - Never deleted (persists across test runs)
  * - Can be recreated if corrupted
  *
@@ -27,7 +27,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: path.join(process.cwd(), '.env.test') });
 
 const BASELINE_FILE = path.join(process.cwd(), 'tmp', 'baseline-export.xlsx');
-const GOLDEN_SNAPSHOT_FILENAME = 'GOLDEN_BASELINE_877.xlsx'; // Use unique filename to identify golden snapshot
+const GOLDEN_SNAPSHOT_FILENAME = 'GOLDEN_BASELINE_865.xlsx'; // Updated from 877 - count may vary after reseed
 const TEST_PROJECT_ID = 'fzsdaqpwwbuwkvbzyiax';
 
 export async function setupBaselineSnapshot() {

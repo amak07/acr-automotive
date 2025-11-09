@@ -18,7 +18,16 @@ export const queryPartsSchema = z.object({
 });
 
 export const createPartSchema = z.object({
-  sku_number: z.string().min(1),
+  sku_number: z
+    .string()
+    .min(1, "SKU number is required")
+    .refine(
+      (val) => !val.toUpperCase().startsWith('ACR'),
+      {
+        message:
+          "SKU number should not include 'ACR' prefix - it will be added automatically",
+      }
+    ),
   part_type: z.string().min(1).max(100),
   position_type: z.string().max(50).optional(),
   abs_type: z.string().max(20).optional(),

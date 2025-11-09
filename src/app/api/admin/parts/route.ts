@@ -167,7 +167,10 @@ export async function POST(request: NextRequest) {
       position_type,
       specifications,
     } = params;
-    const acr_sku = `ACR${sku_number}`;
+    // Add ACR prefix if not already present (prevent double-prefix)
+    const acr_sku = sku_number.toUpperCase().startsWith('ACR')
+      ? sku_number
+      : `ACR${sku_number}`;
     const {
       data,
       error: supabaseError,

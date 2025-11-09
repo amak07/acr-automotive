@@ -28,7 +28,8 @@ import { ImportService } from "../../src/services/excel/import/ImportService";
 import { createClient } from "@supabase/supabase-js";
 import { loadFixture } from "./helpers/fixture-loader";
 
-// Load test environment variables
+// Load test environment variables (local Docker first, then remote Supabase)
+dotenv.config({ path: path.join(process.cwd(), ".env.test.local") });
 dotenv.config({ path: path.join(process.cwd(), ".env.test") });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

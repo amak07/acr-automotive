@@ -30,11 +30,12 @@ describe('Large Dataset Test', () => {
     const startTime = Date.now();
 
     // Generate 10,000 unique parts (no _id for new parts)
+    // NOTE: Migration 009 requires ACR prefix for all ACR_SKU values
     const parts = [];
     for (let i = 0; i < TARGET_PARTS_COUNT; i++) {
       parts.push({
         _id: '', // Empty for ADD operations
-        acr_sku: `PERF-TEST-${String(i).padStart(6, '0')}`,
+        acr_sku: `ACR-PERF-TEST-${String(i).padStart(6, '0')}`,
         part_type: i % 2 === 0 ? 'Rotor' : 'Caliper',
         position_type: i % 3 === 0 ? 'Front' : i % 3 === 1 ? 'Rear' : 'Both',
         abs_type: i % 2 === 0 ? 'ABS' : 'Non-ABS',

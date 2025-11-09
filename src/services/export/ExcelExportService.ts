@@ -51,15 +51,21 @@ export class ExcelExportService {
    * @returns All rows from the table
    */
   private async fetchAllRows(tableName: string, orderBy: string): Promise<any[]> {
+    // Exclude computed columns from parts table
+    let selectColumns = '*';
+    if (tableName === 'parts') {
+      selectColumns = 'id, acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications';
+    }
+
     const PAGE_SIZE = 1000;
     let allRows: any[] = [];
     let start = 0;
     let hasMore = true;
 
     while (hasMore) {
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from(tableName)
-        .select('*')
+        .select(selectColumns)
         .order(orderBy, { ascending: true })
         .range(start, start + PAGE_SIZE - 1);
 
@@ -176,7 +182,7 @@ export class ExcelExportService {
     while (hasMore) {
       let query = supabase
         .from('parts')
-        .select('*')
+        .select('id, acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications')
         .order('acr_sku', { ascending: true });
 
       // Apply filters
@@ -267,7 +273,7 @@ export class ExcelExportService {
     while (hasMore) {
       const { data, error } = await supabase
         .from('cross_references')
-        .select('*, parts!inner(acr_sku)')
+        .select('id, acr_part_id, competitor_brand, competitor_sku, parts!inner(acr_sku)')
         .order('acr_part_id, competitor_brand, competitor_sku', { ascending: true })
         .range(start, start + PAGE_SIZE - 1);
 
@@ -311,9 +317,14 @@ export class ExcelExportService {
       while (hasMore) {
         const partIdColumn = tableName === 'vehicle_applications' ? 'part_id' : 'acr_part_id';
 
+        // Exclude computed columns from cross_references
+        const selectColumns = tableName === 'cross_references'
+          ? 'id, acr_part_id, competitor_brand, competitor_sku, parts!inner(acr_sku)'
+          : '*, parts!inner(acr_sku)';
+
         const { data, error } = await supabase
           .from(tableName)
-          .select('*, parts!inner(acr_sku)')
+          .select(selectColumns)
           .in(partIdColumn, chunk)
           .range(start, start + PAGE_SIZE - 1);
 
