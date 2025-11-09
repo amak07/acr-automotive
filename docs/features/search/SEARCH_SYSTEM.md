@@ -3,13 +3,14 @@
 > **Purpose**: Core search functionality for ACR Automotive - dual-mode search (vehicle-based and SKU-based) with intelligent fallback and fuzzy matching
 >
 > **Status**: ✅ Production
-> **Last Updated**: 2025-10-25
+> **Last Updated**: 2025-11-08
 > **Performance Target**: Sub-300ms response times
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Search Modes](#search-modes)
+  - [SKU Normalization Rules (Migration 009)](#2a-sku-normalization-rules-migration-009)
 - [Architecture](#architecture)
 - [Database Functions](#database-functions)
 - [API Endpoints](#api-endpoints)
@@ -73,37 +74,200 @@ Year: 2018
 
 **Use Case**: "Customer has competitor part number TM512342"
 
-**Multi-Stage Search Algorithm**:
+**✨ NEW (Migration 009)**: SKU Normalization Layer - Searches now work regardless of formatting!
+
+**6-Stage Search Algorithm with Normalization**:
 
 ```
-1. EXACT ACR SKU MATCH (Priority 1)
-   ├─ Search: parts.acr_sku = "TM512342"
-   ├─ Match Type: "exact_acr"
+1. EXACT NORMALIZED ACR SKU MATCH (Priority 1)
+   ├─ Input: "ACR-15002" or "acr 15002" or "ACR15002"
+   ├─ Normalized: "ACR15002" (uppercase, no special chars)
+   ├─ Search: parts.acr_sku_normalized = normalize_sku(input)
+   ├─ Match Type: "exact_normalized_acr"
    └─ Similarity: 1.0 (perfect)
 
-2. COMPETITOR SKU MATCH (Priority 2)
-   ├─ Search: cross_references.competitor_sku = "TM512342"
-   ├─ Match Type: "competitor_sku"
+2. ACR SKU WITH PREFIX ADDED (Priority 2)
+   ├─ Input: "15002" (missing ACR prefix)
+   ├─ Normalized: "ACR" + "15002" = "ACR15002"
+   ├─ Search: parts.acr_sku_normalized = 'ACR' || normalize_sku(input)
+   ├─ Match Type: "with_acr_prefix"
+   └─ Similarity: 0.95 (auto-prefix applied)
+
+3. PARTIAL NORMALIZED ACR MATCH (Priority 3)
+   ├─ Input: "1500" (partial SKU)
+   ├─ Search: parts.acr_sku_normalized LIKE '%1500%'
+   ├─ Match Type: "partial_acr"
+   ├─ Similarity: 0.9
+   └─ Limit: 10 results
+
+4. EXACT NORMALIZED COMPETITOR SKU (Priority 4)
+   ├─ Input: "TM-512348" or "tm 512348"
+   ├─ Normalized: "TM512348"
+   ├─ Search: cross_references.competitor_sku_normalized = normalize_sku(input)
+   ├─ Match Type: "exact_competitor"
    └─ Similarity: 1.0 (perfect)
 
-3. FUZZY MATCH (Priority 3)
-   ├─ Search: Trigram similarity > 0.3
-   ├─ Handles typos: "TM51234" → "TM512342"
+5. PARTIAL NORMALIZED COMPETITOR (Priority 5)
+   ├─ Input: "5123" (partial competitor SKU)
+   ├─ Search: cross_references.competitor_sku_normalized LIKE '%5123%'
+   ├─ Match Type: "partial_competitor"
+   ├─ Similarity: 0.85
+   └─ Limit: 10 results
+
+6. FUZZY MATCH FALLBACK (Priority 6)
+   ├─ Uses ORIGINAL (non-normalized) SKUs for trigram similarity
+   ├─ Search: Trigram similarity > 0.6
+   ├─ Handles typos: "TM51234" → "TM512348"
    ├─ Match Type: "fuzzy"
-   └─ Similarity: 0.3-1.0 (ranked by score)
+   └─ Similarity: 0.6-1.0 (ranked by score)
 ```
 
 **Example Searches**:
 ```typescript
-// Exact ACR SKU
-"ACR-BR-001" → Finds exact part (match_type: "exact_acr")
+// Exact ACR SKU (various formats - all work!)
+"ACR-BR-001"  → Finds "ACR-BR-001" (match_type: "exact_normalized_acr")
+"acr-br-001"  → Finds "ACR-BR-001" (match_type: "exact_normalized_acr")
+"ACR BR 001"  → Finds "ACR-BR-001" (match_type: "exact_normalized_acr")
+"ACRBR001"    → Finds "ACR-BR-001" (match_type: "exact_normalized_acr")
 
-// Competitor SKU
-"TM512342" → Finds ACR part via cross-reference (match_type: "competitor_sku")
+// Missing ACR prefix (auto-added)
+"15002"       → Finds "ACR-15002" (match_type: "with_acr_prefix")
+"BR-001"      → Finds "ACR-BR-001" (match_type: "with_acr_prefix")
 
-// Typo/Fuzzy
-"ACR-BR-01" → Finds "ACR-BR-001" (match_type: "fuzzy", similarity: 0.85)
+// Competitor SKU (various formats)
+"TM-512348"   → Finds ACR part via cross-ref (match_type: "exact_competitor")
+"tm 512348"   → Finds ACR part via cross-ref (match_type: "exact_competitor")
+"TM512348"    → Finds ACR part via cross-ref (match_type: "exact_competitor")
+
+// Partial matches
+"1500"        → Finds "ACR-15002", "ACR-15003", ... (match_type: "partial_acr")
+"BR"          → Finds all brake parts (match_type: "partial_acr")
+
+// Typo/Fuzzy (fallback only)
+"ACR-BR-01"   → Finds "ACR-BR-001" (match_type: "fuzzy", similarity: 0.91)
 ```
+
+---
+
+### 2a. SKU Normalization Rules (Migration 009)
+
+**Added**: November 2025 (Migration 009)
+
+**Purpose**: Enable flexible SKU searching regardless of user input format
+
+#### Normalization Function: `normalize_sku(input TEXT)`
+
+**Algorithm**:
+```sql
+UPPER(REGEXP_REPLACE(input_sku, '[^A-Za-z0-9]', '', 'g'))
+```
+
+**Rules**:
+1. **Remove all non-alphanumeric characters**: Strips spaces, hyphens, underscores, special chars
+2. **Convert to uppercase**: Case-insensitive matching
+3. **Return NULL for NULL input**: Graceful handling
+
+#### Normalization Examples
+
+| Input Format | Normalized Output | Notes |
+|--------------|-------------------|-------|
+| `ACR-15002` | `ACR15002` | Removes hyphen |
+| `acr-15002` | `ACR15002` | Uppercase + remove hyphen |
+| `acr 15002` | `ACR15002` | Removes spaces |
+| `ACR 15002` | `ACR15002` | Mixed case + spaces |
+| `15002` | `15002` | No prefix (Strategy 2 adds ACR) |
+| `ACR#15002!` | `ACR15002` | Removes special characters |
+| `ACR-BR-001` | `ACRBR001` | Removes multiple hyphens |
+| `TM-512348` | `TM512348` | Competitor SKU normalization |
+| `tm 512348` | `TM512348` | Lowercase competitor SKU |
+| `Timken-512348` | `TIMKEN512348` | Brand name normalization |
+
+#### Database Schema Changes
+
+**New Columns** (auto-populated via triggers):
+```sql
+-- parts table
+ALTER TABLE parts ADD COLUMN acr_sku_normalized VARCHAR(50);
+
+-- cross_references table
+ALTER TABLE cross_references ADD COLUMN competitor_sku_normalized VARCHAR(50);
+```
+
+**Triggers** (auto-maintain normalized values):
+```sql
+CREATE TRIGGER trigger_normalize_part_sku
+BEFORE INSERT OR UPDATE ON parts
+FOR EACH ROW
+EXECUTE FUNCTION update_normalized_sku();
+
+CREATE TRIGGER trigger_normalize_cross_ref_sku
+BEFORE INSERT OR UPDATE ON cross_references
+FOR EACH ROW
+EXECUTE FUNCTION update_normalized_competitor_sku();
+```
+
+**Indexes** (fast normalized lookups):
+```sql
+-- Exact normalized ACR SKU lookups
+CREATE INDEX idx_parts_acr_sku_normalized ON parts(acr_sku_normalized)
+WHERE acr_sku_normalized IS NOT NULL;
+
+-- Exact normalized competitor SKU lookups
+CREATE INDEX idx_cross_ref_competitor_sku_normalized
+ON cross_references(competitor_sku_normalized)
+WHERE competitor_sku_normalized IS NOT NULL;
+
+-- Composite index for optimized cross-reference joins
+CREATE INDEX idx_cross_ref_normalized_with_part
+ON cross_references(competitor_sku_normalized, acr_part_id)
+WHERE competitor_sku_normalized IS NOT NULL;
+```
+
+#### Why Keep Fuzzy Search on Original Values?
+
+**Design Decision**: Fuzzy matching (Strategy 6) uses **original** SKU values, not normalized
+
+**Rationale**:
+- Normalization removes context (hyphens, spacing) useful for similarity matching
+- Trigram similarity works better on formatted strings
+- Example: "ACR-BR-001" vs "ACR-BR-01" has higher similarity than "ACRBR001" vs "ACRBR01"
+
+**Performance Characteristics**:
+- **Normalized exact matches**: 50-100ms (index lookup)
+- **Partial matches**: 100-150ms (LIKE with index)
+- **Fuzzy fallback**: 150-180ms (trigram index scan)
+
+#### Constraint Validation
+
+**ACR Prefix Enforcement**:
+```sql
+ALTER TABLE parts
+ADD CONSTRAINT check_acr_sku_prefix
+CHECK (acr_sku ~* '^ACR');
+```
+- All ACR SKUs must start with "ACR" (case-insensitive)
+- Migration 009 automatically fixed SKUs without prefix by prepending "ACR"
+
+#### Input Validation Architecture
+
+**Layered Validation Approach**:
+
+**API Layer** (Primary Protection):
+- Location: `src/lib/schemas/public.ts`
+- Validates empty/whitespace searches via Zod schema
+- Trims input and enforces minimum 1 character
+- All production traffic flows through this layer
+
+**Database Layer** (Permissive by Design):
+- RPC functions allow empty strings (flexible for direct access)
+- No crashes on edge cases
+- Optimized for performance, not validation
+
+**Why This Design?**
+- Single source of truth for validation (API layer)
+- Database remains flexible for power users/internal tools
+- Better separation of concerns
+- Simpler architecture
 
 ---
 
@@ -196,9 +360,11 @@ Year: 2018
 
 ### search_by_sku(TEXT)
 
-**File**: [src/lib/supabase/schema.sql](../../../src/lib/supabase/schema.sql)
+**File**: [src/lib/supabase/migrations/009_add_sku_normalization.sql](../../../src/lib/supabase/migrations/009_add_sku_normalization.sql)
 
-**Purpose**: Intelligent SKU search with multi-stage fallback
+**Purpose**: Intelligent SKU search with normalization and 6-stage fallback
+
+**✨ Enhanced**: Migration 009 (November 2025) - Added normalization layer
 
 **Signature**:
 ```sql
@@ -214,37 +380,61 @@ RETURNS TABLE (
     specifications TEXT,
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ,
-    match_type TEXT,          -- "exact_acr" | "competitor_sku" | "fuzzy"
-    similarity_score REAL     -- 0.3 to 1.0
+    match_type TEXT,          -- "exact_normalized_acr" | "with_acr_prefix" | "partial_acr" |
+                              -- "exact_competitor" | "partial_competitor" | "fuzzy"
+    similarity_score REAL     -- 0.6 to 1.0
 )
 ```
 
-**Algorithm**:
+**Algorithm (6-Stage with Normalization)**:
 ```sql
--- Step 1: Exact ACR SKU match (highest priority)
-SELECT * FROM parts WHERE acr_sku = search_sku
--- Returns: match_type = 'exact_acr', similarity = 1.0
+-- Normalize user input once
+normalized_input := normalize_sku(search_sku);
 
--- Step 2: Competitor SKU match (if Step 1 found nothing)
+-- Step 1: Exact normalized ACR SKU match (highest priority)
+SELECT * FROM parts WHERE acr_sku_normalized = normalized_input
+-- Returns: match_type = 'exact_normalized_acr', similarity = 1.0
+
+-- Step 2: ACR SKU with prefix added (if Step 1 found nothing)
+SELECT * FROM parts WHERE acr_sku_normalized = 'ACR' || normalized_input
+-- Returns: match_type = 'with_acr_prefix', similarity = 0.95
+
+-- Step 3: Partial normalized ACR match (if Steps 1-2 found nothing)
+SELECT * FROM parts
+WHERE acr_sku_normalized LIKE '%' || normalized_input || '%'
+LIMIT 10
+-- Returns: match_type = 'partial_acr', similarity = 0.9
+
+-- Step 4: Exact normalized competitor SKU (if Steps 1-3 found nothing)
 SELECT p.* FROM parts p
 JOIN cross_references cr ON p.id = cr.acr_part_id
-WHERE cr.competitor_sku = search_sku
--- Returns: match_type = 'competitor_sku', similarity = 1.0
+WHERE cr.competitor_sku_normalized = normalized_input
+-- Returns: match_type = 'exact_competitor', similarity = 1.0
 
--- Step 3: Fuzzy match using trigrams (if Steps 1-2 found nothing)
+-- Step 5: Partial normalized competitor match (if Steps 1-4 found nothing)
+SELECT p.* FROM parts p
+JOIN cross_references cr ON p.id = cr.acr_part_id
+WHERE cr.competitor_sku_normalized LIKE '%' || normalized_input || '%'
+LIMIT 10
+-- Returns: match_type = 'partial_competitor', similarity = 0.85
+
+-- Step 6: Fuzzy match using ORIGINAL SKUs (if Steps 1-5 found nothing)
 SELECT p.*, similarity(p.acr_sku, search_sku) AS similarity_score
 FROM parts p
-WHERE similarity(p.acr_sku, search_sku) > 0.3
+WHERE similarity(p.acr_sku, search_sku) > 0.6
 UNION
 SELECT p.*, similarity(cr.competitor_sku, search_sku) AS similarity_score
 FROM parts p
 JOIN cross_references cr ON p.id = cr.acr_part_id
-WHERE similarity(cr.competitor_sku, search_sku) > 0.3
-ORDER BY similarity_score DESC
--- Returns: match_type = 'fuzzy', similarity = 0.3-1.0
+WHERE similarity(cr.competitor_sku, search_sku) > 0.6
+ORDER BY similarity_score DESC LIMIT 10
+-- Returns: match_type = 'fuzzy', similarity = 0.6-1.0
 ```
 
-**Performance**: Uses GIN trigram indexes on `acr_sku` and `competitor_sku`
+**Performance**:
+- Uses normalized column indexes for Steps 1-5 (50-150ms)
+- Uses GIN trigram indexes for Step 6 fallback (150-180ms)
+- Average: ~100ms for normalized matches, ~180ms for fuzzy fallback
 
 ---
 

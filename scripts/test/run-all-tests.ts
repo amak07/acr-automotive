@@ -149,6 +149,31 @@ function generateReport(results: TestResult[], totalDuration: number) {
     failures.forEach(f => {
       console.log(`   - ${f.name}`);
     });
+
+    // Show detailed error output
+    console.log('');
+    console.log('━'.repeat(60));
+    console.log('📋 FAILURE DETAILS');
+    console.log('━'.repeat(60));
+    console.log('');
+
+    failures.forEach(failure => {
+      console.log(`❌ ${failure.name}:`);
+      console.log('');
+
+      if (failure.output) {
+        // Show last 50 lines of error output to avoid overwhelming the console
+        const lines = failure.output.split('\n');
+        const relevantLines = lines.slice(-50);
+        console.log(relevantLines.join('\n'));
+      } else {
+        console.log('   (No error output available)');
+      }
+
+      console.log('');
+      console.log('─'.repeat(60));
+      console.log('');
+    });
   }
 }
 

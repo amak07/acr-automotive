@@ -103,8 +103,33 @@ npm test               # Tests will pass with fresh data
 | Fixture Validation | All error codes E1-E20, W1-W10 | ~3s |
 | Import Pipeline | Full import workflow + rollback | ~7s |
 | Atomic Tests | Transaction isolation + constraints | ~4s |
+| **Public Search RPC** | **Vehicle search, SKU normalization, performance** | **~3s** |
+| **Public Search API** | **Image enrichment, pagination, validation** | **~1s** |
 
-**Total:** ~28 seconds for complete test suite
+**Total:** ~30 seconds for complete test suite
+
+### Test Coverage Breakdown
+
+**Core Business Logic** (73 tests):
+- ValidationEngine: 13 tests
+- DiffEngine: 30+ tests
+- ExcelExportService: 30+ tests
+
+**UI Components** (123 tests):
+- Import Wizard: 31 tests
+- Upload Step: 36 tests
+- Validation Step: 56 tests
+
+**Public Search** (35 tests):
+- RPC Functions: 25 tests (vehicle search, SKU normalization, performance)
+- API Layer: 10 tests (enrichment, pagination, validation)
+
+**Integration Tests**:
+- Full import pipeline
+- Atomic transaction tests
+- Database constraint tests
+
+**Total Test Count:** ~235 tests
 
 ## Development Workflow
 
