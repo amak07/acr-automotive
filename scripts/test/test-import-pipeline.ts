@@ -12,9 +12,18 @@
  *   npm run test:import-pipeline
  */
 
-import * as fs from "fs";
+// IMPORTANT: Load test environment variables BEFORE any other imports
+// tsx (TypeScript executor) doesn't automatically load .env files
+import dotenv from 'dotenv';
 import * as path from "path";
-import * as dotenv from "dotenv";
+
+dotenv.config({
+  path: path.join(process.cwd(), '.env.test.local'),
+  override: true
+});
+
+import * as fs from "fs";
+import { verifyTestEnvironment } from "../../tests/setup/env";
 import { ExcelImportService } from "../../src/services/excel/import/ExcelImportService";
 import { ValidationEngine } from "../../src/services/excel/validation/ValidationEngine";
 import { DiffEngine } from "../../src/services/excel/diff/DiffEngine";
@@ -26,8 +35,8 @@ import type {
 } from "../../src/services/excel/shared/types";
 import { createClient } from "@supabase/supabase-js";
 
-// Load environment variables
-dotenv.config({ path: path.join(process.cwd(), ".env.test") });
+// Verify test environment is configured correctly
+verifyTestEnvironment();
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

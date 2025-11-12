@@ -7,17 +7,9 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 
-// Note: In production (Vercel), environment variables are automatically loaded
-// Only load dotenv for local development and testing
-if (typeof window === "undefined" && process.env.NODE_ENV !== "production") {
-  const dotenv = require("dotenv");
-
-  if (process.env.NODE_ENV === "test") {
-    dotenv.config({ path: ".env.test" });
-  } else {
-    dotenv.config();
-  }
-}
+// Note: Environment variables are automatically loaded by Next.js
+// For tests, next/jest loads .env.test.local automatically
+// No manual dotenv loading needed - it creates conflicts
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
