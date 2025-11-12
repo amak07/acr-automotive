@@ -7,11 +7,12 @@ npm test
 ```
 
 That's it. This automatically:
-1. ✅ Starts local Docker Postgres (if not running)
-2. ✅ Resets database to clean state
-3. ✅ Runs migrations and seeds realistic test data (865 parts from production-like snapshot)
-4. ✅ Executes all tests (type-check, unit, integration)
-5. ✅ Generates clear Pass/Fail report
+1. ✅ Snapshots current dev database (preserves your data)
+2. ✅ Runs all tests (type-check, unit, integration)
+3. ✅ Restores dev database automatically (even if tests fail)
+4. ✅ Generates clear Pass/Fail report
+
+**Your dev data is always safe** - site_settings, part_images, and any manual changes are preserved!
 
 **Example Output:**
 ```
@@ -42,38 +43,68 @@ Total: 6/6 test suites passed (28.3s)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
+## Database Architecture
+
+### Shared Local Instance
+Both development and testing use the **same local Supabase instance**:
+- **API URL:** `http://localhost:54321`
+- **Database:** `postgresql://postgres:postgres@localhost:54322/postgres`
+- **Studio:** `http://localhost:54323`
+
+### Smart Snapshot System
+Tests automatically:
+1. **Snapshot** - Captures current state of test-modified tables (parts, vehicle_applications, cross_references, import_history)
+2. **Run** - Tests execute freely, modifying database as needed
+3. **Restore** - Original state automatically restored after tests complete
+
+**Config/Media tables are never touched:**
+- ✅ `site_settings` - Always preserved
+- ✅ `part_images` - Always preserved
+- ✅ `part_360_frames` - Always preserved
+- ✅ `tenants` - Always preserved
+
 ## Manual Database Management
 
-If you need to manage the test database manually:
-
 ```bash
-# Start test database
-npm run db:test:start
+# Start local Supabase (needed before running tests)
+npm run supabase:start
 
-# Reset to clean state
-npm run db:test:reset
+# Check status
+npm run supabase:status
 
-# Stop database
-npm run db:test:stop
+# Full reset (drops all tables, re-runs migrations, loads seed data)
+npm run supabase:reset
+
+# Stop Supabase
+npm run supabase:stop
 ```
 
-## Architecture
+## Seeding the Database
 
-### Automated Tests (`npm test`)
-- **Database:** Local Docker Postgres (localhost:5433)
-- **Speed:** Fast, no network latency
-- **Isolation:** Your remote Supabase is never touched
-- **Offline:** Works without internet
+The project includes comprehensive seeding capabilities:
 
-### Local Development (`npm run dev`)
-- **Database:** Remote Supabase (.env.local)
-- **Features:** Full Auth, RLS, Storage
-- **Use for:** Manual testing and development
+### Option 1: Automatic (via supabase:reset)
+```bash
+npm run supabase:reset
+```
+Loads 865 parts from `supabase/seed.sql` (production-like snapshot)
+
+### Option 2: Export from Staging
+```bash
+npm run staging:export
+```
+Exports current staging database to `fixtures/seed-data.sql`
+
+### Option 3: Bootstrap from Excel
+```bash
+npm run bootstrap:test
+```
+Imports from original Excel files in `archive/original-client-files/`
 
 ## Prerequisites
 
 - **Docker Desktop** must be installed and running
-- That's it!
+- **Local Supabase** must be started: `npm run supabase:start`
 
 ## Troubleshooting
 
@@ -83,16 +114,23 @@ npm run db:test:stop
 ### Tests failing with connection errors
 **Solution:**
 ```bash
-npm run db:test:start  # Ensure database is running
-npm test               # Try again
+npm run supabase:start  # Ensure Supabase is running
+npm test                # Try again
 ```
 
-### Database state is messy
+### Database state is messy after failed test
 **Solution:**
+The snapshot system should auto-restore, but if it didn't:
 ```bash
-npm run db:test:reset  # Reset to clean state
-npm test               # Tests will pass with fresh data
+npm run supabase:reset  # Full reset with seed data
 ```
+
+### Snapshot/restore failed
+If you see restore errors, manually reset:
+```bash
+npm run supabase:reset
+```
+This will restore the database to a known good state with seed data.
 
 ## What Gets Tested
 
@@ -343,6 +381,126 @@ Automated tests cover core business logic, but manual testing is needed for:
 - **Parallel test execution** - Speed up test suite (currently ~28s)
 - **Watch mode improvements** - Better developer experience
 - **Test data versioning** - Track golden baseline changes over time
+
+---
+
+## PostgREST Cache Behavior
+
+**Issue:** When RPC functions with `SECURITY DEFINER` write data to PostgreSQL, PostgREST may not immediately see the committed changes due to transaction isolation and schema caching.
+
+### Problem Manifestation
+
+Tests that follow this pattern may fail:
+
+```typescript
+// 1. RPC function writes data
+const { data, error } = await supabase.rpc('execute_atomic_import', {
+  parts_to_add: [{ id: partId, acr_sku: 'ACR-123', ... }]
+});
+
+// 2. Immediate SELECT returns null (even though RPC succeeded!)
+const { data: part } = await supabase
+  .from('parts')
+  .select('*')
+  .eq('id', partId)
+  .single();
+
+// ❌ This assertion fails: part is null
+expect(part).toBeDefined();
+```
+
+### Root Cause
+
+- **SECURITY DEFINER functions** run with elevated privileges in a separate transaction context
+- **PostgREST** maintains a schema cache and may not see committed data immediately
+- **Service role key** vs **anon key** - both experience this delay
+- **Timing**: The data exists in PostgreSQL but PostgREST's view is stale
+
+### Solution: Retry Pattern
+
+Use the `retryQuery()` helper from [tests/helpers/retry.ts](../tests/helpers/retry.ts):
+
+```typescript
+import { retryQuery } from '../helpers/retry';
+
+// After RPC write, use retry for SELECT queries
+const { data: part } = await retryQuery<any>(async () =>
+  await supabase.from('parts').select('*').eq('id', partId).single()
+);
+
+expect(part).toBeDefined(); // ✅ Now passes
+```
+
+### How It Works
+
+The retry helper implements exponential backoff:
+- **Initial delay**: 50ms
+- **Max delay**: 200ms per retry
+- **Max retries**: 5 attempts
+- **Timeout**: 1000ms total
+- **Early exit**: Returns immediately when data found
+
+**Performance Impact:** Minimal - most queries succeed on first attempt (0ms delay). Failed first attempts retry within 50-200ms.
+
+### When to Use Retry Pattern
+
+**✅ Use retry for:**
+- SELECT queries immediately after RPC functions that INSERT/UPDATE data
+- Tests that verify RPC function side effects
+- Any read-after-write pattern with RPC functions
+
+**❌ Don't use retry for:**
+- Regular SELECT queries (not after RPC writes)
+- RPC function calls themselves (they don't need retry)
+- DELETE operations (use normal await)
+- Tests expecting null results (e.g., testing rollback behavior)
+
+### Example: Atomic Import Tests
+
+The `atomic-import-rpc.test.ts` file demonstrates this pattern extensively:
+
+```typescript
+// ✅ GOOD: Using retry after RPC write
+const { data, error } = await supabase.rpc('execute_atomic_import', {
+  parts_to_add: [...]
+});
+
+const { data: part } = await retryQuery<any>(async () =>
+  await supabase.from('parts').select('*').eq('id', partId).single()
+);
+
+// ✅ GOOD: Testing rollback (expects null, no retry needed)
+const { data, error } = await supabase.rpc('execute_atomic_import', {
+  parts_to_add: [{ id: 'invalid-uuid', ... }]
+});
+
+const { data: part } = await supabase
+  .from('parts')
+  .select('*')
+  .eq('id', partId)
+  .single();
+
+expect(part).toBeNull(); // Expects null - no retry needed
+```
+
+### Historical Context
+
+This issue was discovered when migrating from plain Docker Postgres to Supabase CLI for local development. The atomic import RPC tests (20 tests) exhibited this pattern:
+- **8 tests passed** (only checked RPC return values, didn't query DB after)
+- **12 tests failed** (queried DB immediately after RPC writes - SELECT returned null)
+
+After implementing the retry pattern:
+- **19 tests passed** ✅
+- **1 test failed** (unrelated tenant filtering issue)
+
+### Alternative Approaches (Not Recommended)
+
+1. **Direct Postgres client (`pg`)** - Bypasses PostgREST but requires different connection setup
+2. **Remove SECURITY DEFINER** - Reduces function privileges, may cause RLS issues
+3. **Reload PostgREST schema** - Not feasible per-test, slows down suite
+4. **Change pool mode** - Affects all operations, may have side effects
+
+The retry pattern is the most reliable, performant, and maintainable solution.
 
 ---
 
