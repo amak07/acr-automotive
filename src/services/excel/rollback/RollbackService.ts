@@ -2,7 +2,8 @@
 // Rollback Service - Sequential rollback with conflict detection
 // ============================================================================
 
-import { supabase } from '@/lib/supabase/client';
+import { supabase as defaultSupabase } from '@/lib/supabase/client';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
   RollbackResult,
   ImportSnapshot,
@@ -33,6 +34,15 @@ import type { SnapshotData } from '../import/types';
  * 6. Delete consumed snapshot record
  */
 export class RollbackService {
+  private supabase: SupabaseClient;
+
+  /**
+   * Create a new RollbackService
+   * @param supabaseClient - Optional Supabase client (defaults to anon key client for production)
+   */
+  constructor(supabaseClient?: SupabaseClient) {
+    this.supabase = supabaseClient || defaultSupabase;
+  }
   /**
    * Rollback to a previous import snapshot
    *
@@ -54,7 +64,7 @@ export class RollbackService {
       console.log('[RollbackService] Sequential enforcement validated');
 
       // Step 2: Load import record
-      const { data: importRecord, error: fetchError } = await supabase
+      const { data: importRecord, error: fetchError } = await this.supabase
         .from('import_history')
         .select('*')
         .eq('id', importId)
@@ -96,7 +106,7 @@ export class RollbackService {
       if (importRecord.file_name === GOLDEN_SNAPSHOT_FILENAME) {
         console.log('[RollbackService] Preserving golden baseline snapshot (never deleted)');
       } else {
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await this.supabase
           .from('import_history')
           .delete()
           .eq('id', importId);
@@ -144,15 +154,19 @@ export class RollbackService {
     importId: string,
     tenantId?: string
   ): Promise<void> {
-    const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
-
     // Get all snapshots, ordered by newest first
-    const { data: snapshots, error } = await supabase
+    let query = this.supabase
       .from('import_history')
       .select('id, created_at')
-      .match(tenantFilter)
       .order('created_at', { ascending: false })
       .limit(3);
+
+    // Apply tenant filter only if tenantId provided
+    if (tenantId) {
+      query = query.eq('tenant_id', tenantId);
+    }
+
+    const { data: snapshots, error } = await query;
 
     if (error) {
       throw new Error(`Failed to fetch snapshots: ${error.message}`);
@@ -196,15 +210,18 @@ export class RollbackService {
     console.log('[RollbackService] Checking for conflicts...');
     console.log('[RollbackService] Import timestamp:', importTimestamp);
 
-    // Build tenant filter
-    const tenantMatch = tenantId ? { tenant_id: tenantId } : {};
-
     // Check parts for modifications after import
-    const { data: modifiedParts, error: partsError } = await supabase
+    let partsQuery = this.supabase
       .from('parts')
       .select('id, acr_sku, updated_at, updated_by')
-      .match(tenantMatch)
       .gt('updated_at', importTimestamp);
+
+    // Apply tenant filter only if tenantId provided
+    if (tenantId) {
+      partsQuery = partsQuery.eq('tenant_id', tenantId);
+    }
+
+    const { data: modifiedParts, error: partsError } = await partsQuery;
 
     if (partsError) {
       throw new Error(`Failed to check for conflicts: ${partsError.message}`);
@@ -257,7 +274,7 @@ export class RollbackService {
     // Delete in order: cross_refs → vehicle_apps → parts (cascade safe)
     // Note: Supabase requires WHERE clause for DELETE operations
     // Use .neq('id', '00000000-0000-0000-0000-000000000000') to match all records
-    let crQuery = supabase.from('cross_references').delete();
+    let crQuery = this.supabase.from('cross_references').delete();
     if (tenantId) {
       crQuery = crQuery.eq('tenant_id', tenantId);
     } else {
@@ -270,7 +287,7 @@ export class RollbackService {
       throw new Error(`Failed to delete cross references: ${crError.message}`);
     }
 
-    let vaQuery = supabase.from('vehicle_applications').delete();
+    let vaQuery = this.supabase.from('vehicle_applications').delete();
     if (tenantId) {
       vaQuery = vaQuery.eq('tenant_id', tenantId);
     } else {
@@ -283,7 +300,7 @@ export class RollbackService {
       throw new Error(`Failed to delete vehicle applications: ${vaError.message}`);
     }
 
-    let partsQuery = supabase.from('parts').delete();
+    let partsQuery = this.supabase.from('parts').delete();
     if (tenantId) {
       partsQuery = partsQuery.eq('tenant_id', tenantId);
     } else {
@@ -320,7 +337,7 @@ export class RollbackService {
     // Restore parts first (parent table)
     if (snapshot.parts && snapshot.parts.length > 0) {
       console.log(`[RollbackService] Restoring ${snapshot.parts.length} parts...`);
-      const { error } = await supabase.from('parts').insert(snapshot.parts);
+      const { error } = await this.supabase.from('parts').insert(snapshot.parts);
 
       if (error) {
         throw new Error(`Failed to restore parts: ${error.message}`);
@@ -332,7 +349,7 @@ export class RollbackService {
       console.log(
         `[RollbackService] Restoring ${snapshot.vehicle_applications.length} vehicle applications...`
       );
-      const { error } = await supabase
+      const { error } = await this.supabase
         .from('vehicle_applications')
         .insert(snapshot.vehicle_applications);
 
@@ -346,7 +363,7 @@ export class RollbackService {
       console.log(
         `[RollbackService] Restoring ${snapshot.cross_references.length} cross references...`
       );
-      const { error } = await supabase
+      const { error } = await this.supabase
         .from('cross_references')
         .insert(snapshot.cross_references);
 
@@ -369,16 +386,20 @@ export class RollbackService {
    * @returns Array of import snapshots
    */
   async listAvailableSnapshots(tenantId?: string): Promise<ImportSnapshot[]> {
-    const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
-
-    const { data, error } = await supabase
+    let query = this.supabase
       .from('import_history')
       .select(
         'id, created_at, file_name, rows_imported, import_summary, imported_by'
       )
-      .match(tenantFilter)
       .order('created_at', { ascending: false })
       .limit(3);
+
+    // Apply tenant filter only if tenantId provided
+    if (tenantId) {
+      query = query.eq('tenant_id', tenantId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       throw new Error(`Failed to fetch snapshots: ${error.message}`);

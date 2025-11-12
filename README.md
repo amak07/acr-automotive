@@ -57,7 +57,7 @@ ACR Automotive solves a critical problem in the auto parts industry: **cross-ref
 
 - Node.js 18+
 - npm or yarn
-- Supabase account (for database)
+- Docker Desktop (for local Supabase)
 
 ### Installation
 
@@ -74,47 +74,93 @@ ACR Automotive solves a critical problem in the auto parts industry: **cross-ref
    npm install
    ```
 
-3. **Set up environment variables**
+3. **Set up local environment**
 
    ```bash
+   # Create local environment file
    cp .env.example .env.local
-   # Add your Supabase URL and anon key
+
+   # The .env.local file should contain:
+   # NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+   # NEXT_PUBLIC_SUPABASE_ANON_KEY=<local-supabase-demo-key>
+   # (See .env.example for full template)
    ```
 
-4. **Set up the database**
+4. **Start local Supabase**
 
    ```bash
-   # Run database migrations
-   npm run db:setup
+   # Initialize and start local Supabase (Docker)
+   npm run supabase:start
+
+   # This will:
+   # - Download Docker images (first time only)
+   # - Start PostgreSQL, Kong, Storage, Auth services
+   # - Apply database migrations
+   # - Available at http://localhost:54321
    ```
 
 5. **Start development server**
 
    ```bash
    npm run dev
+   # Open http://localhost:3000
    ```
 
-6. **Open [http://localhost:3000](http://localhost:3000)**
+6. **Access Supabase Studio** (optional)
+
+   ```bash
+   # Open http://localhost:54323 to view database UI
+   ```
+
+### Environment Files
+
+This project uses multiple environment files for different contexts:
+
+| File | Purpose | Database | Usage |
+|------|---------|----------|-------|
+| `.env.local` | Local development | Local Supabase (Docker) | `npm run dev` |
+| `.env.staging` | QA/Staging | Remote TEST Supabase | Manual testing |
+| `.env.production` | Production | Remote PROD Supabase | Production deployment |
+| `.env.example` | Template | N/A | Copy to create others |
+
+**Important**: Never commit `.env.local`, `.env.staging`, or `.env.production` to git!
 
 ## 📋 Available Scripts
 
+### Development & Build
 | Command                  | Description                                    |
 | ------------------------ | ---------------------------------------------- |
-| `npm run dev`            | Start development server                       |
+| `npm run dev`            | Start development server (uses .env.local)     |
 | `npm run build`          | Build for production                           |
 | `npm run start`          | Start production server                        |
 | `npm run lint`           | Run ESLint                                     |
 | `npm run type-check`     | Run TypeScript type checking                   |
-| `npm test`               | Run test suite                                 |
-| `npm run test:watch`     | Run tests in watch mode                        |
-| `npm run test:coverage`  | Run tests with coverage                        |
-| `npm run test:full`      | TypeScript check + tests (recommended)        |
-| `npm run test:excel-export` | Test Excel export functionality            |
-| `npm run test:export`    | Test export with real data                     |
-| `npm run bootstrap`      | One-time data import from Excel (completed)   |
-| `npm run bootstrap:test` | Test bootstrap import with development data    |
+
+### Local Supabase (Docker)
+| Command                  | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `npm run supabase:start` | Start local Supabase services                  |
+| `npm run supabase:stop`  | Stop local Supabase services                   |
+| `npm run supabase:reset` | Reset database (drops + applies migrations)    |
+| `npm run supabase:status`| Check Supabase services status                 |
+
+### Testing
+| Command                  | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `npm test`               | Run full test suite (type check + all tests)  |
+
+### Staging Operations (Remote TEST DB)
+| Command                  | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `npm run staging:export` | Export data from staging to seed files        |
+| `npm run staging:clear`  | Clear all staging data (dangerous!)           |
+
+### Production Operations
+| Command                  | Description                                    |
+| ------------------------ | ---------------------------------------------- |
 | `npm run check-prod`     | Check production database status               |
-| `npm run clear-prod`     | Clear production database (use with caution)  |
+| `npm run clear-prod`     | Clear production database (VERY dangerous!)    |
+| `npm run bootstrap`      | One-time production data import (completed)    |
 
 ## 🗄️ Database Schema
 

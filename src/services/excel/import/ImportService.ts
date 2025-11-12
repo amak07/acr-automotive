@@ -2,7 +2,8 @@
 // Import Service - Execute validated import with snapshot creation
 // ============================================================================
 
-import { supabase } from '@/lib/supabase/client';
+import { supabase as defaultSupabase } from '@/lib/supabase/client';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { DiffResult } from '../diff/types';
 import type { ParsedExcelFile } from '../shared/types';
 import type {
@@ -30,6 +31,15 @@ import type {
  * - TRUE multi-table atomicity via execute_atomic_import() function
  */
 export class ImportService {
+  private supabase: SupabaseClient;
+
+  /**
+   * Create a new ImportService
+   * @param supabaseClient - Optional Supabase client (defaults to anon key client for production)
+   */
+  constructor(supabaseClient?: SupabaseClient) {
+    this.supabase = supabaseClient || defaultSupabase;
+  }
 
   /**
    * Execute import with snapshot creation and atomic transactions
@@ -60,7 +70,7 @@ export class ImportService {
       console.log(`[ImportService] Bulk operations completed in ${executionTime}ms`);
 
       // Step 3: Save import history
-      const { data: historyRecords, error: historyError } = await supabase
+      const { data: historyRecords, error: historyError } = await this.supabase
         .from('import_history')
         .insert({
           tenant_id: metadata.tenantId || null,
@@ -119,14 +129,23 @@ export class ImportService {
    */
   private async createSnapshot(tenantId?: string): Promise<SnapshotData> {
     try {
-      // Build tenant filter
-      const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
+      // Build queries with optional tenant filter
+      let partsQuery = this.supabase.from('parts').select('*');
+      let vehicleAppsQuery = this.supabase.from('vehicle_applications').select('*');
+      let crossRefsQuery = this.supabase.from('cross_references').select('*');
+
+      // Apply tenant filter only if tenantId provided
+      if (tenantId) {
+        partsQuery = partsQuery.eq('tenant_id', tenantId);
+        vehicleAppsQuery = vehicleAppsQuery.eq('tenant_id', tenantId);
+        crossRefsQuery = crossRefsQuery.eq('tenant_id', tenantId);
+      }
 
       // Fetch all data in parallel
       const [partsResult, vehicleAppsResult, crossRefsResult] = await Promise.all([
-        supabase.from('parts').select('*').match(tenantFilter),
-        supabase.from('vehicle_applications').select('*').match(tenantFilter),
-        supabase.from('cross_references').select('*').match(tenantFilter),
+        partsQuery,
+        vehicleAppsQuery,
+        crossRefsQuery,
       ]);
 
       // Check for errors
@@ -297,7 +316,7 @@ export class ImportService {
       try {
         console.log(`[ImportService] Attempt ${attempt}/${maxRetries}...`);
 
-        const { data, error } = await supabase.rpc('execute_atomic_import', {
+        const { data, error } = await this.supabase.rpc('execute_atomic_import', {
           parts_to_add: partsToAdd,
           parts_to_update: partsToUpdate,
           vehicles_to_add: vehiclesToAdd,

@@ -1,12 +1,21 @@
 /**
  * Clear Production Data - Remove all data from production tables
- * Run with: npx tsx scripts/clear-production.ts
- * 
+ * Run with: npm run clear-prod (uses .env.production)
+ *
  * WARNING: This will delete ALL production data!
+ * Requires NODE_ENV=production to be set by npm script
  */
 
 import dotenv from "dotenv";
-dotenv.config();
+
+// Load production environment
+if (process.env.NODE_ENV === "production") {
+  dotenv.config({ path: ".env.production", override: true });
+} else {
+  console.error("❌ ERROR: This script must be run with NODE_ENV=production");
+  console.error("   Use: npm run clear-prod");
+  process.exit(1);
+}
 
 import { supabase } from "../../src/lib/supabase/client";
 

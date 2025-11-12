@@ -1,19 +1,21 @@
 #!/usr/bin/env tsx
 /**
- * Export Full Seed Data from Remote Test DB
+ * Export Full Seed Data from Staging DB
  *
- * This script connects to the remote Supabase Test DB and exports ALL parts data
+ * This script connects to the remote Supabase Staging (TEST) DB and exports ALL parts data
  * to create a complete baseline for local testing.
  *
  * Strategy:
- * - Export ALL parts from remote Test DB (865 parts)
+ * - Export ALL parts from Staging DB (865 parts)
  * - Include ALL related vehicle_applications and cross_references
  * - Generate deterministic UUIDs for reproducible testing
  * - Output to fixtures/seed-data.sql
  * - This becomes the single source of truth for local Docker testing
  *
  * Usage:
- *   npm run db:export-snapshot
+ *   npm run staging:export (uses .env.staging)
+ *
+ * Requires NODE_ENV=staging to be set by npm script
  */
 
 import dotenv from 'dotenv';
@@ -21,8 +23,14 @@ import path from 'path';
 import fs from 'fs/promises';
 import { createClient } from '@supabase/supabase-js';
 
-// Load remote Test DB credentials
-dotenv.config({ path: path.join(process.cwd(), '.env.test') });
+// Load staging environment
+if (process.env.NODE_ENV === ("staging" as string)) {
+  dotenv.config({ path: path.join(process.cwd(), '.env.staging'), override: true });
+} else {
+  console.error("❌ ERROR: This script must be run with NODE_ENV=staging");
+  console.error("   Use: npm run staging:export");
+  process.exit(1);
+}
 
 interface Part {
   id: string;

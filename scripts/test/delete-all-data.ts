@@ -1,20 +1,27 @@
 /**
- * Delete All Data from TEST Database
+ * Delete All Data from Staging Database
  *
  * WARNING: This will delete all data without restoring.
- * Use this to verify we're hitting the correct TEST environment.
+ * Use this to clean the staging environment.
  *
  * Usage:
- *   npm run test:reset-db (then Ctrl+C after deletion)
- *   OR directly: NODE_ENV=test npx tsx scripts/test/delete-all-data.ts
+ *   npm run staging:clear (uses .env.staging)
+ *
+ * Requires NODE_ENV=staging to be set by npm script
  */
 
 import { supabase } from '../../src/lib/supabase/client';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-// Explicitly load .env.test
-dotenv.config({ path: path.join(process.cwd(), '.env.test') });
+// Load staging environment
+if (process.env.NODE_ENV === ("staging" as string)) {
+  dotenv.config({ path: path.join(process.cwd(), '.env.staging'), override: true });
+} else {
+  console.error("❌ ERROR: This script must be run with NODE_ENV=staging");
+  console.error("   Use: npm run staging:clear");
+  process.exit(1);
+}
 
 async function deleteAllData() {
   console.log('\n⚠️  DELETE ALL DATA - VERIFICATION MODE\n');

@@ -34,9 +34,12 @@ dotenv.config({
 import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 import { verifyTestEnvironment, getTestEnvironmentInfo } from '../../tests/setup/env';
-import { createTestSnapshot, restoreTestSnapshot, deleteTestSnapshot } from '../../tests/helpers/test-snapshot';
 
 const execAsync = promisify(exec);
+
+// NOTE: test-snapshot functions are imported dynamically inside main()
+// to ensure environment variables are fully loaded before ImportService/RollbackService
+// are instantiated (which import src/lib/supabase/client.ts at module level)
 
 // Verify test environment is loaded correctly by Next.js
 verifyTestEnvironment();
@@ -196,6 +199,11 @@ async function main() {
   let totalStart = Date.now();
   let snapshotId: string | null = null;
 
+  // Dynamically import snapshot functions after env vars are loaded
+  // This prevents ImportService/RollbackService from loading src/lib/supabase/client.ts
+  // before environment variables are available
+  const { createTestSnapshot, restoreTestSnapshot, deleteTestSnapshot } = await import('../../tests/helpers/test-snapshot');
+
   // Verify test environment
   const envInfo = getTestEnvironmentInfo();
   console.log(`${COLORS.blue}📋 Test Environment:${COLORS.reset}`);
@@ -218,6 +226,7 @@ async function main() {
   }
 
   try {
+
     // Create snapshot of current dev database
     console.log(`${COLORS.blue}💾 Database Snapshot${COLORS.reset}`);
     currentTest++;

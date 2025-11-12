@@ -38,7 +38,9 @@ RETURNS TABLE(
   vehicles_updated INTEGER,
   cross_refs_added INTEGER,
   cross_refs_updated INTEGER
-) AS $$
+)
+SECURITY DEFINER
+AS $$
 DECLARE
   v_parts_added INTEGER := 0;
   v_parts_updated INTEGER := 0;
