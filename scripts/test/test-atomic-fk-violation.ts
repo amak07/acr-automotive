@@ -19,8 +19,17 @@
  *   npm run test:atomic:fk
  */
 
+// IMPORTANT: Load test environment variables BEFORE any other imports
+// tsx (TypeScript executor) doesn't automatically load .env files
+import dotenv from 'dotenv';
 import * as path from "path";
-import * as dotenv from "dotenv";
+
+dotenv.config({
+  path: path.join(process.cwd(), '.env.test.local'),
+  override: true
+});
+
+import { verifyTestEnvironment } from "../../tests/setup/env";
 import { ExcelImportService } from "../../src/services/excel/import/ExcelImportService";
 import { ValidationEngine } from "../../src/services/excel/validation/ValidationEngine";
 import { DiffEngine } from "../../src/services/excel/diff/DiffEngine";
@@ -28,9 +37,8 @@ import { ImportService } from "../../src/services/excel/import/ImportService";
 import { createClient } from "@supabase/supabase-js";
 import { loadFixture } from "./helpers/fixture-loader";
 
-// Load test environment variables (local Docker first, then remote Supabase)
-dotenv.config({ path: path.join(process.cwd(), ".env.test.local") });
-dotenv.config({ path: path.join(process.cwd(), ".env.test") });
+// Verify test environment is configured correctly
+verifyTestEnvironment();
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
