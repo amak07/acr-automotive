@@ -7,8 +7,8 @@
 -- Cross References: 28040
 -- ============================================================================
 
--- Clean existing data
-TRUNCATE TABLE parts CASCADE;
+-- Note: During `supabase db reset`, the database is recreated fresh
+-- No need to truncate - tables are already empty
 
 -- ============================================================================
 -- PARTS
