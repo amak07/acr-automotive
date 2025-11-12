@@ -4,19 +4,20 @@
  *
  * Architecture:
  *   - Shared instance: port 54321 (both dev and test use same instance)
- *   - Tests reset database before running (npm run supabase:reset)
- *   - After tests complete, database is left empty
- *   - To restore dev data: npm run supabase:reset
+ *   - Snapshots dev database before running tests
+ *   - Restores dev database automatically after tests complete
+ *   - Dev data always preserved (site_settings, images, etc.)
  *
  * Prerequisites:
  *   - Local Supabase must be running: npm run supabase:start
- *   - Tests will reset database automatically
+ *   - Dev database should have data to preserve
  *
  * What this script does:
  *   1. Verifies Supabase is running on localhost:54321
- *   2. Resets database to clean state (runs migrations)
+ *   2. Creates snapshot of current dev database state
  *   3. Runs all tests (unit + integration)
- *   4. Reports results
+ *   4. Restores dev database to pre-test state
+ *   5. Reports results
  */
 
 // IMPORTANT: Load test environment variables BEFORE any other imports
@@ -33,6 +34,7 @@ dotenv.config({
 import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 import { verifyTestEnvironment, getTestEnvironmentInfo } from '../../tests/setup/env';
+import { createTestSnapshot, restoreTestSnapshot, deleteTestSnapshot } from '../../tests/helpers/test-snapshot';
 
 const execAsync = promisify(exec);
 
@@ -192,6 +194,7 @@ async function main() {
 
   const results: TestResult[] = [];
   let totalStart = Date.now();
+  let snapshotId: string | null = null;
 
   // Verify test environment
   const envInfo = getTestEnvironmentInfo();
@@ -207,7 +210,7 @@ async function main() {
   }
 
   // Define all tests upfront for progress tracking
-  const totalTests = 10;
+  const totalTests = 11; // Added snapshot step
   let currentTest = 0;
 
   function getProgressPrefix(): string {
@@ -215,6 +218,23 @@ async function main() {
   }
 
   try {
+    // Create snapshot of current dev database
+    console.log(`${COLORS.blue}💾 Database Snapshot${COLORS.reset}`);
+    currentTest++;
+    const snapshotStart = Date.now();
+    startSpinner(`${getProgressPrefix()} Creating dev data snapshot`);
+    try {
+      snapshotId = await createTestSnapshot();
+      const snapshotDuration = Date.now() - snapshotStart;
+      stopSpinner(true, `${getProgressPrefix()} Dev data snapshot created`, snapshotDuration);
+    } catch (error: any) {
+      const snapshotDuration = Date.now() - snapshotStart;
+      stopSpinner(false, `${getProgressPrefix()} Snapshot failed`, snapshotDuration);
+      throw new Error(`Failed to create snapshot: ${error.message}`);
+    }
+    console.log('');
+
+    try {
     // TypeScript validation
     console.log(`${COLORS.blue}📝 TypeScript Validation${COLORS.reset}`);
     currentTest++;
@@ -235,14 +255,6 @@ async function main() {
     results.push(await runCommandWithProgress(
       'cross-env NODE_ENV=test tsx scripts/test/test-all-fixtures.ts',
       `${getProgressPrefix()} Fixture Validation`
-    ));
-
-    // Reset database before import pipeline test to ensure consistent state
-    // Import pipeline expects either empty DB or properly seeded DB
-    currentTest++;
-    results.push(await runCommandWithProgress(
-      'npm run supabase:reset',
-      `${getProgressPrefix()} Database Reset (Pre-Import)`
     ));
 
     currentTest++;
@@ -286,12 +298,48 @@ async function main() {
     const totalDuration = Date.now() - totalStart;
     generateReport(results, totalDuration);
 
+      // Restore dev database (always runs, even if tests failed)
+      } finally {
+        if (snapshotId) {
+          console.log('');
+          console.log(`${COLORS.blue}🔄 Database Restore${COLORS.reset}`);
+          const restoreStart = Date.now();
+          startSpinner('Restoring dev data from snapshot');
+          try {
+            await restoreTestSnapshot(snapshotId);
+            await deleteTestSnapshot(snapshotId);
+            const restoreDuration = Date.now() - restoreStart;
+            stopSpinner(true, 'Dev data restored successfully', restoreDuration);
+          } catch (error: any) {
+            const restoreDuration = Date.now() - restoreStart;
+            stopSpinner(false, 'Restore failed', restoreDuration);
+            console.error(`${COLORS.yellow}⚠️  Warning: Failed to restore database: ${error.message}${COLORS.reset}`);
+            console.error(`   You may need to manually reset: npm run supabase:reset`);
+          }
+        }
+      }
+
     // Exit with appropriate code
     const allPassed = results.every(r => r.passed);
     process.exit(allPassed ? 0 : 1);
 
   } catch (error: any) {
     console.error('❌ Fatal error:', error.message);
+
+    // Attempt to restore database even on fatal error
+    if (snapshotId) {
+      console.log('');
+      console.log('Attempting to restore database after fatal error...');
+      try {
+        await restoreTestSnapshot(snapshotId);
+        await deleteTestSnapshot(snapshotId);
+        console.log('✅ Database restored');
+      } catch (restoreError: any) {
+        console.error(`⚠️  Failed to restore database: ${restoreError.message}`);
+        console.error('   You may need to manually reset: npm run supabase:reset');
+      }
+    }
+
     process.exit(1);
   }
 }
