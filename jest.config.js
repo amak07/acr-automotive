@@ -39,6 +39,9 @@ const customJestConfig = {
     },
   },
   testTimeout: 10000, // 10 seconds for database operations
+  // Run tests sequentially to prevent database conflicts in integration tests
+  // Integration tests share a single local Supabase instance and require isolation
+  maxWorkers: 1,
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

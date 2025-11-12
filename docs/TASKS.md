@@ -27,9 +27,10 @@ _Last Updated: November 5, 2025_
 | 20 | Oct 29, 2025 | (manual) | (manual) | 5h 00m | Import Wizard UI E2E complete: Built 4-step wizard (Upload→Validation→Preview→Confirmation), rollback UI with confirmation dialogs, Settings import history page, emergency database restore after rollback bug, test infrastructure consolidation (schema-aware test generation, organized fixtures, comprehensive documentation) |
 | 21 | Oct 30, 2025 | (manual) | (manual) | 4h 00m | Test infrastructure polish: Fixed duplicate headers bug, added type safety to ValidationEngine, accurate fixture expectations (7/7 passing), master test suite (npm test), TypeScript error fixes across all test files |
 | 22 | Nov 5, 2025 | (session) | (session) | ~3h 00m | Import UX improvements + testing infrastructure: Step indicator turns green on success, TanStack Query cache invalidation (auto-refresh dashboard), fixed success page data structure, dynamic fixture generator for ADD/UPDATE testing, comprehensive manual testing workflow documentation |
+| 23 | Nov 9, 2025 | (session) | (session) | ~5h 00m | Atomic import transaction testing: Created execute_atomic_import integration test suite (20 tests), added SECURITY DEFINER to Migration 008, fixed test environment to use local Supabase, fixed schema application and seeding. **BLOCKED**: 12/20 tests failing - RPC executes successfully but SELECT returns null after INSERT |
 
 **Phase 8.1 Actual Time**: 4h 17m / 30-38h estimated
-**Phase 8.2 Actual Time**: 25h 15m / 48-57h estimated (52% complete - UI testing and polish phase)
+**Phase 8.2 Actual Time**: 30h 15m / 48-57h estimated (63% complete - Testing phase, blocked on database permissions)
 
 ---
 
@@ -234,7 +235,68 @@ Build production-grade bulk data management system enabling efficient bulk opera
 
 ## 🔄 Current Session State
 
-### Latest Session: November 5, 2025 (Session 22 - UI Polish & Testing Infrastructure)
+### Latest Session: November 9, 2025 (Session 23 - Atomic Import Transaction Testing)
+
+**Focus**: Create comprehensive test suite for Migration 008 (execute_atomic_import PostgreSQL function)
+
+**Session Time**:
+- Duration: ~5 hours
+
+**Session Summary**:
+- ✅ **Test Suite Created**: Comprehensive integration tests for atomic import RPC
+  - Created `tests/integration/atomic-import-rpc.test.ts` (780 lines, 20 tests)
+  - Test coverage: Parts operations (6), Vehicle applications (4), Cross references (4), Multi-table atomicity (3), Edge cases (3)
+  - Integrated into master test suite via `scripts/test/run-all-tests.ts`
+
+- ✅ **Migration Enhancement**: Added SECURITY DEFINER to Migration 008
+  - Modified `src/lib/supabase/migrations/008_add_atomic_import_transaction.sql`
+  - Function now runs with owner's permissions to bypass RLS policies
+  - Required for test suite to execute inserts via RPC
+
+- ✅ **Test Environment Fixed**: Corrected test configuration to use local Supabase
+  - Fixed `.env.test.local` to point to `http://localhost:54321` (was pointing to remote production)
+  - Added `dotenv.config({ override: true })` to force local environment variables
+  - Verified 11 Supabase Docker containers running locally
+  - Applied schema.sql + all migrations (001-009) to local database
+  - Seeded test data via `fixtures/seed-data.sql`
+
+- 🚧 **BLOCKING ISSUE**: 12/20 tests failing with permission/visibility problem
+  - **Symptom**: RPC function executes successfully (returns correct counts like `parts_added: 1`)
+  - **Problem**: SELECT queries return null when trying to read back inserted data
+  - **Tests passing**: 8/20 (tests that don't query DB after RPC)
+  - **Tests failing**: 12/20 (tests that query DB after RPC to verify insertion)
+  - **Attempted fixes**: Changed to service role key (bypasses RLS), added SECURITY DEFINER - still failing
+  - **Next debug steps**: Direct psql query to check if data exists, verify RLS policies, compare with working search-rpc tests
+
+**Key Files Created/Modified**:
+- **NEW**: `tests/integration/atomic-import-rpc.test.ts` - 20 comprehensive tests for Migration 008
+- **MODIFIED**: `src/lib/supabase/migrations/008_add_atomic_import_transaction.sql` - Added SECURITY DEFINER
+- **MODIFIED**: `.env.test.local` - Fixed to use local Supabase URLs
+- **MODIFIED**: `scripts/test/run-all-tests.ts` - Added atomic-import-rpc tests to suite
+- **MODIFIED**: `docs/TASKS.md` - Session 23 tracking
+
+**Technical Issues Encountered**:
+1. ✅ **SOLVED**: "function not found in schema cache" - Tests were connecting to remote Supabase instead of local
+2. ✅ **SOLVED**: "relation 'parts' does not exist" - Local DB was empty, applied schema + migrations + seed
+3. ✅ **SOLVED**: PostgREST schema cache refresh - Restarted PostgREST container after applying migrations
+4. 🚧 **BLOCKED**: SELECT returns null after successful INSERT via RPC - Root cause unknown
+
+**Phase 8 Status**:
+- **Backend**: 100% complete
+- **Frontend**: 100% complete
+- **UX Polish**: 100% complete
+- **Testing Infrastructure**: 95% complete (blocked on atomic-import-rpc tests)
+- **Remaining**: Fix RPC test failures, update TESTING.md, manual QA testing
+
+**Next Priorities**:
+1. Debug why SELECT returns null after RPC INSERT (check actual DB state, RLS policies, transaction isolation)
+2. Get all 20 atomic-import-rpc tests passing
+3. Update TESTING.md with new test suite documentation
+4. Manual QA testing and production deployment prep
+
+---
+
+### Previous Session: November 5, 2025 (Session 22 - UI Polish & Testing Infrastructure)
 
 **Focus**: Import UX improvements, cache invalidation, and manual testing workflow
 
@@ -278,15 +340,6 @@ Build production-grade bulk data management system enabling efficient bulk opera
 **Git Commits**:
 1. `fix: Improve import UX with step indicator and cache invalidation`
 2. `test: Add fixture generator for ADD/UPDATE testing workflows`
-
-**Phase 8 Status**:
-- **Backend**: 100% complete
-- **Frontend**: 100% complete
-- **UX Polish**: 100% complete
-- **Testing Infrastructure**: 100% complete
-- **Remaining**: Manual QA testing and production deployment prep
-
-**Next Priorities**: Begin Import Wizard UI (4-step flow) or Rollback Manager UI
 
 ---
 

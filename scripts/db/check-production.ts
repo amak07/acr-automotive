@@ -1,10 +1,20 @@
 /**
  * Check Production Data - See what's currently in production tables
- * Run with: npx tsx scripts/check-production.ts
+ * Run with: npm run check-prod (uses .env.production)
+ *
+ * Requires NODE_ENV=production to be set by npm script
  */
 
 import dotenv from "dotenv";
-dotenv.config();
+
+// Load production environment
+if (process.env.NODE_ENV === "production") {
+  dotenv.config({ path: ".env.production", override: true });
+} else {
+  console.error("❌ ERROR: This script must be run with NODE_ENV=production");
+  console.error("   Use: npm run check-prod");
+  process.exit(1);
+}
 
 import { supabase } from "../../src/lib/supabase/client";
 

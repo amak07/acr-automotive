@@ -35,20 +35,13 @@ export async function createTestSnapshot(): Promise<string> {
     .from('import_history')
     .insert({
       file_name: TEST_SNAPSHOT_MARKER,
-      file_size: 0,
-      uploaded_at: new Date().toISOString(),
+      file_size_bytes: 0,
+      rows_imported: snapshotData.parts.length,
       snapshot_data: snapshotData,
-      summary: {
-        totalAdds: 0,
-        totalUpdates: 0,
-        totalDeletes: 0,
-        totalUnchanged: snapshotData.parts.length,
-        totalChanges: 0,
-        changesBySheet: {
-          parts: 0,
-          vehicleApplications: 0,
-          crossReferences: 0,
-        },
+      import_summary: {
+        adds: 0,
+        updates: 0,
+        deletes: 0,
       },
     })
     .select('id')
