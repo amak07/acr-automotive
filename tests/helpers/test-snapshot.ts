@@ -12,7 +12,11 @@ import { ImportService } from '../../src/services/excel/import/ImportService';
 import { getTestClient } from '../setup/test-client';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-const TEST_SNAPSHOT_MARKER = '__TEST_DEV_SNAPSHOT__';
+/**
+ * Marker used to identify test snapshots in import_history table.
+ * Exported so test cleanup functions can preserve these snapshots.
+ */
+export const TEST_SNAPSHOT_MARKER = '__TEST_DEV_SNAPSHOT__';
 
 /**
  * Create a snapshot of current database state for test isolation

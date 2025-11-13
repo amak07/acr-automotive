@@ -14,7 +14,7 @@
 -- PARTS
 -- ============================================================================
 -- Note: image_url column removed by Migration 001 (moved to part_images table)
-INSERT INTO parts (id, acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, created_at, updated_at) VALUES
+INSERT INTO parts (id, acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, has_360_viewer, viewer_360_frame_count, tenant_id, updated_by, acr_sku_normalized, created_at, updated_at) VALUES
   ('00000000-0000-0000-0000-000000000001', 'ACR10094077', 'PENDING', NULL, NULL, NULL, NULL, NULL, NOW(), NOW()),
   ('00000000-0000-0000-0000-000000000002', 'ACR10094254', 'PENDING', NULL, NULL, NULL, NULL, NULL, NOW(), NOW()),
   ('00000000-0000-0000-0000-000000000003', 'ACR10124926', 'PENDING', NULL, NULL, NULL, NULL, NULL, NOW(), NOW()),

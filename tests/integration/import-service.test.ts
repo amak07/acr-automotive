@@ -19,6 +19,7 @@
 
 import { randomUUID } from 'crypto';
 import { getTestClient } from '../setup/test-client';
+import { TEST_SNAPSHOT_MARKER } from '../helpers/test-snapshot';
 import { ImportService } from '../../src/services/excel/import/ImportService';
 import type { DiffResult } from '../../src/services/excel/diff/types';
 import type { ParsedExcelFile } from '../../src/services/excel/shared/types';
@@ -147,7 +148,8 @@ async function cleanTestData(): Promise<void> {
   await supabase.from('cross_references').delete().neq('id', '00000000-0000-0000-0000-000000000000');
   await supabase.from('vehicle_applications').delete().neq('id', '00000000-0000-0000-0000-000000000000');
   await supabase.from('parts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-  await supabase.from('import_history').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  // Preserve global test snapshot created by run-all-tests.ts
+  await supabase.from('import_history').delete().neq('id', '00000000-0000-0000-0000-000000000000').neq('file_name', TEST_SNAPSHOT_MARKER);
 }
 
 // Global setup/cleanup
@@ -508,8 +510,8 @@ describe('Import History', () => {
 
     // Verify timestamp is valid and recent
     expect(createdAt).toBeInstanceOf(Date);
-    // Allow 2 seconds of clock skew before test started
-    expect(createdAt.getTime()).toBeGreaterThanOrEqual(beforeTime - 2000);
+    // Allow 5 seconds of clock skew before test started (handles DB server clock differences)
+    expect(createdAt.getTime()).toBeGreaterThanOrEqual(beforeTime - 5000);
     // Should be before current time (with 1s buffer for processing)
     expect(createdAt.getTime()).toBeLessThanOrEqual(afterTime + 1000);
   });
