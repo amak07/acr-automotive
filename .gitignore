@@ -87,6 +87,9 @@ supabase/config.toml  # May contain sensitive project-specific config
 .nyc_output
 junit.xml
 
+# Database snapshots (local dev backups)
+.snapshots/
+
 # Storybook build outputs
 storybook-static/
 

@@ -14,6 +14,9 @@ import type {
 } from './types';
 import type { SnapshotData } from '../import/types';
 
+// Filter out test snapshots created by test infrastructure
+const TEST_SNAPSHOT_MARKER = '__TEST_DEV_SNAPSHOT__';
+
 /**
  * RollbackService
  *
@@ -155,24 +158,30 @@ export class RollbackService {
     tenantId?: string
   ): Promise<void> {
     // Get all snapshots, ordered by newest first
+    // Exclude test snapshots from sequential enforcement
+    // Fetch all and filter client-side to ensure correct behavior
     let query = this.supabase
       .from('import_history')
-      .select('id, created_at')
-      .order('created_at', { ascending: false })
-      .limit(3);
+      .select('id, created_at, file_name')
+      .order('created_at', { ascending: false });
 
     // Apply tenant filter only if tenantId provided
     if (tenantId) {
       query = query.eq('tenant_id', tenantId);
     }
 
-    const { data: snapshots, error } = await query;
+    const { data: allSnapshots, error } = await query;
 
     if (error) {
       throw new Error(`Failed to fetch snapshots: ${error.message}`);
     }
 
-    if (!snapshots || snapshots.length === 0) {
+    // Filter out test snapshots (but keep golden baseline - it can be rolled back)
+    const snapshots = (allSnapshots || [])
+      .filter(snapshot => snapshot.file_name !== TEST_SNAPSHOT_MARKER)
+      .slice(0, 3);
+
+    if (snapshots.length === 0) {
       throw new Error('No import snapshots available');
     }
 
@@ -386,13 +395,14 @@ export class RollbackService {
    * @returns Array of import snapshots
    */
   async listAvailableSnapshots(tenantId?: string): Promise<ImportSnapshot[]> {
+    // Exclude test snapshots from UI/API listing
+    // Fetch all snapshots and filter client-side to ensure correct behavior
     let query = this.supabase
       .from('import_history')
       .select(
         'id, created_at, file_name, rows_imported, import_summary, imported_by'
       )
-      .order('created_at', { ascending: false })
-      .limit(3);
+      .order('created_at', { ascending: false });
 
     // Apply tenant filter only if tenantId provided
     if (tenantId) {
@@ -405,6 +415,16 @@ export class RollbackService {
       throw new Error(`Failed to fetch snapshots: ${error.message}`);
     }
 
-    return (data || []) as ImportSnapshot[];
+    // Filter out test infrastructure snapshots, then return first 3
+    // - TEST_SNAPSHOT_MARKER: Global test snapshot from run-all-tests.ts
+    // - GOLDEN_BASELINE: Test fixture for preservation testing
+    // (client-side filtering ensures correct behavior with test infrastructure)
+    const GOLDEN_SNAPSHOT_FILENAME = 'GOLDEN_BASELINE_877.xlsx';
+    return ((data || []) as ImportSnapshot[])
+      .filter(snapshot =>
+        snapshot.file_name !== TEST_SNAPSHOT_MARKER &&
+        snapshot.file_name !== GOLDEN_SNAPSHOT_FILENAME
+      )
+      .slice(0, 3);
   }
 }

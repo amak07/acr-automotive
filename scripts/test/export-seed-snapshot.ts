@@ -22,6 +22,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs/promises';
 import { createClient } from '@supabase/supabase-js';
+import pg from 'pg';
+
+const { Client } = pg;
 
 // Load staging environment
 if (process.env.NODE_ENV === ("staging" as string)) {
@@ -296,8 +299,51 @@ function escapeSql(value: string): string {
 
 // Run the export
 exportSeedSnapshot()
-  .then(() => {
+  .then(async () => {
     console.log('\n✅ Export complete!');
+
+    // Ask if user wants to import into local database
+    const shouldImport = process.argv.includes('--import');
+
+    if (shouldImport) {
+      console.log('\n📥 Importing into local database...');
+
+      try {
+        // Read the SQL file we just created
+        const sqlPath = path.join(process.cwd(), 'fixtures', 'seed-data.sql');
+        const sqlContent = await fs.readFile(sqlPath, 'utf-8');
+
+        // Connect directly to PostgreSQL (port 54322, not 54321 which is API)
+        const client = new Client({
+          host: 'localhost',
+          port: 54322,
+          database: 'postgres',
+          user: 'postgres',
+          password: 'postgres',
+        });
+
+        await client.connect();
+        console.log('✅ Connected to local database!');
+
+        // Execute the SQL file
+        await client.query(sqlContent);
+        await client.end();
+
+        console.log('\n✅ Data imported into local database!');
+        console.log('💡 Tip: Run "npm run db:save-snapshot" to save this as your baseline');
+      } catch (error: any) {
+        console.error('\n❌ Import failed:', error.message);
+        console.log('\n💡 You can manually import with:');
+        console.log('   npm run db:import-seed');
+        process.exit(1);
+      }
+    } else {
+      console.log('\n💡 To import into local database, run:');
+      console.log('   npm run staging:import');
+      console.log('   OR');
+      console.log('   npm run db:import-seed');
+    }
+
     process.exit(0);
   })
   .catch((error) => {
