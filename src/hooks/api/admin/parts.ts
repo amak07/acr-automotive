@@ -2,8 +2,17 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { querySchema, createPartSchema, updatePartSchema } from "@/app/api/admin/parts/schemas";
-import { AdminPartsQueryParams, PartSummary, PartWithDetails, DatabasePartRow } from "@/types";
+import {
+  querySchema,
+  createPartSchema,
+  updatePartSchema,
+} from "@/app/api/admin/parts/schemas";
+import {
+  AdminPartsQueryParams,
+  PartSummary,
+  PartWithDetails,
+  DatabasePartRow,
+} from "@/types";
 import { queryKeys } from "@/hooks/common/queryKeys";
 
 // ============================================================================
@@ -11,7 +20,9 @@ import { queryKeys } from "@/hooks/common/queryKeys";
 // ============================================================================
 
 type UsePartsParams = AdminPartsQueryParams;
-type UsePartByIdParams = Pick<z.infer<typeof querySchema>, "id">;
+interface UsePartByIdParams {
+  sku: string;
+}
 export type CreatePartsParams = z.infer<typeof createPartSchema>;
 export type UpdatePartsParams = z.infer<typeof updatePartSchema>;
 
@@ -87,20 +98,21 @@ export function useGetParts(queryParams: UsePartsParams) {
 
 /**
  * useGetPartById - Fetch a single part with full details
+ * @param queryParams.sku - The ACR SKU of the part to fetch
  */
 export function useGetPartById(queryParams: UsePartByIdParams) {
-  const { id } = queryParams;
+  const { sku } = queryParams;
 
   return useQuery<PartWithDetails>({
-    queryKey: queryKeys.parts.detail(id || ""),
-    enabled: !!id, // Only run query if id exists
+    queryKey: queryKeys.parts.detail(sku || ""),
+    enabled: !!sku, // Only run query if sku exists
     queryFn: async () => {
-      const url = `/api/admin/parts?id=${queryParams.id}`;
+      const url = `/api/admin/parts?sku=${encodeURIComponent(sku)}`;
       const response = await fetch(url, {
         method: "GET",
       });
 
-      if (!response.ok) throw new Error(`failed to fetch part: ${id}}`);
+      if (!response.ok) throw new Error(`failed to fetch part: ${sku}`);
       const result = await response.json();
       return result.data as PartWithDetails;
     },
@@ -171,11 +183,11 @@ export function useUpdatePartById() {
     onSuccess: (data, variables) => {
       // Invalidate and refetch the part details data
       queryClient.invalidateQueries({
-        queryKey: queryKeys.parts.detail(variables.id)
+        queryKey: queryKeys.parts.detail(variables.id),
       });
       // Also invalidate the parts list so it shows updated data
       queryClient.invalidateQueries({
-        queryKey: queryKeys.admin.parts()
+        queryKey: queryKeys.admin.parts(),
       });
     },
   });

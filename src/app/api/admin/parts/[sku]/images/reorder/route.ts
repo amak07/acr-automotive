@@ -1,21 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import { z } from "zod";
+import { normalizeSku } from "@/lib/utils/sku-utils";
 
 const reorderSchema = z.object({
   image_ids: z.array(z.string().uuid()).min(1),
 });
 
 /**
- * PUT /api/admin/parts/[id]/images/reorder
+ * PUT /api/admin/parts/[sku]/images/reorder
  * Reorder images for a part
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ sku: string }> }
 ) {
   try {
-    const { id: partId } = await params;
+    const { sku } = await params;
+    const normalizedSku = normalizeSku(sku);
+
+    // Lookup part ID by SKU
+    const { data: part, error: partError } = await supabase
+      .from("parts")
+      .select("id")
+      .eq("acr_sku", normalizedSku)
+      .single();
+
+    if (partError || !part) {
+      return NextResponse.json({ error: "Part not found" }, { status: 404 });
+    }
+
+    const partId = part.id;
     const body = await request.json();
 
     // Validate request body

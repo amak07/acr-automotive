@@ -13,16 +13,19 @@ import {
 
 interface PartDetailsBreadcrumbProps {
   acrSku?: string;
-  partId: string;
+  partId?: string;
 }
 
-export function PartDetailsBreadcrumb({ acrSku, partId }: PartDetailsBreadcrumbProps) {
+export function PartDetailsBreadcrumb({
+  acrSku,
+  partId,
+}: PartDetailsBreadcrumbProps) {
   const { t } = useLocale();
   const searchParams = useSearchParams();
 
   // Preserve search params when going back
-  const currentSearch = searchParams?.toString() || '';
-  const backLink = `/admin${currentSearch ? `?${currentSearch}` : ''}`;
+  const currentSearch = searchParams?.toString() || "";
+  const backLink = `/admin${currentSearch ? `?${currentSearch}` : ""}`;
 
   return (
     <div className="mb-6">
@@ -39,7 +42,7 @@ export function PartDetailsBreadcrumb({ acrSku, partId }: PartDetailsBreadcrumbP
           <BreadcrumbSeparator className="text-acr-gray-600" />
           <BreadcrumbItem>
             <BreadcrumbPage className="text-acr-gray-800 font-medium">
-              {acrSku || partId}
+              {acrSku || partId || "..."}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>

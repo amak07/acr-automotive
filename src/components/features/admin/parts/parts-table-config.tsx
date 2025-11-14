@@ -18,7 +18,6 @@ export interface TableColumn {
   ) => JSX.Element;
 }
 
-
 /**
  * Creates AcrTable column configuration for the parts list
  */
@@ -184,12 +183,14 @@ export const createAcrPartsTableColumns = (
     key: "actions",
     label: "",
     render: (value: any, part?: PartSummary) => {
-      const currentSearch = searchParams?.toString() || '';
+      const currentSearch = searchParams?.toString() || "";
       return (
         <button
           onClick={() => {
-            if (router) {
-              router.push(`/admin/parts/${part?.id}${currentSearch ? `?${currentSearch}` : ''}`);
+            if (router && part?.acr_sku) {
+              router.push(
+                `/admin/parts/${encodeURIComponent(part.acr_sku)}${currentSearch ? `?${currentSearch}` : ""}`
+              );
             }
           }}
           className="text-acr-red-600 hover:text-acr-red-700 text-sm font-medium underline-offset-4 hover:underline transition-colors"

@@ -3,12 +3,15 @@ import { supabase } from "@/lib/supabase/client";
 import { DatabasePartRow, PartSearchResult } from "@/types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { publicSearchSchema, PublicSearchParams } from "@/lib/schemas/public";
+import { normalizeSku } from "@/lib/utils/sku-utils";
 
 // Helper function to enrich parts with primary image URLs
-async function enrichWithPrimaryImages(parts: DatabasePartRow[]): Promise<PartSearchResult[]> {
+async function enrichWithPrimaryImages(
+  parts: DatabasePartRow[]
+): Promise<PartSearchResult[]> {
   if (!parts || parts.length === 0) return [];
 
-  const partIds = parts.map(p => p.id);
+  const partIds = parts.map((p) => p.id);
 
   // Fetch all primary images for these parts in one query
   const { data: images, error } = await supabase
@@ -20,19 +23,22 @@ async function enrichWithPrimaryImages(parts: DatabasePartRow[]): Promise<PartSe
   if (error) {
     console.error("Error fetching primary images:", error);
     // Return parts without images rather than failing
-    return parts.map(part => ({ ...part, primary_image_url: null }));
+    return parts.map((part) => ({ ...part, primary_image_url: null }));
   }
 
   // Group images by part_id
-  const imagesByPartId = images.reduce((acc, img) => {
-    if (!acc[img.part_id]) acc[img.part_id] = [];
-    acc[img.part_id].push(img);
-    return acc;
-  }, {} as Record<string, any[]>);
+  const imagesByPartId = images.reduce(
+    (acc, img) => {
+      if (!acc[img.part_id]) acc[img.part_id] = [];
+      acc[img.part_id].push(img);
+      return acc;
+    },
+    {} as Record<string, any[]>
+  );
 
   // Add primary_image_url to each part
   // Primary image is always the first one by display_order (already sorted)
-  return parts.map(part => {
+  return parts.map((part) => {
     const partImages = imagesByPartId[part.id] || [];
     const primaryImage = partImages[0]?.image_url || null;
 
@@ -48,22 +54,27 @@ export async function GET(request: NextRequest) {
   const rawParams = Object.fromEntries(searchParams.entries());
 
   try {
-    // Handle get by ID first
-    if (rawParams.id) {
+    // Handle get by ID or SKU first
+    if (rawParams.id || rawParams.sku) {
+      const lookupField = rawParams.sku ? "acr_sku" : "id";
+      const lookupValue = rawParams.sku
+        ? normalizeSku(rawParams.sku)
+        : rawParams.id;
+
       // Query 1: Get the part
       const { data: partData, error: partError } = await supabase
         .from("parts")
         .select("*")
-        .eq("id", rawParams.id)
+        .eq(lookupField, lookupValue)
         .single();
 
       if (partError) {
-        if (partError.code === 'PGRST116') {
+        if (partError.code === "PGRST116") {
           return Response.json(
             {
               success: false,
               error: "Part not found",
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
             },
             { status: 404 }
           );
@@ -71,11 +82,14 @@ export async function GET(request: NextRequest) {
         throw partError;
       }
 
+      // Use the part's UUID for related queries
+      const partId = partData.id;
+
       // Query 2: Get vehicle applications
       const { data: vehicleApps, error: vehicleError } = await supabase
         .from("vehicle_applications")
         .select("*")
-        .eq("part_id", rawParams.id);
+        .eq("part_id", partId);
 
       if (vehicleError) throw vehicleError;
 
@@ -83,7 +97,7 @@ export async function GET(request: NextRequest) {
       const { data: crossRefs, error: crossError } = await supabase
         .from("cross_references")
         .select("*")
-        .eq("acr_part_id", rawParams.id);
+        .eq("acr_part_id", partId);
 
       if (crossError) throw crossError;
 
@@ -97,7 +111,7 @@ export async function GET(request: NextRequest) {
       return Response.json({
         success: true,
         data: result,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -131,15 +145,19 @@ export async function GET(request: NextRequest) {
 
     // SKU search using RPC
     if (params.sku_term) {
-      const { data: allData, error: rpcError } = await supabase.rpc("search_by_sku", {
-        search_sku: params.sku_term,
-      });
+      const { data: allData, error: rpcError } = await supabase.rpc(
+        "search_by_sku",
+        {
+          search_sku: params.sku_term,
+        }
+      );
 
       if (rpcError) throw rpcError;
 
       // Apply pagination to RPC results
       const totalCount = allData?.length || 0;
-      const paginatedData = allData?.slice(params.offset, params.offset + params.limit) || [];
+      const paginatedData =
+        allData?.slice(params.offset, params.offset + params.limit) || [];
 
       // Enrich with primary images
       const enrichedData = await enrichWithPrimaryImages(paginatedData);
@@ -166,7 +184,8 @@ export async function GET(request: NextRequest) {
 
       // Apply pagination to RPC results
       const totalCount = allData?.length || 0;
-      const paginatedData = allData?.slice(params.offset, params.offset + params.limit) || [];
+      const paginatedData =
+        allData?.slice(params.offset, params.offset + params.limit) || [];
 
       // Enrich with primary images
       const enrichedData = await enrichWithPrimaryImages(paginatedData);

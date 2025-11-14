@@ -1,16 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
+import { normalizeSku } from "@/lib/utils/sku-utils";
 
 /**
- * PUT /api/admin/parts/[id]/images/[imageId]/primary
+ * PUT /api/admin/parts/[sku]/images/[imageId]/primary
  * Set an image as the primary image for a part
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; imageId: string }> }
+  { params }: { params: Promise<{ sku: string; imageId: string }> }
 ) {
   try {
-    const { id: partId, imageId } = await params;
+    const { sku, imageId } = await params;
+    const normalizedSku = normalizeSku(sku);
+
+    // Lookup part ID by SKU
+    const { data: part, error: partError } = await supabase
+      .from("parts")
+      .select("id")
+      .eq("acr_sku", normalizedSku)
+      .single();
+
+    if (partError || !part) {
+      return NextResponse.json({ error: "Part not found" }, { status: 404 });
+    }
+
+    const partId = part.id;
 
     // Verify image exists and belongs to this part
     const { data: image, error: fetchError } = await supabase
@@ -21,10 +36,7 @@ export async function PUT(
       .single();
 
     if (fetchError || !image) {
-      return NextResponse.json(
-        { error: "Image not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
 
     // Unset all primary flags for this part (database constraint ensures only one primary)

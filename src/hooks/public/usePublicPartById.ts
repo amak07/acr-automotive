@@ -9,8 +9,12 @@ interface PublicPartApiResponse {
   timestamp: string;
 }
 
-async function fetchPublicPartById(id: string): Promise<DatabasePartRow | null> {
-  const response = await fetch(`/api/public/parts?id=${encodeURIComponent(id)}`);
+async function fetchPublicPartBySku(
+  sku: string
+): Promise<DatabasePartRow | null> {
+  const response = await fetch(
+    `/api/public/parts?sku=${encodeURIComponent(sku)}`
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch part details");
@@ -25,11 +29,11 @@ async function fetchPublicPartById(id: string): Promise<DatabasePartRow | null> 
   return result.data || null;
 }
 
-export function usePublicPartById(id: string) {
+export function usePublicPartById(sku: string) {
   return useQuery({
-    queryKey: queryKeys.parts.detail(id),
-    queryFn: () => fetchPublicPartById(id),
-    enabled: !!id,
+    queryKey: queryKeys.parts.detail(sku),
+    queryFn: () => fetchPublicPartBySku(sku),
+    enabled: !!sku,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 2,

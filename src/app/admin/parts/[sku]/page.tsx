@@ -18,10 +18,10 @@ import {
 function PartDetailsPage() {
   const params = useParams();
   const { t } = useLocale();
-  const id = params.id as string;
+  const sku = params.sku as string;
 
   const { data, error, isLoading } = useGetPartById({
-    id: id,
+    sku: sku,
   });
 
   const updateMutation = useUpdatePartById();
@@ -47,7 +47,7 @@ function PartDetailsPage() {
           ? undefined
           : updatedData.bolt_pattern,
         specifications: updatedData.specifications || undefined,
-        id,
+        id: data?.id || "",
       };
 
       await updateMutation.mutateAsync(partToUpdate);
@@ -75,7 +75,7 @@ function PartDetailsPage() {
       isLoading={isLoading}
       error={error}
     >
-      <PartDetailsBreadcrumb acrSku={data?.acr_sku} partId={id} />
+      <PartDetailsBreadcrumb acrSku={data?.acr_sku} partId={data?.id || ""} />
       <PartDetailsHeader
         acrSku={data?.acr_sku}
         partType={data?.part_type}
@@ -86,7 +86,7 @@ function PartDetailsPage() {
         driveType={data?.drive_type || undefined}
         boltPattern={data?.bolt_pattern || undefined}
         isSaving={updateMutation.isPending}
-        partId={id}
+        partId={data?.id}
         isLoading={isLoading}
       />
       <PartMetadata

@@ -29,7 +29,19 @@
     "check-prod": "cross-env NODE_ENV=production tsx scripts/db/check-production.ts",
     "clear-prod": "cross-env NODE_ENV=production tsx scripts/db/clear-production.ts",
     "types:generate": "node scripts/db/generate-types.js test",
-    "types:generate:prod": "node scripts/db/generate-types.js prod"
+    "types:generate:prod": "node scripts/db/generate-types.js prod",
+    "//    ": "",
+    "db:check-drift": "npx supabase db diff --linked",
+    "db:pull-schema": "npx supabase db diff --linked -f schema_update",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   },
   "keywords": [
     "auto-parts",
@@ -101,8 +113,10 @@
     "@types/jest": "^30.0.0",
     "@types/pg": "^8.10.9",
     "cross-env": "10.1.0",
+    "husky": "^9.1.7",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
+    "lint-staged": "^16.2.6",
     "pg": "^8.11.3",
     "prettier": "^3.6.2",
     "tsx": "^4.19.2"

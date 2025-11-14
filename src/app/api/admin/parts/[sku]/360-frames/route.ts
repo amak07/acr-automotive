@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import sharp from "sharp";
+import { normalizeSku } from "@/lib/utils/sku-utils";
 
 // =====================================================
 // Configuration
@@ -73,22 +74,25 @@ async function optimizeFrame(file: File): Promise<ProcessedImage> {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ sku: string }> }
 ) {
   try {
-    const { id: partId } = await params;
+    const { sku } = await params;
+    const normalizedSku = normalizeSku(sku);
 
-    // Get part details for ACR SKU
+    // Get part details by SKU
     const { data: part, error: partError } = await supabase
       .from("parts")
-      .select("acr_sku")
-      .eq("id", partId)
+      .select("id, acr_sku")
+      .eq("acr_sku", normalizedSku)
       .single();
 
     if (partError || !part) {
-      console.error("[360-frames] Part not found:", partId, partError);
+      console.error("[360-frames] Part not found:", normalizedSku, partError);
       return NextResponse.json({ error: "Part not found" }, { status: 404 });
     }
+
+    const partId = part.id;
 
     const formData = await req.formData();
     const files: File[] = [];
@@ -297,10 +301,24 @@ export async function POST(
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ sku: string }> }
 ) {
   try {
-    const { id: partId } = await params;
+    const { sku } = await params;
+    const normalizedSku = normalizeSku(sku);
+
+    // Lookup part ID by SKU
+    const { data: part, error: partError } = await supabase
+      .from("parts")
+      .select("id")
+      .eq("acr_sku", normalizedSku)
+      .single();
+
+    if (partError || !part) {
+      return NextResponse.json({ error: "Part not found" }, { status: 404 });
+    }
+
+    const partId = part.id;
 
     const { data: frames, error } = await supabase
       .from("part_360_frames")
@@ -313,7 +331,9 @@ export async function GET(
       throw error;
     }
 
-    console.log(`[360-frames] Fetched ${frames?.length || 0} frames for part ${partId}`);
+    console.log(
+      `[360-frames] Fetched ${frames?.length || 0} frames for part ${partId}`
+    );
 
     return NextResponse.json({
       frames: frames || [],
@@ -337,12 +357,28 @@ export async function GET(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ sku: string }> }
 ) {
   try {
-    const { id: partId } = await params;
+    const { sku } = await params;
+    const normalizedSku = normalizeSku(sku);
 
-    console.log(`[360-frames] Deleting 360° viewer for part ${partId}`);
+    // Lookup part ID by SKU
+    const { data: part, error: partError } = await supabase
+      .from("parts")
+      .select("id")
+      .eq("acr_sku", normalizedSku)
+      .single();
+
+    if (partError || !part) {
+      return NextResponse.json({ error: "Part not found" }, { status: 404 });
+    }
+
+    const partId = part.id;
+
+    console.log(
+      `[360-frames] Deleting 360° viewer for part ${partId} (SKU: ${normalizedSku})`
+    );
 
     // Get all frames
     const { data: frames } = await supabase

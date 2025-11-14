@@ -9,7 +9,7 @@ import { Upload360Viewer } from "./Upload360Viewer";
 import { AcrCard } from "@/components/acr";
 
 interface PartMediaManagerProps {
-  partId: string;
+  partSku: string;
 }
 
 type MediaTab = "photos" | "360viewer";
@@ -19,15 +19,17 @@ type MediaTab = "photos" | "360viewer";
  * - Tab 1: Product Photos (existing PartImagesManager)
  * - Tab 2: 360° Viewer (new Upload360Viewer)
  */
-export function PartMediaManager({ partId }: PartMediaManagerProps) {
+export function PartMediaManager({ partSku }: PartMediaManagerProps) {
   const { t } = useLocale();
   const [activeTab, setActiveTab] = useState<MediaTab>("photos");
 
   // Fetch 360° viewer status for badge indicator
   const { data: viewer360Data } = useQuery({
-    queryKey: ["part-360-frames", partId],
+    queryKey: ["part-360-frames", partSku],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/parts/${partId}/360-frames`);
+      const res = await fetch(
+        `/api/admin/parts/${encodeURIComponent(partSku)}/360-frames`
+      );
       if (!res.ok) throw new Error("Failed to fetch 360 frames");
       return res.json();
     },
@@ -73,7 +75,9 @@ export function PartMediaManager({ partId }: PartMediaManagerProps) {
             `}
           >
             <RotateCw className="w-4 h-4" />
-            <span className="text-sm">{t("partDetails.media.viewer360Tab")}</span>
+            <span className="text-sm">
+              {t("partDetails.media.viewer360Tab")}
+            </span>
             {has360Viewer && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-green-500 text-white rounded-full leading-none">
                 ✓
@@ -86,10 +90,10 @@ export function PartMediaManager({ partId }: PartMediaManagerProps) {
       {/* Tab content */}
       <div className="px-4 pb-6 pt-6 lg:px-6">
         <div className={activeTab === "photos" ? "block" : "hidden"}>
-          <PartImagesManager partId={partId} />
+          <PartImagesManager partSku={partSku} />
         </div>
         <div className={activeTab === "360viewer" ? "block" : "hidden"}>
-          <Upload360Viewer partId={partId} />
+          <Upload360Viewer partSku={partSku} />
         </div>
       </div>
     </AcrCard>

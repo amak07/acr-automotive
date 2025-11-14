@@ -62,23 +62,28 @@ export function PublicPartDetails({
       const res = await fetch(`/api/admin/parts/${part.id}/360-frames`);
       if (!res.ok) return null;
       const json = await res.json();
-      return json as { frames: Array<{ frame_number: number; image_url: string }>; count: number };
+      return json as {
+        frames: Array<{ frame_number: number; image_url: string }>;
+        count: number;
+      };
     },
     enabled: !!part?.id,
   });
 
-  const viewer360Frames = viewer360Data?.frames?.map(f => f.image_url) || [];
+  const viewer360Frames = viewer360Data?.frames?.map((f) => f.image_url) || [];
   const has360Viewer = (viewer360Data?.count || 0) > 0;
   const isMediaLoading = imagesLoading || viewer360Loading;
 
   // Preserve search params when going back
-  const currentSearch = searchParams?.toString() || '';
-  const backLink = homeLink === "/admin" && part?.id
-    ? `/admin/parts/${part.id}`
-    : `/${currentSearch ? `?${currentSearch}` : ''}`;
-  const backText = homeLink === "/admin"
-    ? t("public.partDetails.backToAdmin")
-    : t("public.partDetails.backToSearch");
+  const currentSearch = searchParams?.toString() || "";
+  const backLink =
+    homeLink === "/admin" && part?.acr_sku
+      ? `/admin/parts/${encodeURIComponent(part.acr_sku)}`
+      : `/${currentSearch ? `?${currentSearch}` : ""}`;
+  const backText =
+    homeLink === "/admin"
+      ? t("public.partDetails.backToAdmin")
+      : t("public.partDetails.backToSearch");
 
   // Handle back navigation with browser history for seamless scroll restoration
   const handleBackClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -142,14 +147,19 @@ export function PublicPartDetails({
       {/* SKU Header - Baleros-Bisa Style */}
       <div>
         <h1 className="text-3xl md:text-4xl font-bold text-acr-gray-900">
-          {t("public.partDetails.sku")}: <span className="font-mono">{part.acr_sku}</span>
+          {t("public.partDetails.sku")}:{" "}
+          <span className="font-mono">{part.acr_sku}</span>
         </h1>
       </div>
 
       {/* Main Content - Image Emphasized Layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Product Image Gallery - 2/3 width */}
-        <AcrCard variant="elevated" padding="none" className="md:col-span-2 overflow-hidden">
+        <AcrCard
+          variant="elevated"
+          padding="none"
+          className="md:col-span-2 overflow-hidden"
+        >
           <PartImageGallery
             images={images || []}
             partName={`${part.part_type} ${part.acr_sku}`}
@@ -262,7 +272,8 @@ export function PublicPartDetails({
                   <div className="space-y-1">
                     {part.vehicle_applications.map((app) => (
                       <div key={app.id} className="text-sm text-acr-gray-900">
-                        - {app.make} {app.model} ({app.start_year}-{app.end_year})
+                        - {app.make} {app.model} ({app.start_year}-
+                        {app.end_year})
                       </div>
                     ))}
                   </div>

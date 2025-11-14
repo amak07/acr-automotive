@@ -1,26 +1,26 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { z } from "zod";
-import { querySchema } from "@/app/api/admin/parts/schemas";
 import { PartWithDetails } from "@/types";
 import { queryKeys } from "@/hooks";
 
-type UsePartsParams = Pick<z.infer<typeof querySchema>, "id">;
+interface UseGetPartByIdParams {
+  sku: string;
+}
 
-export function useGetPartById(queryParams: UsePartsParams) {
-  const { id } = queryParams;
+export function useGetPartById(queryParams: UseGetPartByIdParams) {
+  const { sku } = queryParams;
 
   return useQuery<PartWithDetails>({
-    queryKey: queryKeys.parts.detail(id || ""),
-    enabled: !!id, // Only run query if id exists
+    queryKey: queryKeys.parts.detail(sku || ""),
+    enabled: !!sku, // Only run query if sku exists
     queryFn: async () => {
-      const url = `/api/admin/parts?id=${queryParams.id}`;
+      const url = `/api/admin/parts?sku=${encodeURIComponent(sku)}`;
       const response = await fetch(url, {
         method: "GET",
       });
 
-      if (!response.ok) throw new Error(`failed to fetch part: ${id}}`);
+      if (!response.ok) throw new Error(`failed to fetch part: ${sku}`);
       const result = await response.json();
       return result.data as PartWithDetails;
     },
