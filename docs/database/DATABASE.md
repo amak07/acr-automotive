@@ -20,6 +20,7 @@
 7. [Security & RLS](#security--rls)
 8. [Setup & Deployment](#setup--deployment)
 9. [Troubleshooting](#troubleshooting)
+10. [Database Development Workflows](#database-development-workflows) ⭐ NEW
 
 ---
 
@@ -32,6 +33,7 @@
 **Performance Target**: Sub-300ms search response times
 
 **Core Tables** (8 total after Migration 009):
+
 - **parts** (14 cols) - Main parts catalog with ACR SKUs + normalized SKUs + tenant_id
 - **vehicle_applications** (8 cols) - Vehicle compatibility + tenant_id
 - **cross_references** (8 cols) - Competitor SKU mappings + normalized SKUs + tenant_id
@@ -42,10 +44,12 @@
 - **import_history** (4 cols) - Rollback snapshots (Migration 006)
 
 **Extensions Required**:
+
 - `uuid-ossp` - UUID generation
 - `pg_trgm` - Fuzzy search (trigram matching)
 
 **Key Features**:
+
 - ✅ UUID primary keys on all tables
 - ✅ Cascading deletes (`ON DELETE CASCADE`)
 - ✅ Fuzzy search for typo tolerance
@@ -71,9 +75,11 @@ site_settings (singleton - id=1 always)
 ### Core Design Decisions
 
 #### 1. UUID Primary Keys
+
 **Decision**: Use `UUID` instead of `SERIAL`/`BIGSERIAL`
 
 **Why**:
+
 - Better for distributed systems
 - No sequence conflicts when merging data
 - Security through obscurity (non-sequential IDs)
@@ -84,9 +90,11 @@ id UUID PRIMARY KEY DEFAULT uuid_generate_v4()
 ```
 
 #### 2. Cascading Deletes
+
 **Decision**: `ON DELETE CASCADE` for all foreign keys
 
 **Why**:
+
 - Prevents orphaned records (vehicle_applications without parts)
 - Simplifies admin deletion workflow
 - Database enforces referential integrity
@@ -96,15 +104,18 @@ part_id UUID NOT NULL REFERENCES parts(id) ON DELETE CASCADE
 ```
 
 **Example**: Deleting part "ACR-001" automatically removes:
+
 - All vehicle_applications for ACR-001
 - All cross_references for ACR-001
 - All part_images for ACR-001
 - All part_360_frames for ACR-001
 
 #### 3. Separate Tables for 1:N Relationships
+
 **Decision**: Don't use arrays/JSONB for vehicle applications or cross-references
 
 **Why**:
+
 - Queryable with SQL (no JSON parsing needed)
 - Proper indexes for fast searches
 - Easier to update individual records
@@ -113,17 +124,21 @@ part_id UUID NOT NULL REFERENCES parts(id) ON DELETE CASCADE
 **Example**: One part fits 5 vehicles = 5 rows in `vehicle_applications` table
 
 #### 4. Naming Conventions
+
 **Decision**: Use descriptive names, avoid PostgreSQL reserved words
 
 **Examples**:
+
 - ✅ `position_type` (not `position` - reserved word)
 - ✅ `acr_part_id` (not `part_id` - clearer in cross_references context)
 - ✅ `competitor_sku` (explicit, not ambiguous)
 
 #### 5. Text vs VARCHAR
+
 **Decision**: Use `TEXT` for unlimited content, `VARCHAR(N)` for constrained fields
 
 **Why**:
+
 - `TEXT` for specifications (unlimited technical descriptions)
 - `VARCHAR(50)` for SKUs (real-world max length = 30 chars)
 - Performance is identical in PostgreSQL
@@ -134,14 +149,14 @@ part_id UUID NOT NULL REFERENCES parts(id) ON DELETE CASCADE
 
 ### Table Summary (Migration 004)
 
-| Table | Rows | Columns | Foreign Keys | Indexes | Purpose |
-|-------|------|---------|--------------|---------|---------|
-| parts | 865+ | 12 | - | 3 | Main catalog |
-| vehicle_applications | 2,304+ | 7 | 1 (part_id) | 5 | Vehicle compatibility |
-| cross_references | 7,530+ | 6 | 1 (acr_part_id) | 3 | Competitor SKUs |
-| part_images | Variable | 8 | 1 (part_id) | 3 | Photo gallery |
-| part_360_frames | Variable | 10 | 1 (part_id) | 2 | 360° viewer |
-| site_settings | 1 | 10 | - | 1 | Site config |
+| Table                | Rows     | Columns | Foreign Keys    | Indexes | Purpose               |
+| -------------------- | -------- | ------- | --------------- | ------- | --------------------- |
+| parts                | 865+     | 12      | -               | 3       | Main catalog          |
+| vehicle_applications | 2,304+   | 7       | 1 (part_id)     | 5       | Vehicle compatibility |
+| cross_references     | 7,530+   | 6       | 1 (acr_part_id) | 3       | Competitor SKUs       |
+| part_images          | Variable | 8       | 1 (part_id)     | 3       | Photo gallery         |
+| part_360_frames      | Variable | 10      | 1 (part_id)     | 2       | 360° viewer           |
+| site_settings        | 1        | 10      | -               | 1       | Site config           |
 
 ---
 
@@ -167,10 +182,12 @@ CREATE TABLE parts (
 ```
 
 **Key Constraints**:
+
 - `acr_sku` is UNIQUE (business rule: one part per SKU)
 - `valid_360_frame_count` CHECK (0-100 frames allowed)
 
 **Historical Note**:
+
 - `image_url` column existed initially, removed in Migration 001
 - Replaced by `part_images` table for multi-image support
 
@@ -194,11 +211,13 @@ CREATE TABLE vehicle_applications (
 ```
 
 **Design Notes**:
+
 - **Separate start/end years** (not "2015-2020" string) for queryability
 - **Cascading delete**: Removing part removes all its applications
 - **No unique constraint**: Same part can fit same vehicle multiple times (different configurations)
 
 **Example Data**:
+
 ```
 Part ACR-001 fits:
 - Ford F-150, 2015-2020 (row 1)
@@ -224,11 +243,13 @@ CREATE TABLE cross_references (
 ```
 
 **Design Notes**:
+
 - **acr_part_id** (not `part_id`) for clarity in cross-reference context
 - **competitor_brand optional**: Sometimes we only know SKU, not exact brand
 - **No unique constraint**: Different brands can have same SKU
 
 **Example Data**:
+
 ```
 ACR-001 cross-references to:
 - MOOG-512411 (Moog brand)
@@ -258,10 +279,12 @@ CREATE TABLE part_images (
 ```
 
 **Key Constraints**:
+
 - **Unique primary per part**: Only one `is_primary = true` per part
 - **Display order**: Allows admin to reorder gallery images
 
 **Storage Path**:
+
 ```
 acr-part-images/
 ├── ACR-001-photo-1.jpg
@@ -298,6 +321,7 @@ CREATE TABLE part_360_frames (
 ```
 
 **Design Notes**:
+
 - **Unique frame per part**: Can't have duplicate frame_number for same part
 - **Server-side optimization**: Images processed to 1200×1200px @ 85% JPEG quality
 - **Storage path**: `acr-part-images/360-viewer/{acr_sku}/frame-NNN.jpg`
@@ -340,6 +364,7 @@ CREATE TABLE site_settings (
 Multi-stage fallback search for maximum hit rate.
 
 **Algorithm**:
+
 ```
 1. Try exact ACR SKU match
    ├─ Found? → Return with match_type='exact_acr', similarity=1.0
@@ -356,6 +381,7 @@ Multi-stage fallback search for maximum hit rate.
 ```
 
 **Returns**:
+
 ```sql
 id, acr_sku, part_type, position_type, abs_type, bolt_pattern,
 drive_type, specifications, created_at, updated_at,
@@ -364,6 +390,7 @@ similarity_score REAL     -- 0.6-1.0 (fuzzy) or 1.0 (exact)
 ```
 
 **Example**:
+
 ```sql
 SELECT * FROM search_by_sku('ACR-MAZA-O01');  -- Typo: O instead of 0
 
@@ -382,6 +409,7 @@ SELECT * FROM search_by_sku('ACR-MAZA-O01');  -- Typo: O instead of 0
 Find parts that fit specific vehicles.
 
 **Algorithm**:
+
 ```sql
 SELECT parts.*
 FROM parts
@@ -393,6 +421,7 @@ WHERE
 ```
 
 **Example**:
+
 ```sql
 SELECT * FROM search_by_vehicle('Ford', 'F-150', 2018);
 
@@ -400,6 +429,7 @@ SELECT * FROM search_by_vehicle('Ford', 'F-150', 2018);
 ```
 
 **UI Workflow**:
+
 1. User selects Make (dropdown)
 2. User selects Model (filtered by Make)
 3. User selects Year (filtered by Make+Model)
@@ -448,6 +478,7 @@ CREATE INDEX idx_part_360_frames_part_frame ON part_360_frames(part_id, frame_nu
 Breaks text into 3-character chunks for similarity matching.
 
 **Example**:
+
 ```
 "ACR-MAZA-001" → ["ACR", "CR-", "R-M", "-MA", "MAZ", "AZA", "ZA-", "A-0", "-00", "001"]
 "ACR-MAZA-O01" → ["ACR", "CR-", "R-M", "-MA", "MAZ", "AZA", "ZA-", "A-O", "-O0", "O01"]
@@ -465,6 +496,7 @@ CREATE INDEX idx_cross_references_competitor_sku_trgm
 ```
 
 **Performance Impact**:
+
 - Without fuzzy index: 500-1000ms for typo searches
 - With fuzzy index: <100ms for typo searches
 
@@ -500,12 +532,14 @@ WHERE schemaname = 'public';
 ### How Migrations Work
 
 **Process**:
+
 1. Write idempotent SQL file (`NNN_descriptive_name.sql`)
 2. Go to [Supabase Dashboard](https://supabase.com/dashboard) → SQL Editor
 3. Paste SQL and click **Run**
 4. Update `src/lib/supabase/migrations/README.md` with status
 
 **Idempotent Pattern**:
+
 ```sql
 -- Safe to re-run
 CREATE TABLE IF NOT EXISTS table_name (...);
@@ -521,6 +555,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 **Status**: ✅ Applied (Initial deployment)
 
 **Created**:
+
 - `parts` table (10 columns)
 - `vehicle_applications` table (7 columns)
 - `cross_references` table (6 columns)
@@ -537,6 +572,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 **Feature**: Category 2 Site Enhancements
 
 **Changes**:
+
 - ✅ Created `part_images` table (8 columns)
 - ✅ Removed `parts.image_url` column (migrated to gallery model)
 - ✅ Added 3 indexes (part_id, display_order, unique primary)
@@ -552,6 +588,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 **Applied**: October 13, 2025
 
 **Changes**:
+
 - Enhanced fuzzy search algorithm
 - Improved similarity scoring
 - Performance optimizations
@@ -564,6 +601,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 **Applied**: October 15, 2025
 
 **Changes**:
+
 - ✅ Created `site_settings` table (singleton pattern)
 - ✅ Pre-populated with default settings
 - ✅ Constraint ensures only one row (`id = 1`)
@@ -578,6 +616,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 **Applied**: October 17, 2025
 
 **Changes**:
+
 - ✅ Added `parts.has_360_viewer` and `parts.viewer_360_frame_count` columns
 - ✅ Created `part_360_frames` table (10 columns)
 - ✅ CHECK constraint: 0-100 frames allowed
@@ -594,7 +633,9 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 **Status**: ✅ Complete
 
 **Changes**:
+
 1. **Created `tenants` table** (6 columns):
+
    ```sql
    - id UUID (PK)
    - name VARCHAR(255)
@@ -621,6 +662,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 5. **RLS Policies**: Public read, Admin write on `tenants` table
 
 **Backward Compatibility**: ✅ Zero breaking changes
+
 - All existing data has `tenant_id = NULL` (default tenant)
 - MVP continues to work in single-tenant mode
 - Future-proofs for multi-tenant SaaS expansion
@@ -636,7 +678,9 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 **Purpose**: Enable 3-snapshot rollback system for bulk Excel imports (Phase 8.2)
 
 **Changes**:
+
 1. **Created `import_history` table** (4 columns):
+
    ```sql
    - id UUID (PK)
    - tenant_id UUID (FK → tenants.id)
@@ -645,6 +689,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
    ```
 
 2. **JSONB snapshot structure**:
+
    ```json
    {
      "timestamp": "2025-10-22T16:45:00Z",
@@ -680,6 +725,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 **Purpose**: Track when parts and related records are last modified for audit trails and cache invalidation.
 
 **Changes**:
+
 1. **Added triggers for automatic `updated_at` updates** on:
    - `parts` table
    - `vehicle_applications` table
@@ -709,6 +755,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 **Purpose**: Ensure data integrity during bulk import operations with all-or-nothing guarantees.
 
 **Changes**:
+
 1. **Wrapped import operations in atomic transactions**
 2. **Added constraint validation** to prevent partial imports
 3. **Enhanced error handling** for FK violations and unique constraints
@@ -729,6 +776,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 **Changes**:
 
 1. **Created `normalize_sku()` database function**:
+
    ```sql
    CREATE OR REPLACE FUNCTION normalize_sku(input_sku TEXT)
    RETURNS TEXT AS $$
@@ -737,11 +785,13 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
    END;
    $$ LANGUAGE plpgsql IMMUTABLE;
    ```
+
    - Strips all non-alphanumeric characters (spaces, hyphens, special chars)
    - Converts to uppercase for case-insensitive matching
    - Marked `IMMUTABLE` for query optimization
 
 2. **Added normalized columns** (auto-populated via triggers):
+
    ```sql
    -- parts table
    ALTER TABLE parts ADD COLUMN acr_sku_normalized VARCHAR(50);
@@ -751,6 +801,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
    ```
 
 3. **Created auto-population triggers**:
+
    ```sql
    CREATE TRIGGER trigger_normalize_part_sku
    BEFORE INSERT OR UPDATE ON parts
@@ -768,6 +819,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
    - Normalized all 7,530+ existing competitor SKUs
 
 5. **Added performance indexes**:
+
    ```sql
    -- Fast exact normalized ACR SKU lookups
    CREATE INDEX idx_parts_acr_sku_normalized ON parts(acr_sku_normalized)
@@ -797,6 +849,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
    ALTER TABLE parts ADD CONSTRAINT check_acr_sku_prefix
    CHECK (acr_sku ~* '^ACR');
    ```
+
    - Ensures all ACR SKUs start with "ACR" (case-insensitive)
    - Migration auto-fixed SKUs without prefix
 
@@ -811,11 +864,13 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 | `Timken-512348` | `TIMKEN512348` |
 
 **Performance Impact**:
+
 - Normalized exact matches: 50-100ms (index lookup)
 - Partial matches: 100-150ms (LIKE with index)
 - Fuzzy fallback: 150-180ms (trigram index scan)
 
 **Business Impact**:
+
 - ✅ Users can search with any SKU format (hyphens, spaces, mixed case)
 - ✅ Auto-adds "ACR" prefix for shorthand searches ("15002" → "ACR-15002")
 - ✅ Handles competitor SKU variations seamlessly
@@ -833,6 +888,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 **Status**: Enabled on all tables
 
 **Current Policies** (MVP - Development-Friendly):
+
 ```sql
 -- Public read access (anyone can search parts)
 CREATE POLICY "Public read" ON parts FOR SELECT USING (true);
@@ -881,6 +937,7 @@ CREATE POLICY "Admin Delete"
 ```
 
 **File Structure**:
+
 ```
 acr-part-images/
 ├── ACR-001.jpg                    (legacy single images)
@@ -900,6 +957,7 @@ acr-part-images/
 ### Post-MVP Security Roadmap
 
 **Planned Enhancements**:
+
 1. ✅ Supabase Auth integration
 2. ✅ Admin-only write policies (replace `USING (true)` with auth check)
 3. ✅ API key restrictions
@@ -913,6 +971,7 @@ acr-part-images/
 ### Fresh Database Setup
 
 **Prerequisites**:
+
 - Supabase project created
 - PostgreSQL 15+
 - `uuid-ossp` and `pg_trgm` extensions available
@@ -920,12 +979,14 @@ acr-part-images/
 **Steps**:
 
 1. **Run Base Schema**:
+
    ```bash
    # In Supabase Dashboard → SQL Editor
    # Copy and run: src/lib/supabase/schema.sql
    ```
 
 2. **Run Migrations** (in order):
+
    ```bash
    # Migration 001
    # Copy and run: src/lib/supabase/migrations/001_add_part_images.sql
@@ -941,6 +1002,7 @@ acr-part-images/
    ```
 
 3. **Verify Tables**:
+
    ```sql
    -- Check all tables exist
    SELECT tablename FROM pg_tables WHERE schemaname = 'public';
@@ -950,6 +1012,7 @@ acr-part-images/
    ```
 
 4. **Update Environment Variables**:
+
    ```bash
    # .env.local
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -966,12 +1029,14 @@ acr-part-images/
 ### Environment Configuration
 
 **Required Variables**:
+
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
 ```
 
 **Development vs Production**:
+
 - Same database for both (Supabase single environment)
 - UI language differs (English dev, Spanish prod)
 - Security policies same (MVP wide-open)
@@ -1066,12 +1131,14 @@ DELETE FROM parts WHERE id = '...';
 ### Performance Monitoring
 
 **Key Metrics**:
+
 - ✅ Search response time: Target <300ms (currently ~150ms avg)
 - ✅ Database connections: Monitor concurrent usage
 - ✅ Index usage: Ensure queries use indexes (not seq scans)
 - ✅ Storage usage: Track image uploads
 
 **Query Analysis**:
+
 ```sql
 -- Find slow queries
 SELECT query, mean_time, calls
@@ -1091,20 +1158,593 @@ ORDER BY seq_tup_read DESC;
 
 ---
 
+## Database Development Workflows
+
+This section explains how to work with the database during daily development, schema changes, and data management.
+
+### Understanding the Architecture
+
+**ACR Automotive uses a PULL-BASED schema workflow:**
+
+```
+Remote TEST Database (Supabase Cloud)
+        ↓
+   Source of Truth
+        ↓
+Apply schema changes here FIRST
+        ↓
+Pull schema diff (auto-generates migration)
+        ↓
+Local Docker Supabase
+        ↓
+Team stays synchronized
+```
+
+**Why remote-first?**
+
+- Catches Supabase-specific features/limitations early
+- Tests RLS policies in real cloud environment
+- Ensures team alignment on schema changes
+- Auto-generates migration SQL (less error-prone than manual)
+
+---
+
+### Local vs Remote Databases
+
+| Environment      | Type        | Purpose                | URL                                        | Data Persistence          |
+| ---------------- | ----------- | ---------------------- | ------------------------------------------ | ------------------------- |
+| **Local Docker** | Development | Day-to-day coding      | `http://localhost:54321`                   | Ephemeral (reset anytime) |
+| **Remote TEST**  | Staging     | Schema source of truth | `https://fzsdaqpwwbuwkvbzyiax.supabase.co` | Persistent                |
+| **Remote PROD**  | Production  | Live customer data     | `https://bzfnqhghtmsiecvvgmkw.supabase.co` | Persistent                |
+
+**Local Supabase Access**:
+
+- API: `http://localhost:54321`
+- Studio (web UI): `http://localhost:54323`
+- Direct DB: `postgresql://postgres:postgres@localhost:54322/postgres`
+
+---
+
+### Daily Development Workflow
+
+**Goal**: Normal day-to-day coding with database access
+
+```bash
+# Morning: Start your environment
+npm run supabase:start   # Start Docker Supabase (if not running)
+npm run dev              # Start Next.js dev server
+
+# During development
+# - Make code changes
+# - Query database via API routes
+# - View data in Supabase Studio (localhost:54323)
+
+# Before committing
+npm run type-check       # Validate TypeScript
+```
+
+**Database state**: Preserved between starts/stops
+
+**If you break something**: `npm run db:restore-snapshot`
+
+---
+
+### Creating & Applying Migrations
+
+**IMPORTANT**: This project uses a **pull-based workflow** where remote TEST is the source of truth!
+
+#### Step 1: Apply Change to Remote TEST First
+
+1. Log into [Supabase Dashboard](https://app.supabase.com)
+2. Select TEST project
+3. Navigate to **SQL Editor**
+4. Write and execute your schema change:
+   ```sql
+   -- Example: Add new column
+   ALTER TABLE parts ADD COLUMN inventory_count INTEGER DEFAULT 0;
+   ```
+5. **Test thoroughly** in remote TEST environment
+6. Verify RLS policies still work
+7. Test with real data
+
+**Why remote first?**
+
+- You're testing in the exact environment that production uses
+- Catches Supabase-specific issues (RLS, extensions, functions)
+- Ensures change works before team sees it
+
+#### Step 2: Pull Schema Diff
+
+Once tested in remote, pull the change to create a migration file:
+
+```bash
+npx supabase db diff --linked -f add_inventory_tracking
+```
+
+**This creates**: `supabase/migrations/YYYYMMDDHHMMSS_add_inventory_tracking.sql`
+
+**What happens**:
+
+- Supabase CLI compares remote TEST schema to your local schema
+- Generates SQL to bring local up to date
+- Saves as timestamped migration file
+
+**Good migration names**:
+
+- `add_inventory_tracking` - Clear what it does
+- `update_parts_search_function` - Describes the change
+- `create_user_roles_table` - Describes what's created
+
+**Bad names**:
+
+- `migration` - Too generic
+- `fix` - What does it fix?
+- `update` - Update what?
+
+#### Step 3: Apply Migration Locally
+
+```bash
+# Apply migration to your local database
+npm run supabase:reset         # Drops DB, re-applies ALL migrations
+npm run db:restore-snapshot    # Restores your local data
+
+# Verify it works
+npm run dev                     # Test the change locally
+```
+
+**What `supabase:reset` does**:
+
+1. Drops all tables and data
+2. Re-runs ALL migrations in `supabase/migrations/` in chronological order
+3. Creates fresh schema
+4. **Deletes your local data** (that's why we restore snapshot after)
+
+#### Step 4: Review & Commit
+
+```bash
+# Review the generated migration
+cat supabase/migrations/20251114*_add_inventory_tracking.sql
+
+# Add to git
+git add supabase/migrations/*.sql
+git commit -m "feat: add inventory tracking to parts table"
+git push
+```
+
+#### Step 5: Team Applies Migration
+
+When team members pull your changes:
+
+```bash
+git pull                       # Get latest code + migrations
+npm run supabase:reset         # Apply all migrations (including new one)
+npm run db:restore-snapshot    # Restore their local data
+```
+
+**See also**: `supabase/migrations/README.md` for detailed migration workflow
+
+---
+
+### Data Management
+
+#### Save Current State (Before Experiments)
+
+Before making risky changes or experiments:
+
+```bash
+npm run db:save-snapshot
+```
+
+**What it does**:
+
+- Exports all parts, vehicle_applications, cross_references
+- Saves to `.snapshots/dev-snapshot.json`
+- Gitignored (personal backup)
+- Non-destructive (safe to run anytime)
+
+**Use before**:
+
+- Testing destructive operations
+- Experimenting with data changes
+- Trying new features that modify data
+- Running unfamiliar scripts
+
+**Time**: ~2 seconds
+
+#### Restore After Breaking Things
+
+```bash
+npm run db:restore-snapshot
+```
+
+**What it does**:
+
+- Deletes current data (in FK order to avoid conflicts)
+- Inserts data from `.snapshots/dev-snapshot.json`
+- Preserves schema/structure
+
+**Requires**: Previously saved snapshot
+
+**Time**: ~1 second
+
+#### Get Fresh Data from Staging
+
+When you need the latest data from remote TEST database:
+
+```bash
+# Option A: Export only (creates seed file for team)
+npm run staging:export         # Creates fixtures/seed-data.sql
+
+# Option B: Export + import to local (one command)
+npm run staging:import         # Exports + imports to local
+
+# After importing, save as baseline
+npm run db:save-snapshot
+```
+
+**Use when**:
+
+- Staging has new parts/data
+- You need production-like data for testing
+- Creating new baseline for team
+
+**Time**: ~15 seconds
+
+#### Seed Data from File
+
+Import team's shared seed data:
+
+```bash
+npm run db:import-seed
+```
+
+**What it does**:
+
+- Imports `fixtures/seed-data.sql` into local database
+- Uses direct PostgreSQL connection (cross-platform, no `psql` needed)
+- **Replaces** existing data
+
+**Seed file contains**:
+
+- 865 parts from ACR catalog
+- 1000 vehicle applications
+- 1000 cross-references
+
+**Use when**:
+
+- First time setup
+- After `supabase:reset`
+- Want team's shared baseline
+
+**Time**: ~5 seconds
+
+---
+
+### Debugging Database Issues
+
+#### View Database in Supabase Studio
+
+Open **http://localhost:54323** in your browser
+
+**You can**:
+
+- Browse all tables and data
+- Run SQL queries
+- View table structure
+- Check indexes
+- Monitor performance
+- View logs
+
+#### Direct PostgreSQL Access
+
+For advanced queries or tools like pgAdmin:
+
+```
+postgresql://postgres:postgres@localhost:54322/postgres
+```
+
+**Use with**:
+
+- pgAdmin
+- psql command line
+- Database GUI tools (TablePlus, DBeaver, etc.)
+
+#### Common Debugging Queries
+
+**Check table sizes**:
+
+```sql
+SELECT
+    schemaname AS schema,
+    tablename AS table,
+    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+```
+
+**Find duplicate SKUs**:
+
+```sql
+SELECT acr_sku, COUNT(*)
+FROM parts
+GROUP BY acr_sku
+HAVING COUNT(*) > 1;
+```
+
+**Check index usage**:
+
+```sql
+SELECT schemaname, tablename, indexname, idx_scan
+FROM pg_stat_user_indexes
+ORDER BY idx_scan DESC;
+```
+
+**Find slow queries** (if pg_stat_statements enabled):
+
+```sql
+SELECT query, mean_time, calls
+FROM pg_stat_statements
+ORDER BY mean_time DESC
+LIMIT 10;
+```
+
+#### View Docker Logs
+
+See what's happening in the database container:
+
+```bash
+npm run supabase:status        # Get container IDs
+docker logs <container-id>     # View logs
+docker logs -f <container-id>  # Follow logs (live)
+```
+
+---
+
+### Production Database Access
+
+⚠️ **DANGER ZONE**: Production database contains real customer data!
+
+#### Safety Checklist
+
+Before accessing production database:
+
+- [ ] Do I have explicit approval?
+- [ ] Is there a backup plan?
+- [ ] Have I tested this in staging first?
+- [ ] Do I understand the rollback procedure?
+- [ ] Is this during low-traffic hours?
+- [ ] Have I communicated with the team?
+
+#### Read-Only Access
+
+**Safe way to check production**:
+
+```bash
+npm run check-prod
+```
+
+**What it does**:
+
+- Connects to production database
+- Runs read-only queries (SELECT only)
+- Reports statistics (part count, vehicle count, etc.)
+- **Cannot modify data**
+
+**Use for**:
+
+- Verifying deployment success
+- Checking data integrity
+- Monitoring database health
+
+#### Write Access
+
+**If you must modify production**:
+
+1. **Get approval** from team lead
+2. **Test in staging** first
+3. **Create backup** (if possible)
+4. **Document the change** in TASKS.md
+5. **Communicate** with team before/after
+6. **Monitor** for errors after change
+
+**Never**:
+
+- ❌ Run `clear-prod` unless you want to lose all data
+- ❌ Apply untested migrations to production
+- ❌ Make schema changes during peak hours
+- ❌ Delete data without backups
+
+---
+
+### Backup & Restore Procedures
+
+#### Local Development Backups
+
+**Daily snapshots** (recommended):
+
+```bash
+npm run db:save-snapshot
+```
+
+**Create named backups** for experiments:
+
+```bash
+# Save before risky change
+npm run db:save-snapshot
+# Snapshot saved to .snapshots/dev-snapshot.json
+
+# If something breaks
+npm run db:restore-snapshot
+```
+
+#### Staging Backups
+
+**Export staging data**:
+
+```bash
+npm run staging:export
+```
+
+**This creates**: `fixtures/seed-data.sql` (can be committed to git)
+
+**Use for**:
+
+- Creating team baseline
+- Before major staging changes
+- Regression testing
+
+#### Production Backups
+
+**Supabase automatic backups**:
+
+- Daily automatic backups (retained 7 days)
+- Point-in-time recovery available
+- Access via Supabase Dashboard
+
+**Manual export** (if needed):
+
+```bash
+# Use Supabase Dashboard:
+# Settings → Database → Backups → Download
+```
+
+---
+
+### Data Seeding Strategies
+
+**When to use each approach**:
+
+| Approach              | Use When                        | Speed          | Data Source                    |
+| --------------------- | ------------------------------- | -------------- | ------------------------------ |
+| `db:import-seed`      | First-time setup, team baseline | Fast (5s)      | `fixtures/seed-data.sql`       |
+| `staging:import`      | Need latest staging data        | Medium (15s)   | Remote TEST DB                 |
+| `db:restore-snapshot` | Restore personal backup         | Very fast (1s) | `.snapshots/dev-snapshot.json` |
+| `staging:export`      | Update team seed file           | Medium (10s)   | Remote TEST → file             |
+
+**Data flow**:
+
+```
+Remote TEST DB
+    ↓ staging:export
+fixtures/seed-data.sql (committed to git)
+    ↓ db:import-seed
+Local Docker Supabase
+    ↓ db:save-snapshot
+.snapshots/dev-snapshot.json (gitignored)
+    ↓ db:restore-snapshot
+Local Docker Supabase
+```
+
+---
+
+### Troubleshooting Workflows
+
+#### "Lost my data after supabase:reset"
+
+**Cause**: `supabase:reset` wipes all data to apply fresh migrations
+
+**Solution**:
+
+```bash
+# If you saved a snapshot:
+npm run db:restore-snapshot
+
+# Otherwise, use team seed file:
+npm run db:import-seed
+
+# Or pull from staging:
+npm run staging:import
+```
+
+**Prevention**: Always `db:save-snapshot` before `supabase:reset`
+
+#### "Schema migration failed"
+
+**Cause**: Migration SQL has errors or conflicts
+
+**Solution**:
+
+```bash
+# Nuclear option - fresh start
+npm run supabase:stop
+rm -rf .supabase               # Delete local Supabase state
+npm run supabase:start         # Fresh start
+npm run db:import-seed         # Restore data
+```
+
+#### "My local schema differs from team"
+
+**Cause**: Pulled new code with migrations you haven't applied
+
+**Check for drift**:
+
+```bash
+npx supabase db diff --linked  # Shows differences
+```
+
+**Solution**:
+
+```bash
+git pull                       # Get latest migrations
+npm run supabase:reset         # Apply all migrations
+npm run db:restore-snapshot    # Restore your data
+```
+
+#### "Types don't match database"
+
+**Cause**: TypeScript types out of sync with database schema
+
+**Solution**:
+
+```bash
+npm run types:generate         # Regenerate from TEST database
+npm run type-check             # Verify types are correct
+```
+
+**When to run**:
+
+- After schema changes
+- After pulling team migrations
+- When seeing TypeScript errors about database types
+
+---
+
+### Quick Command Reference
+
+| Task                | Command                                 | Time |
+| ------------------- | --------------------------------------- | ---- |
+| Start database      | `npm run supabase:start`                | 10s  |
+| Stop database       | `npm run supabase:stop`                 | 2s   |
+| Save current data   | `npm run db:save-snapshot`              | 2s   |
+| Restore data        | `npm run db:restore-snapshot`           | 1s   |
+| Apply migrations    | `npm run supabase:reset`                | 10s  |
+| Check schema drift  | `npx supabase db diff --linked`         | 5s   |
+| Pull schema changes | `npx supabase db diff --linked -f name` | 5s   |
+| Import seed data    | `npm run db:import-seed`                | 5s   |
+| Get staging data    | `npm run staging:import`                | 15s  |
+| Update types        | `npm run types:generate`                | 5s   |
+| View database       | Open `http://localhost:54323`           | -    |
+
+---
+
 ## Related Documentation
 
 ### Database Files
+
 - **[schema.sql](../../src/lib/supabase/schema.sql)** - Base schema SQL
 - **[migrations/](../../src/lib/supabase/migrations/)** - All migration files
 - **[types.ts](../../src/lib/supabase/types.ts)** - TypeScript types (auto-generated)
 
 ### Architecture Documentation
+
 - **[Architecture Overview](../architecture/OVERVIEW.md)** - Database layer in system architecture
 - **[Data Flow](../architecture/DATA_FLOW.md)** - How database fits in request lifecycle
 - **[Validation](../architecture/VALIDATION.md)** - Zod schemas that validate database operations
 - **[API Design](../architecture/API_DESIGN.md)** - API routes that query the database
 
 ### Project Documentation
+
 - **[PLANNING.md](../PLANNING.md)** - Overall project architecture and tech stack rationale
 - **[TASKS.md](../TASKS.md)** - Current development status
 

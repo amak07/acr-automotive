@@ -26,27 +26,28 @@
    - Work completed summary
    - Git statistics (lines changed, files modified, commits)
 
-**Automated hooks will:**
-- Load project context on session start
-- Run session tracker automatically (start/pause/continue/end)
-- Detect large features (>500 lines changed)
-- Remind about documentation after git commits
-- Protect sensitive files from accidental modification
-- Track actual work time vs break time for honest billing
+**Pre-commit hooks (configured):**
+
+- Run lint-staged (ESLint + Prettier) on staged files
+- Ensure code quality before commits
+- Auto-format TypeScript, JSON, and Markdown files
 
 ## 📁 Key File Locations
 
 ### Documentation
 
 - `docs/PLANNING.md` - Architecture & tech stack
+- `docs/database/DATABASE.md` - Complete database reference & workflows ⭐
 - `docs/TASKS.md` - Development roadmap
 - `docs/ENHANCEMENTS.md` - Future improvements
 - `docs/TESTING.md` - Testing strategy
 - `README.md` - Project overview & setup
+- `SCRIPTS.md` - NPM scripts organized by workflow
 
 ### Technical References
 
-- `src/lib/supabase/schema.sql` - Complete database schema
+- `supabase/migrations/` - Schema migrations (pull-based workflow)
+- `archive/migrations/` - Historical schema files (learning reference)
 - `src/components/acr/README.md` - Design system documentation
 - `scripts/` - Database bootstrap and utility scripts
 
@@ -81,10 +82,36 @@
 
 ## 🔧 Technical Notes
 
-- **Database**: 3-table design (parts, vehicle_applications, cross_references)
+- **Database**: 8-table design (parts, vehicle_applications, cross_references, part_images, part_360_frames, site_settings, tenants, import_history)
 - **Performance target**: Sub-300ms search response times
 - **Mobile focus**: Tablet-optimized for parts counter staff
 - **Authentication**: MVP password protection (production upgrade planned)
+
+## 🗄️ Database Workflow (IMPORTANT)
+
+**Schema Management**: Pull-based workflow
+
+1. Remote TEST database is source of truth
+2. Apply changes to remote TEST first
+3. Pull schema: `npx supabase db diff --linked -f description`
+4. Commit migration file to git
+5. Team applies: `npm run supabase:reset`
+
+**Daily Development**:
+
+- Local Docker Supabase for development
+- Seed data from `fixtures/seed-data.sql`
+- Snapshot system for quick backup/restore
+
+**Key Commands**:
+
+- `npm run db:save-snapshot` - Save current data (before experiments)
+- `npm run db:restore-snapshot` - Restore from snapshot
+- `npm run supabase:reset` - Apply migrations (wipes data!)
+- `npm run db:import-seed` - Load seed data
+- `npm run staging:import` - Get latest from remote TEST
+
+See `docs/database/DATABASE.md` → "Database Development Workflows" for complete guide.
 
 ## 🚨 Critical Rules
 
