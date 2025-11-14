@@ -718,6 +718,33 @@ npm run db:import-seed
 
 ---
 
+### "Bucket not found" when uploading images
+
+**Problem**: Photo or 360° frame upload fails with "Bucket not found" error
+
+**Root Cause**: Storage buckets are NOT captured in migrations (only database schema is)
+
+**Solution**:
+
+```bash
+# 1. Verify bucket is configured in supabase/config.toml
+cat supabase/config.toml | grep -A 5 "acr-part-images"
+
+# 2. If missing, bucket config should already be there (check git history)
+# 3. Restart Supabase to create the bucket
+npm run supabase:stop
+npm run supabase:start
+
+# 4. Verify bucket exists in Studio
+# Open http://localhost:54323 → Storage → Should see "acr-part-images"
+
+# 5. Try upload again
+```
+
+**Why this happens**: `npx supabase db diff` only syncs PostgreSQL schema, not Storage service configuration. Buckets must be explicitly configured in `supabase/config.toml`.
+
+---
+
 ## 💡 Tips & Best Practices
 
 ### Snapshots

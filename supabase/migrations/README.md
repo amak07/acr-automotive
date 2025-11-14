@@ -149,7 +149,64 @@ npm run db:restore-snapshot
 
 **For production rollback**: Requires careful planning and testing!
 
+## Important Limitations
+
+### Storage Buckets Are NOT in Migrations
+
+⚠️ **Critical**: `npx supabase db diff` only captures **DATABASE schema** (PostgreSQL), not Storage service configuration.
+
+**What this means**:
+
+- Storage buckets must be configured in `supabase/config.toml`
+- Migrations only capture tables, functions, indexes, RLS policies, etc.
+- Storage configuration does NOT sync automatically between environments
+
+**How to configure buckets**:
+
+Edit `supabase/config.toml` and add bucket configuration:
+
+```toml
+[storage.buckets.acr-part-images]
+public = true
+file_size_limit = "10MiB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]
+```
+
+**Best practice**:
+
+1. Create buckets manually in remote TEST via Dashboard
+2. Document bucket configuration in `supabase/config.toml`
+3. Commit config.toml changes to git
+4. Team members get bucket config automatically on `supabase:start`
+
+**Verifying buckets exist**:
+
+```bash
+npm run supabase:start
+# Open http://localhost:54323 (Supabase Studio)
+# Navigate to Storage → Check for "acr-part-images" bucket
+```
+
 ## Troubleshooting
+
+### "Bucket not found" error
+
+**Problem**: Upload fails with "Bucket not found" error
+
+**Solution**:
+
+```bash
+# Check if bucket is configured in supabase/config.toml
+cat supabase/config.toml | grep -A 5 "acr-part-images"
+
+# If missing, add the configuration (see "Storage Buckets" section above)
+
+# Restart Supabase to apply changes
+npm run supabase:stop
+npm run supabase:start
+
+# Verify in Studio (http://localhost:54323 → Storage)
+```
 
 ### "Migration failed to apply"
 

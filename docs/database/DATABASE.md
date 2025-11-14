@@ -845,6 +845,7 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
    - **Stage 6**: Fuzzy fallback using original SKUs (trigram similarity > 0.6)
 
 7. **Added ACR prefix constraint**:
+
    ```sql
    ALTER TABLE parts ADD CONSTRAINT check_acr_sku_prefix
    CHECK (acr_sku ~* '^ACR');
@@ -1046,6 +1047,46 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
 ## Troubleshooting
 
 ### Common Issues
+
+#### Storage Bucket Not Found
+
+**Problem**: Photo or 360° frame upload fails with "Bucket not found" error in local development.
+
+**Root Cause**: Storage buckets are NOT captured in migrations. `npx supabase db diff` only syncs PostgreSQL schema, not Storage service configuration.
+
+**Solution**:
+
+1. **Verify bucket configuration** in `supabase/config.toml`:
+
+   ```bash
+   cat supabase/config.toml | grep -A 5 "acr-part-images"
+   ```
+
+2. **Bucket should be configured** (already in config):
+
+   ```toml
+   [storage.buckets.acr-part-images]
+   public = true
+   file_size_limit = "10MiB"
+   allowed_mime_types = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]
+   ```
+
+3. **Restart Supabase** to create the bucket:
+
+   ```bash
+   npm run supabase:stop
+   npm run supabase:start
+   ```
+
+4. **Verify bucket exists** in Studio:
+   - Open `http://localhost:54323`
+   - Navigate to Storage → Should see `acr-part-images` bucket
+
+**Why this happens**: Migrations (PostgreSQL schema) ≠ Storage configuration (Supabase service). Always configure buckets in `supabase/config.toml` and commit to git.
+
+**See also**: `supabase/migrations/README.md` → "Storage Buckets Are NOT in Migrations"
+
+---
 
 #### Reserved Word Errors
 
