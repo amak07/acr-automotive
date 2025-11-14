@@ -17,6 +17,7 @@ import {
 } from "./schemas";
 import { PostgrestError } from "@supabase/supabase-js";
 import { z } from "zod";
+import { normalizeSku } from "@/lib/utils/sku-utils";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -24,12 +25,17 @@ export async function GET(request: NextRequest) {
 
   try {
     const params: AdminPartsQueryParams = querySchema.parse(rawParams);
-    if (params.id) {
+    if (params.id || rawParams.sku) {
+      const lookupField = rawParams.sku ? "acr_sku" : "id";
+      const lookupValue = rawParams.sku
+        ? normalizeSku(rawParams.sku)
+        : params.id;
+
       // Query 1: Get the part
       const { data: partData, error: partError } = await supabase
         .from("parts")
         .select("*")
-        .eq("id", params.id)
+        .eq(lookupField, lookupValue)
         .single();
 
       if (partError) throw partError;
@@ -37,11 +43,14 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Part not found" }, { status: 404 });
       }
 
+      // Use the part's UUID for related queries
+      const partId = partData.id;
+
       // Query 2: Get vehicle applications
       const { data: vehicleApps, error: vehicleError } = await supabase
         .from("vehicle_applications")
         .select("*")
-        .eq("part_id", params.id);
+        .eq("part_id", partId);
 
       if (vehicleError) throw vehicleError;
 
@@ -49,7 +58,7 @@ export async function GET(request: NextRequest) {
       const { data: crossRefs, error: crossError } = await supabase
         .from("cross_references")
         .select("*")
-        .eq("acr_part_id", params.id);
+        .eq("acr_part_id", partId);
 
       if (crossError) throw crossError;
 
@@ -168,7 +177,7 @@ export async function POST(request: NextRequest) {
       specifications,
     } = params;
     // Add ACR prefix if not already present (prevent double-prefix)
-    const acr_sku = sku_number.toUpperCase().startsWith('ACR')
+    const acr_sku = sku_number.toUpperCase().startsWith("ACR")
       ? sku_number
       : `ACR${sku_number}`;
     const {

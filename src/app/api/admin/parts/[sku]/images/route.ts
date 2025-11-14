@@ -2,25 +2,38 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import { Tables, TablesInsert } from "@/lib/supabase/types";
 import { PostgrestError } from "@supabase/supabase-js";
+import { normalizeSku } from "@/lib/utils/sku-utils";
 
 type PartImage = Tables<"part_images">;
 
 /**
- * GET /api/admin/parts/[id]/images
+ * GET /api/admin/parts/[sku]/images
  * Get all images for a specific part
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ sku: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { sku } = await params;
+    const normalizedSku = normalizeSku(sku);
+
+    // Lookup part ID by SKU
+    const { data: part, error: partError } = await supabase
+      .from("parts")
+      .select("id")
+      .eq("acr_sku", normalizedSku)
+      .single();
+
+    if (partError || !part) {
+      return NextResponse.json({ error: "Part not found" }, { status: 404 });
+    }
 
     // Fetch all images for this part, ordered by display_order
     const { data, error } = await supabase
       .from("part_images")
       .select("*")
-      .eq("part_id", id)
+      .eq("part_id", part.id)
       .order("display_order", { ascending: true });
 
     if (error) throw error;
@@ -36,36 +49,36 @@ export async function GET(
 }
 
 /**
- * POST /api/admin/parts/[id]/images
+ * POST /api/admin/parts/[sku]/images
  * Upload multiple images for a part
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ sku: string }> }
 ) {
   try {
-    const { id: partId } = await params;
+    const { sku } = await params;
+    const normalizedSku = normalizeSku(sku);
 
-    // Verify part exists
+    // Lookup part ID by SKU
     const { data: part, error: partError } = await supabase
       .from("parts")
       .select("id")
-      .eq("id", partId)
+      .eq("acr_sku", normalizedSku)
       .single();
 
     if (partError || !part) {
       return NextResponse.json({ error: "Part not found" }, { status: 404 });
     }
 
+    const partId = part.id;
+
     // Parse form data
     const formData = await request.formData();
     const files = formData.getAll("files") as File[];
 
     if (!files || files.length === 0) {
-      return NextResponse.json(
-        { error: "No files provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }
 
     // Check current image count (max 6 images per part)
@@ -89,16 +102,17 @@ export async function POST(
     if (files.length > remainingSlots) {
       return NextResponse.json(
         {
-          error: `Can only upload ${remainingSlots} more image(s). Maximum ${MAX_IMAGES} images per part.`
+          error: `Can only upload ${remainingSlots} more image(s). Maximum ${MAX_IMAGES} images per part.`,
         },
         { status: 400 }
       );
     }
 
     // New images are added at the end (highest display_order + 1)
-    let nextOrder = existingImages && existingImages.length > 0
-      ? existingImages[0].display_order + 1
-      : 0;
+    let nextOrder =
+      existingImages && existingImages.length > 0
+        ? existingImages[0].display_order + 1
+        : 0;
 
     const uploadedImages: PartImage[] = [];
 

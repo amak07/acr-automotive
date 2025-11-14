@@ -44,7 +44,7 @@ function PartCreatePage() {
 
       // Redirect to the newly created part's edit page
       if (result && result.length > 0) {
-        router.push(`/admin/parts/${result[0].id}`);
+        router.push(`/admin/parts/${encodeURIComponent(result[0].acr_sku)}`);
       } else {
         // Fallback to parts list
         router.push("/admin/parts" as any);

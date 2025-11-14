@@ -12,10 +12,10 @@ import { AcrButton } from "@/components/acr";
 type PartImage = Tables<"part_images">;
 
 interface PartImagesManagerProps {
-  partId: string;
+  partSku: string;
 }
 
-export function PartImagesManager({ partId }: PartImagesManagerProps) {
+export function PartImagesManager({ partSku }: PartImagesManagerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { t } = useLocale();
@@ -25,9 +25,11 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
 
   // Fetch existing images
   const { data: images } = useQuery({
-    queryKey: ["part-images", partId],
+    queryKey: ["part-images", partSku],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/parts/${partId}/images`);
+      const res = await fetch(
+        `/api/admin/parts/${encodeURIComponent(partSku)}/images`
+      );
       if (!res.ok) throw new Error("Failed to fetch images");
       const json = await res.json();
       return json.data as PartImage[];
@@ -45,10 +47,13 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
         formData.append("files", file);
       });
 
-      const response = await fetch(`/api/admin/parts/${partId}/images`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `/api/admin/parts/${encodeURIComponent(partSku)}/images`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json();
@@ -60,18 +65,23 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
     onSuccess: (data) => {
       toast({
         title: t("common.success"),
-        description: t("partDetails.images.uploadSuccess").replace("{{count}}", String(data.count)),
+        description: t("partDetails.images.uploadSuccess").replace(
+          "{{count}}",
+          String(data.count)
+        ),
         variant: "success",
       });
-      queryClient.invalidateQueries({ queryKey: ["part-images", partId] });
+      queryClient.invalidateQueries({ queryKey: ["part-images", partSku] });
       // Invalidate ALL public parts queries using predicate
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey as string[];
           return key[0] === "public" && key[1] === "parts" && key[2] === "list";
-        }
+        },
       });
-      queryClient.invalidateQueries({ queryKey: ["part-images-public", partId] });
+      queryClient.invalidateQueries({
+        queryKey: ["part-images-public", partSku],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -85,11 +95,14 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
   // Reorder images mutation
   const reorderMutation = useMutation({
     mutationFn: async (imageIds: string[]) => {
-      const response = await fetch(`/api/admin/parts/${partId}/images/reorder`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image_ids: imageIds }),
-      });
+      const response = await fetch(
+        `/api/admin/parts/${encodeURIComponent(partSku)}/images/reorder`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image_ids: imageIds }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to reorder images");
@@ -100,16 +113,18 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
     onSuccess: () => {
       console.log("[DEBUG] Reorder success - invalidating queries");
       // Invalidate part images
-      queryClient.invalidateQueries({ queryKey: ["part-images", partId] });
+      queryClient.invalidateQueries({ queryKey: ["part-images", partSku] });
       // Invalidate ALL public parts list queries using predicate
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey as string[];
           return key[0] === "public" && key[1] === "parts" && key[2] === "list";
-        }
+        },
       });
       // Invalidate public part details
-      queryClient.invalidateQueries({ queryKey: ["part-images-public", partId] });
+      queryClient.invalidateQueries({
+        queryKey: ["part-images-public", partSku],
+      });
       console.log("[DEBUG] All queries invalidated");
     },
     onError: (error: Error) => {
@@ -125,7 +140,7 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
   const setPrimaryMutation = useMutation({
     mutationFn: async (imageId: string) => {
       const response = await fetch(
-        `/api/admin/parts/${partId}/images/${imageId}/primary`,
+        `/api/admin/parts/${encodeURIComponent(partSku)}/images/${imageId}/primary`,
         {
           method: "PUT",
         }
@@ -143,7 +158,7 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
         description: t("partDetails.images.setPrimarySuccess"),
         variant: "success",
       });
-      queryClient.invalidateQueries({ queryKey: ["part-images", partId] });
+      queryClient.invalidateQueries({ queryKey: ["part-images", partSku] });
     },
     onError: (error: Error) => {
       toast({
@@ -157,11 +172,14 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
   // Delete image mutation
   const deleteMutation = useMutation({
     mutationFn: async (imageId: string) => {
-      console.log("[DEBUG] Deleting image:", imageId, "from part:", partId);
+      console.log("[DEBUG] Deleting image:", imageId, "from part:", partSku);
 
-      const response = await fetch(`/api/admin/parts/${partId}/images/${imageId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/admin/parts/${encodeURIComponent(partSku)}/images/${imageId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       console.log("[DEBUG] Delete response status:", response.status);
 
@@ -176,21 +194,26 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
       return result;
     },
     onSuccess: (_data, imageId) => {
-      console.log("[DEBUG] Delete mutation onSuccess called for imageId:", imageId);
+      console.log(
+        "[DEBUG] Delete mutation onSuccess called for imageId:",
+        imageId
+      );
       toast({
         title: t("common.success"),
         description: t("partDetails.images.deleteSuccess"),
         variant: "success",
       });
-      queryClient.invalidateQueries({ queryKey: ["part-images", partId] });
+      queryClient.invalidateQueries({ queryKey: ["part-images", partSku] });
       // Invalidate ALL public parts queries using predicate
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey as string[];
           return key[0] === "public" && key[1] === "parts" && key[2] === "list";
-        }
+        },
       });
-      queryClient.invalidateQueries({ queryKey: ["part-images-public", partId] });
+      queryClient.invalidateQueries({
+        queryKey: ["part-images-public", partSku],
+      });
       console.log("[DEBUG] All queries invalidated after delete");
     },
     onError: (error: Error) => {
@@ -202,7 +225,6 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
       });
     },
   });
-
 
   const handleUploadClick = () => {
     if (isAtMaxCapacity) {
@@ -251,7 +273,10 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
     if (validFiles.length > remainingSlots) {
       toast({
         title: t("partDetails.images.tooMany"),
-        description: t("partDetails.images.remainingSlots").replace("{{count}}", String(remainingSlots)),
+        description: t("partDetails.images.remainingSlots").replace(
+          "{{count}}",
+          String(remainingSlots)
+        ),
         variant: "destructive",
       });
       validFiles.splice(remainingSlots); // Keep only what fits
@@ -317,7 +342,9 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
             disabled={isAtMaxCapacity || uploadMutation.isPending}
           >
             <Plus className="w-4 h-4" />
-            {uploadMutation.isPending ? t("partDetails.images.uploading") : t("partDetails.images.uploadButton")}
+            {uploadMutation.isPending
+              ? t("partDetails.images.uploading")
+              : t("partDetails.images.uploadButton")}
           </AcrButton>
         </div>
 
@@ -343,7 +370,9 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
             disabled={isAtMaxCapacity || uploadMutation.isPending}
           >
             <Plus className="w-4 h-4" />
-            {uploadMutation.isPending ? t("partDetails.images.uploading") : t("partDetails.images.uploadButton")}
+            {uploadMutation.isPending
+              ? t("partDetails.images.uploading")
+              : t("partDetails.images.uploadButton")}
           </AcrButton>
         </div>
       </div>
@@ -351,7 +380,10 @@ export function PartImagesManager({ partId }: PartImagesManagerProps) {
       <div data-testid="part-images-content">
         {imageCount === 0 ? (
           // Empty state
-          <div className="flex items-center justify-center py-12 border-2 border-dashed border-acr-gray-200 rounded-lg" data-testid="part-images-empty-state">
+          <div
+            className="flex items-center justify-center py-12 border-2 border-dashed border-acr-gray-200 rounded-lg"
+            data-testid="part-images-empty-state"
+          >
             <div className="text-center">
               <Upload className="w-12 h-12 text-acr-gray-400 mx-auto mb-4" />
               <h3 className="acr-heading-6 text-acr-gray-900 mb-2">

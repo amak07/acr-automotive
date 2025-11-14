@@ -145,7 +145,9 @@ export function PartDetailsHeader({
           {/* Mobile Action Buttons */}
           <div className="flex gap-2">
             <Link
-              href={partId ? `/parts/${partId}?from=admin` : "#"}
+              href={
+                acrSku ? `/parts/${encodeURIComponent(acrSku)}?from=admin` : "#"
+              }
               className="flex-1"
             >
               <AcrButton
@@ -153,7 +155,7 @@ export function PartDetailsHeader({
                 size="sm"
                 className="w-full"
                 type="button"
-                disabled={!partId}
+                disabled={!acrSku}
               >
                 <Eye className="w-4 h-4" />
               </AcrButton>
@@ -193,9 +195,7 @@ export function PartDetailsHeader({
             </div>
             <div className="flex items-center gap-6">
               <div>
-                <h3 className="acr-heading-6 text-acr-gray-900">
-                  {acrSku}
-                </h3>
+                <h3 className="acr-heading-6 text-acr-gray-900">{acrSku}</h3>
                 {partType && (
                   <p className="text-sm text-acr-gray-600">
                     <span className="mr-1">
@@ -235,12 +235,16 @@ export function PartDetailsHeader({
 
           {/* Desktop Action Buttons */}
           <div className="flex items-center gap-3">
-            <Link href={partId ? `/parts/${partId}?from=admin` : "#"}>
+            <Link
+              href={
+                acrSku ? `/parts/${encodeURIComponent(acrSku)}?from=admin` : "#"
+              }
+            >
               <AcrButton
                 variant="secondary"
                 size="default"
                 type="button"
-                disabled={!partId}
+                disabled={!acrSku}
               >
                 <Eye className="w-4 h-4 mr-2" />
                 {t("partDetails.actions.preview")}

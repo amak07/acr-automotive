@@ -141,7 +141,7 @@ export function PartFormContainer({
           {/* Only show applications, images, and cross-references in edit mode - they need existing part_id */}
           {mode === "edit" && partData && (
             <>
-              <PartMediaManager partId={partData.id || ""} />
+              <PartMediaManager partSku={partData.acr_sku || ""} />
 
               <PartApplications
                 vehicleCount={partData.vehicle_count || 0}

@@ -7,9 +7,9 @@ import { usePublicPartById } from "@/hooks";
 
 export default function PublicPartDetailsPage() {
   const params = useParams();
-  const id = params.id as string;
+  const sku = params.sku as string;
 
-  const { data: part, isLoading, error } = usePublicPartById(id);
+  const { data: part, isLoading, error } = usePublicPartById(sku);
 
   return (
     <div className="min-h-screen bg-acr-gray-100">

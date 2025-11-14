@@ -2,7 +2,14 @@
 
 import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { RotateCw, Upload, Plus, Trash2, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  RotateCw,
+  Upload,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
 import { useToast } from "@/hooks/common/use-toast";
 import { useLocale } from "@/contexts/LocaleContext";
 import { AcrButton } from "@/components/acr";
@@ -26,7 +33,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 interface Upload360ViewerProps {
-  partId: string;
+  partSku: string;
 }
 
 interface Frame360 {
@@ -79,10 +86,10 @@ function SortablePreviewItem({
       style={style}
       className={`relative bg-white border-2 rounded-lg overflow-hidden transition-all ${
         isDragging
-          ? 'opacity-50 border-blue-500 shadow-lg scale-105'
+          ? "opacity-50 border-blue-500 shadow-lg scale-105"
           : isSelected
-          ? 'opacity-100 border-acr-gray-200 hover:border-blue-500 hover:shadow-md'
-          : 'opacity-50 border-dashed border-acr-gray-300'
+            ? "opacity-100 border-acr-gray-200 hover:border-blue-500 hover:shadow-md"
+            : "opacity-50 border-dashed border-acr-gray-300"
       }`}
     >
       {/* Preview image - draggable area */}
@@ -97,7 +104,7 @@ function SortablePreviewItem({
             src={previewFile.preview}
             alt={`Frame ${index}`}
             className={`w-full h-full object-cover transition-all ${
-              isSelected ? '' : 'grayscale'
+              isSelected ? "" : "grayscale"
             }`}
           />
         </div>
@@ -125,9 +132,11 @@ function SortablePreviewItem({
 
       {/* File name */}
       <div className="p-2 bg-white">
-        <p className={`text-xs truncate transition-colors ${
-          isSelected ? 'text-acr-gray-600' : 'text-acr-gray-400'
-        }`}>
+        <p
+          className={`text-xs truncate transition-colors ${
+            isSelected ? "text-acr-gray-600" : "text-acr-gray-400"
+          }`}
+        >
           {previewFile.file.name}
         </p>
       </div>
@@ -139,13 +148,15 @@ function SortablePreviewItem({
  * Upload interface for 360° viewer frames
  * Follows all-or-nothing approach: upload all frames at once or delete entire viewer
  */
-export function Upload360Viewer({ partId }: Upload360ViewerProps) {
+export function Upload360Viewer({ partSku }: Upload360ViewerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { t } = useLocale();
   const queryClient = useQueryClient();
-  const [uploadingFrameCount, setUploadingFrameCount] = useState<number | null>(null);
+  const [uploadingFrameCount, setUploadingFrameCount] = useState<number | null>(
+    null
+  );
   const [previewFiles, setPreviewFiles] = useState<PreviewFile[]>([]);
 
   const MIN_FRAMES = 12;
@@ -154,7 +165,10 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
 
   // Scroll to viewer section
   const scrollToViewer = () => {
-    containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    containerRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   };
 
   // DND sensors for drag and drop
@@ -167,9 +181,11 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
 
   // Fetch existing 360° frames
   const { data: framesData } = useQuery({
-    queryKey: ["part-360-frames", partId],
+    queryKey: ["part-360-frames", partSku],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/parts/${partId}/360-frames`);
+      const res = await fetch(
+        `/api/admin/parts/${encodeURIComponent(partSku)}/360-frames`
+      );
       if (!res.ok) throw new Error("Failed to fetch 360 frames");
       return res.json() as Promise<{ frames: Frame360[]; count: number }>;
     },
@@ -189,10 +205,13 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
 
       setUploadingFrameCount(files.length);
 
-      const response = await fetch(`/api/admin/parts/${partId}/360-frames`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `/api/admin/parts/${encodeURIComponent(partSku)}/360-frames`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json();
@@ -215,8 +234,10 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
         variant: "success",
       });
 
-      queryClient.invalidateQueries({ queryKey: ["part-360-frames", partId] });
-      queryClient.invalidateQueries({ queryKey: ["part-360-frames-public", partId] });
+      queryClient.invalidateQueries({ queryKey: ["part-360-frames", partSku] });
+      queryClient.invalidateQueries({
+        queryKey: ["part-360-frames-public", partSku],
+      });
       // Invalidate public parts queries
       queryClient.invalidateQueries({
         predicate: (query) => {
@@ -241,9 +262,12 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
   // Delete viewer mutation
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/admin/parts/${partId}/360-frames`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/admin/parts/${encodeURIComponent(partSku)}/360-frames`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json();
@@ -258,8 +282,10 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
         description: t("partDetails.viewer360.deleteSuccess"),
         variant: "success",
       });
-      queryClient.invalidateQueries({ queryKey: ["part-360-frames", partId] });
-      queryClient.invalidateQueries({ queryKey: ["part-360-frames-public", partId] });
+      queryClient.invalidateQueries({ queryKey: ["part-360-frames", partSku] });
+      queryClient.invalidateQueries({
+        queryKey: ["part-360-frames-public", partSku],
+      });
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey as string[];
@@ -298,9 +324,13 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
 
     Array.from(files).forEach((file) => {
       if (!file.type.startsWith("image/")) {
-        invalidFiles.push(`${file.name} (${t("partDetails.viewer360.invalidFileType")})`);
+        invalidFiles.push(
+          `${file.name} (${t("partDetails.viewer360.invalidFileType")})`
+        );
       } else if (file.size > MAX_FILE_SIZE) {
-        invalidFiles.push(`${file.name} (${t("partDetails.viewer360.fileSizeError")})`);
+        invalidFiles.push(
+          `${file.name} (${t("partDetails.viewer360.fileSizeError")})`
+        );
       } else {
         validFiles.push(file);
       }
@@ -354,7 +384,10 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
     if (selectedFiles.length < MIN_FRAMES) {
       toast({
         title: t("partDetails.viewer360.validationError"),
-        description: t("partDetails.viewer360.minFramesError").replace("{{min}}", String(MIN_FRAMES)),
+        description: t("partDetails.viewer360.minFramesError").replace(
+          "{{min}}",
+          String(MIN_FRAMES)
+        ),
         variant: "destructive",
       });
       return;
@@ -490,7 +523,9 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
                     variant="secondary"
                     size="sm"
                     onClick={handleUploadClick}
-                    disabled={uploadMutation.isPending || deleteMutation.isPending}
+                    disabled={
+                      uploadMutation.isPending || deleteMutation.isPending
+                    }
                     className="w-full sm:w-auto"
                   >
                     {t("partDetails.viewer360.replaceButton")}
@@ -499,7 +534,9 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
                     variant="destructive"
                     size="sm"
                     onClick={handleDelete}
-                    disabled={deleteMutation.isPending || uploadMutation.isPending}
+                    disabled={
+                      deleteMutation.isPending || uploadMutation.isPending
+                    }
                     className="w-full sm:w-auto"
                   >
                     {deleteMutation.isPending ? (
@@ -536,7 +573,9 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
           <div className="space-y-4">
             {/* Warning banners - TOP */}
             {(() => {
-              const selectedCount = previewFiles.filter(f => f.selected).length;
+              const selectedCount = previewFiles.filter(
+                (f) => f.selected
+              ).length;
 
               if (selectedCount < MIN_FRAMES) {
                 return (
@@ -547,10 +586,14 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
                           ⚠️ Upload Blocked
                         </p>
                         <p className="text-xs sm:text-sm text-red-800 mb-2">
-                          {t("partDetails.viewer360.minFramesError").replace("{{count}}", String(MIN_FRAMES))}
+                          {t("partDetails.viewer360.minFramesError").replace(
+                            "{{count}}",
+                            String(MIN_FRAMES)
+                          )}
                         </p>
                         <p className="text-xs sm:text-sm font-semibold text-red-700">
-                          Selected: {selectedCount} / {MIN_FRAMES} minimum required
+                          Selected: {selectedCount} / {MIN_FRAMES} minimum
+                          required
                         </p>
                       </div>
                     </div>
@@ -565,10 +608,13 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
                           ⚡ Below Recommended
                         </p>
                         <p className="text-xs sm:text-sm text-yellow-800 mb-2">
-                          {t("partDetails.viewer360.recommendedWarning").replace("{{count}}", String(RECOMMENDED_FRAMES))}
+                          {t(
+                            "partDetails.viewer360.recommendedWarning"
+                          ).replace("{{count}}", String(RECOMMENDED_FRAMES))}
                         </p>
                         <p className="text-xs text-yellow-700">
-                          {selectedCount} / {RECOMMENDED_FRAMES} recommended • {t("partDetails.viewer360.dragToReorder")}
+                          {selectedCount} / {RECOMMENDED_FRAMES} recommended •{" "}
+                          {t("partDetails.viewer360.dragToReorder")}
                         </p>
                       </div>
                     </div>
@@ -584,10 +630,12 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
                           ✓ Ready to Upload
                         </p>
                         <p className="text-xs sm:text-sm text-green-700 mb-1">
-                          {selectedCount} of {previewFiles.length} frames selected
+                          {selectedCount} of {previewFiles.length} frames
+                          selected
                         </p>
                         <p className="text-xs text-green-700">
-                          {t("partDetails.viewer360.reorderInstructions")} • {t("partDetails.viewer360.dragToReorder")}
+                          {t("partDetails.viewer360.reorderInstructions")} •{" "}
+                          {t("partDetails.viewer360.dragToReorder")}
                         </p>
                       </div>
                     </div>
@@ -619,7 +667,6 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
               </SortableContext>
             </DndContext>
 
-
             {/* Upload progress indicator */}
             {uploadMutation.isPending && uploadingFrameCount && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -627,7 +674,8 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
                   <Loader2 className="w-5 h-5 text-blue-600 animate-spin flex-shrink-0" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-blue-900">
-                      {t("partDetails.viewer360.uploading")} {uploadingFrameCount} {t("partDetails.viewer360.frames")}
+                      {t("partDetails.viewer360.uploading")}{" "}
+                      {uploadingFrameCount} {t("partDetails.viewer360.frames")}
                     </p>
                     <p className="text-xs text-blue-700 mt-0.5">
                       Processing and optimizing images...
@@ -654,7 +702,10 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
                 size="default"
                 type="button"
                 onClick={handleConfirmUpload}
-                disabled={uploadMutation.isPending || previewFiles.filter(f => f.selected).length < MIN_FRAMES}
+                disabled={
+                  uploadMutation.isPending ||
+                  previewFiles.filter((f) => f.selected).length < MIN_FRAMES
+                }
                 className="w-full sm:w-auto"
               >
                 {uploadMutation.isPending ? (
@@ -665,7 +716,8 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
                 ) : (
                   <>
                     <Upload className="w-4 h-4 mr-2" />
-                    {t("partDetails.viewer360.confirmUpload")} ({previewFiles.filter(f => f.selected).length})
+                    {t("partDetails.viewer360.confirmUpload")} (
+                    {previewFiles.filter((f) => f.selected).length})
                   </>
                 )}
               </AcrButton>
@@ -689,7 +741,9 @@ export function Upload360Viewer({ partId }: Upload360ViewerProps) {
 
             {/* Requirements */}
             <div className="text-xs text-acr-gray-600 space-y-1 bg-blue-50 p-4 rounded-lg">
-              <p className="font-medium">{t("partDetails.viewer360.requirementsTitle")}</p>
+              <p className="font-medium">
+                {t("partDetails.viewer360.requirementsTitle")}
+              </p>
               <ul className="list-disc list-inside space-y-1 ml-2">
                 <li>
                   {t("partDetails.viewer360.frameCountRequirement")
