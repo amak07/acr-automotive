@@ -116,51 +116,56 @@ ACR Automotive solves a critical problem in the auto parts industry: **cross-ref
 
 This project uses multiple environment files for different contexts:
 
-| File | Purpose | Database | Usage |
-|------|---------|----------|-------|
-| `.env.local` | Local development | Local Supabase (Docker) | `npm run dev` |
-| `.env.staging` | QA/Staging | Remote TEST Supabase | Manual testing |
-| `.env.production` | Production | Remote PROD Supabase | Production deployment |
-| `.env.example` | Template | N/A | Copy to create others |
+| File              | Purpose           | Database                | Usage                 |
+| ----------------- | ----------------- | ----------------------- | --------------------- |
+| `.env.local`      | Local development | Local Supabase (Docker) | `npm run dev`         |
+| `.env.staging`    | QA/Staging        | Remote TEST Supabase    | Manual testing        |
+| `.env.production` | Production        | Remote PROD Supabase    | Production deployment |
+| `.env.example`    | Template          | N/A                     | Copy to create others |
 
 **Important**: Never commit `.env.local`, `.env.staging`, or `.env.production` to git!
 
 ## 📋 Available Scripts
 
 ### Development & Build
-| Command                  | Description                                    |
-| ------------------------ | ---------------------------------------------- |
-| `npm run dev`            | Start development server (uses .env.local)     |
-| `npm run build`          | Build for production                           |
-| `npm run start`          | Start production server                        |
-| `npm run lint`           | Run ESLint                                     |
-| `npm run type-check`     | Run TypeScript type checking                   |
+
+| Command              | Description                                |
+| -------------------- | ------------------------------------------ |
+| `npm run dev`        | Start development server (uses .env.local) |
+| `npm run build`      | Build for production                       |
+| `npm run start`      | Start production server                    |
+| `npm run lint`       | Run ESLint                                 |
+| `npm run type-check` | Run TypeScript type checking               |
 
 ### Local Supabase (Docker)
-| Command                  | Description                                    |
-| ------------------------ | ---------------------------------------------- |
-| `npm run supabase:start` | Start local Supabase services                  |
-| `npm run supabase:stop`  | Stop local Supabase services                   |
-| `npm run supabase:reset` | Reset database (drops + applies migrations)    |
-| `npm run supabase:status`| Check Supabase services status                 |
+
+| Command                   | Description                                 |
+| ------------------------- | ------------------------------------------- |
+| `npm run supabase:start`  | Start local Supabase services               |
+| `npm run supabase:stop`   | Stop local Supabase services                |
+| `npm run supabase:reset`  | Reset database (drops + applies migrations) |
+| `npm run supabase:status` | Check Supabase services status              |
 
 ### Testing
-| Command                  | Description                                    |
-| ------------------------ | ---------------------------------------------- |
-| `npm test`               | Run full test suite (type check + all tests)  |
+
+| Command    | Description                                  |
+| ---------- | -------------------------------------------- |
+| `npm test` | Run full test suite (type check + all tests) |
 
 ### Staging Operations (Remote TEST DB)
-| Command                  | Description                                    |
-| ------------------------ | ---------------------------------------------- |
-| `npm run staging:export` | Export data from staging to seed files        |
-| `npm run staging:clear`  | Clear all staging data (dangerous!)           |
+
+| Command                  | Description                            |
+| ------------------------ | -------------------------------------- |
+| `npm run staging:export` | Export data from staging to seed files |
+| `npm run staging:clear`  | Clear all staging data (dangerous!)    |
 
 ### Production Operations
-| Command                  | Description                                    |
-| ------------------------ | ---------------------------------------------- |
-| `npm run check-prod`     | Check production database status               |
-| `npm run clear-prod`     | Clear production database (VERY dangerous!)    |
-| `npm run bootstrap`      | One-time production data import (completed)    |
+
+| Command              | Description                                 |
+| -------------------- | ------------------------------------------- |
+| `npm run check-prod` | Check production database status            |
+| `npm run clear-prod` | Clear production database (VERY dangerous!) |
+| `npm run bootstrap`  | One-time production data import (completed) |
 
 ## 🗄️ Database Schema
 
@@ -177,7 +182,7 @@ vehicle_applications (part_id, make, model, start_year, end_year)
 cross_references (acr_part_id, competitor_sku, competitor_brand)
 ```
 
-**Complete Schema**: See `src/lib/supabase/schema.sql` for full table definitions and indexes.
+**Complete Schema**: See `docs/database/DATABASE.md` for full table definitions, indexes, and workflows.
 
 ### Key Design Decisions
 
@@ -305,6 +310,7 @@ src/
 ### Environment Configuration
 
 **Required Environment Variables:**
+
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -315,6 +321,7 @@ NODE_ENV=production
 ### Local Development Setup
 
 1. **Clone and install dependencies**
+
    ```bash
    git clone <repository-url>
    cd acr-automotive
@@ -322,6 +329,7 @@ NODE_ENV=production
    ```
 
 2. **Configure environment**
+
    ```bash
    cp .env.example .env.local
    # Add your Supabase credentials
@@ -335,6 +343,7 @@ NODE_ENV=production
 ## 📚 Documentation
 
 ### Core Documentation
+
 - **[docs/README.md](docs/README.md)** - Documentation navigation and index
 - **[docs/PLANNING.md](docs/PLANNING.md)** - Technical architecture and implementation strategy
 - **[docs/TASKS.md](docs/TASKS.md)** - Development roadmap and current priorities
@@ -342,6 +351,7 @@ NODE_ENV=production
 - **[CLAUDE.md](CLAUDE.md)** - Development standards and patterns for AI assistants
 
 ### Architecture Documentation
+
 - **[Architecture Overview](docs/architecture/OVERVIEW.md)** - 30,000-foot system architecture view
 - **[API Design](docs/architecture/API_DESIGN.md)** - RESTful patterns and conventions
 - **[Validation](docs/architecture/VALIDATION.md)** - Zod schema patterns and type inference
@@ -352,15 +362,18 @@ NODE_ENV=production
 - **[Component Architecture](docs/architecture/COMPONENT_ARCHITECTURE.md)** - ACR design system patterns
 
 ### Feature Documentation
+
 - **[Bulk Operations](docs/features/data-management/BULK_OPERATIONS.md)** - Batch create/update/delete API
 - **[Excel Export](docs/features/data-management/EXCEL_EXPORT.md)** - Excel generation with pagination bypass
 - **[Excel Import](docs/features/data-management/EXCEL_IMPORT.md)** - Import validation and processing
 - **[Database Schema](docs/database/DATABASE.md)** - Complete schema and design decisions
 
 ### Component Documentation
+
 - **[ACR Design System](src/components/acr/README.md)** - Custom component library and patterns
 
 ### Future Enhancements
+
 - **[ENHANCEMENTS.md](docs/ENHANCEMENTS.md)** - Roadmap for future improvements
 
 ## 🎯 Project Status
