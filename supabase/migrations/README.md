@@ -159,10 +159,12 @@ npm run db:restore-snapshot
 
 #### Our Approach: SQL Migration for Storage Buckets
 
-We create storage buckets directly in migrations using SQL:
+We create storage buckets AND their RLS policies directly in migrations using SQL:
 
 ```sql
 -- See: supabase/migrations/20251115182620_create_storage_bucket.sql
+
+-- 1. Create the bucket
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
   'acr-part-images',
@@ -172,14 +174,28 @@ VALUES (
   ARRAY['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif']
 )
 ON CONFLICT (id) DO NOTHING;
+
+-- 2. Create RLS policies for storage.objects table
+CREATE POLICY "Public read access for acr-part-images"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'acr-part-images');
+
+CREATE POLICY "Authenticated users can upload to acr-part-images"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'acr-part-images');
+
+-- ... (UPDATE and DELETE policies)
 ```
 
 **Why this works**:
 
 - ✅ Version controlled (in git)
 - ✅ Automatic (applies on `npm run supabase:reset`)
-- ✅ Team-friendly (everyone gets bucket automatically)
+- ✅ Team-friendly (everyone gets bucket + permissions automatically)
 - ✅ Works with stable CLI (no beta/experimental needed)
+- ✅ Includes RLS policies (critical for uploads to work!)
 
 #### Alternative: config.toml (Beta Feature)
 
@@ -210,9 +226,9 @@ npm run supabase:reset  # Applies migration that creates bucket
 
 ## Troubleshooting
 
-### "Bucket not found" error
+### "Bucket not found" error (404)
 
-**Problem**: Upload fails with "Bucket not found" error
+**Problem**: Upload fails with "Bucket not found" error (status 404)
 
 **Most likely cause**: Migration hasn't been applied yet
 
@@ -236,6 +252,39 @@ npm run db:import-seed
 ```bash
 ls supabase/migrations/*_create_storage_bucket.sql
 # Should show: supabase/migrations/20251115182620_create_storage_bucket.sql
+```
+
+### "Row-level security policy" error (403)
+
+**Problem**: Upload fails with "new row violates row-level security policy" (status 403)
+
+**What this means**:
+
+- ✅ Bucket exists (good progress from 404 → 403!)
+- ❌ Missing RLS policies on storage.objects table
+
+**Most likely cause**: Migration applied bucket but not RLS policies
+
+**Solution**:
+
+```bash
+# Ensure you have the latest migration with RLS policies
+cat supabase/migrations/20251115182620_create_storage_bucket.sql
+# Should contain both:
+#   1. INSERT INTO storage.buckets (...)
+#   2. CREATE POLICY statements for storage.objects
+
+# Reset database to apply complete migration
+npm run supabase:reset
+npm run db:import-seed
+
+# Verify policies exist in Studio
+# Open http://localhost:54323 → Authentication → Policies
+# Look for "storage.objects" table → Should see 4 policies:
+#   - Public read access for acr-part-images
+#   - Authenticated users can upload to acr-part-images
+#   - Authenticated users can update acr-part-images
+#   - Authenticated users can delete from acr-part-images
 ```
 
 ### "Migration failed to apply"
