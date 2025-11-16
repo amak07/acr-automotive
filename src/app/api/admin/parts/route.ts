@@ -235,17 +235,9 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   const body = await request.json();
-  console.log(
-    "[API PUT /api/admin/parts] Received body:",
-    JSON.stringify(body, null, 2)
-  );
 
   try {
     const params: UpdatePartRequest = updatePartSchema.parse(body);
-    console.log(
-      "[API PUT /api/admin/parts] Validated params:",
-      JSON.stringify(params, null, 2)
-    );
     const {
       part_type,
       abs_type,
@@ -284,10 +276,6 @@ export async function PUT(request: NextRequest) {
     return Response.json({ data }, { status: 200 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error(
-        "[API PUT /api/admin/parts] Validation error:",
-        error.issues
-      );
       const errorMessages = error.issues.map((err) => ({
         field: err.path.join("."),
         message: err.message,
@@ -304,7 +292,6 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    console.error("[API PUT /api/admin/parts] Unexpected error:", error);
     return NextResponse.json(
       { error: "Database operation failed", details: error },
       { status: 500 }

@@ -30,10 +30,6 @@ function PartDetailsPage() {
   const onSubmit = async (updatedData: PartFormData) => {
     // Guard: Ensure part data is loaded before submission
     if (!data?.id) {
-      console.error(
-        "[PartDetails] Attempted submit without part ID. data:",
-        data
-      );
       toast({
         title: t("common.error.title"),
         description: "Part data not loaded. Please wait and try again.",
@@ -64,7 +60,6 @@ function PartDetailsPage() {
         id: data.id, // Safe to use now after guard check
       };
 
-      console.log("[PartDetails] Submitting update:", partToUpdate);
       await updateMutation.mutateAsync(partToUpdate);
 
       toast({
@@ -73,7 +68,6 @@ function PartDetailsPage() {
         variant: "success" as any,
       });
     } catch (error) {
-      console.error("[PartDetails] Update error:", error);
       toast({
         title: t("common.error.title"),
         description: t("partDetails.actions.saveError"),
