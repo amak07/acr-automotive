@@ -101,11 +101,21 @@ export async function GET(request: NextRequest) {
 
       if (crossError) throw crossError;
 
+      // Query 4: Get part images
+      const { data: images, error: imagesError } = await supabase
+        .from("part_images")
+        .select("*")
+        .eq("part_id", partId)
+        .order("display_order", { ascending: true });
+
+      if (imagesError) throw imagesError;
+
       // Combine the results
       const result = {
         ...partData,
         vehicle_applications: vehicleApps || [],
         cross_references: crossRefs || [],
+        images: images || [],
       };
 
       return Response.json({
