@@ -56,7 +56,7 @@ export const createPartSchema = z.object({
 });
 
 export const updatePartSchema = z.object({
-  id: z.string().uuid("PartID is required."),
+  id: z.string().min(1, "PartID is required."),
   part_type: z.preprocess(
     preprocessOptionalString,
     z.string().min(1).max(100).optional()
