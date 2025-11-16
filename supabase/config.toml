@@ -109,9 +109,16 @@ file_size_limit = "50MiB"
 # [storage.image_transformation]
 # enabled = true
 
-# Configure storage buckets for local development
-# IMPORTANT: Storage configuration is NOT captured in migrations (unlike database schema)
-# All buckets must be explicitly configured here for local Supabase instances
+# Storage bucket configuration (DOCUMENTATION ONLY - NOT USED IN STABLE CLI)
+#
+# NOTE: This config.toml bucket configuration is a BETA feature requiring:
+#   - npx supabase start --experimental (stable CLI), OR
+#   - npx supabase@beta (beta CLI)
+#
+# Our project uses STABLE CLI (v2.58.5), so buckets are created via SQL migration instead:
+#   See: supabase/migrations/20251115182620_create_storage_bucket.sql
+#
+# This configuration is kept for documentation purposes and future compatibility.
 [storage.buckets.acr-part-images]
 public = true
 file_size_limit = "10MiB"
