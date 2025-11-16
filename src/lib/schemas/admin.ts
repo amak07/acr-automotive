@@ -1,5 +1,26 @@
 import z from "zod";
 
+// ===== HELPER FUNCTIONS =====
+/**
+ * Preprocessor to convert empty strings to undefined for optional fields.
+ * Solves the validation trap where .optional() + .min(1) rejects empty strings.
+ *
+ * @example
+ * // Without preprocess:
+ * z.string().min(1).optional()
+ *   - undefined → ✅ passes (optional)
+ *   - "MAZA" → ✅ passes (valid string)
+ *   - "" → ❌ FAILS (empty string is not undefined and doesn't meet min(1))
+ *
+ * // With preprocess:
+ * z.preprocess(preprocessOptionalString, z.string().min(1).optional())
+ *   - undefined → ✅ passes (optional)
+ *   - "MAZA" → ✅ passes (valid string)
+ *   - "" → ✅ passes (converted to undefined)
+ */
+const preprocessOptionalString = (val: unknown) =>
+  val === "" ? undefined : val;
+
 // ===== PARTS SCHEMAS =====
 export const queryPartsSchema = z.object({
   id: z.uuid().optional(),
@@ -36,13 +57,31 @@ export const createPartSchema = z.object({
 
 export const updatePartSchema = z.object({
   id: z.string().uuid("PartID is required."),
-  part_type: z.string().min(1).max(100).optional(),
-  position_type: z.string().max(50).optional(),
-  abs_type: z.string().max(20).optional(),
-  bolt_pattern: z.string().max(50).optional(),
-  drive_type: z.string().max(50).optional(),
-  specifications: z.string().optional(),
-  image_url: z.string().url().optional(),
+  part_type: z.preprocess(
+    preprocessOptionalString,
+    z.string().min(1).max(100).optional()
+  ),
+  position_type: z.preprocess(
+    preprocessOptionalString,
+    z.string().max(50).optional()
+  ),
+  abs_type: z.preprocess(
+    preprocessOptionalString,
+    z.string().max(20).optional()
+  ),
+  bolt_pattern: z.preprocess(
+    preprocessOptionalString,
+    z.string().max(50).optional()
+  ),
+  drive_type: z.preprocess(
+    preprocessOptionalString,
+    z.string().max(50).optional()
+  ),
+  specifications: z.preprocess(preprocessOptionalString, z.string().optional()),
+  image_url: z.preprocess(
+    preprocessOptionalString,
+    z.string().url().optional()
+  ),
 });
 
 export const deletePartSchema = z.object({
