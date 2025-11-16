@@ -19,7 +19,7 @@ import {
   UpdateCrossReferenceParams,
   updateCrossRefSchema,
 } from "@/lib/schemas";
-import { mapCrossReferenceErrors } from "@/hooks/admin/useUpdateCrossReference";
+import { mapCrossReferenceErrors } from "@/hooks";
 
 interface CrossReference {
   id: string;

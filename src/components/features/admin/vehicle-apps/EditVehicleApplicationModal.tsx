@@ -19,7 +19,7 @@ import { updateVehicleSchema } from "@/lib/schemas";
 import {
   mapVehicleApplicationErrors,
   UpdateVehicleApplicationParams,
-} from "@/hooks/admin/useUpdateVehicleApplication";
+} from "@/hooks";
 
 interface VehicleApplication {
   id: string;

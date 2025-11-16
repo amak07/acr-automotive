@@ -8,6 +8,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { Tables } from "@/lib/supabase/types";
 import { ImageGalleryEditor } from "./ImageGalleryEditor";
 import { AcrButton } from "@/components/acr";
+import { queryKeys } from "@/hooks/common/queryKeys";
 
 type PartImage = Tables<"part_images">;
 
@@ -71,16 +72,23 @@ export function PartImagesManager({ partSku }: PartImagesManagerProps) {
         ),
         variant: "success",
       });
+      // Invalidate admin part images
       queryClient.invalidateQueries({ queryKey: ["part-images", partSku] });
-      // Invalidate ALL public parts queries using predicate
+
+      // Invalidate both admin and public part details caches
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.adminDetail(partSku),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.publicDetail(partSku),
+      });
+
+      // Invalidate public parts list to update primary images in search results
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey as string[];
           return key[0] === "public" && key[1] === "parts" && key[2] === "list";
         },
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["part-images-public", partSku],
       });
     },
     onError: (error: Error) => {
@@ -112,18 +120,23 @@ export function PartImagesManager({ partSku }: PartImagesManagerProps) {
     },
     onSuccess: () => {
       console.log("[DEBUG] Reorder success - invalidating queries");
-      // Invalidate part images
+      // Invalidate admin part images
       queryClient.invalidateQueries({ queryKey: ["part-images", partSku] });
-      // Invalidate ALL public parts list queries using predicate
+
+      // Invalidate both admin and public part details caches
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.adminDetail(partSku),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.publicDetail(partSku),
+      });
+
+      // Invalidate public parts list to update primary images in search results
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey as string[];
           return key[0] === "public" && key[1] === "parts" && key[2] === "list";
         },
-      });
-      // Invalidate public part details
-      queryClient.invalidateQueries({
-        queryKey: ["part-images-public", partSku],
       });
       console.log("[DEBUG] All queries invalidated");
     },
@@ -159,6 +172,14 @@ export function PartImagesManager({ partSku }: PartImagesManagerProps) {
         variant: "success",
       });
       queryClient.invalidateQueries({ queryKey: ["part-images", partSku] });
+
+      // Invalidate both admin and public part details caches
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.adminDetail(partSku),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.publicDetail(partSku),
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -203,16 +224,23 @@ export function PartImagesManager({ partSku }: PartImagesManagerProps) {
         description: t("partDetails.images.deleteSuccess"),
         variant: "success",
       });
+      // Invalidate admin part images
       queryClient.invalidateQueries({ queryKey: ["part-images", partSku] });
-      // Invalidate ALL public parts queries using predicate
+
+      // Invalidate both admin and public part details caches
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.adminDetail(partSku),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.publicDetail(partSku),
+      });
+
+      // Invalidate public parts list to update primary images in search results
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey as string[];
           return key[0] === "public" && key[1] === "parts" && key[2] === "list";
         },
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["part-images-public", partSku],
       });
       console.log("[DEBUG] All queries invalidated after delete");
     },

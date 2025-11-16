@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/common/use-toast";
 import { useLocale } from "@/contexts/LocaleContext";
 import { AcrButton } from "@/components/acr";
 import { Part360Viewer } from "@/components/features/public/parts/Part360Viewer";
+import { queryKeys } from "@/hooks/common/queryKeys";
 import {
   DndContext,
   closestCenter,
@@ -234,11 +235,18 @@ export function Upload360Viewer({ partSku }: Upload360ViewerProps) {
         variant: "success",
       });
 
+      // Invalidate admin 360 frames
       queryClient.invalidateQueries({ queryKey: ["part-360-frames", partSku] });
+
+      // Invalidate both admin and public part details caches
       queryClient.invalidateQueries({
-        queryKey: ["part-360-frames-public", partSku],
+        queryKey: queryKeys.parts.adminDetail(partSku),
       });
-      // Invalidate public parts queries
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.publicDetail(partSku),
+      });
+
+      // Invalidate public parts list
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey as string[];
@@ -282,10 +290,18 @@ export function Upload360Viewer({ partSku }: Upload360ViewerProps) {
         description: t("partDetails.viewer360.deleteSuccess"),
         variant: "success",
       });
+      // Invalidate admin 360 frames
       queryClient.invalidateQueries({ queryKey: ["part-360-frames", partSku] });
+
+      // Invalidate both admin and public part details caches
       queryClient.invalidateQueries({
-        queryKey: ["part-360-frames-public", partSku],
+        queryKey: queryKeys.parts.adminDetail(partSku),
       });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.publicDetail(partSku),
+      });
+
+      // Invalidate public parts list
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey as string[];

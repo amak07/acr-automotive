@@ -104,7 +104,7 @@ export function useGetPartById(queryParams: UsePartByIdParams) {
   const { sku } = queryParams;
 
   return useQuery<PartWithDetails>({
-    queryKey: queryKeys.parts.detail(sku || ""),
+    queryKey: queryKeys.parts.adminDetail(sku || ""),
     enabled: !!sku, // Only run query if sku exists
     queryFn: async () => {
       const url = `/api/admin/parts?sku=${encodeURIComponent(sku)}`;

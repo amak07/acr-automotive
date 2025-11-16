@@ -19,7 +19,7 @@ import {
   CreateVehicleApplicationParams,
   createVehicleSchema,
 } from "@/lib/schemas";
-import { mapCreateVehicleApplicationErrors } from "@/hooks/admin/useCreateVehicleApplication";
+import { mapVehicleApplicationErrors } from "@/hooks";
 
 interface AddVehicleApplicationModalProps {
   isOpen: boolean;
@@ -71,7 +71,7 @@ export function AddVehicleApplicationModal({
       onClose();
     } catch (error: any) {
       // Map API errors to form fields
-      const fieldErrors = mapCreateVehicleApplicationErrors(error);
+      const fieldErrors = mapVehicleApplicationErrors(error);
 
       Object.entries(fieldErrors).forEach(([field, message]) => {
         setError(field as keyof CreateVehicleApplicationParams, {
