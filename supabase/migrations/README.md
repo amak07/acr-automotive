@@ -151,40 +151,61 @@ npm run db:restore-snapshot
 
 ## Important Limitations
 
-### Storage Buckets Are NOT in Migrations
+### Storage Buckets and Migrations
 
-⚠️ **Critical**: `npx supabase db diff` only captures **DATABASE schema** (PostgreSQL), not Storage service configuration.
+⚠️ **Important**: `npx supabase db diff` only captures **DATABASE schema** (PostgreSQL), not Storage service configuration.
 
-**What this means**:
+**However, storage buckets CAN be created via SQL migrations** (which is what we do):
 
-- Storage buckets must be configured in `supabase/config.toml`
-- Migrations only capture tables, functions, indexes, RLS policies, etc.
-- Storage configuration does NOT sync automatically between environments
+#### Our Approach: SQL Migration for Storage Buckets
 
-**How to configure buckets**:
+We create storage buckets directly in migrations using SQL:
 
-Edit `supabase/config.toml` and add bucket configuration:
+```sql
+-- See: supabase/migrations/20251115182620_create_storage_bucket.sql
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'acr-part-images',
+  'acr-part-images',
+  true,
+  10485760,  -- 10MB in bytes
+  ARRAY['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif']
+)
+ON CONFLICT (id) DO NOTHING;
+```
+
+**Why this works**:
+
+- ✅ Version controlled (in git)
+- ✅ Automatic (applies on `npm run supabase:reset`)
+- ✅ Team-friendly (everyone gets bucket automatically)
+- ✅ Works with stable CLI (no beta/experimental needed)
+
+#### Alternative: config.toml (Beta Feature)
+
+Storage bucket configuration in `supabase/config.toml` is a **beta/experimental feature**:
 
 ```toml
-[storage.buckets.acr-part-images]
+[storage.buckets.acr-part-images]  # Requires --experimental flag or @beta CLI
 public = true
 file_size_limit = "10MiB"
 allowed_mime_types = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]
 ```
 
-**Best practice**:
+**Why we don't use it**:
 
-1. Create buckets manually in remote TEST via Dashboard
-2. Document bucket configuration in `supabase/config.toml`
-3. Commit config.toml changes to git
-4. Team members get bucket config automatically on `supabase:start`
+- Requires `npx supabase start --experimental` or `npx supabase@beta`
+- Feature is still in beta (as of November 2024)
+- Not available in stable CLI v2.58.5
+
+**Our config.toml** keeps this configuration as documentation, but buckets are **actually created via SQL migration**.
 
 **Verifying buckets exist**:
 
 ```bash
-npm run supabase:start
+npm run supabase:reset  # Applies migration that creates bucket
 # Open http://localhost:54323 (Supabase Studio)
-# Navigate to Storage → Check for "acr-part-images" bucket
+# Navigate to Storage → Should see "acr-part-images" bucket
 ```
 
 ## Troubleshooting
@@ -193,19 +214,28 @@ npm run supabase:start
 
 **Problem**: Upload fails with "Bucket not found" error
 
+**Most likely cause**: Migration hasn't been applied yet
+
 **Solution**:
 
 ```bash
-# Check if bucket is configured in supabase/config.toml
-cat supabase/config.toml | grep -A 5 "acr-part-images"
+# Reset database to apply all migrations (including bucket creation)
+npm run supabase:reset
 
-# If missing, add the configuration (see "Storage Buckets" section above)
+# Restore your data
+npm run db:restore-snapshot
+# OR
+npm run db:import-seed
 
-# Restart Supabase to apply changes
-npm run supabase:stop
-npm run supabase:start
+# Verify bucket exists in Studio
+# Open http://localhost:54323 → Storage → Should see "acr-part-images"
+```
 
-# Verify in Studio (http://localhost:54323 → Storage)
+**If bucket still missing**: Check that migration file exists:
+
+```bash
+ls supabase/migrations/*_create_storage_bucket.sql
+# Should show: supabase/migrations/20251115182620_create_storage_bucket.sql
 ```
 
 ### "Migration failed to apply"
