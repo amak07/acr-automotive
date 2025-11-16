@@ -28,6 +28,16 @@ function PartDetailsPage() {
   const { toast } = useToast();
 
   const onSubmit = async (updatedData: PartFormData) => {
+    // Guard: Ensure part data is loaded before submission
+    if (!data?.id) {
+      toast({
+        title: t("common.error.title"),
+        description: "Part data not loaded. Please wait and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Convert __unspecified__ back to undefined for API validation
       const partToUpdate: UpdatePartsParams = {
@@ -47,7 +57,7 @@ function PartDetailsPage() {
           ? undefined
           : updatedData.bolt_pattern,
         specifications: updatedData.specifications || undefined,
-        id: data?.id || "",
+        id: data.id, // Safe to use now after guard check
       };
 
       await updateMutation.mutateAsync(partToUpdate);
