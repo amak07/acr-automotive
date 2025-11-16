@@ -3,7 +3,6 @@
 import { ArrowLeft, Package } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { useLocale } from "@/contexts/LocaleContext";
 import {
   DatabasePartRow,
@@ -19,11 +18,13 @@ import { useHomeLink } from "@/hooks";
 import { PartImageGallery } from "./PartImageGallery";
 
 type PartImage = Tables<"part_images">;
+type Part360Frame = Tables<"part_360_frames">;
 
 type PartWithRelations = DatabasePartRow & {
   vehicle_applications?: DatabaseVehicleAppRow[];
   cross_references?: DatabaseCrossRefRow[];
   images?: PartImage[];
+  frames_360?: Part360Frame[];
 };
 
 type PublicPartDetailsProps = {
@@ -42,28 +43,12 @@ export function PublicPartDetails({
   const homeLink = useHomeLink();
   const searchParams = useSearchParams();
 
-  // Use images from part data (already fetched by API)
+  // Use images and 360° frames from part data (already fetched by API)
   const images = part?.images || [];
-
-  // Fetch 360° viewer frames
-  const { data: viewer360Data, isLoading: viewer360Loading } = useQuery({
-    queryKey: ["part-360-frames-public", part?.id],
-    queryFn: async () => {
-      if (!part?.id) return null;
-      const res = await fetch(`/api/admin/parts/${part.id}/360-frames`);
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json as {
-        frames: Array<{ frame_number: number; image_url: string }>;
-        count: number;
-      };
-    },
-    enabled: !!part?.id,
-  });
-
-  const viewer360Frames = viewer360Data?.frames?.map((f) => f.image_url) || [];
-  const has360Viewer = (viewer360Data?.count || 0) > 0;
-  const isMediaLoading = viewer360Loading;
+  const frames360 = part?.frames_360 || [];
+  const viewer360Frames = frames360.map((f) => f.image_url);
+  const has360Viewer = frames360.length > 0;
+  const isMediaLoading = isLoading;
 
   // Preserve search params when going back
   const currentSearch = searchParams?.toString() || "";
