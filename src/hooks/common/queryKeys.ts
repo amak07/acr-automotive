@@ -10,29 +10,40 @@ export const queryKeys = {
   parts: {
     all: ["parts"] as const,
     lists: () => [...queryKeys.parts.all, "list"] as const,
-    list: (filters: Record<string, any>) => [...queryKeys.parts.lists(), { filters }] as const,
+    list: (filters: Record<string, any>) =>
+      [...queryKeys.parts.lists(), { filters }] as const,
     details: () => [...queryKeys.parts.all, "detail"] as const,
     detail: (id: string) => [...queryKeys.parts.details(), { id }] as const,
+    // Namespaced query keys to prevent cache collision between admin and public
+    adminDetail: (id: string) => ["admin", "parts", "detail", { id }] as const,
+    publicDetail: (id: string) =>
+      ["public", "parts", "detail", { id }] as const,
   },
 
   // Vehicle Applications
   vehicleApplications: {
     all: ["vehicle-applications"] as const,
     lists: () => [...queryKeys.vehicleApplications.all, "list"] as const,
-    list: (filters: Record<string, any>) => [...queryKeys.vehicleApplications.lists(), { filters }] as const,
+    list: (filters: Record<string, any>) =>
+      [...queryKeys.vehicleApplications.lists(), { filters }] as const,
     details: () => [...queryKeys.vehicleApplications.all, "detail"] as const,
-    detail: (id: string) => [...queryKeys.vehicleApplications.details(), { id }] as const,
-    byPart: (partId: string) => [...queryKeys.vehicleApplications.all, "by-part", { partId }] as const,
+    detail: (id: string) =>
+      [...queryKeys.vehicleApplications.details(), { id }] as const,
+    byPart: (partId: string) =>
+      [...queryKeys.vehicleApplications.all, "by-part", { partId }] as const,
   },
 
   // Cross References
   crossReferences: {
     all: ["cross-references"] as const,
     lists: () => [...queryKeys.crossReferences.all, "list"] as const,
-    list: (filters: Record<string, any>) => [...queryKeys.crossReferences.lists(), { filters }] as const,
+    list: (filters: Record<string, any>) =>
+      [...queryKeys.crossReferences.lists(), { filters }] as const,
     details: () => [...queryKeys.crossReferences.all, "detail"] as const,
-    detail: (id: string) => [...queryKeys.crossReferences.details(), { id }] as const,
-    byPart: (partId: string) => [...queryKeys.crossReferences.all, "by-part", { partId }] as const,
+    detail: (id: string) =>
+      [...queryKeys.crossReferences.details(), { id }] as const,
+    byPart: (partId: string) =>
+      [...queryKeys.crossReferences.all, "by-part", { partId }] as const,
   },
 
   // Admin
@@ -48,7 +59,8 @@ export const queryKeys = {
     all: ["public"] as const,
     parts: {
       all: () => [...queryKeys.public.all, "parts"] as const,
-      list: (filters: Record<string, any>) => [...queryKeys.public.parts.all(), "list", { filters }] as const,
+      list: (filters: Record<string, any>) =>
+        [...queryKeys.public.parts.all(), "list", { filters }] as const,
     },
     partBySku: (sku: string) => [...queryKeys.public.all, "part", sku] as const,
     vehicleOptions: () => [...queryKeys.public.all, "vehicle-options"] as const,
@@ -59,7 +71,10 @@ export const queryKeys = {
  * Helper function to invalidate all queries related to a specific part
  * Use this when operations affect multiple related entities for a part
  */
-export const invalidatePartRelatedQueries = (queryClient: any, partId: string) => {
+export const invalidatePartRelatedQueries = (
+  queryClient: any,
+  partId: string
+) => {
   // Invalidate the specific part
   queryClient.invalidateQueries({
     queryKey: queryKeys.parts.detail(partId),

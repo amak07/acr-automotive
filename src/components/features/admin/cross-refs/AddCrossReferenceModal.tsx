@@ -15,10 +15,11 @@ import {
   ConfirmDialog,
 } from "@/components/acr";
 import { useCreateCrossReference } from "@/hooks";
-import { createCrossRefSchema, CreateCrossReferenceParams } from "@/lib/schemas";
 import {
-  mapCreateCrossReferenceErrors,
-} from "@/hooks/admin/useCreateCrossReference";
+  createCrossRefSchema,
+  CreateCrossReferenceParams,
+} from "@/lib/schemas";
+import { mapCrossReferenceErrors } from "@/hooks";
 
 interface AddCrossReferenceModalProps {
   isOpen: boolean;
@@ -68,7 +69,7 @@ export function AddCrossReferenceModal({
       onClose();
     } catch (error: any) {
       // Map API errors to form fields
-      const fieldErrors = mapCreateCrossReferenceErrors(error);
+      const fieldErrors = mapCrossReferenceErrors(error);
 
       Object.entries(fieldErrors).forEach(([field, message]) => {
         setError(field as keyof CreateCrossReferenceParams, {

@@ -9,7 +9,7 @@ import { PartMetadata } from "@/components/features/admin/part-details/PartMetad
 import { useUpdatePartById } from "@/hooks";
 import { useToast } from "@/hooks";
 import { withAdminAuth } from "@/components/shared/auth/withAdminAuth";
-import { UpdatePartsParams } from "@/hooks/admin/useUpdatePartById";
+import { UpdatePartsParams } from "@/hooks";
 import {
   PartFormContainer,
   PartFormData,

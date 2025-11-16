@@ -103,7 +103,7 @@ export function usePublicParts(queryParams: UsePublicPartsParams) {
  */
 export function usePublicPartById(sku: string) {
   return useQuery({
-    queryKey: queryKeys.parts.detail(sku),
+    queryKey: queryKeys.parts.publicDetail(sku),
     queryFn: () => fetchPublicPartBySku(sku),
     enabled: !!sku,
     staleTime: 5 * 60 * 1000, // 5 minutes

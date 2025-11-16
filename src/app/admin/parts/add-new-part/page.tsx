@@ -7,7 +7,7 @@ import {
   PartFormContainer,
   PartFormData,
 } from "@/components/features/admin/parts/PartFormContainer";
-import { useCreatePart } from "@/hooks/admin/useCreatePart";
+import { useCreatePart } from "@/hooks";
 import { useRouter } from "next/navigation";
 
 function PartCreatePage() {
