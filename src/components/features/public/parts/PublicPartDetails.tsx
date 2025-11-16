@@ -23,6 +23,7 @@ type PartImage = Tables<"part_images">;
 type PartWithRelations = DatabasePartRow & {
   vehicle_applications?: DatabaseVehicleAppRow[];
   cross_references?: DatabaseCrossRefRow[];
+  images?: PartImage[];
 };
 
 type PublicPartDetailsProps = {
@@ -41,18 +42,8 @@ export function PublicPartDetails({
   const homeLink = useHomeLink();
   const searchParams = useSearchParams();
 
-  // Fetch part images
-  const { data: images, isLoading: imagesLoading } = useQuery({
-    queryKey: ["part-images-public", part?.id],
-    queryFn: async () => {
-      if (!part?.id) return [];
-      const res = await fetch(`/api/admin/parts/${part.id}/images`);
-      if (!res.ok) return [];
-      const json = await res.json();
-      return (json.data as PartImage[]) || [];
-    },
-    enabled: !!part?.id,
-  });
+  // Use images from part data (already fetched by API)
+  const images = part?.images || [];
 
   // Fetch 360° viewer frames
   const { data: viewer360Data, isLoading: viewer360Loading } = useQuery({
@@ -72,7 +63,7 @@ export function PublicPartDetails({
 
   const viewer360Frames = viewer360Data?.frames?.map((f) => f.image_url) || [];
   const has360Viewer = (viewer360Data?.count || 0) > 0;
-  const isMediaLoading = imagesLoading || viewer360Loading;
+  const isMediaLoading = viewer360Loading;
 
   // Preserve search params when going back
   const currentSearch = searchParams?.toString() || "";
@@ -161,7 +152,7 @@ export function PublicPartDetails({
           className="md:col-span-2 overflow-hidden"
         >
           <PartImageGallery
-            images={images || []}
+            images={images}
             partName={`${part.part_type} ${part.acr_sku}`}
             className="w-full"
             viewer360Frames={viewer360Frames}
