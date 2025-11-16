@@ -20,6 +20,10 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Drop existing policies if they exist (for clean migration)
 DROP POLICY IF EXISTS "Public read access for acr-part-images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow anon upload to acr-part-images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow anon update to acr-part-images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow anon delete from acr-part-images" ON storage.objects;
+-- Legacy policy names (from previous version)
 DROP POLICY IF EXISTS "Authenticated users can upload to acr-part-images" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users can update acr-part-images" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users can delete from acr-part-images" ON storage.objects;
@@ -31,23 +35,23 @@ ON storage.objects FOR SELECT
 TO public
 USING (bucket_id = 'acr-part-images');
 
--- Policy: Allow authenticated INSERT (upload)
--- This allows logged-in users to upload new files
-CREATE POLICY "Authenticated users can upload to acr-part-images"
+-- Policy: Allow anon INSERT (upload)
+-- This allows uploads via the anon key (app uses password protection, not Supabase auth)
+CREATE POLICY "Allow anon upload to acr-part-images"
 ON storage.objects FOR INSERT
-TO authenticated
+TO anon
 WITH CHECK (bucket_id = 'acr-part-images');
 
--- Policy: Allow authenticated UPDATE
--- This allows logged-in users to update existing files (via upsert)
-CREATE POLICY "Authenticated users can update acr-part-images"
+-- Policy: Allow anon UPDATE
+-- This allows file overwrites via upsert using the anon key
+CREATE POLICY "Allow anon update to acr-part-images"
 ON storage.objects FOR UPDATE
-TO authenticated
+TO anon
 USING (bucket_id = 'acr-part-images');
 
--- Policy: Allow authenticated DELETE
--- This allows logged-in users to delete files
-CREATE POLICY "Authenticated users can delete from acr-part-images"
+-- Policy: Allow anon DELETE
+-- This allows file deletion using the anon key
+CREATE POLICY "Allow anon delete from acr-part-images"
 ON storage.objects FOR DELETE
-TO authenticated
+TO anon
 USING (bucket_id = 'acr-part-images');
