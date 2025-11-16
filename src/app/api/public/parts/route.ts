@@ -110,12 +110,22 @@ export async function GET(request: NextRequest) {
 
       if (imagesError) throw imagesError;
 
+      // Query 5: Get 360° viewer frames
+      const { data: frames360, error: frames360Error } = await supabase
+        .from("part_360_frames")
+        .select("*")
+        .eq("part_id", partId)
+        .order("frame_number", { ascending: true });
+
+      if (frames360Error) throw frames360Error;
+
       // Combine the results
       const result = {
         ...partData,
         vehicle_applications: vehicleApps || [],
         cross_references: crossRefs || [],
         images: images || [],
+        frames_360: frames360 || [],
       };
 
       return Response.json({
