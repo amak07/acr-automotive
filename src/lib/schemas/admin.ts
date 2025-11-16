@@ -21,13 +21,10 @@ export const createPartSchema = z.object({
   sku_number: z
     .string()
     .min(1, "SKU number is required")
-    .refine(
-      (val) => !val.toUpperCase().startsWith('ACR'),
-      {
-        message:
-          "SKU number should not include 'ACR' prefix - it will be added automatically",
-      }
-    ),
+    .refine((val) => !val.toUpperCase().startsWith("ACR"), {
+      message:
+        "SKU number should not include 'ACR' prefix - it will be added automatically",
+    }),
   part_type: z.string().min(1).max(100),
   position_type: z.string().max(50).optional(),
   abs_type: z.string().max(20).optional(),
@@ -37,10 +34,16 @@ export const createPartSchema = z.object({
   image_url: z.string().url().optional(),
 });
 
-export const updatePartSchema = createPartSchema
-  .omit({ sku_number: true })
-  .partial()
-  .extend({ id: z.uuid("PartID is required.") });
+export const updatePartSchema = z.object({
+  id: z.string().uuid("PartID is required."),
+  part_type: z.string().min(1).max(100).optional(),
+  position_type: z.string().max(50).optional(),
+  abs_type: z.string().max(20).optional(),
+  bolt_pattern: z.string().max(50).optional(),
+  drive_type: z.string().max(50).optional(),
+  specifications: z.string().optional(),
+  image_url: z.string().url().optional(),
+});
 
 export const deletePartSchema = z.object({
   id: z.uuid("PartID is required."),
@@ -52,7 +55,9 @@ export const queryCrossRefSchema = z.object({
   acr_part_id: z.uuid().optional(), // Get all CRs for specific part (main use case)
   limit: z.coerce.number().default(50),
   offset: z.coerce.number().default(0),
-  sort_by: z.enum(["competitor_sku", "competitor_brand", "created_at"]).default("competitor_sku"),
+  sort_by: z
+    .enum(["competitor_sku", "competitor_brand", "created_at"])
+    .default("competitor_sku"),
   sort_order: z.enum(["asc", "desc"]).default("asc"),
 });
 
@@ -112,9 +117,15 @@ export type UpdateCrossReferenceParams = z.infer<typeof updateCrossRefSchema>;
 export type DeleteCrossReferenceParams = z.infer<typeof deleteCrossRefSchema>;
 
 export type QueryVehicleParams = z.infer<typeof queryVehicleSchema>;
-export type CreateVehicleApplicationParams = z.infer<typeof createVehicleSchema>;
-export type UpdateVehicleApplicationParams = z.infer<typeof updateVehicleSchema>;
-export type DeleteVehicleApplicationParams = z.infer<typeof deleteVehicleSchema>;
+export type CreateVehicleApplicationParams = z.infer<
+  typeof createVehicleSchema
+>;
+export type UpdateVehicleApplicationParams = z.infer<
+  typeof updateVehicleSchema
+>;
+export type DeleteVehicleApplicationParams = z.infer<
+  typeof deleteVehicleSchema
+>;
 
 // ===== SITE SETTINGS SCHEMAS =====
 export const contactInfoSchema = z.object({
@@ -126,14 +137,17 @@ export const contactInfoSchema = z.object({
 
 export const bannerSchema = z.object({
   id: z.string(),
-  image_url: z.string().refine(
-    (val) => val === "" || z.string().url().safeParse(val).success,
-    { message: "Must be a valid URL or empty" }
-  ),
-  mobile_image_url: z.string().refine(
-    (val) => val === "" || z.string().url().safeParse(val).success,
-    { message: "Must be a valid URL or empty" }
-  ).optional(),
+  image_url: z
+    .string()
+    .refine((val) => val === "" || z.string().url().safeParse(val).success, {
+      message: "Must be a valid URL or empty",
+    }),
+  mobile_image_url: z
+    .string()
+    .refine((val) => val === "" || z.string().url().safeParse(val).success, {
+      message: "Must be a valid URL or empty",
+    })
+    .optional(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
   cta_text: z.string().optional(),
@@ -163,53 +177,80 @@ export type UpdateSettingParams = z.infer<typeof updateSettingSchema>;
 
 // Parts Bulk Operations
 export const bulkCreatePartsSchema = z.object({
-  parts: z.array(createPartSchema).min(1, "At least one part is required").max(1000, "Maximum 1000 parts per request"),
+  parts: z
+    .array(createPartSchema)
+    .min(1, "At least one part is required")
+    .max(1000, "Maximum 1000 parts per request"),
 });
 
 export const bulkUpdatePartsSchema = z.object({
-  parts: z.array(
-    updatePartSchema.extend({
-      id: z.uuid("Part ID is required for bulk update"),
-    })
-  ).min(1, "At least one part is required").max(1000, "Maximum 1000 parts per request"),
+  parts: z
+    .array(
+      updatePartSchema.extend({
+        id: z.uuid("Part ID is required for bulk update"),
+      })
+    )
+    .min(1, "At least one part is required")
+    .max(1000, "Maximum 1000 parts per request"),
 });
 
 export const bulkDeletePartsSchema = z.object({
-  ids: z.array(z.uuid()).min(1, "At least one part ID is required").max(1000, "Maximum 1000 parts per request"),
+  ids: z
+    .array(z.uuid())
+    .min(1, "At least one part ID is required")
+    .max(1000, "Maximum 1000 parts per request"),
 });
 
 // Vehicle Applications Bulk Operations
 export const bulkCreateVehiclesSchema = z.object({
-  vehicles: z.array(createVehicleSchema).min(1, "At least one vehicle application is required").max(5000, "Maximum 5000 vehicle applications per request"),
+  vehicles: z
+    .array(createVehicleSchema)
+    .min(1, "At least one vehicle application is required")
+    .max(5000, "Maximum 5000 vehicle applications per request"),
 });
 
 export const bulkUpdateVehiclesSchema = z.object({
-  vehicles: z.array(
-    updateVehicleSchema.extend({
-      id: z.uuid("Vehicle Application ID is required for bulk update"),
-    })
-  ).min(1, "At least one vehicle application is required").max(5000, "Maximum 5000 vehicle applications per request"),
+  vehicles: z
+    .array(
+      updateVehicleSchema.extend({
+        id: z.uuid("Vehicle Application ID is required for bulk update"),
+      })
+    )
+    .min(1, "At least one vehicle application is required")
+    .max(5000, "Maximum 5000 vehicle applications per request"),
 });
 
 export const bulkDeleteVehiclesSchema = z.object({
-  ids: z.array(z.uuid()).min(1, "At least one vehicle application ID is required").max(5000, "Maximum 5000 vehicle applications per request"),
+  ids: z
+    .array(z.uuid())
+    .min(1, "At least one vehicle application ID is required")
+    .max(5000, "Maximum 5000 vehicle applications per request"),
 });
 
 // Cross References Bulk Operations
 export const bulkCreateCrossRefsSchema = z.object({
-  cross_references: z.array(createCrossRefSchema).min(1, "At least one cross reference is required").max(10000, "Maximum 10000 cross references per request"),
+  cross_references: z
+    .array(createCrossRefSchema)
+    .min(1, "At least one cross reference is required")
+    .max(10000, "Maximum 10000 cross references per request"),
 });
 
 export const bulkUpdateCrossRefsSchema = z.object({
-  cross_references: z.array(
-    updateCrossRefSchema.extend({
-      id: z.uuid("Cross Reference ID is required for bulk update"),
-    })
-  ).min(1, "At least one cross reference is required").max(10000, "Maximum 10000 cross references per request"),
+  cross_references: z
+    .array(
+      updateCrossRefSchema.extend({
+        id: z.uuid("Cross Reference ID is required for bulk update"),
+      })
+    )
+    .min(1, "At least one cross reference is required")
+    .max(10000, "Maximum 10000 cross references per request"),
 });
 
 export const bulkDeleteCrossRefsSchema = z.object({
-  ids: z.array(z.uuid()).min(1, "At least one cross reference ID is required").max(10000, "Maximum 10000 cross references per request"),
+  ids: z
+    .array(z.uuid())
+    .min(1, "At least one cross reference ID is required")
+    .max(10000, "Maximum 10000 cross references per request"),
 });
 
 // Bulk Operation Result Types
@@ -218,11 +259,15 @@ export const bulkOperationResultSchema = z.object({
   created: z.number().optional(),
   updated: z.number().optional(),
   deleted: z.number().optional(),
-  errors: z.array(z.object({
-    index: z.number(),
-    field: z.string().optional(),
-    message: z.string(),
-  })).optional(),
+  errors: z
+    .array(
+      z.object({
+        index: z.number(),
+        field: z.string().optional(),
+        message: z.string(),
+      })
+    )
+    .optional(),
 });
 
 // ===== BULK OPERATIONS TYPE EXPORTS =====
@@ -234,8 +279,14 @@ export type BulkCreateVehiclesParams = z.infer<typeof bulkCreateVehiclesSchema>;
 export type BulkUpdateVehiclesParams = z.infer<typeof bulkUpdateVehiclesSchema>;
 export type BulkDeleteVehiclesParams = z.infer<typeof bulkDeleteVehiclesSchema>;
 
-export type BulkCreateCrossRefsParams = z.infer<typeof bulkCreateCrossRefsSchema>;
-export type BulkUpdateCrossRefsParams = z.infer<typeof bulkUpdateCrossRefsSchema>;
-export type BulkDeleteCrossRefsParams = z.infer<typeof bulkDeleteCrossRefsSchema>;
+export type BulkCreateCrossRefsParams = z.infer<
+  typeof bulkCreateCrossRefsSchema
+>;
+export type BulkUpdateCrossRefsParams = z.infer<
+  typeof bulkUpdateCrossRefsSchema
+>;
+export type BulkDeleteCrossRefsParams = z.infer<
+  typeof bulkDeleteCrossRefsSchema
+>;
 
 export type BulkOperationResult = z.infer<typeof bulkOperationResultSchema>;
