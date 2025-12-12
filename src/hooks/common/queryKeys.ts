@@ -52,6 +52,18 @@ export const queryKeys = {
     parts: () => [...queryKeys.admin.all, "parts"] as const,
     stats: () => [...queryKeys.admin.all, "stats"] as const,
     filterOptions: () => [...queryKeys.admin.all, "filter-options"] as const,
+    bulkUpload: {
+      all: () => [...queryKeys.admin.all, "bulk-upload"] as const,
+      parts: (filters?: Record<string, any>) =>
+        filters
+          ? ([
+              ...queryKeys.admin.all,
+              "bulk-upload",
+              "parts",
+              { filters },
+            ] as const)
+          : ([...queryKeys.admin.all, "bulk-upload", "parts"] as const),
+    },
   },
 
   // Public
@@ -94,4 +106,42 @@ export const invalidatePartRelatedQueries = (
   queryClient.invalidateQueries({
     queryKey: queryKeys.parts.lists(),
   });
+};
+
+/**
+ * Helper function to invalidate queries after bulk image upload
+ * Use this to refresh the bulk upload parts list and affected part details
+ */
+export const invalidateBulkUploadQueries = (
+  queryClient: any,
+  affectedPartIds?: string[],
+  affectedSkus?: string[]
+) => {
+  // Invalidate bulk upload parts list
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.admin.bulkUpload.parts(),
+  });
+
+  // Invalidate admin parts list
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.admin.parts(),
+  });
+
+  // Invalidate specific parts that were updated
+  if (affectedPartIds) {
+    for (const partId of affectedPartIds) {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.adminDetail(partId),
+      });
+    }
+  }
+
+  // Invalidate public part details by SKU
+  if (affectedSkus) {
+    for (const sku of affectedSkus) {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.parts.publicDetail(sku),
+      });
+    }
+  }
 };

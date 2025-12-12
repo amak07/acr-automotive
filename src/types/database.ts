@@ -51,6 +51,12 @@ export type PartWithDetails = DatabasePartRow & {
   cross_reference_count?: number;
 };
 
+// Parts with image statistics for bulk image upload page
+export type PartWithImageStats = PartSummary & {
+  image_count: number;
+  primary_image_url: string | null;
+};
+
 // Legacy aliases for backward compatibility
 /** @deprecated Use PartSummary instead */
 export type EnrichedPart = PartSummary;

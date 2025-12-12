@@ -36,7 +36,7 @@ export function PartDetailsBreadcrumb({
               href={backLink}
               className="text-acr-gray-600 hover:text-acr-gray-800"
             >
-              {t("partDetails.breadcrumb.parts")}
+              {t("admin.header.admin")}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator className="text-acr-gray-600" />
