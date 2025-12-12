@@ -11,6 +11,7 @@ import {
   AdminPartsQueryParams,
   PartSummary,
   PartWithDetails,
+  PartWithImageStats,
   DatabasePartRow,
 } from "@/types";
 import { queryKeys } from "@/hooks/common/queryKeys";
@@ -19,7 +20,16 @@ import { queryKeys } from "@/hooks/common/queryKeys";
 // Types
 // ============================================================================
 
-type UsePartsParams = AdminPartsQueryParams;
+// Use Partial to make optional fields truly optional for hook consumers
+// The API will apply defaults via Zod parsing
+type UsePartsParams = Omit<
+  AdminPartsQueryParams,
+  "has_images" | "has_360" | "include_image_stats"
+> & {
+  has_images?: "all" | "yes" | "no";
+  has_360?: "all" | "yes" | "no";
+  include_image_stats?: boolean;
+};
 interface UsePartByIdParams {
   sku: string;
 }
@@ -45,9 +55,15 @@ export function useGetParts(queryParams: UsePartsParams) {
     part_type,
     position_type,
     search,
+    has_images,
+    has_360,
+    include_image_stats,
   } = queryParams;
 
-  return useQuery<{ data: PartSummary[]; count: number }>({
+  return useQuery<{
+    data: PartSummary[] | PartWithImageStats[];
+    count: number;
+  }>({
     queryKey: queryKeys.parts.list({
       limit,
       offset,
@@ -59,6 +75,9 @@ export function useGetParts(queryParams: UsePartsParams) {
       part_type,
       position_type,
       search,
+      has_images,
+      has_360,
+      include_image_stats,
     }),
     queryFn: async () => {
       const searchParams = new URLSearchParams();
@@ -78,6 +97,12 @@ export function useGetParts(queryParams: UsePartsParams) {
       if (abs_type) searchParams.append("abs_type", abs_type);
       if (drive_type) searchParams.append("drive_type", drive_type);
       if (bolt_pattern) searchParams.append("bolt_pattern", bolt_pattern);
+
+      // Add image stats filters
+      if (has_images) searchParams.append("has_images", has_images);
+      if (has_360) searchParams.append("has_360", has_360);
+      if (include_image_stats)
+        searchParams.append("include_image_stats", "true");
 
       const url = `/api/admin/parts?${searchParams.toString()}`;
       const response = await fetch(url, {

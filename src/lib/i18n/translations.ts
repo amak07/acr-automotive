@@ -280,7 +280,7 @@ export const translations: Record<
     es: "Violación de integridad de datos. Este registro referencia datos que no existen en la base de datos.",
   },
   "admin.import.errors.e19": {
-    en: 'Part with _id "{value}" doesn\'t exist in the database. Either remove the _id to add as new part, or use an existing part\'s _id.',
+    en: "Part with _id \"{value}\" doesn't exist in the database. Either remove the _id to add as new part, or use an existing part's _id.",
     es: 'La pieza con _id "{value}" no existe en la base de datos. Elimina el _id para agregar como pieza nueva, o usa el _id de una pieza existente.',
   },
 
@@ -937,12 +937,12 @@ export const translations: Record<
     es: "No se encontraron resultados.",
   },
   "comboBox.noMatchesAddNew": {
-    en: "No matches found. Type to add \"{{value}}\"",
-    es: "No se encontraron coincidencias. Escriba para agregar \"{{value}}\"",
+    en: 'No matches found. Type to add "{{value}}"',
+    es: 'No se encontraron coincidencias. Escriba para agregar "{{value}}"',
   },
   "comboBox.addValue": {
-    en: "Add \"{{value}}\"",
-    es: "Agregar \"{{value}}\"",
+    en: 'Add "{{value}}"',
+    es: 'Agregar "{{value}}"',
   },
 
   // Part Types (Technical terms - keep Spanish originals)
@@ -977,14 +977,14 @@ export const translations: Record<
     es: "Delantero",
   },
   "parts.positions.trasera": {
-    en: "Rear", 
+    en: "Rear",
     es: "Trasera",
   },
   "parts.positions.trasero": {
     en: "Rear",
     es: "Trasero",
   },
-  
+
   // ABS Types
   "parts.abs.with": {
     en: "With ABS",
@@ -994,18 +994,17 @@ export const translations: Record<
     en: "Without ABS",
     es: "Sin ABS",
   },
-  
+
   // Drive Types
   "parts.drive.4x2": {
     en: "4x2",
     es: "4x2",
   },
   "parts.drive.4x4": {
-    en: "4x4", 
+    en: "4x4",
     es: "4x4",
   },
-  
-  
+
   // Field labels for specs display
   "parts.labels.position": {
     en: "Position",
@@ -1031,7 +1030,6 @@ export const translations: Record<
     en: "No specifications",
     es: "Sin especificaciones",
   },
-
 
   // Part Details Page
   "partDetails.breadcrumb.parts": {
@@ -1584,7 +1582,6 @@ export const translations: Record<
     en: "Next →",
     es: "Sig →",
   },
-
 
   // Modal Labels
   "forms.labels.brand": {
@@ -2142,5 +2139,259 @@ export const translations: Record<
   "footer.copyright": {
     en: "All rights reserved.",
     es: "Todos los derechos reservados.",
+  },
+
+  // Admin Bulk Image Upload
+  "admin.bulkUpload.title": {
+    en: "Bulk Image Upload",
+    es: "Carga Masiva de Imágenes",
+  },
+  "admin.bulkUpload.description": {
+    en: "Upload folders of supplier photos to automatically map to parts",
+    es: "Sube carpetas de fotos de proveedores para asignarlas automáticamente a piezas",
+  },
+  "admin.bulkUpload.button": {
+    en: "Bulk Images",
+    es: "Imágenes Masivas",
+  },
+  "admin.bulkUpload.uploadFolder": {
+    en: "Upload Folder",
+    es: "Subir Carpeta",
+  },
+  "admin.bulkUpload.back": {
+    en: "Back",
+    es: "Volver",
+  },
+  "admin.bulkUpload.noPartsFound": {
+    en: "No parts found matching your filters.",
+    es: "No se encontraron piezas que coincidan con tus filtros.",
+  },
+  "admin.bulkUpload.showingParts": {
+    en: "Showing {{start}} to {{end}} of {{total}} parts",
+    es: "Mostrando {{start}} a {{end}} de {{total}} piezas",
+  },
+  "admin.bulkUpload.pageOf": {
+    en: "Page {current} of {total}",
+    es: "Página {current} de {total}",
+  },
+  "admin.bulkUpload.thumb": {
+    en: "Thumb",
+    es: "Mini",
+  },
+  "admin.bulkUpload.part": {
+    en: "Part",
+    es: "Pieza",
+  },
+  "admin.bulkUpload.type": {
+    en: "Type",
+    es: "Tipo",
+  },
+  "admin.bulkUpload.images": {
+    en: "Images",
+    es: "Imágenes",
+  },
+  "admin.bulkUpload.viewer360": {
+    en: "360° Viewer",
+    es: "Visor 360°",
+  },
+  "admin.bulkUpload.filterImages": {
+    en: "Filter by images",
+    es: "Filtrar por imágenes",
+  },
+  "admin.bulkUpload.filter360": {
+    en: "Filter by 360°",
+    es: "Filtrar por 360°",
+  },
+  "admin.bulkUpload.allParts": {
+    en: "All Parts",
+    es: "Todas las Piezas",
+  },
+  "admin.bulkUpload.hasImages": {
+    en: "Has Images",
+    es: "Con Imágenes",
+  },
+  "admin.bulkUpload.noImages": {
+    en: "No Images",
+    es: "Sin Imágenes",
+  },
+  "admin.bulkUpload.has360": {
+    en: "Has 360°",
+    es: "Con 360°",
+  },
+  "admin.bulkUpload.no360": {
+    en: "No 360°",
+    es: "Sin 360°",
+  },
+  "admin.bulkUpload.searchPlaceholder": {
+    en: "Search by SKU...",
+    es: "Buscar por SKU...",
+  },
+  "admin.bulkUpload.modal.selectTitle": {
+    en: "Select Files",
+    es: "Seleccionar Archivos",
+  },
+  "admin.bulkUpload.modal.reviewTitle": {
+    en: "Review & Confirm",
+    es: "Revisar y Confirmar",
+  },
+  "admin.bulkUpload.modal.progressTitle": {
+    en: "Upload Progress",
+    es: "Progreso de Carga",
+  },
+  "admin.bulkUpload.dropHere": {
+    en: "Drop files here...",
+    es: "Suelta los archivos aquí...",
+  },
+  "admin.bulkUpload.dragDrop": {
+    en: "Drag and drop folder or files here",
+    es: "Arrastra y suelta carpeta o archivos aquí",
+  },
+  "admin.bulkUpload.orBrowse": {
+    en: "or click to browse",
+    es: "o haz clic para explorar",
+  },
+  "admin.bulkUpload.selectFiles": {
+    en: "Select Files",
+    es: "Seleccionar Archivos",
+  },
+  "admin.bulkUpload.filesSelected": {
+    en: "{count} files selected",
+    es: "{count} archivos seleccionados",
+  },
+  "admin.bulkUpload.productImages": {
+    en: "Product Images",
+    es: "Imágenes de Producto",
+  },
+  "admin.bulkUpload.frames360": {
+    en: "360° Frames",
+    es: "Cuadros 360°",
+  },
+  "admin.bulkUpload.unknown": {
+    en: "Unknown",
+    es: "Desconocido",
+  },
+  "admin.bulkUpload.uniqueSkus": {
+    en: "Unique SKUs",
+    es: "SKUs Únicos",
+  },
+  "admin.bulkUpload.filesSkipped": {
+    en: "{count} files skipped (unsupported format)",
+    es: "{count} archivos omitidos (formato no soportado)",
+  },
+  "admin.bulkUpload.analyzeFiles": {
+    en: "Analyze Files",
+    es: "Analizar Archivos",
+  },
+  "admin.bulkUpload.clear": {
+    en: "Clear",
+    es: "Limpiar",
+  },
+  "admin.bulkUpload.analyzing": {
+    en: "Analyzing files...",
+    es: "Analizando archivos...",
+  },
+  "admin.bulkUpload.matchingSkus": {
+    en: "Matching SKUs to parts",
+    es: "Emparejando SKUs con piezas",
+  },
+  "admin.bulkUpload.filesMatched": {
+    en: "Files Matched",
+    es: "Archivos Emparejados",
+  },
+  "admin.bulkUpload.newParts": {
+    en: "New Parts",
+    es: "Piezas Nuevas",
+  },
+  "admin.bulkUpload.partsToUpdate": {
+    en: "Parts to Update",
+    es: "Piezas a Actualizar",
+  },
+  "admin.bulkUpload.unmatched": {
+    en: "Unmatched",
+    es: "Sin Emparejar",
+  },
+  "admin.bulkUpload.new": {
+    en: "NEW",
+    es: "NUEVO",
+  },
+  "admin.bulkUpload.partsGettingImages": {
+    en: "{count} parts getting images for the first time",
+    es: "{count} piezas recibiendo imágenes por primera vez",
+  },
+  "admin.bulkUpload.updating": {
+    en: "UPDATING",
+    es: "ACTUALIZANDO",
+  },
+  "admin.bulkUpload.partsWithExisting": {
+    en: "{count} parts with existing images",
+    es: "{count} piezas con imágenes existentes",
+  },
+  "admin.bulkUpload.unmatchedFiles": {
+    en: "Unmatched Files",
+    es: "Archivos Sin Emparejar",
+  },
+  "admin.bulkUpload.unmatchedDescription": {
+    en: "These files could not be matched to any part in the database.",
+    es: "Estos archivos no pudieron emparejarse con ninguna pieza en la base de datos.",
+  },
+  "admin.bulkUpload.moreFiles": {
+    en: "+{count} more",
+    es: "+{count} más",
+  },
+  "admin.bulkUpload.startUpload": {
+    en: "Start Upload",
+    es: "Iniciar Carga",
+  },
+  "admin.bulkUpload.uploading": {
+    en: "Uploading images...",
+    es: "Subiendo imágenes...",
+  },
+  "admin.bulkUpload.processingFiles": {
+    en: "Processing and uploading your files. This may take a few minutes.",
+    es: "Procesando y subiendo tus archivos. Esto puede tomar unos minutos.",
+  },
+  "admin.bulkUpload.uploadComplete": {
+    en: "Upload Complete!",
+    es: "¡Carga Completa!",
+  },
+  "admin.bulkUpload.uploadPartial": {
+    en: "Upload Partially Complete",
+    es: "Carga Parcialmente Completa",
+  },
+  "admin.bulkUpload.partsSuccessful": {
+    en: "Parts Successful",
+    es: "Piezas Exitosas",
+  },
+  "admin.bulkUpload.imagesUploaded": {
+    en: "Images Uploaded",
+    es: "Imágenes Subidas",
+  },
+  "admin.bulkUpload.partsFailed": {
+    en: "Parts Failed",
+    es: "Piezas Fallidas",
+  },
+  "admin.bulkUpload.successfulUploads": {
+    en: "Successful Uploads",
+    es: "Cargas Exitosas",
+  },
+  "admin.bulkUpload.failedUploads": {
+    en: "Failed Uploads",
+    es: "Cargas Fallidas",
+  },
+  "admin.bulkUpload.uploadFailed": {
+    en: "Upload Failed",
+    es: "Carga Fallida",
+  },
+  "admin.bulkUpload.retry": {
+    en: "Retry",
+    es: "Reintentar",
+  },
+  "admin.bulkUpload.done": {
+    en: "Done",
+    es: "Listo",
+  },
+  "admin.bulkUpload.close": {
+    en: "Close",
+    es: "Cerrar",
   },
 };

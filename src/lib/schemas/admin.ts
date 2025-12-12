@@ -36,6 +36,14 @@ export const queryPartsSchema = z.object({
   abs_type: z.string().optional(),
   drive_type: z.string().optional(),
   bolt_pattern: z.string().optional(),
+
+  // Image stats parameters (for bulk image upload page)
+  include_image_stats: z
+    .enum(["true", "false"])
+    .transform((v) => v === "true")
+    .optional(),
+  has_images: z.enum(["all", "yes", "no"]).optional().default("all"),
+  has_360: z.enum(["all", "yes", "no"]).optional().default("all"),
 });
 
 export const createPartSchema = z.object({

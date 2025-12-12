@@ -8,6 +8,7 @@ import {
   DatabasePartRow,
   PartSummary,
   PartWithDetails,
+  PartWithImageStats,
 } from "@/types";
 import {
   querySchema,
@@ -18,6 +19,15 @@ import {
 import { PostgrestError } from "@supabase/supabase-js";
 import { z } from "zod";
 import { normalizeSku } from "@/lib/utils/sku-utils";
+
+// Type for part with image relations (internal use)
+type PartWithImageRelations = PartWithDetails & {
+  part_images?: Array<{
+    id: string;
+    image_url: string;
+    display_order: number;
+  }>;
+};
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -73,16 +83,16 @@ export async function GET(request: NextRequest) {
 
       return Response.json({ data: result });
     } else {
+      // Build select query - conditionally include part_images for image stats
+      const baseSelect = "*, vehicle_applications(id), cross_references(id)";
+      const selectWithImages =
+        "*, vehicle_applications(id), cross_references(id), part_images(id, image_url, display_order)";
+
       let query = supabase
         .from("parts")
-        .select(
-          `
-          *,
-          vehicle_applications(id),
-          cross_references(id)
-        `,
-          { count: "exact" }
-        )
+        .select(params.include_image_stats ? selectWithImages : baseSelect, {
+          count: "exact",
+        })
         .range(params.offset, params.offset + params.limit - 1)
         .order(params.sort_by, { ascending: params.sort_order === "asc" });
 
@@ -116,41 +126,71 @@ export async function GET(request: NextRequest) {
         query = query.eq("bolt_pattern", params.bolt_pattern);
       }
 
-      const {
-        data,
-        count,
-        error: supabaseError,
-      }: {
-        data: PartWithDetails[] | null;
-        count: number | null;
-        error: PostgrestError | null;
-      } = await query;
+      // Filter by 360° viewer presence
+      if (params.has_360 === "yes") {
+        query = query.eq("has_360_viewer", true);
+      } else if (params.has_360 === "no") {
+        query = query.eq("has_360_viewer", false);
+      }
+
+      const result = await query;
+      const { count, error: supabaseError } = result;
+      // Cast data since Supabase doesn't infer types correctly for dynamic select
+      const data = result.data as PartWithImageRelations[] | null;
 
       if (supabaseError) throw supabaseError;
 
-      const enrichedData: PartSummary[] | null =
-        data?.map((part) => ({
-          // Base part properties
-          id: part.id,
-          tenant_id: part.tenant_id,
-          acr_sku: part.acr_sku,
-          part_type: part.part_type,
-          position_type: part.position_type,
-          abs_type: part.abs_type,
-          bolt_pattern: part.bolt_pattern,
-          drive_type: part.drive_type,
-          specifications: part.specifications,
-          has_360_viewer: part.has_360_viewer,
-          viewer_360_frame_count: part.viewer_360_frame_count,
-          created_at: part.created_at,
-          updated_at: part.updated_at,
-          updated_by: part.updated_by,
-          // Add the computed counts
-          vehicle_count: part.vehicle_applications?.length || 0,
-          cross_reference_count: part.cross_references?.length || 0,
-        })) || null;
+      // Filter by image presence (post-query since Supabase doesn't support count-based filtering)
+      let filteredData = data;
+      if (params.has_images === "yes") {
+        filteredData =
+          data?.filter((part) => (part.part_images?.length || 0) > 0) || null;
+      } else if (params.has_images === "no") {
+        filteredData =
+          data?.filter((part) => (part.part_images?.length || 0) === 0) || null;
+      }
 
-      return Response.json({ data: enrichedData, count });
+      // Enrich data based on whether image stats were requested
+      const enrichedData: (PartSummary | PartWithImageStats)[] | null =
+        filteredData?.map((part) => {
+          const basePart: PartSummary = {
+            id: part.id,
+            tenant_id: part.tenant_id,
+            acr_sku: part.acr_sku,
+            part_type: part.part_type,
+            position_type: part.position_type,
+            abs_type: part.abs_type,
+            bolt_pattern: part.bolt_pattern,
+            drive_type: part.drive_type,
+            specifications: part.specifications,
+            has_360_viewer: part.has_360_viewer,
+            viewer_360_frame_count: part.viewer_360_frame_count,
+            created_at: part.created_at,
+            updated_at: part.updated_at,
+            updated_by: part.updated_by,
+            vehicle_count: part.vehicle_applications?.length || 0,
+            cross_reference_count: part.cross_references?.length || 0,
+          };
+
+          if (params.include_image_stats) {
+            const sortedImages = [...(part.part_images || [])].sort(
+              (a, b) => a.display_order - b.display_order
+            );
+            return {
+              ...basePart,
+              image_count: part.part_images?.length || 0,
+              primary_image_url: sortedImages[0]?.image_url || null,
+            } as PartWithImageStats;
+          }
+
+          return basePart;
+        }) || null;
+
+      // Adjust count for post-query filtering
+      const adjustedCount =
+        params.has_images !== "all" ? (filteredData?.length ?? 0) : count;
+
+      return Response.json({ data: enrichedData, count: adjustedCount });
     }
   } catch (error) {
     return Response.json(

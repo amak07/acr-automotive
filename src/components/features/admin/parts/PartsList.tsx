@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { Plus, Download, Upload } from "lucide-react";
+import { Plus, Download, Upload, ImagePlus } from "lucide-react";
 import { createAcrPartsTableColumns } from "./parts-table-config";
 import { AcrPagination } from "@/components/acr";
 import { SearchTerms } from "./SearchFilters";
@@ -88,6 +88,14 @@ export function PartsList(props: PartsListProps) {
             {hasFilters
               ? `Export Results (${partsTotal})`
               : `Export All (${partsTotal})`}
+          </AcrButton>
+          <AcrButton
+            variant="secondary"
+            size="default"
+            onClick={() => router.push("/admin/bulk-image-upload")}
+          >
+            <ImagePlus className="w-4 h-4" />
+            {t("admin.bulkUpload.button")}
           </AcrButton>
           <AcrButton
             variant="primary"
