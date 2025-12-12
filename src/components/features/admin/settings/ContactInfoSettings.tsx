@@ -24,7 +24,7 @@ export function ContactInfoSettings() {
       const response = await fetch("/api/admin/settings");
       if (!response.ok) throw new Error("Failed to fetch settings");
       const data = await response.json();
-      return data.settings.contact_info as ContactInfo;
+      return (data.settings?.contact_info as ContactInfo) ?? null;
     },
   });
 
