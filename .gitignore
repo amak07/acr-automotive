@@ -106,3 +106,6 @@ uploads/
 
 # Generated types
 /generated/
+
+# Bulk upload test photos (keep CTK512016 as reference)
+public/ACR*/
