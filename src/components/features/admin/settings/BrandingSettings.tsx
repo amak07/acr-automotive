@@ -41,7 +41,8 @@ export function BrandingSettings() {
       const response = await fetch("/api/admin/settings");
       if (!response.ok) throw new Error("Failed to fetch settings");
       const data = await response.json();
-      return data.settings.branding as BrandingParams;
+      // Return null instead of undefined to satisfy TanStack Query
+      return (data.settings?.branding as BrandingParams) ?? null;
     },
   });
 
