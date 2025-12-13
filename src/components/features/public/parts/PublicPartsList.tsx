@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { PartSearchResult } from "@/types";
 import { useLocale } from "@/contexts/LocaleContext";
+import { TranslationKeys } from "@/lib/i18n/translation-keys";
 import { Skeleton, SkeletonPartsGrid } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ function PartCard({
 }: {
   part: PartSearchResult;
   currentSearch: string;
-  t: (key: string) => string;
+  t: (key: keyof TranslationKeys) => string;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
