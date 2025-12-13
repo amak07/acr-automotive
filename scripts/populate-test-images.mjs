@@ -1,12 +1,13 @@
 /**
  * Populate Test Images Script
  *
- * Dev-only script to populate ALL parts with sample images from the CTK512016 reference folder.
+ * Dev-only script to populate parts with sample images from the CTK512016 reference folder.
  * This helps test the UI/UX without manually uploading images one by one.
  *
  * Usage:
- *   node scripts/populate-test-images.mjs              # Process all parts
+ *   node scripts/populate-test-images.mjs              # Process first 50 parts (default)
  *   node scripts/populate-test-images.mjs --limit 10  # Process only first 10 parts
+ *   node scripts/populate-test-images.mjs --all       # Process ALL parts (no limit)
  *   node scripts/populate-test-images.mjs --product-only  # Only product images (skip 360)
  *   node scripts/populate-test-images.mjs --360-only      # Only 360 frames (skip product)
  */
@@ -29,11 +30,13 @@ const supabase = createClient(
 // Config
 const SAMPLE_FOLDER = path.join(__dirname, '..', 'public', 'CTK512016');
 const CONCURRENCY = 3;
+const DEFAULT_LIMIT = 50; // Default to 50 parts for quick dev testing
 
 // Parse command line args
 const args = process.argv.slice(2);
 const limitIndex = args.indexOf('--limit');
-const limit = limitIndex !== -1 ? parseInt(args[limitIndex + 1], 10) : null;
+const allParts = args.includes('--all');
+const limit = allParts ? null : (limitIndex !== -1 ? parseInt(args[limitIndex + 1], 10) : DEFAULT_LIMIT);
 const productOnly = args.includes('--product-only');
 const only360 = args.includes('--360-only');
 
