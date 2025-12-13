@@ -143,6 +143,8 @@ export async function GET(request: NextRequest) {
         .from("parts")
         .select(`*`, { count: "exact" })
         .not("part_type", "eq", "PENDING") // remove any unready parts.
+        .order("has_360_viewer", { ascending: false }) // Parts with images first
+        .order("acr_sku", { ascending: true }) // Then alphabetically
         .range(params.offset, params.offset + params.limit - 1);
 
       const {
@@ -202,10 +204,24 @@ export async function GET(request: NextRequest) {
 
       if (rpcError) throw rpcError;
 
-      // Apply pagination to RPC results
-      const totalCount = allData?.length || 0;
-      const paginatedData =
-        allData?.slice(params.offset, params.offset + params.limit) || [];
+      // Sort by has_360_viewer DESC, then acr_sku ASC (parts with images first)
+      const sortedData = (allData || []).sort(
+        (a: DatabasePartRow, b: DatabasePartRow) => {
+          // First: parts with 360 viewer come first
+          if (a.has_360_viewer !== b.has_360_viewer) {
+            return a.has_360_viewer ? -1 : 1;
+          }
+          // Then: alphabetically by SKU
+          return (a.acr_sku || "").localeCompare(b.acr_sku || "");
+        }
+      );
+
+      // Apply pagination to sorted results
+      const totalCount = sortedData.length;
+      const paginatedData = sortedData.slice(
+        params.offset,
+        params.offset + params.limit
+      );
 
       // Enrich with primary images
       const enrichedData = await enrichWithPrimaryImages(paginatedData);
