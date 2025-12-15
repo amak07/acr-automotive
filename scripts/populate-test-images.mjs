@@ -5,11 +5,12 @@
  * This helps test the UI/UX without manually uploading images one by one.
  *
  * Usage:
- *   node scripts/populate-test-images.mjs              # Process first 50 parts (default)
+ *   node scripts/populate-test-images.mjs              # Process first 50 parts (default, local)
  *   node scripts/populate-test-images.mjs --limit 10  # Process only first 10 parts
  *   node scripts/populate-test-images.mjs --all       # Process ALL parts (no limit)
  *   node scripts/populate-test-images.mjs --product-only  # Only product images (skip 360)
  *   node scripts/populate-test-images.mjs --360-only      # Only 360 frames (skip product)
+ *   node scripts/populate-test-images.mjs --staging   # Target remote TEST environment
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -21,19 +22,27 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Supabase client (local dev)
-const supabase = createClient(
-  'http://127.0.0.1:54321',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
-);
+// Parse command line args early to determine environment
+const args = process.argv.slice(2);
+const isStaging = args.includes('--staging');
+
+// Supabase client - local dev or remote staging
+const supabase = isStaging
+  ? createClient(
+      'https://fzsdaqpwwbuwkvbzyiax.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6c2RhcXB3d2J1d2t2Ynp5aWF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNzUxMjYsImV4cCI6MjA3Mjg1MTEyNn0.INjYYNK9cwDT9oKAwcONpGC5ndq_ymtzqrB2l7Wum3A'
+    )
+  : createClient(
+      'http://127.0.0.1:54321',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+    );
 
 // Config
 const SAMPLE_FOLDER = path.join(__dirname, '..', 'public', 'CTK512016');
 const CONCURRENCY = 3;
 const DEFAULT_LIMIT = 50; // Default to 50 parts for quick dev testing
 
-// Parse command line args
-const args = process.argv.slice(2);
+// Parse remaining command line args
 const limitIndex = args.indexOf('--limit');
 const allParts = args.includes('--all');
 const limit = allParts ? null : (limitIndex !== -1 ? parseInt(args[limitIndex + 1], 10) : DEFAULT_LIMIT);
@@ -45,6 +54,7 @@ const VIEW_ORDER = { front: 0, top: 1, other: 2, bottom: 3 };
 
 async function main() {
   console.log('=== Populate Test Images ===\n');
+  console.log(`Environment: ${isStaging ? 'STAGING (remote test)' : 'LOCAL (dev)'}\n`);
 
   // Check sample folder exists
   if (!fs.existsSync(SAMPLE_FOLDER)) {
