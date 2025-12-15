@@ -8,18 +8,18 @@ This document summarizes unit test coverage for the Excel import/export pipeline
 
 ## Test Suites Summary
 
-| Test Suite | Tests | Coverage | Status |
-|------------|-------|----------|--------|
-| [DiffEngine](../../../tests/unit/excel/diff-engine.test.ts) | 19 | 97.32% | ✅ Complete |
-| [ValidationEngine](../../../tests/unit/excel/validation-engine.test.ts) | 10 | 89.4% | ✅ Complete |
-| [ExcelExportService](../../../tests/unit/excel/export-service.test.ts) | 24 | 92.56% | ✅ Complete |
-| [ImportService (atomic)](../../../tests/unit/excel/import-service-atomic.test.ts) | 6 | 6.74% | ⚠️ Integration-focused |
-| [Catalogacion Parser](../../../src/lib/excel/__tests__/catalogacion-parser.test.ts) | 5 | ~80% | ✅ Complete |
-| [Precios Parser](../../../src/lib/excel/__tests__/precios-parser.test.ts) | 5 | ~80% | ✅ Complete |
-| **[ImportStep2Validation Component](../../../src/components/features/admin/import/steps/__tests__/ImportStep2Validation.test.tsx)** | **56** | **100%** | **✅ Complete** |
-| **[ImportStep3Preview Component](../../../src/components/features/admin/import/steps/__tests__/ImportStep3Preview.test.tsx)** | **49** | **100%** | **✅ Complete** |
-| **[ImportWizard Component](../../../src/components/features/admin/import/__tests__/ImportWizard.test.tsx)** | **31** | **100%** | **✅ Complete** |
-| **[ImportStep1Upload Component](../../../src/components/features/admin/import/steps/__tests__/ImportStep1Upload.test.tsx)** | **36** | **100%** | **✅ Complete** |
+| Test Suite                                                                                                                          | Tests  | Coverage | Status                 |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- | ---------------------- |
+| [DiffEngine](../../../tests/unit/excel/diff-engine.test.ts)                                                                         | 19     | 97.32%   | ✅ Complete            |
+| [ValidationEngine](../../../tests/unit/excel/validation-engine.test.ts)                                                             | 10     | 89.4%    | ✅ Complete            |
+| [ExcelExportService](../../../tests/unit/excel/export-service.test.ts)                                                              | 24     | 92.56%   | ✅ Complete            |
+| [ImportService (atomic)](../../../tests/unit/excel/import-service-atomic.test.ts)                                                   | 6      | 6.74%    | ⚠️ Integration-focused |
+| [Catalogacion Parser](../../../src/lib/excel/__tests__/catalogacion-parser.test.ts)                                                 | 5      | ~80%     | ✅ Complete            |
+| [Precios Parser](../../../src/lib/excel/__tests__/precios-parser.test.ts)                                                           | 5      | ~80%     | ✅ Complete            |
+| **[ImportStep2Validation Component](../../../src/components/features/admin/import/steps/__tests__/ImportStep2Validation.test.tsx)** | **56** | **100%** | **✅ Complete**        |
+| **[ImportStep3Preview Component](../../../src/components/features/admin/import/steps/__tests__/ImportStep3Preview.test.tsx)**       | **49** | **100%** | **✅ Complete**        |
+| **[ImportWizard Component](../../../src/components/features/admin/import/__tests__/ImportWizard.test.tsx)**                         | **31** | **100%** | **✅ Complete**        |
+| **[ImportStep1Upload Component](../../../src/components/features/admin/import/steps/__tests__/ImportStep1Upload.test.tsx)**         | **36** | **100%** | **✅ Complete**        |
 
 **Total**: 241 passing tests across 10 test suites
 
@@ -28,9 +28,11 @@ This document summarizes unit test coverage for the Excel import/export pipeline
 ### ✅ Excellent Coverage (>85%)
 
 #### DiffEngine - 97.32%
+
 **What it does**: ID-based change detection (ADD/UPDATE/DELETE/UNCHANGED operations)
 
 **Test Coverage**:
+
 - ✅ Parts sheet diff (6 tests)
   - ADD operations (new rows without `_id`)
   - UPDATE operations (field change detection)
@@ -50,9 +52,11 @@ This document summarizes unit test coverage for the Excel import/export pipeline
   - Complex multi-sheet scenarios
 
 #### ValidationEngine - 89.4%
+
 **What it does**: 23 error codes (E1-E23), 12 warning codes (W1-W12)
 
 **Test Coverage**:
+
 - ✅ All error codes validated
 - ✅ All warning codes validated
 - ✅ Sheet-level validation
@@ -62,9 +66,11 @@ This document summarizes unit test coverage for the Excel import/export pipeline
 **Uncovered**: Edge cases in specific validation rules (acceptable - main logic covered)
 
 #### ImportStep2Validation Component - 100%
+
 **What it does**: Display validation errors/warnings with sheet grouping and acknowledgment UI
 
 **Test Coverage** (56 tests):
+
 - ✅ Loading state display (2 tests)
 - ✅ No validation result handling (1 test)
 - ✅ Success state (no errors/warnings) (2 tests)
@@ -94,9 +100,11 @@ This document summarizes unit test coverage for the Excel import/export pipeline
   - Errors with no value
 
 #### ImportStep3Preview Component - 100%
+
 **What it does**: Display diff preview with adds/updates/deletes, pagination, and cascade warnings
 
 **Test Coverage** (49 tests):
+
 - ✅ Loading state display (2 tests)
 - ✅ No diff result handling (1 test)
 - ✅ Summary bar display (3 tests)
@@ -157,9 +165,11 @@ This document summarizes unit test coverage for the Excel import/export pipeline
   - Alert triangle for warnings
 
 #### ImportWizard Component - 100%
+
 **What it does**: Orchestrate 3-step import wizard with state management and API integration
 
 **Test Coverage** (31 tests):
+
 - ✅ Initial state (5 tests)
   - Start on step 1
   - Display step 1 upload component
@@ -203,9 +213,11 @@ This document summarizes unit test coverage for the Excel import/export pipeline
   - Require warnings acknowledgment before proceeding
 
 #### ImportStep1Upload Component - 100%
+
 **What it does**: File upload with drag-and-drop, validation, and progress display
 
 **Test Coverage** (36 tests):
+
 - ✅ Initial state (6 tests)
   - Display upload zone
   - Display choose file button
@@ -253,9 +265,11 @@ This document summarizes unit test coverage for the Excel import/export pipeline
   - Apply error styling to upload zone
 
 #### ExcelExportService - 92.56%
+
 **What it does**: Export catalog data to 3-sheet Excel workbook
 
 **Test Coverage**:
+
 - ✅ Workbook structure (3 tests)
   - 3 sheets in correct order
   - Metadata (creator, created date)
@@ -284,48 +298,55 @@ This document summarizes unit test coverage for the Excel import/export pipeline
 ### ⚠️ Low Coverage (Intentional - Integration-Focused)
 
 #### ImportService - 6.74%
+
 **Why low**: Heavy database interaction, better tested via integration tests
 
 **Unit Tests**:
+
 - ✅ Atomic transaction structure validation (6 tests)
 
 **Integration Tests** (see [Integration Tests](#integration-tests)):
+
 - ✅ Full pipeline (7,716 changes in ~3.8s)
 - ✅ Atomic constraint violation rollback
 - ✅ Foreign key violation rollback
 
 #### RollbackService - 0%
+
 **Why zero**: Entirely database-dependent, no pure business logic
 
 **Integration Tests**:
+
 - ✅ Full pipeline rollback (snapshot restore in ~1.7s)
 - ✅ Sequential enforcement validation
 - ✅ Conflict detection
 
 ## UI Component Tests
 
-Located in [src/components/**/tests/](../../../src/components/)
+Located in [src/components/\*\*/tests/](../../../src/components/)
 
 ### Component Test Infrastructure
 
 **Test Utilities**:
+
 - [validation-mocks.ts](../../../tests/utils/component-mocks/validation-mocks.ts) - Mock validation data generators (56 tests use this)
 - [diff-mocks.ts](../../../tests/utils/component-mocks/diff-mocks.ts) - Mock diff result generators (49 tests use this)
 - [locale-mock.tsx](../../../tests/utils/component-mocks/locale-mock.tsx) - Mock locale context provider
 
 **Test Configuration**:
+
 - Jest with jsdom environment for DOM testing
 - React Testing Library for user-centric queries
 - Module path mapping: `@test-utils/*` for test utilities
 
 ### Component Test Coverage
 
-| Component | Tests | Status |
-|-----------|-------|--------|
-| [ImportStep2Validation](../../../src/components/features/admin/import/steps/__tests__/ImportStep2Validation.test.tsx) | 56 | ✅ Complete |
-| [ImportStep3Preview](../../../src/components/features/admin/import/steps/__tests__/ImportStep3Preview.test.tsx) | 49 | ✅ Complete |
-| [ImportWizard](../../../src/components/features/admin/import/__tests__/ImportWizard.test.tsx) | 31 | ✅ Complete |
-| **[ImportStep1Upload](../../../src/components/features/admin/import/steps/__tests__/ImportStep1Upload.test.tsx)** | **36** | **✅ Complete** |
+| Component                                                                                                             | Tests  | Status          |
+| --------------------------------------------------------------------------------------------------------------------- | ------ | --------------- |
+| [ImportStep2Validation](../../../src/components/features/admin/import/steps/__tests__/ImportStep2Validation.test.tsx) | 56     | ✅ Complete     |
+| [ImportStep3Preview](../../../src/components/features/admin/import/steps/__tests__/ImportStep3Preview.test.tsx)       | 49     | ✅ Complete     |
+| [ImportWizard](../../../src/components/features/admin/import/__tests__/ImportWizard.test.tsx)                         | 31     | ✅ Complete     |
+| **[ImportStep1Upload](../../../src/components/features/admin/import/steps/__tests__/ImportStep1Upload.test.tsx)**     | **36** | **✅ Complete** |
 
 **Total**: 172 passing component tests
 
@@ -335,18 +356,18 @@ Located in [scripts/test/](../../../scripts/test/)
 
 ### Working Integration Tests
 
-| Script | Purpose | Run Command |
-|--------|---------|-------------|
-| [test-full-import-pipeline.ts](../../../scripts/test/test-full-import-pipeline.ts) | End-to-end: Parse → Validate → Diff → Import → Rollback | `npm run test:full-pipeline` |
-| [test-atomic-constraint-violation.ts](../../../scripts/test/test-atomic-constraint-violation.ts) | Tests duplicate SKU validation + rollback | `npm run test:atomic:constraint` |
-| [test-atomic-fk-violation.ts](../../../scripts/test/test-atomic-fk-violation.ts) | Tests foreign key violation + rollback | `npm run test:atomic:fk` |
-| [test-excel-export.ts](../../../scripts/test/test-excel-export.ts) | API endpoint export validation | `npm run test:export` |
-| [export-from-test-db.ts](../../../scripts/test/export-from-test-db.ts) | Direct ExcelExportService testing | `npm run test:export-test` |
-| [verify-migration-008.ts](../../../scripts/test/verify-migration-008.ts) | PostgreSQL function verification | `npm run test:verify-migration-008` |
+| Script                                                                                           | Purpose                                                 | Run Command                         |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------- | ----------------------------------- |
+| [test-full-import-pipeline.ts](../../../scripts/test/test-full-import-pipeline.ts)               | End-to-end: Parse → Validate → Diff → Import → Rollback | `npm run test:full-pipeline`        |
+| [test-atomic-constraint-violation.ts](../../../scripts/test/test-atomic-constraint-violation.ts) | Tests duplicate SKU validation + rollback               | `npm run test:atomic:constraint`    |
+| [test-atomic-fk-violation.ts](../../../scripts/test/test-atomic-fk-violation.ts)                 | Tests foreign key violation + rollback                  | `npm run test:atomic:fk`            |
+| [test-export-api.ts](../../../scripts/test/test-export-api.ts)                                   | API endpoint export validation                          | `npm run test:export-api`           |
+| [verify-migration-008.ts](../../../scripts/test/verify-migration-008.ts)                         | PostgreSQL function verification                        | `npm run test:verify-migration-008` |
 
 ### Full Pipeline Test Results
 
 **Latest Run** (2025-10-28):
+
 ```
 ✅ Import completed in 3,807ms
    - 865 parts (865 adds)
@@ -366,14 +387,18 @@ Located in [scripts/test/](../../../scripts/test/)
 ## Testing Strategy
 
 ### Unit Tests → Business Logic
+
 Use unit tests when:
+
 - ✅ Pure business logic (no database)
 - ✅ Complex algorithms (diff detection, validation rules)
 - ✅ Data transformations (Excel ↔ database mapping)
 - ✅ Error handling paths
 
 ### Integration Tests → Database Operations
+
 Use integration tests when:
+
 - ✅ Multi-table atomic transactions
 - ✅ PostgreSQL-specific features (JSONB snapshots, triggers)
 - ✅ Conflict detection (timestamp-based logic)
@@ -382,6 +407,7 @@ Use integration tests when:
 ## Running Tests
 
 ### All Unit Tests
+
 ```bash
 npm test                    # Run all Jest tests
 npm run test:coverage       # With coverage report
@@ -389,6 +415,7 @@ npm run test:watch          # Watch mode
 ```
 
 ### Specific Test Suite
+
 ```bash
 npm test -- diff-engine.test.ts
 npm test -- export-service.test.ts
@@ -396,6 +423,7 @@ npm test -- validation-engine.test.ts
 ```
 
 ### Integration Tests
+
 ```bash
 # Full pipeline
 npm run test:full-pipeline
@@ -403,12 +431,12 @@ npm run test:full-pipeline
 # Atomic transaction tests
 npm run test:atomic
 
-# Export tests
-npm run test:export
-npm run test:export-test
+# Export API test (requires dev server running)
+npm run test:export-api
 ```
 
 ### All Tests (Unit + Integration)
+
 ```bash
 npm run test:full           # Type check + unit tests
 npm run test:atomic         # Both atomic constraint tests
@@ -452,6 +480,7 @@ npm run test:atomic         # Both atomic constraint tests
 ### Documentation Tests
 
 Testing documentation is consolidated here:
+
 - ✅ [UNIT_TEST_COVERAGE.md](./UNIT_TEST_COVERAGE.md) (this file) - Unit test overview
 - ✅ [TESTING_GUIDE.md](./TESTING_GUIDE.md) - Quick reference for developers
 - ✅ [TESTING_CHECKLIST_MIGRATION_008.md](../../TESTING_CHECKLIST_MIGRATION_008.md) - Migration validation results
@@ -462,11 +491,11 @@ Testing documentation is consolidated here:
 
 ### Coverage Improvements (2025-10-28)
 
-| Component | Before | After | Improvement |
-|-----------|--------|-------|-------------|
-| DiffEngine | 0.89% | **97.32%** | +96.43% |
-| ExcelExportService | 0% | **92.56%** | +92.56% |
-| ValidationEngine | 89.4% | **89.4%** | (maintained) |
+| Component          | Before | After      | Improvement  |
+| ------------------ | ------ | ---------- | ------------ |
+| DiffEngine         | 0.89%  | **97.32%** | +96.43%      |
+| ExcelExportService | 0%     | **92.56%** | +92.56%      |
+| ValidationEngine   | 89.4%  | **89.4%**  | (maintained) |
 
 ### Test Count Growth
 
