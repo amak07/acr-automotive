@@ -39,20 +39,24 @@ tmp/
 ## 🎯 Quick Start
 
 ### Generate All Test Data
+
 ```bash
 npm run test:generate
 ```
+
 Generates both unit fixtures and integration scenarios.
 
 ### Generate Specific Types
+
 ```bash
 npm run test:generate:unit        # Unit fixtures only
 npm run test:generate:scenarios   # Integration scenarios only
 ```
 
 ### Regenerate Test Baseline
+
 ```bash
-npm run test:export-baseline      # Export TEST database → tmp/test-export.xlsx
+npm run test:generate-baseline    # Export local Docker database → fixtures/baseline-export.xlsx
 ```
 
 ---
@@ -64,22 +68,25 @@ npm run test:export-baseline      # Export TEST database → tmp/test-export.xls
 When you add new columns to the database:
 
 1. **Update shared constants:**
+
    ```typescript
    // src/services/excel/shared/constants.ts
    export const PARTS_COLUMNS = [
-     { header: 'ACR_SKU', key: 'acr_sku', width: 15 },
-     { header: 'Part_Type', key: 'part_type', width: 20 },
-     { header: 'New_Column', key: 'new_column', width: 15 }, // ← Add here
+     { header: "ACR_SKU", key: "acr_sku", width: 15 },
+     { header: "Part_Type", key: "part_type", width: 20 },
+     { header: "New_Column", key: "new_column", width: 15 }, // ← Add here
      // ...
    ];
    ```
 
 2. **Regenerate Supabase types:**
+
    ```bash
    npm run types:generate           # Reads TEST database schema
    ```
 
 3. **Regenerate test data:**
+
    ```bash
    npm run test:generate
    ```
@@ -87,6 +94,7 @@ When you add new columns to the database:
 4. **Test files automatically include new column!** ✅
 
 **Single Source of Truth:**
+
 - Column definitions: `src/services/excel/shared/constants.ts`
 - TypeScript types: `src/lib/supabase/types.ts` (auto-generated)
 - Test generation: `scripts/test/generate-all-test-data.ts` (imports from both)
@@ -102,31 +110,34 @@ When you add new columns to the database:
 **Size:** ~8KB each (5-10 rows)
 
 **Used By:**
+
 - Unit tests (Jest/Vitest)
 - Validation engine tests
 - Quick smoke tests
 
 ### File Descriptions
 
-| File | Purpose | Tests |
-|------|---------|-------|
-| `valid-add-new-parts.xlsx` | Happy path: Add 5 new parts | Import service, basic validation |
-| `valid-update-existing.xlsx` | Happy path: Update 3 parts | Update operations, diff engine |
-| `error-duplicate-skus.xlsx` | E2: Duplicate ACR_SKU | Duplicate detection |
-| `error-missing-required-fields.xlsx` | E3: Empty ACR_SKU, Part_Type | Required field validation |
-| `error-orphaned-references.xlsx` | E5: Orphaned foreign keys | FK constraint validation |
-| `error-invalid-formats.xlsx` | E4, E6, E8: Invalid UUIDs, year ranges | Format validation |
-| `error-max-length-exceeded.xlsx` | E7: String exceeds 100 chars | Length validation |
-| `warning-data-changes.xlsx` | W1-W10: Data modifications | Warning detection |
+| File                                 | Purpose                                | Tests                            |
+| ------------------------------------ | -------------------------------------- | -------------------------------- |
+| `valid-add-new-parts.xlsx`           | Happy path: Add 5 new parts            | Import service, basic validation |
+| `valid-update-existing.xlsx`         | Happy path: Update 3 parts             | Update operations, diff engine   |
+| `error-duplicate-skus.xlsx`          | E2: Duplicate ACR_SKU                  | Duplicate detection              |
+| `error-missing-required-fields.xlsx` | E3: Empty ACR_SKU, Part_Type           | Required field validation        |
+| `error-orphaned-references.xlsx`     | E5: Orphaned foreign keys              | FK constraint validation         |
+| `error-invalid-formats.xlsx`         | E4, E6, E8: Invalid UUIDs, year ranges | Format validation                |
+| `error-max-length-exceeded.xlsx`     | E7: String exceeds 100 chars           | Length validation                |
+| `warning-data-changes.xlsx`          | W1-W10: Data modifications             | Warning detection                |
 
 ### Regeneration
 
 **When to regenerate:**
+
 - After schema changes (new columns)
 - When adding new validation rules
 - When error codes change
 
 **How to regenerate:**
+
 ```bash
 npm run test:generate:unit
 ```
@@ -142,6 +153,7 @@ npm run test:generate:unit
 **Size:** ~165KB each (865 parts + vehicle apps + cross-refs)
 
 **Used By:**
+
 - Integration tests
 - E2E import pipeline tests
 - Manual UI testing
@@ -152,21 +164,25 @@ npm run test:generate:unit
 #### **Valid Import Scenarios**
 
 **01-quarterly-update.xlsx**
+
 - **Changes:** 50 adds, 3 updates, 2 deletes
 - **Purpose:** Realistic quarterly inventory update (Humberto's workflow)
 - **Tests:** Large batch adds, mixed operations
 
 **02-seasonal-refresh.xlsx**
+
 - **Changes:** 10 adds, 20 updates, 5 deletes
 - **Purpose:** Seasonal product refresh with price/spec updates
 - **Tests:** Update-heavy operations
 
 **03-minor-corrections.xlsx**
+
 - **Changes:** 0 adds, 3 updates, 0 deletes
 - **Purpose:** Small data corrections (typos, spec updates)
 - **Tests:** Update-only operations
 
 **04-all-warnings.xlsx**
+
 - **Changes:** Modifications triggering W1-W10
 - **Purpose:** Verify all warning types display in UI
 - **Tests:** Warning detection, UI acknowledgment flow
@@ -174,36 +190,43 @@ npm run test:generate:unit
 #### **Error Test Scenarios**
 
 **error-e1-missing-ids.xlsx**
+
 - **Error:** Missing hidden `_id`, `_part_id`, `_acr_part_id` columns
 - **Expected:** E1 error blocks import in Step 2
 
 **error-e2-duplicate-sku.xlsx**
+
 - **Error:** Two parts with same ACR_SKU
 - **Expected:** E2 error blocks import in Step 2
 
 **error-e3-empty-fields.xlsx**
+
 - **Error:** Empty ACR_SKU or Part_Type
 - **Expected:** E3 error blocks import in Step 2
 
 **error-e5-orphaned-fk.xlsx**
+
 - **Error:** Vehicle application references non-existent part
 - **Expected:** E5 error blocks import in Step 2
 
 **error-e6-invalid-year-range.xlsx**
+
 - **Error:** start_year > end_year
 - **Expected:** E6 error blocks import in Step 2
 
 ### Regeneration
 
 **When to regenerate:**
+
 - After test baseline changes (new data in TEST database)
 - When scenario definitions change
 - After schema changes
 
 **How to regenerate:**
+
 ```bash
-# First, export fresh baseline from TEST database
-npm run test:export-baseline
+# First, export fresh baseline from local Docker database
+npm run test:generate-baseline
 
 # Then regenerate scenarios
 npm run test:generate:scenarios
@@ -213,26 +236,29 @@ npm run test:generate:scenarios
 
 ## 🗄️ Baseline Files
 
-### `test-export.xlsx` (Generated Baseline)
+### `baseline-export.xlsx` (Generated Baseline)
 
-**Source:** TEST database export
+**Source:** Local Docker database export
 
-**Purpose:** Source data for scenario generation
+**Purpose:** Source data for scenario generation and import pipeline testing
 
-**Location:** `tmp/` (gitignored)
+**Location:** `fixtures/baseline-export.xlsx` (tracked in git)
 
 **Regenerate:**
+
 ```bash
-npm run test:export-baseline
+npm run test:generate-baseline
 ```
 
 **Contains:**
-- All parts from TEST database
+
+- All parts from local Docker database
 - All vehicle applications
 - All cross-references
-- Hidden ID columns (_id, _part_id, _acr_part_id)
+- Hidden ID columns (\_id, \_part_id, \_acr_part_id)
 
 **When to regenerate:**
+
 - After major TEST database changes
 - Before creating new scenarios
 - After migrations applied to TEST
@@ -248,12 +274,14 @@ npm run test:export-baseline
 **Update:** Manual (rare)
 
 **Usage:**
+
 ```bash
 # Reset test database to 865-part baseline
 npm run test:reset-db
 ```
 
 **When to update:**
+
 - After successful production deployment
 - After major data imports verified
 - Periodically (monthly backup)
@@ -264,26 +292,26 @@ npm run test:reset-db
 
 ### Test Data Generation
 
-| Script | Command | Purpose |
-|--------|---------|---------|
-| `generate-all-test-data.ts` | `npm run test:generate` | Generate all test data (unit + scenarios) |
-| `generate-all-test-data.ts unit` | `npm run test:generate:unit` | Generate unit fixtures only |
-| `generate-all-test-data.ts scenarios` | `npm run test:generate:scenarios` | Generate integration scenarios only |
+| Script                                | Command                           | Purpose                                   |
+| ------------------------------------- | --------------------------------- | ----------------------------------------- |
+| `generate-all-test-data.ts`           | `npm run test:generate`           | Generate all test data (unit + scenarios) |
+| `generate-all-test-data.ts unit`      | `npm run test:generate:unit`      | Generate unit fixtures only               |
+| `generate-all-test-data.ts scenarios` | `npm run test:generate:scenarios` | Generate integration scenarios only       |
 
 ### Baseline Management
 
-| Script | Command | Purpose |
-|--------|---------|---------|
-| `generate-test-baseline.ts` | `npm run test:export-baseline` | Export TEST database to tmp/test-export.xlsx |
-| `test-export-api.ts` | `npm run test:export-api` | Test /api/admin/export endpoint (requires dev server) |
-| `reset-test-db.ts` | `npm run test:reset-db` | Reset database to 865-part baseline from baseline-export.xlsx |
+| Script                 | Command                          | Purpose                                                       |
+| ---------------------- | -------------------------------- | ------------------------------------------------------------- |
+| `generate-baseline.ts` | `npm run test:generate-baseline` | Export local Docker database to fixtures/baseline-export.xlsx |
+| `test-export-api.ts`   | `npm run test:export-api`        | Test /api/admin/export endpoint (requires dev server)         |
+| `reset-test-db.ts`     | `npm run test:reset-db`          | Reset database to baseline from baseline-export.xlsx          |
 
 ### Verification
 
-| Script | Command | Purpose |
-|--------|---------|---------|
-| `check-import.ts` | `NODE_ENV=test npx tsx scripts/check-import.ts` | Check import history in TEST database |
-| `verify-baseline.ts` | `NODE_ENV=test npx tsx scripts/verify-baseline.ts` | Verify database state after rollback |
+| Script               | Command                                            | Purpose                               |
+| -------------------- | -------------------------------------------------- | ------------------------------------- |
+| `check-import.ts`    | `NODE_ENV=test npx tsx scripts/check-import.ts`    | Check import history in TEST database |
+| `verify-baseline.ts` | `NODE_ENV=test npx tsx scripts/verify-baseline.ts` | Verify database state after rollback  |
 
 ---
 
@@ -330,8 +358,8 @@ npm test
 ### Before Major Testing
 
 ```bash
-# 1. Export fresh baseline from TEST
-npm run test:export-baseline
+# 1. Export fresh baseline from local Docker database
+npm run test:generate-baseline
 
 # 2. Regenerate all scenarios
 npm run test:generate:scenarios
@@ -350,18 +378,19 @@ Integration tests that modify the database must clean up after themselves to ens
 
 ### Current Cleanup Status
 
-| Test File | Database Impact | Cleanup Status | Priority |
-|-----------|----------------|----------------|----------|
-| `rollback-edge-cases.test.ts` | Creates imports & snapshots | ❌ NONE | HIGH |
-| `concurrent-import.test.ts` | Creates parts, imports, history | ❌ NONE | HIGH |
-| `large-dataset.test.ts` | Disabled (would create 10k parts) | N/A | LOW |
-| `test-full-import-pipeline.ts` | Full import + rollback | ⚠️ PARTIAL | MEDIUM |
-| Unit tests | No database access | ✅ N/A | N/A |
-| Fixture validation tests | Read-only | ✅ N/A | N/A |
+| Test File                      | Database Impact                   | Cleanup Status | Priority |
+| ------------------------------ | --------------------------------- | -------------- | -------- |
+| `rollback-edge-cases.test.ts`  | Creates imports & snapshots       | ❌ NONE        | HIGH     |
+| `concurrent-import.test.ts`    | Creates parts, imports, history   | ❌ NONE        | HIGH     |
+| `large-dataset.test.ts`        | Disabled (would create 10k parts) | N/A            | LOW      |
+| `test-full-import-pipeline.ts` | Full import + rollback            | ⚠️ PARTIAL     | MEDIUM   |
+| Unit tests                     | No database access                | ✅ N/A         | N/A      |
+| Fixture validation tests       | Read-only                         | ✅ N/A         | N/A      |
 
 ### Why Cleanup Matters
 
 **Without cleanup**:
+
 - Tests contaminate each other (test A creates data, test B fails unexpectedly)
 - Database grows unbounded (100 test runs = 500 imports)
 - False positives (test passes only because of previous test's data)
@@ -369,6 +398,7 @@ Integration tests that modify the database must clean up after themselves to ens
 - Cannot run tests in parallel (race conditions)
 
 **With cleanup**:
+
 - Each test starts with known state (predictable)
 - Tests can run in any order (no dependencies)
 - Tests can run in parallel (isolated)
@@ -379,9 +409,9 @@ Integration tests that modify the database must clean up after themselves to ens
 Use this pattern for all integration tests that execute imports:
 
 ```typescript
-import { RollbackService } from '@/services/excel/rollback/RollbackService';
+import { RollbackService } from "@/services/excel/rollback/RollbackService";
 
-describe('Import Integration Test', () => {
+describe("Import Integration Test", () => {
   // Track all imports for cleanup
   const importTracker = {
     ids: [] as string[],
@@ -402,7 +432,7 @@ describe('Import Integration Test', () => {
         }
       }
       this.ids = [];
-    }
+    },
   };
 
   // Cleanup after each test
@@ -415,7 +445,7 @@ describe('Import Integration Test', () => {
     await importTracker.cleanup();
   });
 
-  it('should import data successfully', async () => {
+  it("should import data successfully", async () => {
     const result = await importService.executeImport(parsed, diff, metadata);
 
     // CRITICAL: Track for cleanup
@@ -434,7 +464,7 @@ describe('Import Integration Test', () => {
 Ensure cleanup even if test throws error:
 
 ```typescript
-it('should handle errors gracefully', async () => {
+it("should handle errors gracefully", async () => {
   let importId: string | null = null;
 
   try {
@@ -443,7 +473,6 @@ it('should handle errors gracefully', async () => {
 
     // Test assertions...
     expect(result.summary.errors).toBeGreaterThan(0);
-
   } catch (error) {
     // Test failed - cleanup before re-throwing
     if (importId) {
@@ -464,7 +493,7 @@ it('should handle errors gracefully', async () => {
 For tests that execute multiple imports in parallel:
 
 ```typescript
-describe('Concurrent Import Test', () => {
+describe("Concurrent Import Test", () => {
   const createdImports: string[] = [];
 
   afterEach(async () => {
@@ -481,19 +510,19 @@ describe('Concurrent Import Test', () => {
       }
 
       createdImports.length = 0;
-      console.log('✅ Cleanup complete');
+      console.log("✅ Cleanup complete");
     }
   });
 
-  it('should handle concurrent imports', async () => {
+  it("should handle concurrent imports", async () => {
     const results = await Promise.allSettled([
       importService1.executeImport(data1),
       importService2.executeImport(data2),
     ]);
 
     // Track successful imports
-    results.forEach(result => {
-      if (result.status === 'fulfilled' && result.value?.importId) {
+    results.forEach((result) => {
+      if (result.status === "fulfilled" && result.value?.importId) {
         createdImports.push(result.value.importId);
       }
     });
@@ -519,18 +548,21 @@ Before merging integration tests:
 ### Common Mistakes to Avoid
 
 ❌ **Don't manually delete records**:
+
 ```typescript
 // BAD - Fragile, doesn't handle cascades
-await supabase.from('parts').delete().eq('acr_sku', 'TEST-001');
+await supabase.from("parts").delete().eq("acr_sku", "TEST-001");
 ```
 
 ✅ **Do use RollbackService**:
+
 ```typescript
 // GOOD - Atomic, handles cascades, restores exact state
 await rollbackService.rollbackToImport(importId);
 ```
 
 ❌ **Don't assume cleanup will run**:
+
 ```typescript
 // BAD - If test fails before this line, no cleanup
 const result = await importService.executeImport(data);
@@ -539,6 +571,7 @@ await rollbackService.rollbackToImport(result.importId); // Never reached if err
 ```
 
 ✅ **Do use afterEach hooks**:
+
 ```typescript
 // GOOD - Cleanup guaranteed even if test fails
 afterEach(async () => {
@@ -547,18 +580,20 @@ afterEach(async () => {
 ```
 
 ❌ **Don't fail test if cleanup fails**:
+
 ```typescript
 // BAD - Test marked as failed even though test logic passed
 await rollbackService.rollbackToImport(importId); // Throws if already rolled back
 ```
 
 ✅ **Do catch cleanup errors**:
+
 ```typescript
 // GOOD - Cleanup errors logged but don't fail test
 try {
   await rollbackService.rollbackToImport(importId);
 } catch (error) {
-  console.warn('Cleanup failed:', error.message);
+  console.warn("Cleanup failed:", error.message);
 }
 ```
 
@@ -567,18 +602,21 @@ try {
 If tests are flaky or failing inconsistently:
 
 1. **Check for leftover data**:
+
    ```bash
    # Query test database for residual imports
    psql $TEST_DATABASE_URL -c "SELECT COUNT(*) FROM import_history;"
    ```
 
 2. **Run test in isolation**:
+
    ```bash
    # If passes alone but fails in suite, cleanup issue likely
    npx jest tests/integration/specific-test.test.ts
    ```
 
 3. **Check cleanup logs**:
+
    ```bash
    # Run tests with verbose logging
    npm test 2>&1 | grep "Cleaned up import"
@@ -638,11 +676,11 @@ npm run test:generate
 
 ### Baseline Out of Sync
 
-If test-export.xlsx is stale:
+If baseline-export.xlsx is stale:
 
 ```bash
 # 1. Export fresh baseline
-npm run test:export-baseline
+npm run test:generate-baseline
 
 # 2. Regenerate scenarios
 npm run test:generate:scenarios
@@ -653,22 +691,26 @@ npm run test:generate:scenarios
 ## 📊 File Manifest
 
 ### Checked into Git
+
 - ✅ `fixtures/excel/unit/` (8 files) - Unit test fixtures
 - ✅ `fixtures/excel/scenarios/` (9 files) - Integration scenarios
 
 ### Gitignored (Generated)
+
 - ❌ `tmp/test-export.xlsx` - Generated baseline
 - ❌ `tmp/baseline-export.xlsx` - Emergency backup
 
 ### Why Scenarios are in Git
 
 **Rationale:**
+
 - Integration scenarios are **reference test data** used across team
 - Versioned with code - test changes tracked in PR reviews
 - CI/CD can run integration tests without regenerating
 - New developers get working test data immediately
 
 **Why tmp/ is Gitignored:**
+
 - Baselines are **generated from database** and specific to environment
 - Large files (170KB+) - don't bloat repository
 - Each developer generates their own from their TEST database
@@ -680,11 +722,12 @@ npm run test:generate:scenarios
 
 ### "Baseline file not found"
 
-**Error:** `❌ Error: Baseline file not found: tmp/test-export.xlsx`
+**Error:** `❌ Error: Baseline file not found: fixtures/baseline-export.xlsx`
 
 **Solution:**
+
 ```bash
-npm run test:export-baseline
+npm run test:generate-baseline
 ```
 
 ### "Types don't match database schema"
@@ -692,6 +735,7 @@ npm run test:export-baseline
 **Error:** TypeScript errors about missing/wrong columns
 
 **Solution:**
+
 ```bash
 npm run types:generate
 ```
@@ -701,6 +745,7 @@ npm run types:generate
 **Error:** Test fixtures missing new columns
 
 **Solution:**
+
 ```bash
 # 1. Update constants
 # Edit: src/services/excel/shared/constants.ts
@@ -714,6 +759,7 @@ npm run test:generate
 **Error:** Import validation errors on test files
 
 **Solution:**
+
 ```bash
 # 1. Check if constants match database
 # Compare: src/services/excel/shared/constants.ts vs schema.sql

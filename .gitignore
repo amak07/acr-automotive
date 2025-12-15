@@ -46,6 +46,10 @@ Thumbs.db
 *.log
 logs/
 
+# Test output files
+*-output.txt
+*-output-fixed.txt
+
 # Runtime data
 pids/
 *.pid
