@@ -16,26 +16,26 @@
  *   npm run test:generate-baseline
  */
 
-import dotenv from 'dotenv';
-import path from 'path';
-import { createClient } from '@supabase/supabase-js';
-import { ExcelExportService } from '../../src/services/export/ExcelExportService';
-import fs from 'fs/promises';
+import dotenv from "dotenv";
+import path from "path";
+import { createClient } from "@supabase/supabase-js";
+import { ExcelExportService } from "../../src/services/export/ExcelExportService";
+import fs from "fs/promises";
 
 // Load local Docker DB credentials
-dotenv.config({ path: path.join(process.cwd(), '.env.test.local') });
+dotenv.config({ path: path.join(process.cwd(), ".env.local") });
 
 async function generateBaseline() {
-  console.log('📊 Generating baseline export from local Docker database...');
+  console.log("📊 Generating baseline export from local Docker database...");
 
-  // Use DATABASE_URL from .env.test.local
+  // Use DATABASE_URL from .env.local
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
-    throw new Error('DATABASE_URL not found in .env.test.local');
+    throw new Error("DATABASE_URL not found in .env.local");
   }
 
-  console.log(`🔌 Connecting to: ${databaseUrl.replace(/:[^:]*@/, ':****@')}`);
+  console.log(`🔌 Connecting to: ${databaseUrl.replace(/:[^:]*@/, ":****@")}`);
 
   // Create a mock Supabase client using the local Docker database
   // Note: We can't use Supabase client directly with DATABASE_URL
@@ -47,18 +47,18 @@ async function generateBaseline() {
 
   const exportService = new ExcelExportService();
 
-  console.log('📤 Exporting all parts to Excel...');
+  console.log("📤 Exporting all parts to Excel...");
 
   try {
     // Export all parts from the database
     const excelBuffer = await exportService.exportAllData();
 
     // Create fixtures directory if it doesn't exist
-    const fixturesDir = path.join(process.cwd(), 'fixtures');
+    const fixturesDir = path.join(process.cwd(), "fixtures");
     await fs.mkdir(fixturesDir, { recursive: true });
 
     // Write the baseline export to fixtures
-    const baselinePath = path.join(fixturesDir, 'baseline-export.xlsx');
+    const baselinePath = path.join(fixturesDir, "baseline-export.xlsx");
     await fs.writeFile(baselinePath, Buffer.from(excelBuffer));
 
     console.log(`\n✅ Baseline export generated: ${baselinePath}`);
@@ -67,13 +67,14 @@ async function generateBaseline() {
     const stats = await fs.stat(baselinePath);
     console.log(`   File size: ${(stats.size / 1024).toFixed(2)} KB`);
 
-    console.log('\n📋 Next steps:');
-    console.log('   1. Commit baseline-export.xlsx to git');
-    console.log('   2. Update test-full-import-pipeline.ts to use this fixture');
-    console.log('   3. Run npm test to verify all tests pass');
-
+    console.log("\n📋 Next steps:");
+    console.log("   1. Commit baseline-export.xlsx to git");
+    console.log(
+      "   2. Update test-full-import-pipeline.ts to use this fixture"
+    );
+    console.log("   3. Run npm test to verify all tests pass");
   } catch (error) {
-    console.error('\n❌ Export failed:', error);
+    console.error("\n❌ Export failed:", error);
     throw error;
   }
 }
@@ -81,10 +82,10 @@ async function generateBaseline() {
 // Run the generation
 generateBaseline()
   .then(() => {
-    console.log('\n✅ Baseline generation complete!');
+    console.log("\n✅ Baseline generation complete!");
     process.exit(0);
   })
   .catch((error) => {
-    console.error('\n❌ Baseline generation failed:', error);
+    console.error("\n❌ Baseline generation failed:", error);
     process.exit(1);
   });

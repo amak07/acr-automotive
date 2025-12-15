@@ -8,7 +8,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 // Note: Environment variables are automatically loaded by Next.js
-// For tests, next/jest loads .env.test.local automatically
+// For tests, next/jest loads .env.local automatically
 // No manual dotenv loading needed - it creates conflicts
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -31,13 +31,13 @@ if (!supabaseUrl || !supabaseKey) {
  */
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   db: {
-    schema: 'public',
+    schema: "public",
   },
   // Disable schema validation in test/development to avoid schema cache issues
   // In production, Vercel deployments will use the latest schema
   global: {
     headers: {
-      'X-Client-Info': 'acr-automotive'
-    }
-  }
+      "X-Client-Info": "acr-automotive",
+    },
+  },
 });

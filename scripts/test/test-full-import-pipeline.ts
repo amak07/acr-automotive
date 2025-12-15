@@ -10,7 +10,7 @@
  * 6. Test rollback with RollbackService
  *
  * ⚠️  WARNING: This MODIFIES the database!
- * ⚠️  Use .env.test to point to test database only
+ * ⚠️  Uses .env.local to point to local test database
  *
  * Usage:
  *   npm run test:full-pipeline
@@ -18,12 +18,12 @@
 
 // IMPORTANT: Load test environment variables BEFORE any other imports
 // tsx (TypeScript executor) doesn't automatically load .env files
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import * as path from "path";
 
 dotenv.config({
-  path: path.join(process.cwd(), '.env.test.local'),
-  override: true
+  path: path.join(process.cwd(), ".env.local"),
+  override: true,
 });
 
 import * as fs from "fs";
@@ -53,7 +53,7 @@ if (!supabaseUrl || !supabaseKey) {
   console.error(
     "   NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required"
   );
-  console.error("   Make sure .env.test file exists\n");
+  console.error("   Make sure .env.local file exists\n");
   process.exit(1);
 }
 
@@ -63,7 +63,9 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const TEST_FILE = path.join(process.cwd(), "tmp", "baseline-export.xlsx");
 
 async function testFullPipeline() {
-  console.log("🧪 Testing FULL Import Pipeline (with database modifications)\n");
+  console.log(
+    "🧪 Testing FULL Import Pipeline (with database modifications)\n"
+  );
   console.log("⚠️  WARNING: This will modify the database!");
   console.log("⚠️  Make sure you're using a TEST database\n");
   console.log("═".repeat(80));
@@ -75,7 +77,9 @@ async function testFullPipeline() {
     if (!fs.existsSync(TEST_FILE)) {
       console.error("❌ Baseline file not found:", TEST_FILE);
       console.error("\n💡 This file should exist in tmp/ directory");
-      console.error("   If missing, restore from backup or regenerate baseline\n");
+      console.error(
+        "   If missing, restore from backup or regenerate baseline\n"
+      );
       process.exit(1);
     }
 
@@ -102,8 +106,12 @@ async function testFullPipeline() {
 
     console.log(`✅ Parsed in ${parseDuration}ms`);
     console.log(`   Parts: ${parsed.parts.rowCount} rows`);
-    console.log(`   Vehicle Applications: ${parsed.vehicleApplications.rowCount} rows`);
-    console.log(`   Cross References: ${parsed.crossReferences.rowCount} rows\n`);
+    console.log(
+      `   Vehicle Applications: ${parsed.vehicleApplications.rowCount} rows`
+    );
+    console.log(
+      `   Cross References: ${parsed.crossReferences.rowCount} rows\n`
+    );
 
     // Step 3: Fetch existing database data
     console.log("═".repeat(80));
@@ -117,8 +125,12 @@ async function testFullPipeline() {
 
     console.log(`✅ Fetched in ${fetchDuration}ms`);
     console.log(`   Parts: ${existingData.parts.size} records`);
-    console.log(`   Vehicle Applications: ${existingData.vehicleApplications.size} records`);
-    console.log(`   Cross References: ${existingData.crossReferences.size} records\n`);
+    console.log(
+      `   Vehicle Applications: ${existingData.vehicleApplications.size} records`
+    );
+    console.log(
+      `   Cross References: ${existingData.crossReferences.size} records\n`
+    );
 
     // Step 4: Run validation
     console.log("═".repeat(80));
@@ -128,7 +140,10 @@ async function testFullPipeline() {
     console.log("⏳ Running validation engine...");
     const validationEngine = new ValidationEngine();
     const validateStart = Date.now();
-    const validationResult = await validationEngine.validate(parsed, existingData);
+    const validationResult = await validationEngine.validate(
+      parsed,
+      existingData
+    );
     const validateDuration = Date.now() - validateStart;
 
     console.log(`✅ Validated in ${validateDuration}ms`);
@@ -139,18 +154,24 @@ async function testFullPipeline() {
     if (!validationResult.valid) {
       // Check if all errors are UUID_NOT_IN_DATABASE errors (expected when DB is empty)
       const allUuidErrors = validationResult.errors.every(
-        (error) => error.code === 'E19_UUID_NOT_IN_DATABASE'
+        (error) => error.code === "E19_UUID_NOT_IN_DATABASE"
       );
 
       if (allUuidErrors && existingData.parts.size === 0) {
         console.log("ℹ️  Database is empty and file contains existing UUIDs");
-        console.log("ℹ️  This is expected after database reset - validation working correctly");
-        console.log("ℹ️  Skipping import pipeline test (requires seeded database)\n");
+        console.log(
+          "ℹ️  This is expected after database reset - validation working correctly"
+        );
+        console.log(
+          "ℹ️  Skipping import pipeline test (requires seeded database)\n"
+        );
         console.log("═".repeat(80));
         console.log("✅ TEST SKIPPED - Validation correctly rejected import\n");
         console.log("📋 Summary:");
         console.log("   - Parser: ✅ Working");
-        console.log("   - Validation: ✅ Working (correctly rejected invalid UUIDs)");
+        console.log(
+          "   - Validation: ✅ Working (correctly rejected invalid UUIDs)"
+        );
         console.log("   - Database fetch: ✅ Working");
         console.log("\n💡 To run full import pipeline test:");
         console.log("   1. Seed database first (restore from snapshot)");
@@ -236,13 +257,23 @@ async function testFullPipeline() {
     console.log("📋 Import History Record:");
     console.log(`   ID: ${historyRecord.id}`);
     console.log(`   File: ${historyRecord.file_name}`);
-    console.log(`   Size: ${Math.round(historyRecord.file_size_bytes / 1024)} KB`);
+    console.log(
+      `   Size: ${Math.round(historyRecord.file_size_bytes / 1024)} KB`
+    );
     console.log(`   Rows Imported: ${historyRecord.rows_imported}`);
-    console.log(`   Created At: ${new Date(historyRecord.created_at).toLocaleString()}`);
+    console.log(
+      `   Created At: ${new Date(historyRecord.created_at).toLocaleString()}`
+    );
     console.log(`\n📊 Snapshot Data:`);
-    console.log(`   Parts: ${historyRecord.snapshot_data.parts.length} records`);
-    console.log(`   Vehicle Apps: ${historyRecord.snapshot_data.vehicle_applications.length} records`);
-    console.log(`   Cross Refs: ${historyRecord.snapshot_data.cross_references.length} records`);
+    console.log(
+      `   Parts: ${historyRecord.snapshot_data.parts.length} records`
+    );
+    console.log(
+      `   Vehicle Apps: ${historyRecord.snapshot_data.vehicle_applications.length} records`
+    );
+    console.log(
+      `   Cross Refs: ${historyRecord.snapshot_data.cross_references.length} records`
+    );
     console.log(`   Timestamp: ${historyRecord.snapshot_data.timestamp}\n`);
 
     // Step 8: Test Rollback
@@ -261,8 +292,12 @@ async function testFullPipeline() {
     console.log(`✅ Rollback completed in ${rollbackDuration}ms`);
     console.log(`   Import ID: ${rollbackResult.importId}`);
     console.log(`   Parts Restored: ${rollbackResult.restoredCounts.parts}`);
-    console.log(`   Vehicle Apps Restored: ${rollbackResult.restoredCounts.vehicleApplications}`);
-    console.log(`   Cross Refs Restored: ${rollbackResult.restoredCounts.crossReferences}\n`);
+    console.log(
+      `   Vehicle Apps Restored: ${rollbackResult.restoredCounts.vehicleApplications}`
+    );
+    console.log(
+      `   Cross Refs Restored: ${rollbackResult.restoredCounts.crossReferences}\n`
+    );
 
     // Step 9: Verify rollback
     console.log("═".repeat(80));
@@ -296,7 +331,9 @@ async function testFullPipeline() {
     console.log(`   Diff: ${diffDuration}ms`);
     console.log(`   Import (with snapshot): ${importDuration}ms`);
     console.log(`   Rollback (restore snapshot): ${rollbackDuration}ms`);
-    console.log(`   ⏱️  Total: ${parseDuration + fetchDuration + validateDuration + diffDuration + importDuration + rollbackDuration}ms\n`);
+    console.log(
+      `   ⏱️  Total: ${parseDuration + fetchDuration + validateDuration + diffDuration + importDuration + rollbackDuration}ms\n`
+    );
 
     console.log("✅ All systems operational!");
     console.log("   - ImportService ✅");
@@ -328,9 +365,9 @@ async function testFullPipeline() {
       console.log("\n🔒 Final safety check...");
       try {
         const { data: snapshot } = await supabase
-          .from('import_history')
-          .select('id')
-          .eq('id', importId)
+          .from("import_history")
+          .select("id")
+          .eq("id", importId)
           .single();
 
         if (snapshot) {
@@ -343,7 +380,11 @@ async function testFullPipeline() {
         }
       } catch (finalError: any) {
         // Import already cleaned up - this is fine
-        if (finalError.message?.match(/not found|does not exist|no import snapshots/i)) {
+        if (
+          finalError.message?.match(
+            /not found|does not exist|no import snapshots/i
+          )
+        ) {
           console.log("   ✅ Already cleaned up");
         } else {
           console.warn(`   ⚠️  Safety check warning: ${finalError.message}`);

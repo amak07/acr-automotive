@@ -8,7 +8,7 @@
 import { createBrowserClient } from "@supabase/ssr";
 
 // Note: Environment variables are automatically loaded by Next.js
-// For tests, next/jest loads .env.test.local automatically
+// For tests, next/jest loads .env.local automatically
 // No manual dotenv loading needed - it creates conflicts
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;

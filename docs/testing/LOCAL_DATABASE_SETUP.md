@@ -5,6 +5,7 @@
 Automated tests (`npm test`) run against a local Docker Postgres container, not remote Supabase.
 
 **Benefits:**
+
 - 6x faster tests (no network latency)
 - Safe (can't wipe staging/production data)
 - Offline capable
@@ -45,18 +46,22 @@ Automated Tests (npm test)
 ## Environment Configuration
 
 **`.env.local`** - Used by `npm run dev`
+
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 ```
+
 → Remote Supabase with full features (Auth, RLS, Storage)
 
-**`.env.test.local`** - Used by `npm test`
+**`.env.local`** - Also used by `npm test`
+
 ```bash
-DATABASE_URL=postgresql://postgres:postgres@localhost:5433/acr_test
+DATABASE_URL=postgresql://postgres:postgres@localhost:54321/postgres
 ```
-→ Local Docker Postgres (fast, isolated)
+
+→ Local Docker Postgres (fast, isolated) - same file as dev server
 
 ## Manual Commands
 
@@ -93,25 +98,32 @@ The database will have realistic test data you can use for manual queries or tes
 ## Troubleshooting
 
 ### "Cannot connect to Docker daemon"
+
 **Cause:** Docker Desktop not running
 **Solution:** Start Docker Desktop application
 
 ### "Port 5433 already in use"
+
 **Cause:** Another service using port 5433
 **Solutions:**
+
 1. Stop the conflicting service: `docker ps` then `docker stop <container>`
-2. OR change port in `docker-compose.test.yml` and `.env.test.local`
+2. OR change port in `docker-compose.test.yml` and `.env.local`
 
 ### "Migrations failed" / SQL syntax errors
+
 **Cause:** Issue in schema.sql or migration files
 **Solutions:**
+
 1. Check logs: `docker logs acr-test-db`
 2. Verify SQL syntax in migration files
 3. Try resetting: `npm run db:test:reset`
 
 ### "Seed data not loading"
+
 **Cause:** Error in `fixtures/seed-data.sql`
 **Solutions:**
+
 1. Check file exists and has valid SQL
 2. View logs: `docker logs acr-test-db`
 3. Try manual seed:
@@ -120,15 +132,19 @@ The database will have realistic test data you can use for manual queries or tes
    ```
 
 ### Tests still failing with "database not found"
-**Cause:** Tests not loading `.env.test.local`
+
+**Cause:** Tests not loading `.env.local`
 **Solutions:**
+
 1. Ensure file exists at project root
 2. Check integration test scripts have `dotenv.config()` at top
 3. Verify `DATABASE_URL` is set correctly
 
 ### Container won't start
+
 **Cause:** Docker resources exhausted or corrupted volume
 **Solutions:**
+
 1. Remove old container: `docker rm -f acr-test-db`
 2. Remove volume: `docker volume rm acr-test-data`
 3. Restart Docker Desktop
@@ -183,11 +199,13 @@ npm test               # Verify compatibility
 The Docker container uses a named volume (`acr-test-data`) to persist data between restarts.
 
 **This means:**
+
 - `npm run db:test:start` → Data persists after stop
 - `npm run db:test:reset` → Data is wiped and re-seeded
 - `npm run db:test:stop` → Container stops but volume remains
 
 **To completely remove everything:**
+
 ```bash
 docker-compose -f docker-compose.test.yml down -v  # Remove container + volume
 ```
@@ -195,12 +213,14 @@ docker-compose -f docker-compose.test.yml down -v  # Remove container + volume
 ## Why Not Use Supabase Local?
 
 **Supabase Local** (`npx supabase start`) includes:
+
 - ✅ Full Supabase stack (Auth, Storage, Realtime)
 - ❌ Heavier (more services than we need)
 - ❌ Slower startup (~30s vs ~5s)
 - ❌ Requires Supabase CLI
 
 **Our Docker Postgres** includes:
+
 - ✅ Just Postgres (all we need for tests)
 - ✅ Fast startup (~5s)
 - ✅ Lighter weight
@@ -228,16 +248,16 @@ The local Docker is **only for automated unit/integration tests** that don't nee
 
 ## Connection Details
 
-| Environment | Database | Port | Connection String |
-|-------------|----------|------|-------------------|
-| Local Dev (`npm run dev`) | Remote Supabase | 5432 (Supabase) | From `.env.local` |
-| Automated Tests (`npm test`) | Local Docker | 5433 | `postgresql://postgres:postgres@localhost:5433/acr_test` |
-| Production | Remote Supabase | 5432 (Supabase) | From hosting env vars |
+| Environment                  | Database        | Port            | Connection String                                        |
+| ---------------------------- | --------------- | --------------- | -------------------------------------------------------- |
+| Local Dev (`npm run dev`)    | Remote Supabase | 5432 (Supabase) | From `.env.local`                                        |
+| Automated Tests (`npm test`) | Local Docker    | 5433            | `postgresql://postgres:postgres@localhost:5433/acr_test` |
+| Production                   | Remote Supabase | 5432 (Supabase) | From hosting env vars                                    |
 
 ## Next Steps
 
 1. ✅ Install dependencies: `npm install`
-2. ✅ Create `.env.test.local` (use contents from this doc)
+2. ✅ Create `.env.local` (copy from `.env.example` and configure)
 3. ✅ Start test database: `npm run db:test:start`
 4. ✅ Run tests: `npm test`
 5. ✅ See `docs/TESTING.md` for more testing documentation

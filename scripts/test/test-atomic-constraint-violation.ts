@@ -13,7 +13,7 @@
  * 4. Verify database unchanged (zero rows inserted)
  *
  * ⚠️  WARNING: This MODIFIES the database!
- * ⚠️  Uses .env.test to point to test database only
+ * ⚠️  Uses .env.local to point to local test database
  *
  * Usage:
  *   npm run test:atomic:constraint
@@ -21,12 +21,12 @@
 
 // IMPORTANT: Load test environment variables BEFORE any other imports
 // tsx (TypeScript executor) doesn't automatically load .env files
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import * as path from "path";
 
 dotenv.config({
-  path: path.join(process.cwd(), '.env.test.local'),
-  override: true
+  path: path.join(process.cwd(), ".env.local"),
+  override: true,
 });
 
 import { verifyTestEnvironment } from "../../tests/setup/env";
@@ -120,12 +120,14 @@ async function fetchExistingData() {
 
 async function runTest() {
   console.log("🧪 TEST: Atomic Transaction - Constraint Violation Rollback\n");
-  console.log("=" .repeat(70));
+  console.log("=".repeat(70));
   console.log("");
   console.log("Fixture: error-duplicate-skus.xlsx");
-  console.log("Expected: Validation catches duplicate, OR database rollback if bypassed");
+  console.log(
+    "Expected: Validation catches duplicate, OR database rollback if bypassed"
+  );
   console.log("");
-  console.log("=" .repeat(70));
+  console.log("=".repeat(70));
   console.log("");
 
   try {
@@ -164,16 +166,22 @@ async function runTest() {
 
     if (!validation.valid) {
       console.log(`   ⚠️  Validation caught errors (EXPECTED):`);
-      const duplicateErrors = validation.errors.filter(e => e.code === 'E2_DUPLICATE_ACR_SKU');
-      console.log(`      Found ${duplicateErrors.length} duplicate SKU error(s)`);
+      const duplicateErrors = validation.errors.filter(
+        (e) => e.code === "E2_DUPLICATE_ACR_SKU"
+      );
+      console.log(
+        `      Found ${duplicateErrors.length} duplicate SKU error(s)`
+      );
       if (duplicateErrors.length > 0) {
-        duplicateErrors.forEach(err => {
+        duplicateErrors.forEach((err) => {
           console.log(`      - ${err.message}`);
         });
       }
       console.log("");
       console.log("   ✅ VALIDATION WORKING: Duplicate caught before database");
-      console.log("   ℹ️  Database protection not needed - validation prevents bad import");
+      console.log(
+        "   ℹ️  Database protection not needed - validation prevents bad import"
+      );
       console.log("");
 
       // Verify database unchanged
@@ -181,9 +189,11 @@ async function runTest() {
       const partsDiff = finalCounts.parts - initialCounts.parts;
 
       if (partsDiff === 0) {
-        console.log("=" .repeat(70));
-        console.log("🎉 TEST PASSED: Validation prevented duplicate SKU import!");
-        console.log("=" .repeat(70));
+        console.log("=".repeat(70));
+        console.log(
+          "🎉 TEST PASSED: Validation prevented duplicate SKU import!"
+        );
+        console.log("=".repeat(70));
         console.log("");
         process.exit(0);
       } else {
@@ -193,7 +203,9 @@ async function runTest() {
     }
 
     // If validation passes (unexpected), try importing anyway to test DB constraint
-    console.log("   ⚠️  Validation passed (unexpected) - testing database constraint...\n");
+    console.log(
+      "   ⚠️  Validation passed (unexpected) - testing database constraint...\n"
+    );
 
     // STEP 6: Generate diff
     console.log("🔄 Step 6: Generating diff...\n");
@@ -203,7 +215,9 @@ async function runTest() {
     console.log("");
 
     // STEP 7: Attempt import (should fail at database level)
-    console.log("💾 Step 7: Attempting import (expecting DB constraint violation)...\n");
+    console.log(
+      "💾 Step 7: Attempting import (expecting DB constraint violation)...\n"
+    );
 
     const importer = new ImportService();
     let importFailed = false;
@@ -242,18 +256,18 @@ async function runTest() {
       console.log("   ✅ Zero records inserted");
       console.log("   ✅ Transaction rolled back completely");
       console.log("");
-      console.log("=" .repeat(70));
+      console.log("=".repeat(70));
       console.log("🎉 TEST PASSED: Atomic transaction rollback works!");
-      console.log("=" .repeat(70));
+      console.log("=".repeat(70));
       console.log("");
       process.exit(0);
     } else {
       console.log("❌ FAILURE: Database state changed!");
       console.log(`   ${partsDiff} parts inserted - SHOULD BE ZERO!`);
       console.log("");
-      console.log("=" .repeat(70));
+      console.log("=".repeat(70));
       console.log("❌ TEST FAILED: Atomic rollback not working!");
-      console.log("=" .repeat(70));
+      console.log("=".repeat(70));
       console.log("");
       process.exit(1);
     }

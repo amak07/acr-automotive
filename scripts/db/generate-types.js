@@ -24,7 +24,7 @@ if (env === 'prod') {
 }
 
 // Determine which env file to use
-const envFile = env === 'prod' ? '.env' : '.env.test';
+const envFile = env === 'prod' ? '.env' : '.env.staging';
 const envPath = path.join(__dirname, '..', '..', envFile); // Go up two levels to reach project root
 
 // Check if env file exists
