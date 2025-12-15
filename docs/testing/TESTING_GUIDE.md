@@ -321,7 +321,7 @@ Error: fetch failed
 Error: Expected X parts, got Y parts
 ```
 
-**Solution**: Verify using test database (`.env.test`), not production
+**Solution**: Verify using test database (`.env.local` for local, `.env.staging` for remote)
 
 ---
 
@@ -369,7 +369,7 @@ Error: Expected X parts, got Y parts
 
 **Tests hang or timeout**:
 
-- Check database connection (`.env.test` configured correctly)
+- Check database connection (`.env.local` configured correctly)
 - Verify test database is responsive
 - Check for network issues
 

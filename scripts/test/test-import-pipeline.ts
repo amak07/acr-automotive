@@ -14,12 +14,12 @@
 
 // IMPORTANT: Load test environment variables BEFORE any other imports
 // tsx (TypeScript executor) doesn't automatically load .env files
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import * as path from "path";
 
 dotenv.config({
-  path: path.join(process.cwd(), '.env.test.local'),
-  override: true
+  path: path.join(process.cwd(), ".env.local"),
+  override: true,
 });
 
 import * as fs from "fs";

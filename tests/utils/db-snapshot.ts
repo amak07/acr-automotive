@@ -11,18 +11,18 @@
  *   expect(result.parts.length).toBe(counts.parts);
  */
 
-import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
+import { createClient } from "@supabase/supabase-js";
+import * as dotenv from "dotenv";
+import * as path from "path";
 
-// Load test environment (local Docker first)
-dotenv.config({ path: path.join(process.cwd(), '.env.test.local') });
+// Load test environment (local Docker)
+dotenv.config({ path: path.join(process.cwd(), ".env.local") });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase credentials for test database');
+  throw new Error("Missing Supabase credentials for test database");
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -44,19 +44,27 @@ export interface DbCounts {
  */
 export async function getDbCounts(): Promise<DbCounts> {
   const [partsResult, vaResult, crResult] = await Promise.all([
-    supabase.from('parts').select('*', { count: 'exact', head: true }),
-    supabase.from('vehicle_applications').select('*', { count: 'exact', head: true }),
-    supabase.from('cross_references').select('*', { count: 'exact', head: true }),
+    supabase.from("parts").select("*", { count: "exact", head: true }),
+    supabase
+      .from("vehicle_applications")
+      .select("*", { count: "exact", head: true }),
+    supabase
+      .from("cross_references")
+      .select("*", { count: "exact", head: true }),
   ]);
 
   if (partsResult.error) {
     throw new Error(`Failed to count parts: ${partsResult.error.message}`);
   }
   if (vaResult.error) {
-    throw new Error(`Failed to count vehicle applications: ${vaResult.error.message}`);
+    throw new Error(
+      `Failed to count vehicle applications: ${vaResult.error.message}`
+    );
   }
   if (crResult.error) {
-    throw new Error(`Failed to count cross references: ${crResult.error.message}`);
+    throw new Error(
+      `Failed to count cross references: ${crResult.error.message}`
+    );
   }
 
   const parts = partsResult.count || 0;
@@ -81,7 +89,7 @@ export async function verifyDbHasData(): Promise<void> {
 
   if (counts.parts === 0) {
     throw new Error(
-      'Test database is empty! Run `npm run db:test:reset` to load baseline data.'
+      "Test database is empty! Run `npm run db:test:reset` to load baseline data."
     );
   }
 }
@@ -93,19 +101,23 @@ export async function verifyDbHasData(): Promise<void> {
  */
 export async function getDbSnapshot() {
   const [partsResult, vaResult, crResult] = await Promise.all([
-    supabase.from('parts').select('*'),
-    supabase.from('vehicle_applications').select('*'),
-    supabase.from('cross_references').select('*'),
+    supabase.from("parts").select("*"),
+    supabase.from("vehicle_applications").select("*"),
+    supabase.from("cross_references").select("*"),
   ]);
 
   if (partsResult.error) {
     throw new Error(`Failed to fetch parts: ${partsResult.error.message}`);
   }
   if (vaResult.error) {
-    throw new Error(`Failed to fetch vehicle applications: ${vaResult.error.message}`);
+    throw new Error(
+      `Failed to fetch vehicle applications: ${vaResult.error.message}`
+    );
   }
   if (crResult.error) {
-    throw new Error(`Failed to fetch cross references: ${crResult.error.message}`);
+    throw new Error(
+      `Failed to fetch cross references: ${crResult.error.message}`
+    );
   }
 
   return {

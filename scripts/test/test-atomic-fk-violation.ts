@@ -13,7 +13,7 @@
  * 4. Verify database unchanged (INCLUDING valid parts that were in the file)
  *
  * ⚠️  WARNING: This MODIFIES the database!
- * ⚠️  Uses .env.test to point to test database only
+ * ⚠️  Uses .env.local to point to local test database
  *
  * Usage:
  *   npm run test:atomic:fk
@@ -21,12 +21,12 @@
 
 // IMPORTANT: Load test environment variables BEFORE any other imports
 // tsx (TypeScript executor) doesn't automatically load .env files
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import * as path from "path";
 
 dotenv.config({
-  path: path.join(process.cwd(), '.env.test.local'),
-  override: true
+  path: path.join(process.cwd(), ".env.local"),
+  override: true,
 });
 
 import { verifyTestEnvironment } from "../../tests/setup/env";
@@ -120,7 +120,7 @@ async function fetchExistingData() {
 
 async function runTest() {
   console.log("🧪 TEST: Atomic Transaction - Foreign Key Violation Rollback\n");
-  console.log("=" .repeat(70));
+  console.log("=".repeat(70));
   console.log("");
   console.log("Fixture: error-orphaned-references.xlsx");
   console.log("Contains:");
@@ -128,10 +128,14 @@ async function runTest() {
   console.log("  - Vehicle: ORPHAN-001 → ORPHAN-001 part (valid FK)");
   console.log("  - Vehicle: NON-EXISTENT-SKU → ??? (INVALID FK)");
   console.log("");
-  console.log("Expected: Validation catches orphan, OR database rollback if bypassed");
-  console.log("Critical: If import fails, ORPHAN-001 part should NOT be inserted");
+  console.log(
+    "Expected: Validation catches orphan, OR database rollback if bypassed"
+  );
+  console.log(
+    "Critical: If import fails, ORPHAN-001 part should NOT be inserted"
+  );
   console.log("");
-  console.log("=" .repeat(70));
+  console.log("=".repeat(70));
   console.log("");
 
   try {
@@ -154,7 +158,9 @@ async function runTest() {
     const parser = new ExcelImportService();
     const parsed = await parser.parseFile(file);
     console.log(`   ✅ Parsed ${parsed.parts.data.length} parts`);
-    console.log(`   ✅ Parsed ${parsed.vehicleApplications.data.length} vehicles`);
+    console.log(
+      `   ✅ Parsed ${parsed.vehicleApplications.data.length} vehicles`
+    );
     console.log("");
 
     // STEP 4: Fetch existing data
@@ -170,18 +176,24 @@ async function runTest() {
 
     if (!validation.valid) {
       console.log(`   ⚠️  Validation caught errors (EXPECTED):`);
-      const orphanErrors = validation.errors.filter(e =>
-        e.code === 'E5_ORPHANED_FOREIGN_KEY'
+      const orphanErrors = validation.errors.filter(
+        (e) => e.code === "E5_ORPHANED_FOREIGN_KEY"
       );
-      console.log(`      Found ${orphanErrors.length} orphaned reference error(s)`);
+      console.log(
+        `      Found ${orphanErrors.length} orphaned reference error(s)`
+      );
       if (orphanErrors.length > 0) {
-        orphanErrors.forEach(err => {
+        orphanErrors.forEach((err) => {
           console.log(`      - ${err.message}`);
         });
       }
       console.log("");
-      console.log("   ✅ VALIDATION WORKING: Orphaned reference caught before database");
-      console.log("   ℹ️  Database protection not needed - validation prevents bad import");
+      console.log(
+        "   ✅ VALIDATION WORKING: Orphaned reference caught before database"
+      );
+      console.log(
+        "   ℹ️  Database protection not needed - validation prevents bad import"
+      );
       console.log("");
 
       // Verify database unchanged
@@ -189,9 +201,11 @@ async function runTest() {
       const partsDiff = finalCounts.parts - initialCounts.parts;
 
       if (partsDiff === 0) {
-        console.log("=" .repeat(70));
-        console.log("🎉 TEST PASSED: Validation prevented orphaned reference import!");
-        console.log("=" .repeat(70));
+        console.log("=".repeat(70));
+        console.log(
+          "🎉 TEST PASSED: Validation prevented orphaned reference import!"
+        );
+        console.log("=".repeat(70));
         console.log("");
         process.exit(0);
       } else {
@@ -201,7 +215,9 @@ async function runTest() {
     }
 
     // If validation passes (unexpected), try importing anyway to test DB FK constraint
-    console.log("   ⚠️  Validation passed (unexpected) - testing database FK constraint...\n");
+    console.log(
+      "   ⚠️  Validation passed (unexpected) - testing database FK constraint...\n"
+    );
 
     // STEP 6: Generate diff
     console.log("🔄 Step 6: Generating diff...\n");
@@ -212,7 +228,9 @@ async function runTest() {
     console.log("");
 
     // STEP 7: Attempt import (should fail at database FK level)
-    console.log("💾 Step 7: Attempting import (expecting DB FK violation)...\n");
+    console.log(
+      "💾 Step 7: Attempting import (expecting DB FK violation)...\n"
+    );
 
     const importer = new ImportService();
     let importFailed = false;
@@ -246,7 +264,9 @@ async function runTest() {
     console.log(`   Final Parts: ${finalCounts.parts} (diff: ${partsDiff})`);
     console.log("");
     console.log(`   Initial Vehicles: ${initialCounts.vehicles}`);
-    console.log(`   Final Vehicles: ${finalCounts.vehicles} (diff: ${vehiclesDiff})`);
+    console.log(
+      `   Final Vehicles: ${finalCounts.vehicles} (diff: ${vehiclesDiff})`
+    );
     console.log("");
 
     if (partsDiff === 0 && vehiclesDiff === 0 && crossRefsDiff === 0) {
@@ -257,29 +277,37 @@ async function runTest() {
       console.log("   ✅ Transaction rolled back completely");
       console.log("");
       console.log("   🎯 CRITICAL VERIFICATION:");
-      console.log("   The valid part (ORPHAN-001) was NOT inserted even though it was");
-      console.log("   valid, because the vehicle FK violation occurred in the same");
+      console.log(
+        "   The valid part (ORPHAN-001) was NOT inserted even though it was"
+      );
+      console.log(
+        "   valid, because the vehicle FK violation occurred in the same"
+      );
       console.log("   transaction. This proves TRUE multi-table atomicity!");
       console.log("");
-      console.log("=" .repeat(70));
+      console.log("=".repeat(70));
       console.log("🎉 TEST PASSED: Multi-table atomic rollback works!");
-      console.log("=" .repeat(70));
+      console.log("=".repeat(70));
       console.log("");
       process.exit(0);
     } else {
       console.log("❌ FAILURE: Database state changed!");
       console.log("");
       console.log("   Expected: Zero records inserted (complete rollback)");
-      console.log(`   Actual: ${partsDiff} parts, ${vehiclesDiff} vehicles inserted`);
+      console.log(
+        `   Actual: ${partsDiff} parts, ${vehiclesDiff} vehicles inserted`
+      );
       console.log("");
       if (partsDiff > 0 && vehiclesDiff === 0) {
-        console.log("   ⚠️  CRITICAL: Part inserted despite vehicle FK failure!");
+        console.log(
+          "   ⚠️  CRITICAL: Part inserted despite vehicle FK failure!"
+        );
         console.log("   ⚠️  Multi-table atomicity is BROKEN!");
       }
       console.log("");
-      console.log("=" .repeat(70));
+      console.log("=".repeat(70));
       console.log("❌ TEST FAILED: Multi-table atomic rollback not working!");
-      console.log("=" .repeat(70));
+      console.log("=".repeat(70));
       console.log("");
       process.exit(1);
     }

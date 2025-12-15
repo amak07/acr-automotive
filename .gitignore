@@ -16,16 +16,14 @@ dist/
 .vercel/
 .turbo/
 
-# Environment variables (all sensitive env files)
+# Environment variables (3 environments + template)
+# .env.local     - Local development (localhost:54321)
+# .env.staging   - Staging/Testing (remote TEST database)
+# .env.production - Production (remote PROD database)
 .env
 .env.local
-.env.development.local
-.env.test
-.env.test.local
 .env.staging
-.env.staging.local
 .env.production
-.env.production.local
 
 # Exception: Keep .env.example (template for team)
 !.env.example
