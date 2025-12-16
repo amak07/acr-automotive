@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import { Tables, TablesInsert } from "@/lib/supabase/types";
 import { PostgrestError } from "@supabase/supabase-js";
-import { normalizeSku } from "@/lib/utils/sku-utils";
+import { normalizeSku } from "@/lib/utils/sku";
 
 type PartImage = Tables<"part_images">;
 

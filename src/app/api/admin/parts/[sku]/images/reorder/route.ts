@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import { z } from "zod";
-import { normalizeSku } from "@/lib/utils/sku-utils";
+import { normalizeSku } from "@/lib/utils/sku";
 
 const reorderSchema = z.object({
   image_ids: z.array(z.string().uuid()).min(1),

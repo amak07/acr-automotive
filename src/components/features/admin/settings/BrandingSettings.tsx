@@ -20,7 +20,7 @@ import { AcrButton } from "@/components/acr";
 import { useToast } from "@/hooks/common/use-toast";
 import { useLocale } from "@/contexts/LocaleContext";
 import { brandingSchema, type BrandingParams } from "@/lib/schemas/admin";
-import type { Banner } from "@/lib/types/settings";
+import type { Banner } from "@/types/domain/settings";
 import Image from "next/image";
 
 export function BrandingSettings() {

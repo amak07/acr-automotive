@@ -37,7 +37,7 @@ export interface SiteSettings {
 }
 
 // Type guard to check setting keys
-export type SettingKey = 'contact_info' | 'branding';
+export type SettingKey = "contact_info" | "branding";
 
 // Helper to type-cast JSONB values from database
 export function parseSettingValue<K extends SettingKey>(

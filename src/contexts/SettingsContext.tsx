@@ -2,7 +2,7 @@
 
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { SiteSettings } from "@/lib/types/settings";
+import type { SiteSettings } from "@/types/domain/settings";
 
 interface SettingsContextValue {
   settings: SiteSettings | null;

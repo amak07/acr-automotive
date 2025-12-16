@@ -18,7 +18,7 @@ import {
 } from "./schemas";
 import { PostgrestError } from "@supabase/supabase-js";
 import { z } from "zod";
-import { normalizeSku } from "@/lib/utils/sku-utils";
+import { normalizeSku } from "@/lib/utils/sku";
 
 // Type for part with image relations (internal use)
 type PartWithImageRelations = PartWithDetails & {

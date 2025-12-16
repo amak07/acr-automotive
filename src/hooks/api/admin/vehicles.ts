@@ -6,16 +6,22 @@ import {
   createVehicleSchema,
   updateVehicleSchema,
   deleteVehicleSchema,
-} from "@/app/api/admin/vehicles/zod-schemas";
+} from "@/lib/schemas/admin";
 import { queryKeys } from "@/hooks/common/queryKeys";
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type CreateVehicleApplicationParams = z.infer<typeof createVehicleSchema>;
-export type UpdateVehicleApplicationParams = z.infer<typeof updateVehicleSchema>;
-export type DeleteVehicleApplicationParams = z.infer<typeof deleteVehicleSchema>;
+export type CreateVehicleApplicationParams = z.infer<
+  typeof createVehicleSchema
+>;
+export type UpdateVehicleApplicationParams = z.infer<
+  typeof updateVehicleSchema
+>;
+export type DeleteVehicleApplicationParams = z.infer<
+  typeof deleteVehicleSchema
+>;
 
 export type VehicleApplicationError = {
   error: string;

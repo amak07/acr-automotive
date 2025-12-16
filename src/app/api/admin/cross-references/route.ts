@@ -6,9 +6,9 @@ import {
   deleteCrossRefSchema,
   queryCrossRefSchema,
   updateCrossRefSchema,
-} from "./zod-schemas";
+} from "@/lib/schemas/admin";
 import { PostgrestError } from "@supabase/supabase-js";
-import { DatabaseCrossRefRow } from "@/lib/supabase/utils";
+import { DatabaseCrossRefRow } from "@/types/database";
 
 type AdminCrossRefQueryParams = z.infer<typeof queryCrossRefSchema>;
 
