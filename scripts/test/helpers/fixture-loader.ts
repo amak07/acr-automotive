@@ -7,7 +7,13 @@
 import * as fs from "fs";
 import * as path from "path";
 
-const FIXTURES_DIR = path.join(process.cwd(), "fixtures", "excel", "unit");
+const FIXTURES_DIR = path.join(
+  process.cwd(),
+  "tests",
+  "fixtures",
+  "excel",
+  "unit"
+);
 
 /**
  * Load Excel fixture as File object (for testing parseFile methods)
@@ -71,7 +77,7 @@ export function listFixtures(): string[] {
     return [];
   }
 
-  return fs.readdirSync(FIXTURES_DIR).filter(f => f.endsWith(".xlsx"));
+  return fs.readdirSync(FIXTURES_DIR).filter((f) => f.endsWith(".xlsx"));
 }
 
 /**

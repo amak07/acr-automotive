@@ -54,10 +54,10 @@ async function generateBaseline() {
     const excelBuffer = await exportService.exportAllData();
 
     // Create fixtures directory if it doesn't exist
-    const fixturesDir = path.join(process.cwd(), "fixtures");
+    const fixturesDir = path.join(process.cwd(), "tests", "fixtures");
     await fs.mkdir(fixturesDir, { recursive: true });
 
-    // Write the baseline export to fixtures
+    // Write the baseline export to tests/fixtures
     const baselinePath = path.join(fixturesDir, "baseline-export.xlsx");
     await fs.writeFile(baselinePath, Buffer.from(excelBuffer));
 

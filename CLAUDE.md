@@ -101,7 +101,7 @@
 **Daily Development**:
 
 - Local Docker Supabase for development
-- Seed data from `fixtures/seed-data.sql`
+- Seed data from `tests/fixtures/seed-data.sql`
 - Snapshot system for quick backup/restore
 
 **Key Commands**:

@@ -7,12 +7,21 @@
 
 import { ExcelImportService } from "../../src/services/excel/import/ExcelImportService";
 import { ValidationEngine } from "../../src/services/excel/validation/ValidationEngine";
-import { ValidationErrorCode, ValidationWarningCode } from "../../src/services/excel/validation/types";
+import {
+  ValidationErrorCode,
+  ValidationWarningCode,
+} from "../../src/services/excel/validation/types";
 import { loadFixture, emptyDbState } from "./helpers/fixture-loader";
 import * as fs from "fs";
 import * as path from "path";
 
-const FIXTURES_DIR = path.join(process.cwd(), "fixtures", "excel", "unit");
+const FIXTURES_DIR = path.join(
+  process.cwd(),
+  "tests",
+  "fixtures",
+  "excel",
+  "unit"
+);
 
 interface FixtureTest {
   filename: string;
@@ -35,7 +44,8 @@ const FIXTURE_TESTS: FixtureTest[] = [
   },
   {
     filename: "valid-update-existing.xlsx",
-    description: "Valid updates to existing parts (requires seed data - skip for now)",
+    description:
+      "Valid updates to existing parts (requires seed data - skip for now)",
     expectedValid: false, // Will fail without seed data in DB
     expectedErrors: 5, // E19: UUIDs not found (5 parts in fixture)
     expectedWarnings: 0,
@@ -48,7 +58,10 @@ const FIXTURE_TESTS: FixtureTest[] = [
     expectedValid: false,
     expectedErrors: 3, // E1: missing hidden columns + E3: missing ACR_SKU + E3: missing Part_Type
     expectedWarnings: 0,
-    expectedErrorCodes: ["E1_MISSING_HIDDEN_COLUMNS", "E3_EMPTY_REQUIRED_FIELD"],
+    expectedErrorCodes: [
+      "E1_MISSING_HIDDEN_COLUMNS",
+      "E3_EMPTY_REQUIRED_FIELD",
+    ],
   },
   {
     filename: "error-duplicate-skus.xlsx",
@@ -64,7 +77,11 @@ const FIXTURE_TESTS: FixtureTest[] = [
     expectedValid: false,
     expectedErrors: 6, // E1: missing hidden columns + E4: invalid UUIDs (3×) + E5: orphaned keys (2×)
     expectedWarnings: 0,
-    expectedErrorCodes: ["E1_MISSING_HIDDEN_COLUMNS", "E4_INVALID_UUID_FORMAT", "E5_ORPHANED_FOREIGN_KEY"],
+    expectedErrorCodes: [
+      "E1_MISSING_HIDDEN_COLUMNS",
+      "E4_INVALID_UUID_FORMAT",
+      "E5_ORPHANED_FOREIGN_KEY",
+    ],
   },
   {
     filename: "error-invalid-formats.xlsx",
@@ -104,7 +121,9 @@ async function testFixture(test: FixtureTest): Promise<boolean> {
     // Parse
     console.log("⏳ Parsing...");
     const parsed = await excelService.parseFile(file);
-    console.log(`✅ Parsed: ${parsed.parts.rowCount} parts, ${parsed.vehicleApplications.rowCount} vehicle apps, ${parsed.crossReferences.rowCount} cross refs`);
+    console.log(
+      `✅ Parsed: ${parsed.parts.rowCount} parts, ${parsed.vehicleApplications.rowCount} vehicle apps, ${parsed.crossReferences.rowCount} cross refs`
+    );
 
     // Validate (use empty DB state for ADD-only tests)
     console.log("⏳ Validating...");
@@ -113,9 +132,15 @@ async function testFixture(test: FixtureTest): Promise<boolean> {
 
     // Check results
     console.log("\n📊 Validation Results:");
-    console.log(`   Valid: ${validated.valid ? "✅" : "❌"} (expected: ${test.expectedValid ? "✅" : "❌"})`);
-    console.log(`   Errors: ${validated.errors.length} (expected: ${test.expectedErrors})`);
-    console.log(`   Warnings: ${validated.warnings.length} (expected: ${test.expectedWarnings})`);
+    console.log(
+      `   Valid: ${validated.valid ? "✅" : "❌"} (expected: ${test.expectedValid ? "✅" : "❌"})`
+    );
+    console.log(
+      `   Errors: ${validated.errors.length} (expected: ${test.expectedErrors})`
+    );
+    console.log(
+      `   Warnings: ${validated.warnings.length} (expected: ${test.expectedWarnings})`
+    );
 
     // Display errors
     if (validated.errors.length > 0) {
@@ -139,17 +164,23 @@ async function testFixture(test: FixtureTest): Promise<boolean> {
 
     if (validated.valid !== test.expectedValid) {
       passed = false;
-      failures.push(`Expected valid=${test.expectedValid}, got ${validated.valid}`);
+      failures.push(
+        `Expected valid=${test.expectedValid}, got ${validated.valid}`
+      );
     }
 
     if (validated.errors.length !== test.expectedErrors) {
       passed = false;
-      failures.push(`Expected ${test.expectedErrors} errors, got ${validated.errors.length}`);
+      failures.push(
+        `Expected ${test.expectedErrors} errors, got ${validated.errors.length}`
+      );
     }
 
     if (validated.warnings.length !== test.expectedWarnings) {
       passed = false;
-      failures.push(`Expected ${test.expectedWarnings} warnings, got ${validated.warnings.length}`);
+      failures.push(
+        `Expected ${test.expectedWarnings} warnings, got ${validated.warnings.length}`
+      );
     }
 
     // Check error codes if specified
@@ -160,7 +191,9 @@ async function testFixture(test: FixtureTest): Promise<boolean> {
       );
       if (missingCodes.length > 0) {
         passed = false;
-        failures.push(`Missing expected error codes: ${missingCodes.join(", ")}`);
+        failures.push(
+          `Missing expected error codes: ${missingCodes.join(", ")}`
+        );
       }
     }
 

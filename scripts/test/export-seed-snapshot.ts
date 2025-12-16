@@ -321,10 +321,15 @@ async function exportSeedSnapshot() {
   }
 
   // Write to file
-  const outputPath = path.join(process.cwd(), "fixtures", "seed-data.sql");
+  const outputPath = path.join(
+    process.cwd(),
+    "tests",
+    "fixtures",
+    "seed-data.sql"
+  );
   await fs.writeFile(outputPath, sqlLines.join("\n"), "utf-8");
 
-  console.log(`\n✅ Seed data exported to: fixtures/seed-data.sql`);
+  console.log(`\n✅ Seed data exported to: tests/fixtures/seed-data.sql`);
   console.log(`\n📊 Summary:`);
   console.log(`   Parts: ${selectedParts.length}`);
   console.log(`   Vehicle Applications: ${vehicles?.length || 0}`);
@@ -351,7 +356,12 @@ exportSeedSnapshot()
 
       try {
         // Read the SQL file we just created
-        const sqlPath = path.join(process.cwd(), "fixtures", "seed-data.sql");
+        const sqlPath = path.join(
+          process.cwd(),
+          "tests",
+          "fixtures",
+          "seed-data.sql"
+        );
         const sqlContent = await fs.readFile(sqlPath, "utf-8");
 
         // Connect directly to PostgreSQL (port 54322, not 54321 which is API)

@@ -21,7 +21,7 @@ import * as path from "path";
 import * as fs from "fs";
 
 const API_BASE = "http://localhost:3000";
-const FIXTURE_PATH = path.join(process.cwd(), "fixtures", "excel");
+const FIXTURE_PATH = path.join(process.cwd(), "tests", "fixtures", "excel");
 
 // Helper to create FormData for file upload
 async function uploadFixture(endpoint: string, filename: string) {
@@ -75,13 +75,13 @@ async function get(endpoint: string) {
 
 async function runTests() {
   console.log("🧪 Testing API Routes: Import & Rollback\n");
-  console.log("=" .repeat(70));
+  console.log("=".repeat(70));
   console.log("");
   console.log("⚠️  Prerequisites:");
   console.log("   1. Dev server running (npm run dev)");
   console.log("   2. Migration 008 applied");
   console.log("");
-  console.log("=" .repeat(70));
+  console.log("=".repeat(70));
   console.log("");
 
   let importId: string | undefined;
@@ -149,7 +149,9 @@ async function runTests() {
       if (result.status === 200 && result.data.diff) {
         console.log("   ✅ PASS: Preview generated");
         console.log(`   Changes: ${result.data.diff.summary.totalChanges}`);
-        console.log(`   Parts to add: ${result.data.diff.parts.summary.totalAdds}`);
+        console.log(
+          `   Parts to add: ${result.data.diff.parts.summary.totalAdds}`
+        );
         testsPassed++;
       } else {
         console.log("   ❌ FAIL: Unexpected response");
@@ -269,7 +271,7 @@ async function runTests() {
     }
 
     // Summary
-    console.log("=" .repeat(70));
+    console.log("=".repeat(70));
     console.log("📊 Test Summary\n");
     console.log(`   Total Tests: ${testsPassed + testsFailed}`);
     console.log(`   ✅ Passed: ${testsPassed}`);
@@ -278,12 +280,12 @@ async function runTests() {
 
     if (testsFailed === 0) {
       console.log("🎉 ALL TESTS PASSED!");
-      console.log("=" .repeat(70));
+      console.log("=".repeat(70));
       console.log("");
       process.exit(0);
     } else {
       console.log("⚠️  SOME TESTS FAILED");
-      console.log("=" .repeat(70));
+      console.log("=".repeat(70));
       console.log("");
       process.exit(1);
     }
