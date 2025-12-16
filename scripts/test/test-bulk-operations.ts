@@ -6,7 +6,7 @@
  *   npx tsx scripts/test-bulk-operations.ts (in another terminal)
  */
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = "http://localhost:3000";
 
 interface TestResult {
   name: string;
@@ -27,8 +27,8 @@ async function testEndpoint(
 
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
@@ -62,32 +62,28 @@ async function testEndpoint(
 }
 
 async function runTests() {
-  console.log('🧪 Testing Bulk Operations API...\n');
+  console.log("🧪 Testing Bulk Operations API...\n");
 
   let createdPartIds: string[] = [];
 
   // Test 1: Create Parts (small batch) - we'll fetch the IDs after
-  await testEndpoint(
-    'Create 3 Parts',
-    '/api/admin/bulk/parts/create',
-    {
-      parts: [
-        { sku_number: 'BULK-TEST-001', part_type: 'Brake Rotor' },
-        { sku_number: 'BULK-TEST-002', part_type: 'Wheel Hub' },
-        { sku_number: 'BULK-TEST-003', part_type: 'Shock Absorber' },
-      ],
-    }
-  );
+  await testEndpoint("Create 3 Parts", "/api/admin/bulk/parts", {
+    parts: [
+      { sku_number: "BULK-TEST-001", part_type: "Brake Rotor" },
+      { sku_number: "BULK-TEST-002", part_type: "Wheel Hub" },
+      { sku_number: "BULK-TEST-003", part_type: "Shock Absorber" },
+    ],
+  });
 
   // Extract part IDs from a fresh request to use for subsequent tests
   try {
-    const response = await fetch(`${BASE_URL}/api/admin/bulk/parts/create`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch(`${BASE_URL}/api/admin/bulk/parts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         parts: [
-          { sku_number: 'BULK-TEST-VEH-001', part_type: 'Test Part 1' },
-          { sku_number: 'BULK-TEST-VEH-002', part_type: 'Test Part 2' },
+          { sku_number: "BULK-TEST-VEH-001", part_type: "Test Part 1" },
+          { sku_number: "BULK-TEST-VEH-002", part_type: "Test Part 2" },
         ],
       }),
     });
@@ -96,27 +92,27 @@ async function runTests() {
       createdPartIds = data.data.map((part: any) => part.id);
     }
   } catch (error) {
-    console.warn('⚠️  Could not create test parts for vehicle/cross-ref tests');
+    console.warn("⚠️  Could not create test parts for vehicle/cross-ref tests");
   }
 
   // Test 2: Create Vehicle Applications (using real part IDs)
   if (createdPartIds.length > 0) {
     await testEndpoint(
-      'Create 2 Vehicle Applications',
-      '/api/admin/bulk/vehicles/create',
+      "Create 2 Vehicle Applications",
+      "/api/admin/bulk/vehicles",
       {
         vehicles: [
           {
             part_id: createdPartIds[0],
-            make: 'Honda',
-            model: 'Civic',
+            make: "Honda",
+            model: "Civic",
             start_year: 2018,
             end_year: 2020,
           },
           {
             part_id: createdPartIds[1],
-            make: 'Toyota',
-            model: 'Camry',
+            make: "Toyota",
+            model: "Camry",
             start_year: 2019,
             end_year: 2021,
           },
@@ -128,19 +124,19 @@ async function runTests() {
   // Test 3: Create Cross References (using real part IDs)
   if (createdPartIds.length > 0) {
     await testEndpoint(
-      'Create 2 Cross References',
-      '/api/admin/bulk/cross-references/create',
+      "Create 2 Cross References",
+      "/api/admin/bulk/cross-references",
       {
         cross_references: [
           {
             acr_part_id: createdPartIds[0],
-            competitor_sku: 'BREMBO-123',
-            competitor_brand: 'Brembo',
+            competitor_sku: "BREMBO-123",
+            competitor_brand: "Brembo",
           },
           {
             acr_part_id: createdPartIds[1],
-            competitor_sku: 'MOOG-456',
-            competitor_brand: 'Moog',
+            competitor_sku: "MOOG-456",
+            competitor_brand: "Moog",
           },
         ],
       }
@@ -149,58 +145,62 @@ async function runTests() {
 
   // Test 4: Validation Error (empty array)
   await testEndpoint(
-    'Empty Array Validation',
-    '/api/admin/bulk/parts/create',
+    "Empty Array Validation",
+    "/api/admin/bulk/parts",
     { parts: [] },
     400 // Should fail validation
   );
 
   // Test 5: Validation Error (too many items)
   await testEndpoint(
-    'Max Limit Validation',
-    '/api/admin/bulk/parts/create',
+    "Max Limit Validation",
+    "/api/admin/bulk/parts",
     {
       parts: Array(1001)
         .fill(null)
         .map((_, i) => ({
           sku_number: `TEST-${i}`,
-          part_type: 'Test Part',
+          part_type: "Test Part",
         })),
     },
     400 // Should fail validation (max 1000)
   );
 
   // Print results
-  console.log('\n📊 Test Results:\n');
-  console.log('═'.repeat(80));
+  console.log("\n📊 Test Results:\n");
+  console.log("═".repeat(80));
 
   results.forEach((result) => {
-    const status = result.passed ? '✅ PASS' : '❌ FAIL';
+    const status = result.passed ? "✅ PASS" : "❌ FAIL";
     console.log(`${status} | ${result.name.padEnd(30)} | ${result.duration}ms`);
     console.log(`     ${result.message}`);
   });
 
-  console.log('═'.repeat(80));
+  console.log("═".repeat(80));
 
   const passed = results.filter((r) => r.passed).length;
   const total = results.length;
 
   console.log(`\n📈 Summary: ${passed}/${total} tests passed`);
-  console.log(`   - ${results.slice(0, 3).filter(r => r.passed).length}/3 create operations successful`);
-  console.log(`   - ${results.slice(3).filter(r => !r.passed).length}/2 validation tests working correctly\n`);
+  console.log(
+    `   - ${results.slice(0, 3).filter((r) => r.passed).length}/3 create operations successful`
+  );
+  console.log(
+    `   - ${results.slice(3).filter((r) => !r.passed).length}/2 validation tests working correctly\n`
+  );
 
   // Only exit with error if create operations failed
-  const createOpsFailed = results.slice(0, 3).filter(r => !r.passed).length;
+  const createOpsFailed = results.slice(0, 3).filter((r) => !r.passed).length;
   if (createOpsFailed > 0) {
     console.error(`❌ ${createOpsFailed} create operation(s) failed`);
     process.exit(1);
   }
 
-  console.log('✅ All bulk operations working correctly!');
+  console.log("✅ All bulk operations working correctly!");
 }
 
 // Run tests
 runTests().catch((error) => {
-  console.error('Test suite failed:', error);
+  console.error("Test suite failed:", error);
   process.exit(1);
 });
