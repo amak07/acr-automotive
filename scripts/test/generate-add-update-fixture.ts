@@ -7,15 +7,15 @@
  * 3. Second import: Adds 3 new parts AND updates 2 of the existing parts
  */
 
-import ExcelJS from 'exceljs';
-import * as path from 'path';
-import { createClient } from '@supabase/supabase-js';
+import ExcelJS from "exceljs";
+import * as path from "path";
+import { createClient } from "@supabase/supabase-js";
 import {
   SHEET_NAMES,
   PARTS_COLUMNS,
   VEHICLE_APPLICATIONS_COLUMNS,
   CROSS_REFERENCES_COLUMNS,
-} from '../../src/services/excel/shared/constants';
+} from "../../src/services/excel/shared/constants";
 
 // Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -24,7 +24,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 function createWorkbook(): ExcelJS.Workbook {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'ACR Automotive Test Suite';
+  workbook.creator = "ACR Automotive Test Suite";
   workbook.created = new Date();
   return workbook;
 }
@@ -32,11 +32,14 @@ function createWorkbook(): ExcelJS.Workbook {
 function addWorksheet(
   workbook: ExcelJS.Workbook,
   sheetName: string,
-  columns: typeof PARTS_COLUMNS | typeof VEHICLE_APPLICATIONS_COLUMNS | typeof CROSS_REFERENCES_COLUMNS
+  columns:
+    | typeof PARTS_COLUMNS
+    | typeof VEHICLE_APPLICATIONS_COLUMNS
+    | typeof CROSS_REFERENCES_COLUMNS
 ): ExcelJS.Worksheet {
   const sheet = workbook.addWorksheet(sheetName);
 
-  const allHeaders = columns.map(col => col.header);
+  const allHeaders = columns.map((col) => col.header);
   sheet.addRow(allHeaders);
 
   columns.forEach((col, index) => {
@@ -49,9 +52,9 @@ function addWorksheet(
   const headerRow = sheet.getRow(1);
   headerRow.font = { bold: true };
   headerRow.fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FFD3D3D3' },
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "FFD3D3D3" },
   };
 
   columns.forEach((col, index) => {
@@ -63,22 +66,24 @@ function addWorksheet(
 }
 
 async function generateAddUpdateFixture() {
-  console.log('🔧 Generating Combined Add+Update Fixture\n');
+  console.log("🔧 Generating Combined Add+Update Fixture\n");
 
   // Fetch current parts from database
   const { data: parts, error } = await supabase
-    .from('parts')
-    .select('*')
-    .order('created_at', { ascending: true })
+    .from("parts")
+    .select("*")
+    .order("created_at", { ascending: true })
     .limit(5);
 
   if (error) {
-    console.error('❌ Error fetching parts:', error);
+    console.error("❌ Error fetching parts:", error);
     process.exit(1);
   }
 
   if (!parts || parts.length === 0) {
-    console.error('❌ No parts found in database. Import valid-add-new-parts.xlsx first.');
+    console.error(
+      "❌ No parts found in database. Import valid-add-new-parts.xlsx first."
+    );
     process.exit(1);
   }
 
@@ -94,11 +99,11 @@ async function generateAddUpdateFixture() {
       part.id,
       part.acr_sku,
       part.part_type,
-      part.position_type || '',
-      part.abs_type || '',
-      part.drive_type || '',
-      part.bolt_pattern || '',
-      part.specifications || '',
+      part.position_type || "",
+      part.abs_type || "",
+      part.drive_type || "",
+      part.bolt_pattern || "",
+      part.specifications || "",
     ]);
   }
 
@@ -109,11 +114,11 @@ async function generateAddUpdateFixture() {
       part4.id,
       part4.acr_sku,
       part4.part_type,
-      part4.position_type || '',
-      part4.abs_type || '',
-      part4.drive_type || '',
-      part4.bolt_pattern || '',
-      '🔄 UPDATED SPECIFICATIONS - Testing update flow',
+      part4.position_type || "",
+      part4.abs_type || "",
+      part4.drive_type || "",
+      part4.bolt_pattern || "",
+      "🔄 UPDATED SPECIFICATIONS - Testing update flow",
     ]);
   }
 
@@ -123,32 +128,84 @@ async function generateAddUpdateFixture() {
       part5.id,
       part5.acr_sku,
       part5.part_type,
-      'TRASERA', // Change position_type
-      'P/ABS',   // Change abs_type
-      part5.drive_type || '',
-      part5.bolt_pattern || '',
-      '🔄 UPDATED - Changed position and ABS type',
+      "TRASERA", // Change position_type
+      "P/ABS", // Change abs_type
+      part5.drive_type || "",
+      part5.bolt_pattern || "",
+      "🔄 UPDATED - Changed position and ABS type",
     ]);
   }
 
   // Add 3 brand new parts
-  partsSheet.addRow(['', 'ACR-TEST-006', 'BALATA', 'DELANTERA', 'C/ABS', '', '', 'New part 6']);
-  partsSheet.addRow(['', 'ACR-TEST-007', 'MAZA', 'TRASERA', 'P/ABS', '5 BIRLOS', '5x10', 'New part 7']);
-  partsSheet.addRow(['', 'ACR-TEST-008', 'ROTOR', 'DELANTERA', '', '4 BIRLOS', '', 'New part 8']);
+  partsSheet.addRow([
+    "",
+    "ACR-TEST-006",
+    "BALATA",
+    "DELANTERA",
+    "C/ABS",
+    "",
+    "",
+    "New part 6",
+  ]);
+  partsSheet.addRow([
+    "",
+    "ACR-TEST-007",
+    "MAZA",
+    "TRASERA",
+    "P/ABS",
+    "5 BIRLOS",
+    "5x10",
+    "New part 7",
+  ]);
+  partsSheet.addRow([
+    "",
+    "ACR-TEST-008",
+    "ROTOR",
+    "DELANTERA",
+    "",
+    "4 BIRLOS",
+    "",
+    "New part 8",
+  ]);
 
   // Empty vehicle applications and cross references
-  addWorksheet(workbook, SHEET_NAMES.VEHICLE_APPLICATIONS, VEHICLE_APPLICATIONS_COLUMNS);
-  addWorksheet(workbook, SHEET_NAMES.CROSS_REFERENCES, CROSS_REFERENCES_COLUMNS);
+  addWorksheet(
+    workbook,
+    SHEET_NAMES.VEHICLE_APPLICATIONS,
+    VEHICLE_APPLICATIONS_COLUMNS
+  );
+  addWorksheet(
+    workbook,
+    SHEET_NAMES.CROSS_REFERENCES,
+    CROSS_REFERENCES_COLUMNS
+  );
 
-  const outputPath = path.join(process.cwd(), 'fixtures', 'excel', 'unit', 'valid-add-and-update.xlsx');
+  const outputPath = path.join(
+    process.cwd(),
+    "tests",
+    "fixtures",
+    "excel",
+    "unit",
+    "valid-add-and-update.xlsx"
+  );
   await workbook.xlsx.writeFile(outputPath);
 
-  console.log('✅ Created: valid-add-and-update.xlsx');
-  console.log('\n📝 Fixture contains:');
-  console.log(`   - 3 parts unchanged (${parts.slice(0, 3).map(p => p.acr_sku).join(', ')})`);
-  console.log(`   - 2 parts updated (${parts.slice(3, 5).map(p => p.acr_sku).join(', ')})`);
-  console.log('   - 3 new parts (ACR-TEST-006, ACR-TEST-007, ACR-TEST-008)');
-  console.log('\n🎯 Expected diff: +3 adds, ~2 updates, 0 deletes\n');
+  console.log("✅ Created: valid-add-and-update.xlsx");
+  console.log("\n📝 Fixture contains:");
+  console.log(
+    `   - 3 parts unchanged (${parts
+      .slice(0, 3)
+      .map((p) => p.acr_sku)
+      .join(", ")})`
+  );
+  console.log(
+    `   - 2 parts updated (${parts
+      .slice(3, 5)
+      .map((p) => p.acr_sku)
+      .join(", ")})`
+  );
+  console.log("   - 3 new parts (ACR-TEST-006, ACR-TEST-007, ACR-TEST-008)");
+  console.log("\n🎯 Expected diff: +3 adds, ~2 updates, 0 deletes\n");
 }
 
 generateAddUpdateFixture();

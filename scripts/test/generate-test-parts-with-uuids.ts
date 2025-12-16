@@ -154,6 +154,7 @@ async function generateAddFixture() {
 
   const outputPath = path.join(
     process.cwd(),
+    "tests",
     "fixtures",
     "excel",
     "unit",
@@ -269,6 +270,7 @@ async function generateUpdateFixture() {
 
   const outputPath = path.join(
     process.cwd(),
+    "tests",
     "fixtures",
     "excel",
     "unit",
