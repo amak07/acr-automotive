@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import sharp from "sharp";
-import { normalizeSku } from "@/lib/utils/sku-utils";
+import { normalizeSku } from "@/lib/utils/sku";
 
 // =====================================================
 // Configuration

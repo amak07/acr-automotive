@@ -6,7 +6,7 @@ import {
   createCrossRefSchema,
   updateCrossRefSchema,
   deleteCrossRefSchema,
-} from "@/app/api/admin/cross-references/zod-schemas";
+} from "@/lib/schemas/admin";
 import { queryKeys } from "@/hooks/common/queryKeys";
 
 // ============================================================================

@@ -6,7 +6,7 @@
 
 import { supabase } from "@/lib/supabase/client";
 import { NextResponse } from "next/server";
-import type { SettingKey } from "@/lib/types/settings";
+import type { SettingKey } from "@/types/domain/settings";
 
 /**
  * GET /api/public/settings
@@ -14,7 +14,6 @@ import type { SettingKey } from "@/lib/types/settings";
  */
 export async function GET() {
   try {
-
     const { data, error } = await supabase
       .from("site_settings")
       .select("key, value")
@@ -29,10 +28,13 @@ export async function GET() {
     }
 
     // Transform array to object keyed by setting key
-    const settings = data.reduce((acc, setting) => {
-      acc[setting.key as SettingKey] = setting.value;
-      return acc;
-    }, {} as Record<string, unknown>);
+    const settings = data.reduce(
+      (acc, setting) => {
+        acc[setting.key as SettingKey] = setting.value;
+        return acc;
+      },
+      {} as Record<string, unknown>
+    );
 
     return NextResponse.json({ settings });
   } catch (error) {

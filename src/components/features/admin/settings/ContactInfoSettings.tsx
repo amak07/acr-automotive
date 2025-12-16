@@ -8,7 +8,7 @@ import { AcrButton } from "@/components/acr";
 import { useToast } from "@/hooks/common/use-toast";
 import { useLocale } from "@/contexts/LocaleContext";
 import { contactInfoSchema, type ContactInfoParams } from "@/lib/schemas/admin";
-import type { ContactInfo } from "@/lib/types/settings";
+import type { ContactInfo } from "@/types/domain/settings";
 
 type ContactInfoFormData = ContactInfoParams;
 

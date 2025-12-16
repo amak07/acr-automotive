@@ -6,9 +6,9 @@ import {
   createVehicleSchema,
   deleteVehicleSchema,
   updateVehicleSchema,
-} from "./zod-schemas";
+} from "@/lib/schemas/admin";
 import { PostgrestError } from "@supabase/supabase-js";
-import { DatabaseVehicleAppRow } from "@/lib/supabase/utils";
+import { DatabaseVehicleAppRow } from "@/types/database";
 
 type AdminVehicleQueryParams = z.infer<typeof queryVehicleSchema>;
 

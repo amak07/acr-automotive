@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase/client";
 import { DatabasePartRow, PartSearchResult } from "@/types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { publicSearchSchema, PublicSearchParams } from "@/lib/schemas/public";
-import { normalizeSku } from "@/lib/utils/sku-utils";
+import { normalizeSku } from "@/lib/utils/sku";
 
 // Helper function to enrich parts with primary image URLs
 async function enrichWithPrimaryImages(

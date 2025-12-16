@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
-import { Banner } from "@/lib/types/settings";
+import { Banner } from "@/types/domain/settings";
 import { cn } from "@/lib/utils";
 
 // Import Swiper styles
@@ -96,7 +96,10 @@ export function BannerCarousel({
           <SwiperSlide key={banner.id}>
             <div className="relative w-full h-56 md:h-64 lg:h-80 xl:h-[480px] bg-white">
               {banner.cta_link ? (
-                <Link href={banner.cta_link as Route} className="block w-full h-full">
+                <Link
+                  href={banner.cta_link as Route}
+                  className="block w-full h-full"
+                >
                   <div className="relative w-full h-full">
                     {/* Mobile Image */}
                     <Image
