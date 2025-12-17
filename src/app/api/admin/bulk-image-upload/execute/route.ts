@@ -5,6 +5,11 @@ import { TablesInsert } from "@/lib/supabase/types";
 import { VALIDATION } from "@/lib/bulk-upload/patterns.config";
 import type { ExecuteResult, PartUploadResult } from "@/lib/bulk-upload/types";
 
+// Vercel function configuration
+// With Fluid Compute (default): Hobby=300s, Pro=800s
+// Without Fluid Compute: Hobby=60s max, Pro=300s max
+export const maxDuration = 60;
+
 // =====================================================
 // Configuration
 // =====================================================

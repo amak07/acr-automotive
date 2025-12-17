@@ -9,6 +9,9 @@ import type {
   PartWithImageStats,
 } from "@/lib/bulk-upload/types";
 
+// Vercel function configuration
+export const maxDuration = 30;
+
 // Schema for the analyze request body
 const analyzeRequestSchema = z.object({
   // Files are sent as JSON with classification info (actual files uploaded separately during execute)
