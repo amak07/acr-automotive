@@ -71,13 +71,25 @@ export function classifyFile(file: File): ClassifiedFile {
     };
   }
 
-  // Unknown image - valid image but no recognized pattern
-  // Will be shown to user in review stage for manual decision
+  // Valid image with extractable SKU but no recognized view pattern
+  // Upload as product image with "generic" view type (displays last, distinct from "_oth" angle)
+  const extractedSku = extractSkuFromFilename(filename);
+  if (extractedSku) {
+    return {
+      file,
+      filename,
+      type: "product",
+      extractedSku,
+      viewType: "generic",
+    };
+  }
+
+  // No SKU extracted - mark as unknown for manual review
   return {
     file,
     filename,
     type: "unknown",
-    extractedSku: extractSkuFromFilename(filename),
+    extractedSku: null,
   };
 }
 

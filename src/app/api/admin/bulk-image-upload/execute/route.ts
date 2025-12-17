@@ -6,12 +6,18 @@ import { VALIDATION } from "@/lib/bulk-upload/patterns.config";
 import type { ExecuteResult, PartUploadResult } from "@/lib/bulk-upload/types";
 
 // =====================================================
-// Configuration (matches 360-frames route)
+// Configuration
 // =====================================================
 
 const CONFIG_360 = {
   targetDimension: 1200,
   jpegQuality: 85,
+} as const;
+
+const CONFIG_PRODUCT = {
+  maxDimension: 1600, // Larger than 360° for product detail
+  jpegQuality: 85, // Same quality as 360°
+  maxInputSize: 10 * 1024 * 1024, // 10MB input limit (before compression)
 } as const;
 
 // =====================================================
@@ -31,7 +37,7 @@ interface UploadInstruction {
   filename: string;
   type: "product" | "360-frame";
   frameNumber?: number;
-  viewType?: "front" | "top" | "bottom" | "other";
+  viewType?: "front" | "top" | "bottom" | "other" | "generic";
 }
 
 // =====================================================
@@ -63,74 +69,121 @@ async function optimize360Frame(file: File): Promise<ProcessedImage> {
 }
 
 // =====================================================
-// Helper: Upload product image
+// Helper: Optimize product image with Sharp
 // =====================================================
+
+async function optimizeProductImage(file: File): Promise<ProcessedImage> {
+  const arrayBuffer = await file.arrayBuffer();
+  const inputBuffer = Buffer.from(arrayBuffer);
+
+  const processed = await sharp(inputBuffer)
+    .resize(CONFIG_PRODUCT.maxDimension, CONFIG_PRODUCT.maxDimension, {
+      fit: "inside", // Maintain aspect ratio, fit within bounds
+      withoutEnlargement: true, // Don't upscale small images
+    })
+    .jpeg({
+      quality: CONFIG_PRODUCT.jpegQuality,
+      progressive: true,
+      mozjpeg: true,
+    })
+    .toBuffer({ resolveWithObject: true });
+
+  return {
+    buffer: processed.data,
+    width: processed.info.width,
+    height: processed.info.height,
+    size: processed.info.size,
+  };
+}
+
+// =====================================================
+// Helper: Upload product image (with Sharp optimization)
+// =====================================================
+
+type UploadProductResult =
+  | { success: true; imageUrl: string; imageId: string }
+  | { success: false; error: string };
 
 async function uploadProductImage(
   file: File,
   partId: string,
-  displayOrder: number
-): Promise<{ imageUrl: string; imageId: string } | null> {
+  displayOrder: number,
+  viewType?: string
+): Promise<UploadProductResult> {
   // Validate file type
   if (!file.type.startsWith("image/")) {
-    return null;
+    return { success: false, error: `Invalid file type: ${file.type}` };
   }
 
-  // Validate file size
-  if (file.size > VALIDATION.maxProductImageSize) {
-    return null;
+  // Validate input file size (before compression)
+  if (file.size > CONFIG_PRODUCT.maxInputSize) {
+    const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+    return { success: false, error: `File too large: ${sizeMB}MB (max 10MB)` };
   }
 
-  // Generate unique filename
-  const timestamp = Date.now();
-  const randomSuffix = Math.random().toString(36).substring(7);
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${partId}_${timestamp}_${randomSuffix}.${fileExt}`;
+  try {
+    // Optimize image with Sharp (resizes and compresses)
+    const optimized = await optimizeProductImage(file);
 
-  // Upload to Supabase Storage
-  const { error: uploadError } = await supabase.storage
-    .from("acr-part-images")
-    .upload(fileName, file, {
-      cacheControl: "3600",
-      upsert: false,
-    });
+    // Generate unique filename (always .jpg after optimization)
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(7);
+    const fileName = `${partId}_${timestamp}_${randomSuffix}.jpg`;
 
-  if (uploadError) {
-    console.error("[bulk-upload] Product image upload error:", uploadError);
-    return null;
+    // Upload optimized buffer to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from("acr-part-images")
+      .upload(fileName, optimized.buffer, {
+        contentType: "image/jpeg",
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("[bulk-upload] Product image upload error:", uploadError);
+      return { success: false, error: `Storage error: ${uploadError.message}` };
+    }
+
+    // Get public URL
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("acr-part-images").getPublicUrl(fileName);
+
+    // Create database record (view_type will be available after migration)
+    const newImage: TablesInsert<"part_images"> = {
+      part_id: partId,
+      image_url: publicUrl,
+      display_order: displayOrder,
+      is_primary: false,
+      caption: null,
+      ...(viewType && { view_type: viewType }),
+    };
+
+    const { data: imageRecord, error: dbError } = await supabase
+      .from("part_images")
+      .insert(newImage)
+      .select("id")
+      .single();
+
+    if (dbError) {
+      console.error("[bulk-upload] Product image DB error:", dbError);
+      // Clean up uploaded file
+      await supabase.storage.from("acr-part-images").remove([fileName]);
+      return { success: false, error: `Database error: ${dbError.message}` };
+    }
+
+    return {
+      success: true,
+      imageUrl: publicUrl,
+      imageId: imageRecord.id,
+    };
+  } catch (err) {
+    console.error("[bulk-upload] Product image processing error:", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Image processing failed",
+    };
   }
-
-  // Get public URL
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("acr-part-images").getPublicUrl(fileName);
-
-  // Create database record
-  const newImage: TablesInsert<"part_images"> = {
-    part_id: partId,
-    image_url: publicUrl,
-    display_order: displayOrder,
-    is_primary: false,
-    caption: null,
-  };
-
-  const { data: imageRecord, error: dbError } = await supabase
-    .from("part_images")
-    .insert(newImage)
-    .select("id")
-    .single();
-
-  if (dbError) {
-    console.error("[bulk-upload] Product image DB error:", dbError);
-    // Clean up uploaded file
-    await supabase.storage.from("acr-part-images").remove([fileName]);
-    return null;
-  }
-
-  return {
-    imageUrl: publicUrl,
-    imageId: imageRecord.id,
-  };
 }
 
 // =====================================================
@@ -226,6 +279,53 @@ async function upload360Frames(
   return { frameCount: uploadedCount, errors };
 }
 
+// =====================================================
+// Helper: Recalculate display order for all images on a part
+// =====================================================
+
+/**
+ * Recalculates display_order for ALL images on a part to ensure proper ordering.
+ * Called after uploading new images to fix display_order collisions.
+ *
+ * Priority order: front → top → other → bottom → generic
+ * Within same viewType: preserves creation order (created_at)
+ */
+async function recalculateDisplayOrder(partId: string): Promise<void> {
+  const viewTypeOrder: Record<string, number> = {
+    front: 0,
+    top: 1,
+    other: 2,
+    bottom: 3,
+    generic: 4,
+  };
+
+  // Get all images for this part
+  const { data: images, error } = await supabase
+    .from("part_images")
+    .select("id, view_type, created_at")
+    .eq("part_id", partId)
+    .order("created_at", { ascending: true });
+
+  if (error || !images || images.length === 0) return;
+
+  // Sort by viewType priority, then by created_at for same viewType
+  const sorted = [...images].sort((a, b) => {
+    const orderA = a.view_type ? (viewTypeOrder[a.view_type] ?? 99) : 99;
+    const orderB = b.view_type ? (viewTypeOrder[b.view_type] ?? 99) : 99;
+    if (orderA !== orderB) return orderA - orderB;
+    // Same viewType: preserve creation order
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  });
+
+  // Update display_order for each image
+  for (let i = 0; i < sorted.length; i++) {
+    await supabase
+      .from("part_images")
+      .update({ display_order: i })
+      .eq("id", sorted[i].id);
+  }
+}
+
 /**
  * POST /api/admin/bulk-image-upload/execute
  *
@@ -318,31 +418,53 @@ export async function POST(request: NextRequest) {
       try {
         // Upload product images
         if (partData.productImages.length > 0) {
-          // Delete existing product images first (replace mode)
-          const { data: existingImages } = await supabase
-            .from("part_images")
-            .select("id, image_url")
-            .eq("part_id", partId);
+          // Get unique viewTypes being uploaded
+          const incomingViewTypes = new Set(
+            partData.productImages
+              .map((img) => img.viewType)
+              .filter((vt): vt is string => vt !== undefined)
+          );
 
-          if (existingImages && existingImages.length > 0) {
-            // Extract storage paths from URLs and delete from storage
-            const storagePaths = existingImages
-              .map((img) => {
-                // Extract filename from URL (last segment after bucket name)
-                const url = img.image_url;
-                const match = url.match(/acr-part-images\/([^?]+)/);
-                return match ? match[1] : null;
-              })
-              .filter((path): path is string => path !== null);
+          // Delete ONLY existing images that match incoming viewTypes (replace-by-viewType)
+          // This preserves images with different viewTypes (e.g., uploading "front" keeps "generic")
+          if (incomingViewTypes.size > 0) {
+            const { data: existingImages } = await supabase
+              .from("part_images")
+              .select("id, image_url, view_type")
+              .eq("part_id", partId);
 
-            if (storagePaths.length > 0) {
-              await supabase.storage
-                .from("acr-part-images")
-                .remove(storagePaths);
+            if (existingImages && existingImages.length > 0) {
+              // Filter to images matching incoming viewTypes
+              const imagesToDelete = existingImages.filter(
+                (img) => img.view_type && incomingViewTypes.has(img.view_type)
+              );
+
+              if (imagesToDelete.length > 0) {
+                // Extract storage paths from URLs and delete from storage
+                const storagePaths = imagesToDelete
+                  .map((img) => {
+                    const url = img.image_url;
+                    const match = url.match(/acr-part-images\/([^?]+)/);
+                    return match ? match[1] : null;
+                  })
+                  .filter((path): path is string => path !== null);
+
+                if (storagePaths.length > 0) {
+                  await supabase.storage
+                    .from("acr-part-images")
+                    .remove(storagePaths);
+                }
+
+                // Delete database records for matching viewTypes only
+                await supabase
+                  .from("part_images")
+                  .delete()
+                  .in(
+                    "id",
+                    imagesToDelete.map((img) => img.id)
+                  );
+              }
             }
-
-            // Delete database records
-            await supabase.from("part_images").delete().eq("part_id", partId);
           }
 
           // Sort by view type order
@@ -351,6 +473,7 @@ export async function POST(request: NextRequest) {
             top: 1,
             other: 2,
             bottom: 3,
+            generic: 4,
           };
 
           partData.productImages.sort((a, b) => {
@@ -365,6 +488,7 @@ export async function POST(request: NextRequest) {
             VALIDATION.maxProductImages
           );
           let displayOrder = 0;
+          const imageErrors: string[] = [];
 
           for (const imgInfo of imagesToUpload) {
             const file = fileMap.get(imgInfo.filename);
@@ -373,12 +497,20 @@ export async function POST(request: NextRequest) {
             const uploaded = await uploadProductImage(
               file,
               partId,
-              displayOrder++
+              displayOrder++,
+              imgInfo.viewType
             );
-            if (uploaded) {
+            if (uploaded.success === true) {
               result.imagesUploaded++;
               totalImagesUploaded++;
+            } else {
+              imageErrors.push(`${imgInfo.filename}: ${uploaded.error}`);
             }
+          }
+
+          // Add image errors to result
+          if (imageErrors.length > 0) {
+            result.error = imageErrors.join("; ");
           }
         }
 
@@ -417,6 +549,12 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         result.success = false;
         result.error = error instanceof Error ? error.message : "Unknown error";
+      }
+
+      // Recalculate display order for all images on this part
+      // This fixes display_order collisions when uploading multiple batches
+      if (result.imagesUploaded > 0) {
+        await recalculateDisplayOrder(partId);
       }
 
       // Mark success if we uploaded anything

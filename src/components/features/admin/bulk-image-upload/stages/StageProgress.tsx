@@ -56,7 +56,7 @@ export function StageProgress({
     filename: string;
     type: "product" | "360-frame";
     frameNumber?: number;
-    viewType?: "front" | "top" | "bottom" | "other";
+    viewType?: "front" | "top" | "bottom" | "other" | "generic";
   }
 
   // Upload a single part

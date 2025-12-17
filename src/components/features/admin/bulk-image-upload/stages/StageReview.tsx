@@ -17,7 +17,79 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import type { AnalyzeResult, ClassifiedFile } from "@/lib/bulk-upload/types";
+import type {
+  AnalyzeResult,
+  ClassifiedFile,
+  MatchedPart,
+} from "@/lib/bulk-upload/types";
+import { VALIDATION } from "@/lib/bulk-upload/patterns.config";
+
+/** Helper to chunk an array into batches of a given size */
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
+/** Merge multiple AnalyzeResult responses into one */
+function mergeAnalyzeResults(results: AnalyzeResult[]): AnalyzeResult {
+  const merged: AnalyzeResult = {
+    matchedParts: [],
+    unmatchedFiles: [],
+    skippedFiles: [],
+    summary: {
+      totalFiles: 0,
+      matchedFiles: 0,
+      partsToUpdate: 0,
+      partsNew: 0,
+    },
+  };
+
+  // Map to dedupe parts by partId (same part might appear in multiple batches)
+  const partsMap = new Map<string, MatchedPart>();
+
+  for (const result of results) {
+    // Merge matched parts (dedupe by partId, combine images)
+    for (const part of result.matchedParts) {
+      const existing = partsMap.get(part.partId);
+      if (existing) {
+        existing.productImages.push(...part.productImages);
+        existing.frames360.push(...part.frames360);
+        // Dedupe warnings
+        const warningSet = new Set([...existing.warnings, ...part.warnings]);
+        existing.warnings = Array.from(warningSet);
+      } else {
+        partsMap.set(part.partId, {
+          ...part,
+          productImages: [...part.productImages],
+          frames360: [...part.frames360],
+          warnings: [...part.warnings],
+        });
+      }
+    }
+
+    // Merge unmatched and skipped (simple concat)
+    merged.unmatchedFiles.push(...result.unmatchedFiles);
+    merged.skippedFiles.push(...result.skippedFiles);
+
+    // Sum up totals
+    merged.summary.totalFiles += result.summary.totalFiles;
+    merged.summary.matchedFiles += result.summary.matchedFiles;
+  }
+
+  // Convert map back to array
+  merged.matchedParts = Array.from(partsMap.values());
+
+  // Recalculate new vs update counts
+  merged.summary.partsNew = merged.matchedParts.filter((p) => p.isNew).length;
+  merged.summary.partsToUpdate = merged.matchedParts.filter(
+    (p) => !p.isNew
+  ).length;
+
+  return merged;
+}
 
 interface StageReviewProps {
   classifiedFiles: ClassifiedFile[];
@@ -40,6 +112,11 @@ export function StageReview({
   const [error, setError] = useState<string | null>(null);
   const [showNewParts, setShowNewParts] = useState(true);
   const [showUpdateParts, setShowUpdateParts] = useState(true);
+  const [showUnmatched, setShowUnmatched] = useState(true);
+  const [batchProgress, setBatchProgress] = useState<{
+    current: number;
+    total: number;
+  } | null>(null);
 
   // Analyze files on mount
   useEffect(() => {
@@ -49,6 +126,7 @@ export function StageReview({
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     setError(null);
+    setBatchProgress(null);
 
     try {
       // Prepare classified file data for API (without File objects)
@@ -60,22 +138,48 @@ export function StageReview({
         viewType: f.viewType,
       }));
 
-      const response = await fetch("/api/admin/bulk-image-upload/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ classifiedFiles: classifiedData }),
-      });
+      // Split into batches to avoid URI too long errors
+      const batches = chunkArray(classifiedData, VALIDATION.analyzeBatchSize);
 
-      if (!response.ok) {
-        throw new Error("Failed to analyze files");
+      if (batches.length > 1) {
+        setBatchProgress({ current: 0, total: batches.length });
       }
 
-      const result: AnalyzeResult = await response.json();
-      setAnalyzeResult(result);
+      const allResults: AnalyzeResult[] = [];
+
+      for (let i = 0; i < batches.length; i++) {
+        if (batches.length > 1) {
+          setBatchProgress({ current: i + 1, total: batches.length });
+        }
+
+        const response = await fetch("/api/admin/bulk-image-upload/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ classifiedFiles: batches[i] }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.error || `Batch ${i + 1}/${batches.length} failed`
+          );
+        }
+
+        const result: AnalyzeResult = await response.json();
+        allResults.push(result);
+      }
+
+      // Merge all batch results
+      const merged =
+        allResults.length === 1
+          ? allResults[0]
+          : mergeAnalyzeResults(allResults);
+      setAnalyzeResult(merged);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed");
     } finally {
       setIsAnalyzing(false);
+      setBatchProgress(null);
     }
   };
 
@@ -94,6 +198,13 @@ export function StageReview({
             <p className="acr-body text-acr-gray-800 font-medium">
               {t("admin.bulkUpload.analyzing")}
             </p>
+            {batchProgress && (
+              <p className="acr-body-small text-acr-gray-600">
+                {t("admin.bulkUpload.processingBatch")
+                  .replace("{current}", String(batchProgress.current))
+                  .replace("{total}", String(batchProgress.total))}
+              </p>
+            )}
             <p className="acr-body-small text-acr-gray-500">
               {t("admin.bulkUpload.matchingSkus")}
             </p>
@@ -247,43 +358,48 @@ export function StageReview({
 
       {/* Unmatched Files */}
       {unmatchedFiles.length > 0 && (
-        <AcrCard
-          variant="default"
-          padding="default"
-          className="border-yellow-200 bg-yellow-50"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="h-5 w-5 text-yellow-600" />
-            <h3 className="acr-heading-6 text-yellow-800">
-              {t("admin.bulkUpload.unmatchedFiles")}
-            </h3>
-          </div>
-          <p className="acr-body-small text-yellow-700 mb-3">
-            {t("admin.bulkUpload.unmatchedDescription")}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {unmatchedFiles.slice(0, 10).map((file, i) => (
-              <Badge
-                key={i}
-                variant="outline"
-                className="text-yellow-700 border-yellow-300"
-              >
-                {file.filename}
-              </Badge>
-            ))}
-            {unmatchedFiles.length > 10 && (
-              <Badge
-                variant="outline"
-                className="text-yellow-700 border-yellow-300"
-              >
-                {t("admin.bulkUpload.moreFiles").replace(
-                  "{count}",
-                  String(unmatchedFiles.length - 10)
-                )}
-              </Badge>
+        <div className="border border-yellow-300 rounded-lg bg-yellow-50">
+          <button
+            className="w-full flex items-center justify-between p-4 hover:bg-yellow-100 transition-colors"
+            onClick={() => setShowUnmatched(!showUnmatched)}
+          >
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-600" />
+              <span className="acr-body text-yellow-800 font-medium">
+                {t("admin.bulkUpload.unmatchedFiles")} ({unmatchedFiles.length})
+              </span>
+            </div>
+            {showUnmatched ? (
+              <ChevronUp className="h-4 w-4 text-yellow-600" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-yellow-600" />
             )}
-          </div>
-        </AcrCard>
+          </button>
+          {showUnmatched && (
+            <div className="p-4 pt-0">
+              <p className="acr-body-small text-yellow-700 mb-3">
+                {t("admin.bulkUpload.unmatchedDescription")}
+              </p>
+              <div className="max-h-64 overflow-y-auto border border-yellow-200 rounded-lg bg-white">
+                <div className="divide-y divide-yellow-100">
+                  {unmatchedFiles.map((file, i) => (
+                    <div
+                      key={i}
+                      className="px-3 py-2 flex items-center justify-between hover:bg-yellow-50"
+                    >
+                      <span className="font-mono text-sm text-yellow-800">
+                        {file.filename}
+                      </span>
+                      <span className="text-xs text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded">
+                        {file.extractedSku || "No SKU"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Actions */}

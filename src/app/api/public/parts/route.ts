@@ -143,7 +143,8 @@ export async function GET(request: NextRequest) {
         .from("parts")
         .select(`*`, { count: "exact" })
         .not("part_type", "eq", "PENDING") // remove any unready parts.
-        .order("has_360_viewer", { ascending: false }) // Parts with images first
+        .order("has_360_viewer", { ascending: false }) // Parts with 360° viewer first
+        .order("has_product_images", { ascending: false }) // Then parts with product images
         .order("acr_sku", { ascending: true }) // Then alphabetically
         .range(params.offset, params.offset + params.limit - 1);
 
@@ -204,12 +205,16 @@ export async function GET(request: NextRequest) {
 
       if (rpcError) throw rpcError;
 
-      // Sort by has_360_viewer DESC, then acr_sku ASC (parts with images first)
+      // Sort by has_360_viewer DESC, has_product_images DESC, then acr_sku ASC
       const sortedData = (allData || []).sort(
         (a: DatabasePartRow, b: DatabasePartRow) => {
-          // First: parts with 360 viewer come first
+          // First: parts with 360° viewer come first
           if (a.has_360_viewer !== b.has_360_viewer) {
             return a.has_360_viewer ? -1 : 1;
+          }
+          // Second: parts with product images
+          if (a.has_product_images !== b.has_product_images) {
+            return a.has_product_images ? -1 : 1;
           }
           // Then: alphabetically by SKU
           return (a.acr_sku || "").localeCompare(b.acr_sku || "");

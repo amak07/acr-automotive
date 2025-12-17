@@ -14,11 +14,11 @@
  * Total: 10 tests
  */
 
-import { createClient } from '@supabase/supabase-js';
-import { DatabasePartRow } from '@/types';
+import { createClient } from "@supabase/supabase-js";
+import { DatabasePartRow } from "@/types";
 
 // Mock Supabase client
-jest.mock('@/lib/supabase/client', () => ({
+jest.mock("@/lib/supabase/client", () => ({
   supabase: {
     rpc: jest.fn(),
     from: jest.fn(() => ({
@@ -33,7 +33,9 @@ jest.mock('@/lib/supabase/client', () => ({
 
 // Import the helper function (we'll test this directly)
 // Note: In real implementation, you might need to export this from route.ts
-async function enrichWithPrimaryImages(parts: DatabasePartRow[]): Promise<any[]> {
+async function enrichWithPrimaryImages(
+  parts: DatabasePartRow[]
+): Promise<any[]> {
   if (!parts || parts.length === 0) return [];
 
   const supabase = createClient(
@@ -41,7 +43,7 @@ async function enrichWithPrimaryImages(parts: DatabasePartRow[]): Promise<any[]>
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  const partIds = parts.map(p => p.id);
+  const partIds = parts.map((p) => p.id);
 
   const { data: images, error } = await supabase
     .from("part_images")
@@ -51,16 +53,20 @@ async function enrichWithPrimaryImages(parts: DatabasePartRow[]): Promise<any[]>
 
   if (error) {
     console.error("Error fetching primary images:", error);
-    return parts.map(part => ({ ...part, primary_image_url: null }));
+    return parts.map((part) => ({ ...part, primary_image_url: null }));
   }
 
-  const imagesByPartId = images?.reduce((acc, img) => {
-    if (!acc[img.part_id]) acc[img.part_id] = [];
-    acc[img.part_id].push(img);
-    return acc;
-  }, {} as Record<string, any[]>) || {};
+  const imagesByPartId =
+    images?.reduce(
+      (acc, img) => {
+        if (!acc[img.part_id]) acc[img.part_id] = [];
+        acc[img.part_id].push(img);
+        return acc;
+      },
+      {} as Record<string, any[]>
+    ) || {};
 
-  return parts.map(part => {
+  return parts.map((part) => {
     const partImages = imagesByPartId[part.id] || [];
     const primaryImage = partImages[0]?.image_url || null;
 
@@ -71,15 +77,15 @@ async function enrichWithPrimaryImages(parts: DatabasePartRow[]): Promise<any[]>
   });
 }
 
-describe('Image Enrichment Logic', () => {
-
-  test('enrichWithPrimaryImages adds primary_image_url to parts', async () => {
+describe("Image Enrichment Logic", () => {
+  test("enrichWithPrimaryImages adds primary_image_url to parts", async () => {
     const mockParts: DatabasePartRow[] = [
       {
-        id: '123e4567-e89b-12d3-a456-426614174000',
-        acr_sku: 'ACR-TEST-001',
-        part_type: 'MAZA',
-        position_type: 'TRASERA',
+        id: "123e4567-e89b-12d3-a456-426614174000",
+        acr_sku: "ACR-TEST-001",
+        acr_sku_normalized: "ACRTEST001",
+        part_type: "MAZA",
+        position_type: "TRASERA",
         abs_type: null,
         bolt_pattern: null,
         drive_type: null,
@@ -88,6 +94,7 @@ describe('Image Enrichment Logic', () => {
         updated_at: new Date().toISOString(),
         tenant_id: null,
         has_360_viewer: null,
+        has_product_images: null,
         viewer_360_frame_count: null,
         updated_by: null,
       },
@@ -98,24 +105,28 @@ describe('Image Enrichment Logic', () => {
     const enriched = await enrichWithPrimaryImages(mockParts);
 
     expect(enriched).toHaveLength(1);
-    expect(enriched[0]).toHaveProperty('primary_image_url');
+    expect(enriched[0]).toHaveProperty("primary_image_url");
     // primary_image_url can be null or a string
-    expect(enriched[0].primary_image_url === null || typeof enriched[0].primary_image_url === 'string').toBe(true);
+    expect(
+      enriched[0].primary_image_url === null ||
+        typeof enriched[0].primary_image_url === "string"
+    ).toBe(true);
   });
 
-  test('enrichWithPrimaryImages handles empty array', async () => {
+  test("enrichWithPrimaryImages handles empty array", async () => {
     const enriched = await enrichWithPrimaryImages([]);
 
     expect(enriched).toEqual([]);
   });
 
-  test('enrichWithPrimaryImages handles no images gracefully', async () => {
+  test("enrichWithPrimaryImages handles no images gracefully", async () => {
     const mockParts: DatabasePartRow[] = [
       {
-        id: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
-        acr_sku: 'ACR-NO-IMAGE',
-        part_type: 'MAZA',
-        position_type: 'TRASERA',
+        id: "ffffffff-ffff-ffff-ffff-ffffffffffff",
+        acr_sku: "ACR-NO-IMAGE",
+        acr_sku_normalized: "ACRNOIMAGE",
+        part_type: "MAZA",
+        position_type: "TRASERA",
         abs_type: null,
         bolt_pattern: null,
         drive_type: null,
@@ -124,6 +135,7 @@ describe('Image Enrichment Logic', () => {
         updated_at: new Date().toISOString(),
         tenant_id: null,
         has_360_viewer: null,
+        has_product_images: null,
         viewer_360_frame_count: null,
         updated_by: null,
       },
@@ -136,9 +148,8 @@ describe('Image Enrichment Logic', () => {
   });
 });
 
-describe('Pagination Logic', () => {
-
-  test('pagination slices results correctly (offset 0, limit 15)', () => {
+describe("Pagination Logic", () => {
+  test("pagination slices results correctly (offset 0, limit 15)", () => {
     const allResults = Array.from({ length: 50 }, (_, i) => ({
       id: `part-${i}`,
       acr_sku: `ACR-${i}`,
@@ -149,11 +160,11 @@ describe('Pagination Logic', () => {
     const paginated = allResults.slice(offset, offset + limit);
 
     expect(paginated).toHaveLength(15);
-    expect(paginated[0].acr_sku).toBe('ACR-0');
-    expect(paginated[14].acr_sku).toBe('ACR-14');
+    expect(paginated[0].acr_sku).toBe("ACR-0");
+    expect(paginated[14].acr_sku).toBe("ACR-14");
   });
 
-  test('pagination handles second page (offset 15, limit 15)', () => {
+  test("pagination handles second page (offset 15, limit 15)", () => {
     const allResults = Array.from({ length: 50 }, (_, i) => ({
       id: `part-${i}`,
       acr_sku: `ACR-${i}`,
@@ -164,61 +175,61 @@ describe('Pagination Logic', () => {
     const paginated = allResults.slice(offset, offset + limit);
 
     expect(paginated).toHaveLength(15);
-    expect(paginated[0].acr_sku).toBe('ACR-15');
-    expect(paginated[14].acr_sku).toBe('ACR-29');
+    expect(paginated[0].acr_sku).toBe("ACR-15");
+    expect(paginated[14].acr_sku).toBe("ACR-29");
   });
 });
 
-describe('Input Validation (Zod Schema)', () => {
-
-  test('publicSearchSchema coerces limit to number', () => {
-    const { publicSearchSchema } = require('@/lib/schemas/public');
+describe("Input Validation (Zod Schema)", () => {
+  test("publicSearchSchema coerces limit to number", () => {
+    const { publicSearchSchema } = require("@/lib/schemas/public");
 
     const result = publicSearchSchema.parse({
-      limit: '25', // String
+      limit: "25", // String
     });
 
     expect(result.limit).toBe(25); // Number
-    expect(typeof result.limit).toBe('number');
+    expect(typeof result.limit).toBe("number");
   });
 
-  test('publicSearchSchema coerces offset to number', () => {
-    const { publicSearchSchema } = require('@/lib/schemas/public');
+  test("publicSearchSchema coerces offset to number", () => {
+    const { publicSearchSchema } = require("@/lib/schemas/public");
 
     const result = publicSearchSchema.parse({
-      offset: '30', // String
+      offset: "30", // String
     });
 
     expect(result.offset).toBe(30); // Number
-    expect(typeof result.offset).toBe('number');
+    expect(typeof result.offset).toBe("number");
   });
 });
 
-describe('Error Handling', () => {
-
-  test('partial vehicle params should be detected (make without model)', () => {
+describe("Error Handling", () => {
+  test("partial vehicle params should be detected (make without model)", () => {
     const params: any = {
-      make: 'HONDA',
+      make: "HONDA",
       // model missing
-      year: '2018',
+      year: "2018",
     };
 
     // API should return 400 error for partial vehicle params
     // This is logic tested at the API route level
-    const hasPartialParams = (params.make || params.model || params.year) &&
+    const hasPartialParams =
+      (params.make || params.model || params.year) &&
       !(params.make && params.model && params.year);
 
     expect(hasPartialParams).toBe(true);
   });
 
-  test('graceful degradation when images fail to load', async () => {
+  test("graceful degradation when images fail to load", async () => {
     // If image fetch fails, parts should still be returned with null primary_image_url
     const mockParts: DatabasePartRow[] = [
       {
-        id: '123e4567-e89b-12d3-a456-426614174000',
-        acr_sku: 'ACR-TEST-001',
-        part_type: 'MAZA',
-        position_type: 'TRASERA',
+        id: "123e4567-e89b-12d3-a456-426614174000",
+        acr_sku: "ACR-TEST-001",
+        acr_sku_normalized: "ACRTEST001",
+        part_type: "MAZA",
+        position_type: "TRASERA",
         abs_type: null,
         bolt_pattern: null,
         drive_type: null,
@@ -227,6 +238,7 @@ describe('Error Handling', () => {
         updated_at: new Date().toISOString(),
         tenant_id: null,
         has_360_viewer: null,
+        has_product_images: null,
         viewer_360_frame_count: null,
         updated_by: null,
       },
@@ -236,13 +248,12 @@ describe('Error Handling', () => {
     const enriched = await enrichWithPrimaryImages(mockParts);
 
     expect(enriched).toHaveLength(1);
-    expect(enriched[0]).toHaveProperty('acr_sku', 'ACR-TEST-001');
+    expect(enriched[0]).toHaveProperty("acr_sku", "ACR-TEST-001");
   });
 });
 
-describe('Get by ID Logic', () => {
-
-  test('get by ID should join vehicle_applications and cross_references', () => {
+describe("Get by ID Logic", () => {
+  test("get by ID should join vehicle_applications and cross_references", () => {
     // This is a conceptual test - in real implementation, you'd verify
     // that the API route makes 3 queries:
     // 1. Get part by ID
@@ -250,20 +261,20 @@ describe('Get by ID Logic', () => {
     // 3. Get cross_references for that part
 
     const expectedQueries = [
-      'parts.select(*).eq(id, uuid).single()',
-      'vehicle_applications.select(*).eq(part_id, uuid)',
-      'cross_references.select(*).eq(acr_part_id, uuid)',
+      "parts.select(*).eq(id, uuid).single()",
+      "vehicle_applications.select(*).eq(part_id, uuid)",
+      "cross_references.select(*).eq(acr_part_id, uuid)",
     ];
 
     // Verify the logic combines these into one response
     const mockResponse = {
-      ...{ id: 'uuid', acr_sku: 'ACR-001' }, // part
-      vehicle_applications: [{ make: 'HONDA', model: 'CIVIC' }],
-      cross_references: [{ competitor_sku: 'TM-512348' }],
+      ...{ id: "uuid", acr_sku: "ACR-001" }, // part
+      vehicle_applications: [{ make: "HONDA", model: "CIVIC" }],
+      cross_references: [{ competitor_sku: "TM-512348" }],
     };
 
-    expect(mockResponse).toHaveProperty('vehicle_applications');
-    expect(mockResponse).toHaveProperty('cross_references');
+    expect(mockResponse).toHaveProperty("vehicle_applications");
+    expect(mockResponse).toHaveProperty("cross_references");
     expect(Array.isArray(mockResponse.vehicle_applications)).toBe(true);
     expect(Array.isArray(mockResponse.cross_references)).toBe(true);
   });

@@ -1263,8 +1263,8 @@ export const translations: Record<
     es: "No hay imágenes subidas aún",
   },
   "partDetails.images.emptyDescription": {
-    en: "Upload up to 6 images. Drag to reorder. Set primary image.",
-    es: "Sube hasta 6 imágenes. Arrastra para reordenar. Establece imagen principal.",
+    en: "Upload up to 10 images. Drag to reorder. Set primary image.",
+    es: "Sube hasta 10 imágenes. Arrastra para reordenar. Establece imagen principal.",
   },
   "partDetails.images.uploadFirst": {
     en: "Upload First Image",
@@ -1275,16 +1275,16 @@ export const translations: Record<
     es: "Límite de imágenes alcanzado",
   },
   "partDetails.images.limitDescription": {
-    en: "Maximum of 6 images allowed per part",
-    es: "Máximo de 6 imágenes permitidas por pieza",
+    en: "Maximum of 10 images allowed per part",
+    es: "Máximo de 10 imágenes permitidas por pieza",
   },
   "partDetails.images.tooMany": {
     en: "Too many images",
     es: "Demasiadas imágenes",
   },
   "partDetails.images.remainingSlots": {
-    en: "Can only upload {{count}} more image(s). Maximum 6 images per part.",
-    es: "Solo puedes subir {{count}} imagen(es) más. Máximo 6 imágenes por pieza.",
+    en: "Can only upload {{count}} more image(s). Maximum 10 images per part.",
+    es: "Solo puedes subir {{count}} imagen(es) más. Máximo 10 imágenes por pieza.",
   },
   "partDetails.images.filesSkipped": {
     en: "Some files were skipped",
@@ -2293,6 +2293,10 @@ export const translations: Record<
   "admin.bulkUpload.matchingSkus": {
     en: "Matching SKUs to parts",
     es: "Emparejando SKUs con piezas",
+  },
+  "admin.bulkUpload.processingBatch": {
+    en: "Processing batch {current} of {total}...",
+    es: "Procesando lote {current} de {total}...",
   },
   "admin.bulkUpload.filesMatched": {
     en: "Files Matched",
