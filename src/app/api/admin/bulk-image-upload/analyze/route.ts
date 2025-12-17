@@ -18,7 +18,9 @@ const analyzeRequestSchema = z.object({
       type: z.enum(["product", "360-frame", "skip", "unknown"]),
       extractedSku: z.string().nullable(),
       frameNumber: z.number().optional(),
-      viewType: z.enum(["front", "top", "bottom", "other"]).optional(),
+      viewType: z
+        .enum(["front", "top", "bottom", "other", "generic"])
+        .optional(),
     })
   ),
 });

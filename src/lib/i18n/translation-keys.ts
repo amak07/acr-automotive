@@ -626,6 +626,7 @@ export interface TranslationKeys {
   "admin.bulkUpload.clear": string;
   "admin.bulkUpload.analyzing": string;
   "admin.bulkUpload.matchingSkus": string;
+  "admin.bulkUpload.processingBatch": string;
   "admin.bulkUpload.filesMatched": string;
   "admin.bulkUpload.newParts": string;
   "admin.bulkUpload.partsToUpdate": string;

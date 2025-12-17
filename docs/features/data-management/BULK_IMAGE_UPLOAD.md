@@ -12,9 +12,13 @@ The Bulk Image Upload feature allows administrators to upload entire folders of 
 - **Folder-based upload**: Drag and drop multiple folders containing images
 - **Automatic SKU extraction**: Detects SKU numbers from filenames (e.g., `CTK512016_fro.jpg` → `512016`)
 - **Smart classification**: Distinguishes between product images and 360° frames
+- **View type detection**: Identifies front, top, bottom, other, and generic views
 - **Fuzzy SKU matching**: Uses similarity scoring to match extracted SKUs to database parts
 - **Concurrent uploads**: Processes multiple parts in parallel for faster uploads
+- **Auto-compression**: Product images >5MB are automatically compressed with Sharp
 - **360° frame optimization**: Resizes and compresses frames with Sharp for optimal viewer performance
+- **Large batch support**: Handles 500-1000+ files with client-side batching (200 files/batch)
+- **Replace-by-viewType**: Only replaces images matching incoming view types, preserving other angles
 
 ## Architecture
 
@@ -72,13 +76,14 @@ Users drag and drop folders or select files via file picker:
 The analyze API matches files to database parts:
 
 1. SKUs extracted from filenames are fuzzy-matched to parts
-2. Matched parts show:
+2. Large batches are processed in chunks of 200 files to avoid "URI too long" errors
+3. Matched parts show:
    - Current image count
    - Images to be added
    - 360° frame status
-   - Any warnings (e.g., "Will replace existing 360° viewer")
-3. Unmatched files are displayed for reference
-4. User confirms before proceeding
+   - Any warnings (e.g., "Will replace existing front view")
+4. Unmatched files are displayed for reference
+5. User confirms before proceeding
 
 ### Stage 3: Upload Progress
 
@@ -104,7 +109,7 @@ Analyzes classified files and matches them to database parts.
     type: "product" | "360-frame" | "skip" | "unknown";
     extractedSku: string | null;
     frameNumber?: number;
-    viewType?: "front" | "top" | "bottom" | "other";
+    viewType?: "front" | "top" | "bottom" | "other" | "generic";
   }[]
 }
 ```
@@ -199,14 +204,43 @@ Frames are detected by filename patterns:
 
 View types are detected by keywords in filename:
 
-| View Type | Keywords                                            |
-| --------- | --------------------------------------------------- |
-| front     | fro, front, frente, f, main, principal, hero        |
-| top       | top, arriba, t, above, superior                     |
-| bottom    | bot, bottom, abajo, b, below, inferior              |
-| other     | oth, other, otro, side, lateral, angle, left, right |
+| View Type | Keywords                                       |
+| --------- | ---------------------------------------------- |
+| front     | fro, front, frente, f, main, principal, hero   |
+| top       | top, arriba, t, above, superior                |
+| bottom    | bot, bottom, abajo, b, below, inferior         |
+| other     | oth, side, lateral, angle, left, right         |
+| generic   | (no keyword detected - fallback for valid SKU) |
+
+**Display Order Priority:** front (0) → top (1) → other (2) → bottom (3) → generic (4)
+
+Files without view keywords but with extractable SKUs are classified as `generic` and displayed last.
 
 ## Image Processing
+
+### Product Image Optimization
+
+All product images are processed with Sharp before upload:
+
+```typescript
+sharp(inputBuffer)
+  .resize(1600, 1600, {
+    fit: "inside",
+    withoutEnlargement: true, // Don't upscale small images
+  })
+  .jpeg({
+    quality: 85,
+    progressive: true,
+    mozjpeg: true,
+  });
+```
+
+**Benefits:**
+
+- Handles files up to 10MB input size
+- Compresses to well under 5MB output
+- Progressive JPEGs for faster perceived loading
+- Maintains aspect ratio
 
 ### 360° Frame Optimization
 
@@ -231,26 +265,28 @@ sharp(inputBuffer)
 - ~60-70% file size reduction
 - Progressive JPEGs for faster perceived loading
 
-### Product Images
-
-Product images are uploaded as-is (no server-side processing) with validation:
-
-- Maximum file size: 5MB
-- Allowed formats: JPG, JPEG, PNG, WebP
-
 ## Configuration
 
 All patterns and limits are configurable in `src/lib/bulk-upload/patterns.config.ts`:
 
 ```typescript
 export const VALIDATION = {
-  maxProductImages: 6, // Max product images per part
-  maxProductImageSize: 5 * 1024 * 1024, // 5MB
+  maxProductImages: 10, // Max product images per part
+  maxProductImageSize: 5 * 1024 * 1024, // 5MB output limit
   min360Frames: 12, // Minimum for valid 360° viewer
   recommended360Frames: 24, // Recommended frame count
   max360Frames: 48, // Maximum frames
-  max360FrameSize: 10 * 1024 * 1024, // 10MB
+  max360FrameSize: 10 * 1024 * 1024, // 10MB input limit
   skuMatchThreshold: 0.85, // Fuzzy match similarity threshold
+  analyzeBatchSize: 200, // Files per analyze batch
+};
+
+export const VIEW_DISPLAY_ORDER = {
+  front: 0,
+  top: 1,
+  other: 2,
+  bottom: 3,
+  generic: 4, // Display last (no specific angle)
 };
 ```
 
@@ -272,13 +308,20 @@ frame360: [
 
 ## Upload Behavior
 
-### Replace Mode (Product Images)
+### Replace-by-ViewType Mode (Product Images)
 
 When uploading product images to a part that already has images:
 
-- **All existing images are deleted** (from storage and database)
-- New images are uploaded fresh
-- Display order is assigned based on view type priority (front → top → other → bottom)
+- **Only images matching incoming viewTypes are deleted**
+- Images with different viewTypes are preserved
+- New images are uploaded with their respective viewTypes
+- Display order is recalculated after upload (front → top → other → bottom → generic)
+
+**Example:**
+
+1. Upload NFC folder (all images get `viewType: "generic"`)
+2. Upload 360 folder (images get `viewType: "front"`, `"top"`, `"other"`, `"bottom"`)
+3. Result: Part has 5 images - front, top, other, bottom from 360 + generic from NFC
 
 ### Replace Mode (360° Frames)
 
@@ -287,6 +330,17 @@ When uploading 360° frames to a part that already has a viewer:
 - All existing frames are deleted
 - New frames are uploaded with sequential numbering (frame-000.jpg, frame-001.jpg, etc.)
 - Part's `has_360_viewer` and `viewer_360_frame_count` are updated
+
+### Display Order Recalculation
+
+After uploading images, the `recalculateDisplayOrder()` function ensures proper ordering:
+
+1. Fetches all images for the part
+2. Sorts by viewType priority (front=0, top=1, other=2, bottom=3, generic=4)
+3. Within same viewType, preserves creation order
+4. Updates `display_order` field for each image
+
+This prevents display_order collisions when uploading multiple batches.
 
 ## Concurrent Upload Architecture
 
@@ -308,6 +362,14 @@ for (let i = 0; i < parts.length; i += UPLOAD_CONCURRENCY) {
 - Stays well under Vercel's 4.5MB request body limit per request
 - Prevents browser memory exhaustion on large uploads
 
+### Large Batch Handling
+
+For batches with 200+ files:
+
+1. Client splits files into batches of 200 for the analyze API
+2. Results are merged on the client
+3. Upload stage processes parts sequentially with concurrency of 3
+
 ## Error Handling
 
 ### Common Errors
@@ -317,6 +379,7 @@ for (let i = 0; i < parts.length; i += UPLOAD_CONCURRENCY) {
 | "No parts matched"               | SKUs not found in database       | Verify SKUs exist, check filename format |
 | "Array buffer allocation failed" | Too many files in single request | Fixed by concurrent upload architecture  |
 | "Minimum 12 frames required"     | Too few 360° frames              | Upload at least 12 frames per part       |
+| "File too large"                 | Input file >10MB                 | Reduce file size before upload           |
 
 ### React StrictMode Guard
 
@@ -333,6 +396,17 @@ useEffect(() => {
 ```
 
 This prevents duplicate uploads during development.
+
+## Database Schema
+
+The `part_images` table includes a `view_type` column for categorization:
+
+```sql
+-- part_images table
+view_type TEXT  -- 'front', 'top', 'bottom', 'other', 'generic', or NULL
+```
+
+This enables replace-by-viewType logic and proper display ordering.
 
 ## Testing
 
@@ -366,14 +440,33 @@ This deletes:
 | Classification (client-side)         | ~1ms per file         |
 | SKU matching (server)                | ~100ms per unique SKU |
 | 360° frame optimization              | ~200-400ms per frame  |
+| Product image compression            | ~100-300ms per image  |
 | Product image upload                 | ~100-200ms per image  |
 | Full upload (6 parts, 28 files each) | ~45-60 seconds        |
+| Large batch (800+ files)             | ~3-5 minutes          |
 
 ### Optimization Notes
 
 - SKU matching uses database RPC with similarity scoring
 - Sharp processing runs on Node.js (not Edge runtime)
 - Files are streamed to Supabase Storage, not buffered in memory
+- Client-side batching prevents "URI too long" errors
+
+## UI Components
+
+### Public Part Details Gallery
+
+The thumbnail strip uses horizontal scrolling with 72×72px thumbnails:
+
+- Supports up to 10 images without stretching the card
+- `overflow-x-auto` enables horizontal scroll on overflow
+- Display order follows viewType priority (front first, generic last)
+
+### Admin Part Images Manager
+
+- Grid layout with drag-and-drop reordering
+- Maximum 10 images per part
+- Upload button disabled when at capacity
 
 ## Future Enhancements
 

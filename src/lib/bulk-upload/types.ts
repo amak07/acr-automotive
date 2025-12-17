@@ -7,7 +7,7 @@
  */
 
 /** Canonical product view types */
-export type ProductViewType = "front" | "top" | "bottom" | "other";
+export type ProductViewType = "front" | "top" | "bottom" | "other" | "generic";
 
 /** File classification result */
 export interface ClassifiedFile {

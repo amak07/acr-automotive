@@ -42,9 +42,7 @@ export const FILE_PATTERNS = {
     front: ["fro", "front", "frente", "f", "main", "principal", "hero"],
     top: ["top", "arriba", "t", "above", "superior"],
     other: [
-      "oth",
-      "other",
-      "otro",
+      "oth", // Explicit suffix for "other angle" view
       "side",
       "lateral",
       "angle",
@@ -53,6 +51,7 @@ export const FILE_PATTERNS = {
       "izquierda",
       "derecha",
     ],
+    // Note: "other" and "otro" removed - too ambiguous with "generic" viewType
     bottom: ["bot", "bottom", "abajo", "b", "below", "inferior"],
   } as Record<ProductViewType, string[]>,
 
@@ -76,14 +75,15 @@ export const VIEW_DISPLAY_ORDER: Record<ProductViewType, number> = {
   top: 1,
   other: 2,
   bottom: 3,
+  generic: 4, // Display last (no specific angle)
 };
 
 /**
  * Validation constants
  */
 export const VALIDATION = {
-  /** Maximum product images per part */
-  maxProductImages: 6,
+  /** Maximum product images per part (5 viewTypes + room for manual uploads) */
+  maxProductImages: 10,
   /** Maximum file size for product images (5MB) */
   maxProductImageSize: 5 * 1024 * 1024,
   /** Minimum 360° frames required */
@@ -96,4 +96,6 @@ export const VALIDATION = {
   max360FrameSize: 10 * 1024 * 1024,
   /** SKU matching similarity threshold */
   skuMatchThreshold: 0.85,
+  /** Batch size for analyze API requests (avoid URI too long errors) */
+  analyzeBatchSize: 200,
 };

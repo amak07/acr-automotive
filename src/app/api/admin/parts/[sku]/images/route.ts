@@ -81,14 +81,14 @@ export async function POST(
       return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }
 
-    // Check current image count (max 6 images per part)
+    // Check current image count
     const { data: existingImages, count: imageCount } = await supabase
       .from("part_images")
       .select("display_order", { count: "exact" })
       .eq("part_id", partId)
       .order("display_order", { ascending: false });
 
-    const MAX_IMAGES = 6;
+    const MAX_IMAGES = 10; // Matches VALIDATION.maxProductImages in patterns.config.ts
     const currentCount = imageCount || 0;
 
     if (currentCount >= MAX_IMAGES) {

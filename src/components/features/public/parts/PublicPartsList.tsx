@@ -28,26 +28,28 @@ function PartCard({
       className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg hover:border-acr-gray-400 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 group relative flex flex-col"
     >
       {/* Image Container - Baleros-Bisa Style */}
-      <div className="relative overflow-hidden p-4 h-48">
-        {/* Skeleton shown until image loads */}
-        {!imageLoaded && <Skeleton className="absolute inset-4 rounded" />}
-        <Image
-          src={part.primary_image_url || "/part-placeholder-new.svg"}
-          alt={`${part.part_type} ${part.acr_sku}`}
-          fill
-          style={{ objectFit: "contain" }}
-          className={cn(
-            "bg-white transition-all duration-300 group-hover:scale-105",
-            !imageLoaded && "opacity-0"
-          )}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          onLoad={() => setImageLoaded(true)}
-        />
+      <div className="pt-6 px-4 pb-2">
+        <div className="relative h-44 overflow-hidden">
+          {/* Skeleton shown until image loads */}
+          {!imageLoaded && <Skeleton className="absolute inset-0 rounded" />}
+          <Image
+            src={part.primary_image_url || "/part-placeholder-new.svg"}
+            alt={`${part.part_type} ${part.acr_sku}`}
+            fill
+            style={{ objectFit: "contain" }}
+            className={cn(
+              "bg-white transition-all duration-300 group-hover:scale-105",
+              !imageLoaded && "opacity-0"
+            )}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            onLoad={() => setImageLoaded(true)}
+          />
 
-        {/* Hover Overlay - Baleros-Bisa Style */}
-        <div className="absolute inset-0 bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <div className="bg-white text-black px-4 py-2 text-sm font-medium rounded shadow-lg">
-            {t("public.parts.viewDetails")}
+          {/* Hover Overlay - Baleros-Bisa Style */}
+          <div className="absolute inset-0 bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <div className="bg-white text-black px-4 py-2 text-sm font-medium rounded shadow-lg">
+              {t("public.parts.viewDetails")}
+            </div>
           </div>
         </div>
       </div>

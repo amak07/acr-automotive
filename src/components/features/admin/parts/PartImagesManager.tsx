@@ -22,7 +22,7 @@ export function PartImagesManager({ partSku }: PartImagesManagerProps) {
   const { t } = useLocale();
   const queryClient = useQueryClient();
 
-  const MAX_IMAGES = 6;
+  const MAX_IMAGES = 10; // Matches VALIDATION.maxProductImages in patterns.config.ts
 
   // Fetch existing images
   const { data: images } = useQuery({
