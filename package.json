@@ -22,6 +22,7 @@
     "staging:export": "cross-env NODE_ENV=staging tsx scripts/test/export-seed-snapshot.ts",
     "staging:import": "cross-env NODE_ENV=staging tsx scripts/test/export-seed-snapshot.ts --import",
     "staging:clear": "cross-env NODE_ENV=staging tsx scripts/test/delete-all-data.ts",
+    "staging:import-seed": "cross-env NODE_ENV=staging tsx scripts/db/import-seed-staging.ts",
     "test:generate-baseline": "cross-env NODE_ENV=test tsx scripts/test/generate-baseline.ts",
     "//   ": "",
     "bootstrap": "cross-env NODE_ENV=production tsx scripts/db/bootstrap-import.ts",

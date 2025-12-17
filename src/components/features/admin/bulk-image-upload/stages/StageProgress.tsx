@@ -117,14 +117,38 @@ export function StageProgress({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        // Handle non-JSON responses from Vercel (timeouts, size limits)
+        const contentType = response.headers.get("content-type");
+        let errorMessage = "Upload failed";
+
+        if (contentType?.includes("application/json")) {
+          const errorData = await response.json();
+          errorMessage = errorData.error || "Upload failed";
+        } else {
+          // Vercel returned HTML error page
+          const text = await response.text();
+          if (
+            text.includes("Request Entity Too Large") ||
+            text.includes("413")
+          ) {
+            errorMessage = "File too large for server";
+          } else if (
+            text.includes("timeout") ||
+            text.includes("FUNCTION_INVOCATION_TIMEOUT")
+          ) {
+            errorMessage = "Upload timed out";
+          } else {
+            errorMessage = "Server error";
+          }
+        }
+
         return {
           partId: part.partId,
           acrSku: part.acrSku,
           success: false,
           imagesUploaded: 0,
           frames360Uploaded: 0,
-          error: errorData.error || "Upload failed",
+          error: errorMessage,
         };
       }
 
