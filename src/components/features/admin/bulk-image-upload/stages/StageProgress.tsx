@@ -27,6 +27,61 @@ interface StageProgressProps {
 // Concurrency limit for parallel uploads
 const UPLOAD_CONCURRENCY = 3;
 
+// Max batch size to stay under Vercel's 4.5MB limit (use 3MB for safety margin)
+const MAX_BATCH_SIZE_BYTES = 3 * 1024 * 1024;
+
+// File batch for chunked uploads
+interface FileBatch {
+  instructions: {
+    partId: string;
+    acrSku: string;
+    filename: string;
+    type: "product" | "360-frame";
+    frameNumber?: number;
+    viewType?: "front" | "top" | "bottom" | "other" | "generic";
+  }[];
+  files: File[];
+  totalSize: number;
+}
+
+/**
+ * Split files into batches that stay under the size limit.
+ * This prevents Vercel's 4.5MB body size limit from being hit.
+ */
+function createFileBatches(
+  instructions: FileBatch["instructions"],
+  fileMap: Map<string, File>,
+  maxSize: number
+): FileBatch[] {
+  const batches: FileBatch[] = [];
+  let currentBatch: FileBatch = { instructions: [], files: [], totalSize: 0 };
+
+  for (const inst of instructions) {
+    const file = fileMap.get(inst.filename);
+    if (!file) continue;
+
+    // If adding this file would exceed limit, start new batch
+    if (
+      currentBatch.totalSize + file.size > maxSize &&
+      currentBatch.files.length > 0
+    ) {
+      batches.push(currentBatch);
+      currentBatch = { instructions: [], files: [], totalSize: 0 };
+    }
+
+    currentBatch.instructions.push(inst);
+    currentBatch.files.push(file);
+    currentBatch.totalSize += file.size;
+  }
+
+  // Don't forget the last batch
+  if (currentBatch.files.length > 0) {
+    batches.push(currentBatch);
+  }
+
+  return batches;
+}
+
 export function StageProgress({
   analyzeResult,
   rawFiles,
@@ -49,22 +104,12 @@ export function StageProgress({
     startUpload();
   }, []);
 
-  // Upload instruction type
-  interface UploadInstruction {
-    partId: string;
-    acrSku: string;
-    filename: string;
-    type: "product" | "360-frame";
-    frameNumber?: number;
-    viewType?: "front" | "top" | "bottom" | "other" | "generic";
-  }
-
-  // Upload a single part
+  // Upload a single part (with automatic batching for large payloads)
   const uploadPart = async (
     part: (typeof analyzeResult.matchedParts)[0],
     fileMap: Map<string, File>
   ): Promise<ExecuteResult["results"][0]> => {
-    const instructions: UploadInstruction[] = [];
+    const instructions: FileBatch["instructions"] = [];
 
     // Add product images
     for (const img of part.productImages) {
@@ -98,81 +143,81 @@ export function StageProgress({
       };
     }
 
-    // Create FormData with files for this part only
-    const formData = new FormData();
-    formData.append("instructions", JSON.stringify(instructions));
+    // Split into batches to stay under Vercel's 4.5MB limit
+    const batches = createFileBatches(
+      instructions,
+      fileMap,
+      MAX_BATCH_SIZE_BYTES
+    );
 
-    // Add only files needed for this part
-    for (const inst of instructions) {
-      const file = fileMap.get(inst.filename);
-      if (file) {
+    // Aggregate results across all batches
+    let totalImagesUploaded = 0;
+    let totalFrames360Uploaded = 0;
+    const errors: string[] = [];
+
+    // Upload each batch sequentially (for same part, maintain order)
+    for (const batch of batches) {
+      const formData = new FormData();
+      formData.append("instructions", JSON.stringify(batch.instructions));
+
+      // Add files for this batch
+      for (const file of batch.files) {
         formData.append(`file_${file.name}`, file);
       }
-    }
 
-    try {
-      const response = await fetch("/api/admin/bulk-image-upload/execute", {
-        method: "POST",
-        body: formData,
-      });
+      try {
+        const response = await fetch("/api/admin/bulk-image-upload/execute", {
+          method: "POST",
+          body: formData,
+        });
 
-      if (!response.ok) {
-        // Handle non-JSON responses from Vercel (timeouts, size limits)
-        const contentType = response.headers.get("content-type");
-        let errorMessage = "Upload failed";
+        if (!response.ok) {
+          // Handle non-JSON responses from Vercel (timeouts, size limits)
+          const contentType = response.headers.get("content-type");
+          let errorMessage = "Upload failed";
 
-        if (contentType?.includes("application/json")) {
-          const errorData = await response.json();
-          errorMessage = errorData.error || "Upload failed";
-        } else {
-          // Vercel returned HTML error page
-          const text = await response.text();
-          if (
-            text.includes("Request Entity Too Large") ||
-            text.includes("413")
-          ) {
-            errorMessage = "File too large for server";
-          } else if (
-            text.includes("timeout") ||
-            text.includes("FUNCTION_INVOCATION_TIMEOUT")
-          ) {
-            errorMessage = "Upload timed out";
+          if (contentType?.includes("application/json")) {
+            const errorData = await response.json();
+            errorMessage = errorData.error || "Upload failed";
           } else {
-            errorMessage = "Server error";
+            // Vercel returned HTML error page
+            const text = await response.text();
+            if (
+              text.includes("Request Entity Too Large") ||
+              text.includes("413")
+            ) {
+              errorMessage = "File too large for server";
+            } else if (
+              text.includes("timeout") ||
+              text.includes("FUNCTION_INVOCATION_TIMEOUT")
+            ) {
+              errorMessage = "Upload timed out";
+            } else {
+              errorMessage = "Server error";
+            }
           }
+          errors.push(errorMessage);
+          continue; // Try next batch
         }
 
-        return {
-          partId: part.partId,
-          acrSku: part.acrSku,
-          success: false,
-          imagesUploaded: 0,
-          frames360Uploaded: 0,
-          error: errorMessage,
-        };
+        const batchResult: ExecuteResult = await response.json();
+        totalImagesUploaded += batchResult.summary.totalImagesUploaded;
+        totalFrames360Uploaded += batchResult.summary.total360FramesUploaded;
+      } catch (batchError) {
+        errors.push(
+          batchError instanceof Error ? batchError.message : "Upload failed"
+        );
       }
-
-      const partResult: ExecuteResult = await response.json();
-      // Return the first result (there should only be one per part)
-      return (
-        partResult.results[0] || {
-          partId: part.partId,
-          acrSku: part.acrSku,
-          success: true,
-          imagesUploaded: partResult.summary.totalImagesUploaded,
-          frames360Uploaded: partResult.summary.total360FramesUploaded,
-        }
-      );
-    } catch (partError) {
-      return {
-        partId: part.partId,
-        acrSku: part.acrSku,
-        success: false,
-        imagesUploaded: 0,
-        frames360Uploaded: 0,
-        error: partError instanceof Error ? partError.message : "Upload failed",
-      };
     }
+
+    return {
+      partId: part.partId,
+      acrSku: part.acrSku,
+      success: totalImagesUploaded > 0 || totalFrames360Uploaded > 0,
+      imagesUploaded: totalImagesUploaded,
+      frames360Uploaded: totalFrames360Uploaded,
+      error: errors.length > 0 ? errors.join("; ") : undefined,
+    };
   };
 
   const startUpload = async () => {
