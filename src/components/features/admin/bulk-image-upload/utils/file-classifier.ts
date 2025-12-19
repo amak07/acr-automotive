@@ -1,7 +1,8 @@
 /**
  * File Classification Utilities
  *
- * Classifies uploaded files as 360° frames, product images, or skip.
+ * Classifies uploaded files as product images or skip.
+ * 360° frames are now handled by a separate dedicated upload flow.
  * Uses configurable patterns from patterns.config.ts
  */
 
@@ -18,9 +19,13 @@ import { extractSkuFromFilename } from "./sku-extractor";
  * Classification order:
  * 1. Check if should be skipped (videos, etc.)
  * 2. Check if valid image extension
- * 3. Try to match 360° frame patterns
- * 4. Try to detect product view keywords
- * 5. Mark as "unknown" if valid image but unrecognized pattern
+ * 3. Check if it's a 360 frame file (skip - use 360 upload modal instead)
+ * 4. Try to detect product view keywords (_fro, _bot, _top, _oth)
+ * 5. Upload as generic product image if SKU extractable
+ * 6. Mark as "unknown" if valid image but unrecognized pattern
+ *
+ * NOTE: 360° frames are handled by a separate upload flow (Bulk360UploadModal)
+ * Files matching 360 frame pattern (e.g., SKU_1.jpg, SKU_24.jpg) are skipped here
  */
 export function classifyFile(file: File): ClassifiedFile {
   const filename = file.name;
@@ -45,21 +50,26 @@ export function classifyFile(file: File): ClassifiedFile {
     };
   }
 
-  // Try 360° frame patterns (order matters - first match wins)
-  for (const pattern of FILE_PATTERNS.frame360) {
-    const match = filename.match(pattern);
-    if (match) {
-      return {
-        file,
-        filename,
-        type: "360-frame",
-        extractedSku: extractSkuFromFilename(filename),
-        frameNumber: parseInt(match[2], 10),
-      };
+  // Check if it's a 360 frame file (e.g., SKU_1.jpg, SKU_24.jpg)
+  // These should be uploaded via the 360 upload modal instead
+  if (FILE_PATTERNS.frame360Suffix.test(filename)) {
+    // Extract frame number to verify it's in valid range (1-48)
+    const frameMatch = filename.match(FILE_PATTERNS.frame360Suffix);
+    if (frameMatch) {
+      const frameNum = parseInt(frameMatch[1], 10);
+      // Skip if frame number is in typical 360 range
+      if (frameNum >= 1 && frameNum <= 48) {
+        return {
+          file,
+          filename,
+          type: "skip",
+          extractedSku: extractSkuFromFilename(filename),
+        };
+      }
     }
   }
 
-  // Try product view patterns
+  // Try product view patterns (_fro, _bot, _top, _oth, etc.)
   const viewType = detectProductView(filename);
   if (viewType) {
     return {

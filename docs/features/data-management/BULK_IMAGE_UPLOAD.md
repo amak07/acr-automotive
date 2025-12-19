@@ -9,10 +9,12 @@ The Bulk Image Upload feature allows administrators to upload entire folders of 
 
 ### Key Capabilities
 
+- **Separate upload flows**: Dedicated modals for product images vs 360° frames (prevents accidental cross-uploads)
 - **Folder-based upload**: Drag and drop multiple folders containing images
 - **Automatic SKU extraction**: Detects SKU numbers from filenames (e.g., `CTK512016_fro.jpg` → `512016`)
-- **Smart classification**: Distinguishes between product images and 360° frames
+- **Smart classification**: Distinguishes between product images and 360° frames with pattern filtering
 - **View type detection**: Identifies front, top, bottom, other, and generic views
+- **360° frame protection**: Product image upload automatically skips 360 frame files (`_1.jpg` to `_48.jpg`)
 - **Fuzzy SKU matching**: Uses similarity scoring to match extracted SKUs to database parts
 - **Concurrent uploads**: Processes multiple parts in parallel for faster uploads
 - **Auto-compression**: Product images >5MB are automatically compressed with Sharp
@@ -30,25 +32,31 @@ src/
 │   ├── admin/bulk-image-upload/
 │   │   └── page.tsx                    # Route page
 │   └── api/admin/bulk-image-upload/
-│       ├── analyze/route.ts            # SKU matching API
-│       └── execute/route.ts            # Upload execution API
+│       ├── analyze/route.ts            # SKU matching API (product images)
+│       ├── execute/route.ts            # Upload execution API (product images)
+│       └── 360/
+│           ├── analyze/route.ts        # SKU matching API (360° frames)
+│           └── execute/route.ts        # Upload execution API (360° frames)
 ├── components/features/admin/bulk-image-upload/
-│   ├── BulkImageUploadPage.tsx         # Main page component
-│   ├── BulkUploadModal.tsx             # Upload wizard modal
+│   ├── BulkImageUploadPage.tsx         # Main page component with filters/table
+│   ├── BulkUploadModal.tsx             # Product image upload wizard modal
+│   ├── Bulk360UploadModal.tsx          # 360° frame upload wizard modal
 │   ├── PartsImageTable.tsx             # Parts listing with image stats
-│   ├── stages/
+│   ├── stages/                         # Product image upload stages
 │   │   ├── StageSelectFiles.tsx        # File selection with dropzone
 │   │   ├── StageReview.tsx             # Review matched parts
 │   │   └── StageProgress.tsx           # Upload progress display
 │   └── utils/
-│       ├── file-classifier.ts          # File type classification
+│       ├── file-classifier.ts          # File type classification (skips 360 frames)
 │       └── sku-extractor.ts            # SKU extraction logic
 └── lib/bulk-upload/
     ├── types.ts                        # TypeScript interfaces
-    └── patterns.config.ts              # Configurable patterns
+    └── patterns.config.ts              # Configurable patterns + 360 suffix detection
 ```
 
 ### Data Flow
+
+**Product Image Upload** (`BulkUploadModal.tsx`):
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
@@ -57,19 +65,65 @@ src/
 │                 │     │  POST /analyze   │     │  POST /execute  │
 │  - Dropzone     │     │  - SKU matching  │     │  - Concurrent   │
 │  - Classify     │     │  - Show warnings │     │    uploads      │
-│                 │     │  - User confirm  │     │  - Sharp resize │
+│  - Skip 360s    │     │  - User confirm  │     │  - Sharp resize │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
 ```
 
-## User Flow
+**360° Frame Upload** (`Bulk360UploadModal.tsx`):
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  Select Files   │────▶│   Review Parts   │────▶│   Uploading     │
+│                 │     │                  │     │                 │
+│  - Dropzone     │     │  POST /360/      │     │  POST /360/     │
+│  - Count frames │     │    analyze       │     │    execute      │
+│  - Group by SKU │     │  - Match SKUs    │     │  - Delete old   │
+│                 │     │  - Check ≥12     │     │  - Upload new   │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+```
+
+## Upload Modes
+
+The bulk image upload page provides **two separate upload modals** to prevent accidental cross-uploads:
+
+### Product Image Upload (`BulkUploadModal`)
+
+Used for standard product photos (front, top, bottom, other, generic views):
+
+- **Button**: "Upload Product Images" with Upload icon
+- **Accepts**: Files with view keywords (`_fro`, `_bot`, `_top`, `_oth`) or generic product images
+- **Skips**: Files matching 360 frame pattern (`_1.jpg` through `_48.jpg`)
+- **Behavior**: Replaces images by viewType, preserves other angles
+
+### 360° Frame Upload (`Bulk360UploadModal`)
+
+Used for 360° viewer frame sequences:
+
+- **Button**: "Upload 360° Viewer" with RotateCw icon
+- **Accepts**: Files with numbered suffixes (`_1.jpg`, `_01.jpg`, `_001.jpg`)
+- **Minimum**: 12 frames required per SKU
+- **Behavior**: Replaces entire 360° viewer (deletes all existing frames)
+
+### Why Two Separate Modals?
+
+Previously, a single upload flow handled both types. This caused issues when:
+
+1. Users uploaded a folder containing 360 frames via product image upload
+2. Files like `ACR2302007_1.jpg` were classified as "generic" product images
+3. 360 frames ended up as product image thumbnails
+
+The fix: Product image classifier now detects and **skips** files matching `_\d{1,3}\.(jpg|jpeg|png|webp)$` pattern.
+
+## User Flow (Product Images)
 
 ### Stage 1: Select Files
 
 Users drag and drop folders or select files via file picker:
 
 1. Files are immediately classified client-side
-2. Summary shows counts by type (product images, 360° frames, unknown, skipped)
-3. Unique SKUs are extracted and counted
+2. **360 frame files are automatically skipped** (use 360 modal instead)
+3. Summary shows counts by type (product images, unknown, skipped)
+4. Unique SKUs are extracted and counted
 
 ### Stage 2: Review Matches
 
@@ -93,6 +147,45 @@ Files are uploaded with visual progress:
 2. Progress bar shows completion percentage
 3. Per-part status updates display current SKU
 4. Final summary shows success/failure counts
+
+## User Flow (360° Frames)
+
+### Stage 1: Select Files
+
+Users drag and drop 360° frame folders:
+
+1. Files are classified by numbered suffix pattern (`_1`, `_01`, `_001`)
+2. Summary shows frame count, unique SKUs, and any unknown files
+3. Skipped files (non-image) are counted separately
+
+### Stage 2: Review Parts
+
+The 360 analyze API validates each SKU group:
+
+1. SKUs are matched to database parts
+2. Minimum 12 frames required per SKU
+3. Three result categories:
+   - **Ready** (green): SKU exists, ≥12 frames
+   - **SKU Not Found** (red): SKU doesn't exist in database
+   - **Insufficient Frames** (yellow): <12 frames for this SKU
+4. Shows "Replaces X frames" if part already has 360° viewer
+
+### Stage 3: Uploading
+
+Frames are uploaded per-SKU:
+
+1. Existing 360° frames are deleted (full replacement)
+2. New frames are uploaded with sequential numbering
+3. Part's `has_360_viewer` and `viewer_360_frame_count` are updated
+4. Per-SKU status shows uploading/success/error
+
+### Stage 4: Complete
+
+Summary shows:
+
+- Number of parts successfully uploaded
+- Any failed uploads with error messages
+- Options to "Upload More" or close modal
 
 ## API Reference
 
@@ -270,6 +363,26 @@ sharp(inputBuffer)
 All patterns and limits are configurable in `src/lib/bulk-upload/patterns.config.ts`:
 
 ```typescript
+export const FILE_PATTERNS = {
+  // 360° frame patterns for detection (360 upload modal)
+  frame360: [
+    /^(.+)_01_(\d{2,3})\.(jpg|jpeg|png|webp)$/i, // CTK format
+    /^(.+)_360_(\d{2,3})\.(jpg|jpeg|png|webp)$/i, // Alt format
+    /^(.+)_frame[_-]?(\d{2,3})\.(jpg|jpeg|png|webp)$/i, // Alt format
+  ],
+
+  // Pattern to SKIP in product image upload (prevents cross-uploads)
+  frame360Suffix: /_(\d{1,3})\.(jpg|jpeg|png|webp)$/i, // Matches _1.jpg through _999.jpg
+
+  // Product view keywords
+  productViews: {
+    front: ["fro", "front", "frente", "f", "main", "principal", "hero"],
+    top: ["top", "arriba", "t", "above", "superior"],
+    other: ["oth", "side", "lateral", "angle", "left", "right"],
+    bottom: ["bot", "bottom", "abajo", "b", "below", "inferior"],
+  },
+};
+
 export const VALIDATION = {
   maxProductImages: 10, // Max product images per part
   maxProductImageSize: 5 * 1024 * 1024, // 5MB output limit
@@ -374,12 +487,25 @@ For batches with 200+ files:
 
 ### Common Errors
 
-| Error                            | Cause                            | Resolution                               |
-| -------------------------------- | -------------------------------- | ---------------------------------------- |
-| "No parts matched"               | SKUs not found in database       | Verify SKUs exist, check filename format |
-| "Array buffer allocation failed" | Too many files in single request | Fixed by concurrent upload architecture  |
-| "Minimum 12 frames required"     | Too few 360° frames              | Upload at least 12 frames per part       |
-| "File too large"                 | Input file >10MB                 | Reduce file size before upload           |
+| Error                            | Cause                            | Resolution                                     |
+| -------------------------------- | -------------------------------- | ---------------------------------------------- |
+| "No parts matched"               | SKUs not found in database       | Verify SKUs exist, check filename format       |
+| "Array buffer allocation failed" | Too many files in single request | Fixed by concurrent upload architecture        |
+| "Minimum 12 frames required"     | Too few 360° frames              | Upload at least 12 frames per part             |
+| "File too large"                 | Input file >10MB                 | Reduce file size before upload                 |
+| 360 frames as product images     | Used wrong upload modal          | Use "Upload 360° Viewer" button for 360 frames |
+
+### Common Issues
+
+**360 frames appearing as product thumbnails:**
+
+If 360 frame files (e.g., `ACR2302007_1.jpg`) were accidentally uploaded via the product image modal before the fix:
+
+1. Navigate to the part's admin detail page
+2. Delete the incorrectly uploaded product images
+3. Re-upload using the "Upload 360° Viewer" modal
+
+The product image classifier now automatically skips files matching the `_\d{1,3}\.(jpg|jpeg|png|webp)$` pattern.
 
 ### React StrictMode Guard
 
@@ -453,6 +579,39 @@ This deletes:
 - Client-side batching prevents "URI too long" errors
 
 ## UI Components
+
+### Admin Parts Table (`PartsImageTable.tsx`)
+
+The bulk image upload page displays a table of all parts with image statistics:
+
+**Columns:**
+
+- **Thumbnail**: Primary product image, or first 360° frame as fallback, or placeholder icon
+- **Part**: ACR SKU badge
+- **Images**: Count badge showing `X/10` with checkmark (green) or X (gray)
+- **360° Viewer**: Frame count with checkmark (green) or X (gray)
+
+**Default Sorting (Media Priority):**
+
+1. Parts with 360° viewers first
+2. Then parts with product images
+3. Then alphabetically by SKU
+
+**Filters:**
+
+- Search by SKU
+- Filter by image presence (all/has images/no images)
+- Filter by 360° viewer (all/has 360°/no 360°)
+
+**Thumbnail Fallback Logic:**
+
+```
+1. Primary product image (display_order = 0)
+2. First 360° frame (frame_number = 1)
+3. Placeholder icon
+```
+
+This ensures parts with only 360° viewers still show a visual preview.
 
 ### Public Part Details Gallery
 
