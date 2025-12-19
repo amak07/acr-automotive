@@ -64,6 +64,13 @@ export const FILE_PATTERNS = {
    * Valid image extensions
    */
   imageExtensions: /\.(jpg|jpeg|png|webp)$/i,
+
+  /**
+   * Patterns to detect 360 frame files (to exclude from product image uploads)
+   * Matches: SKU_1.jpg, SKU_01.jpg, SKU_001.jpg (frame numbers 1-48)
+   * Used by product image classifier to skip 360 frames
+   */
+  frame360Suffix: /_(\d{1,3})\.(jpg|jpeg|png|webp)$/i,
 };
 
 /**

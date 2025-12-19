@@ -2398,4 +2398,112 @@ export const translations: Record<
     en: "Close",
     es: "Cerrar",
   },
+  "admin.bulkUpload.upload360Button": {
+    en: "Upload 360° Viewer",
+    es: "Subir Visor 360°",
+  },
+  "admin.bulkUpload.uploadProductButton": {
+    en: "Upload Product Images",
+    es: "Subir Imágenes de Producto",
+  },
+  "admin.bulkUpload.360.selectTitle": {
+    en: "Select 360° Frame Images",
+    es: "Seleccionar Imágenes 360°",
+  },
+  "admin.bulkUpload.360.reviewTitle": {
+    en: "Review 360° Uploads",
+    es: "Revisar Subidas 360°",
+  },
+  "admin.bulkUpload.360.uploadingTitle": {
+    en: "Uploading 360° Viewers",
+    es: "Subiendo Visores 360°",
+  },
+  "admin.bulkUpload.360.completeTitle": {
+    en: "Upload Complete",
+    es: "Subida Completa",
+  },
+  "admin.bulkUpload.360.dropHere": {
+    en: "Drop files here...",
+    es: "Suelta los archivos aquí...",
+  },
+  "admin.bulkUpload.360.dragDrop": {
+    en: "Drag and drop 360° frame images",
+    es: "Arrastra y suelta imágenes 360°",
+  },
+  "admin.bulkUpload.360.orBrowse": {
+    en: "or click to browse",
+    es: "o haz clic para buscar",
+  },
+  "admin.bulkUpload.360.frames": {
+    en: "360° Frames",
+    es: "Cuadros 360°",
+  },
+  "admin.bulkUpload.360.uniqueParts": {
+    en: "Unique Parts",
+    es: "Piezas Únicas",
+  },
+  "admin.bulkUpload.360.filesSkipped": {
+    en: "{{count}} non-image files skipped",
+    es: "{{count}} archivos no imagen omitidos",
+  },
+  "admin.bulkUpload.360.readyToUpload": {
+    en: "Ready to Upload",
+    es: "Listo para Subir",
+  },
+  "admin.bulkUpload.360.skuNotFound": {
+    en: "SKU Not Found",
+    es: "SKU No Encontrado",
+  },
+  "admin.bulkUpload.360.lessThanFrames": {
+    en: "< {{min}} Frames",
+    es: "< {{min}} Cuadros",
+  },
+  "admin.bulkUpload.360.nFrames": {
+    en: "{{count}} frames",
+    es: "{{count}} cuadros",
+  },
+  "admin.bulkUpload.360.replacesN": {
+    en: "(replaces {{count}})",
+    es: "(reemplaza {{count}})",
+  },
+  "admin.bulkUpload.360.ready": {
+    en: "Ready",
+    es: "Listo",
+  },
+  "admin.bulkUpload.360.partNotFound": {
+    en: "Part Not Found",
+    es: "Pieza No Encontrada",
+  },
+  "admin.bulkUpload.360.needMoreFrames": {
+    en: "Need {{count}} more frames",
+    es: "Faltan {{count}} cuadros",
+  },
+  "admin.bulkUpload.360.uploadN": {
+    en: "Upload {{count}} 360° Viewer",
+    es: "Subir {{count}} Visor 360°",
+  },
+  "admin.bulkUpload.360.uploading": {
+    en: "Uploading 360° viewers...",
+    es: "Subiendo visores 360°...",
+  },
+  "admin.bulkUpload.360.nOfNComplete": {
+    en: "{{current}} of {{total}} complete",
+    es: "{{current}} de {{total}} completados",
+  },
+  "admin.bulkUpload.360.uploadComplete": {
+    en: "Upload Complete!",
+    es: "¡Subida Completa!",
+  },
+  "admin.bulkUpload.360.nUploaded": {
+    en: "{{count}} 360° viewer(s) uploaded",
+    es: "{{count}} visor(es) 360° subido(s)",
+  },
+  "admin.bulkUpload.360.nFailed": {
+    en: "{{count}} failed",
+    es: "{{count}} fallido(s)",
+  },
+  "admin.bulkUpload.360.uploadMore": {
+    en: "Upload More",
+    es: "Subir Más",
+  },
 };

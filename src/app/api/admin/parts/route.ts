@@ -27,6 +27,11 @@ type PartWithImageRelations = PartWithDetails & {
     image_url: string;
     display_order: number;
   }>;
+  part_360_frames?: Array<{
+    id: string;
+    image_url: string;
+    frame_number: number;
+  }>;
 };
 
 export async function GET(request: NextRequest) {
@@ -83,18 +88,29 @@ export async function GET(request: NextRequest) {
 
       return Response.json({ data: result });
     } else {
-      // Build select query - conditionally include part_images for image stats
+      // Build select query - conditionally include part_images and part_360_frames for image stats
       const baseSelect = "*, vehicle_applications(id), cross_references(id)";
       const selectWithImages =
-        "*, vehicle_applications(id), cross_references(id), part_images(id, image_url, display_order)";
+        "*, vehicle_applications(id), cross_references(id), part_images(id, image_url, display_order), part_360_frames(id, image_url, frame_number)";
 
       let query = supabase
         .from("parts")
         .select(params.include_image_stats ? selectWithImages : baseSelect, {
           count: "exact",
         })
-        .range(params.offset, params.offset + params.limit - 1)
-        .order(params.sort_by, { ascending: params.sort_order === "asc" });
+        .range(params.offset, params.offset + params.limit - 1);
+
+      // Apply sorting - prioritize parts with media when image stats are requested
+      if (params.include_image_stats) {
+        query = query
+          .order("has_360_viewer", { ascending: false }) // Parts with 360° viewer first
+          .order("has_product_images", { ascending: false }) // Then parts with product images
+          .order("acr_sku", { ascending: true }); // Then alphabetically
+      } else {
+        query = query.order(params.sort_by, {
+          ascending: params.sort_order === "asc",
+        });
+      }
 
       // Text search in ACR SKU
       if (params.search) {
@@ -178,10 +194,18 @@ export async function GET(request: NextRequest) {
             const sortedImages = [...(part.part_images || [])].sort(
               (a, b) => a.display_order - b.display_order
             );
+            // Fallback to first 360 frame if no product images
+            const sorted360Frames = [...(part.part_360_frames || [])].sort(
+              (a, b) => a.frame_number - b.frame_number
+            );
+            const primaryImageUrl =
+              sortedImages[0]?.image_url ||
+              sorted360Frames[0]?.image_url ||
+              null;
             return {
               ...basePart,
               image_count: part.part_images?.length || 0,
-              primary_image_url: sortedImages[0]?.image_url || null,
+              primary_image_url: primaryImageUrl,
             } as PartWithImageStats;
           }
 

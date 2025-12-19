@@ -5,6 +5,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { useGetParts } from "@/hooks";
 import { PartsImageTable } from "./PartsImageTable";
 import { BulkUploadModal } from "./BulkUploadModal";
+import { Bulk360UploadModal } from "./Bulk360UploadModal";
 import {
   AcrButton,
   AcrSearchInput,
@@ -19,7 +20,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Upload } from "lucide-react";
+import { Upload, RotateCw } from "lucide-react";
 import type { PartWithImageStats } from "@/types";
 
 export function BulkImageUploadPage() {
@@ -33,6 +34,7 @@ export function BulkImageUploadPage() {
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [is360ModalOpen, setIs360ModalOpen] = useState(false);
 
   const limit = 25;
 
@@ -96,14 +98,24 @@ export function BulkImageUploadPage() {
             {t("admin.bulkUpload.description")}
           </p>
         </div>
-        <AcrButton
-          variant="primary"
-          size="default"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Upload className="h-4 w-4" />
-          {t("admin.bulkUpload.uploadFolder")}
-        </AcrButton>
+        <div className="flex gap-3">
+          <AcrButton
+            variant="primary"
+            size="default"
+            onClick={() => setIs360ModalOpen(true)}
+          >
+            <RotateCw className="h-4 w-4" />
+            {t("admin.bulkUpload.upload360Button")}
+          </AcrButton>
+          <AcrButton
+            variant="primary"
+            size="default"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Upload className="h-4 w-4" />
+            {t("admin.bulkUpload.uploadProductButton")}
+          </AcrButton>
+        </div>
       </div>
 
       {/* Filters */}
@@ -195,10 +207,17 @@ export function BulkImageUploadPage() {
         onPageChange={setCurrentPage}
       />
 
-      {/* Upload Modal */}
+      {/* Upload Modal - Product Images */}
       <BulkUploadModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
+        onComplete={handleUploadComplete}
+      />
+
+      {/* Upload Modal - 360° Viewer */}
+      <Bulk360UploadModal
+        open={is360ModalOpen}
+        onOpenChange={setIs360ModalOpen}
         onComplete={handleUploadComplete}
       />
     </div>

@@ -5,6 +5,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { AcrTable, AcrTableColumn, AcrPagination } from "@/components/acr";
 import { Image as ImageIcon, CheckCircle2, XCircle } from "lucide-react";
 import type { PartWithImageStats } from "@/types";
+import { VALIDATION } from "@/lib/bulk-upload/patterns.config";
 
 interface PartsImageTableProps {
   parts: PartWithImageStats[];
@@ -67,7 +68,9 @@ export function PartsImageTable({
       label: t("admin.bulkUpload.images"),
       headerClassName: "text-center",
       className: "text-center",
-      render: (value) => <ImageCountBadge count={value || 0} max={6} />,
+      render: (value) => (
+        <ImageCountBadge count={value || 0} max={VALIDATION.maxProductImages} />
+      ),
     },
     {
       key: "has_360_viewer",
