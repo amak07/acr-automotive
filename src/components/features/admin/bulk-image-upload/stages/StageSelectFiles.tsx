@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useLocale } from "@/contexts/LocaleContext";
 import { AcrButton, AcrCard } from "@/components/acr";
-import { Upload, Folder, FileImage, RotateCw, X } from "lucide-react";
+import { Upload, Folder, FileImage, X } from "lucide-react";
 import { classifyFile } from "../utils/file-classifier";
 import type { ClassifiedFile } from "@/lib/bulk-upload/types";
 
@@ -46,9 +46,6 @@ export function StageSelectFiles({ onFilesSelected }: StageSelectFilesProps) {
   // Count files by type
   const productCount = classifiedFiles.filter(
     (f) => f.type === "product"
-  ).length;
-  const frame360Count = classifiedFiles.filter(
-    (f) => f.type === "360-frame"
   ).length;
   const unknownCount = classifiedFiles.filter(
     (f) => f.type === "unknown"
@@ -115,7 +112,7 @@ export function StageSelectFiles({ onFilesSelected }: StageSelectFilesProps) {
             </AcrButton>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {/* Product Images */}
             <div className="flex items-center gap-3 p-3 rounded-lg bg-acr-gray-50">
               <div className="p-2 rounded-full bg-blue-100 text-blue-600">
@@ -131,17 +128,17 @@ export function StageSelectFiles({ onFilesSelected }: StageSelectFilesProps) {
               </div>
             </div>
 
-            {/* 360° Frames */}
+            {/* Unique SKUs */}
             <div className="flex items-center gap-3 p-3 rounded-lg bg-acr-gray-50">
-              <div className="p-2 rounded-full bg-green-100 text-green-600">
-                <RotateCw className="h-4 w-4" />
+              <div className="p-2 rounded-full bg-purple-100 text-purple-600">
+                <Folder className="h-4 w-4" />
               </div>
               <div>
                 <p className="acr-heading-5 text-acr-gray-800">
-                  {frame360Count}
+                  {uniqueSkus.size}
                 </p>
                 <p className="acr-caption text-acr-gray-500">
-                  {t("admin.bulkUpload.frames360")}
+                  {t("admin.bulkUpload.uniqueSkus")}
                 </p>
               </div>
             </div>
@@ -162,21 +159,6 @@ export function StageSelectFiles({ onFilesSelected }: StageSelectFilesProps) {
                 </div>
               </div>
             )}
-
-            {/* Unique SKUs */}
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-acr-gray-50">
-              <div className="p-2 rounded-full bg-purple-100 text-purple-600">
-                <Folder className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="acr-heading-5 text-acr-gray-800">
-                  {uniqueSkus.size}
-                </p>
-                <p className="acr-caption text-acr-gray-500">
-                  {t("admin.bulkUpload.uniqueSkus")}
-                </p>
-              </div>
-            </div>
           </div>
 
           {skippedCount > 0 && (

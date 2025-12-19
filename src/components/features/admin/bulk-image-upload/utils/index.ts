@@ -1,5 +1,8 @@
 /**
  * Bulk Image Upload Utilities
+ *
+ * NOTE: 360° frame uploads are now handled by a separate flow (Bulk360UploadModal)
+ * This module focuses only on product image classification and upload.
  */
 
 export {
@@ -7,8 +10,6 @@ export {
   detectProductView,
   classifyAndGroupFiles,
   sortProductImagesByViewOrder,
-  sort360FramesByNumber,
-  renumber360Frames,
 } from "./file-classifier";
 
 export {
