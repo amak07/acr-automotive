@@ -27,9 +27,9 @@ function PartCard({
       href={`/parts/${encodeURIComponent(part.acr_sku)}${currentSearch ? `?${currentSearch}` : ""}`}
       className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg hover:border-acr-gray-400 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 group relative flex flex-col"
     >
-      {/* Image Container - Baleros-Bisa Style */}
-      <div className="pt-6 px-4 pb-2">
-        <div className="relative h-44 overflow-hidden">
+      {/* Image Container - Minimal padding for larger image */}
+      <div className="pt-2 px-2 pb-1">
+        <div className="relative h-48 overflow-hidden">
           {/* Skeleton shown until image loads */}
           {!imageLoaded && <Skeleton className="absolute inset-0 rounded" />}
           <Image
@@ -104,48 +104,44 @@ export function PublicPartsList(props: PublicPartsListProps) {
   return (
     <div>
       {/* Parts Count Display */}
-      <div className="max-w-3xl mx-auto mb-4">
-        <div className="flex justify-start">
-          <p className="text-sm text-acr-gray-600 font-medium">
-            {partsCount > 0
-              ? partsCount === 1
-                ? t("public.parts.showingRangeSingle")
-                    .replace(
-                      "{{start}}",
-                      ((currentPage - 1) * limit + 1).toString()
-                    )
-                    .replace(
-                      "{{end}}",
-                      Math.min(currentPage * limit, partsCount).toString()
-                    )
-                    .replace("{{total}}", partsCount.toString())
-                : t("public.parts.showingRange")
-                    .replace(
-                      "{{start}}",
-                      ((currentPage - 1) * limit + 1).toString()
-                    )
-                    .replace(
-                      "{{end}}",
-                      Math.min(currentPage * limit, partsCount).toString()
-                    )
-                    .replace("{{total}}", partsCount.toString())
-              : t("public.parts.noResults")}
-          </p>
-        </div>
+      <div className="mb-4">
+        <p className="text-sm text-acr-gray-600 font-medium">
+          {partsCount > 0
+            ? partsCount === 1
+              ? t("public.parts.showingRangeSingle")
+                  .replace(
+                    "{{start}}",
+                    ((currentPage - 1) * limit + 1).toString()
+                  )
+                  .replace(
+                    "{{end}}",
+                    Math.min(currentPage * limit, partsCount).toString()
+                  )
+                  .replace("{{total}}", partsCount.toString())
+              : t("public.parts.showingRange")
+                  .replace(
+                    "{{start}}",
+                    ((currentPage - 1) * limit + 1).toString()
+                  )
+                  .replace(
+                    "{{end}}",
+                    Math.min(currentPage * limit, partsCount).toString()
+                  )
+                  .replace("{{total}}", partsCount.toString())
+            : t("public.parts.noResults")}
+        </p>
       </div>
 
-      {/* Baleros-Bisa Style Product Grid */}
-      <div className="max-w-3xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {partsData.map((part) => (
-            <PartCard
-              key={part.id}
-              part={part}
-              currentSearch={currentSearch}
-              t={t}
-            />
-          ))}
-        </div>
+      {/* Product Grid - Full width to match search bar */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {partsData.map((part) => (
+          <PartCard
+            key={part.id}
+            part={part}
+            currentSearch={currentSearch}
+            t={t}
+          />
+        ))}
       </div>
     </div>
   );

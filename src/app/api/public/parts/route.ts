@@ -6,6 +6,7 @@ import { publicSearchSchema, PublicSearchParams } from "@/lib/schemas/public";
 import { normalizeSku } from "@/lib/utils/sku";
 
 // Helper function to enrich parts with primary image URLs
+// Falls back to first 360° frame if no product images exist
 async function enrichWithPrimaryImages(
   parts: DatabasePartRow[]
 ): Promise<PartSearchResult[]> {
@@ -13,21 +14,19 @@ async function enrichWithPrimaryImages(
 
   const partIds = parts.map((p) => p.id);
 
-  // Fetch all primary images for these parts in one query
-  const { data: images, error } = await supabase
+  // Fetch all product images for these parts in one query
+  const { data: images, error: imagesError } = await supabase
     .from("part_images")
     .select("part_id, image_url, is_primary, display_order")
     .in("part_id", partIds)
     .order("display_order", { ascending: true });
 
-  if (error) {
-    console.error("Error fetching primary images:", error);
-    // Return parts without images rather than failing
-    return parts.map((part) => ({ ...part, primary_image_url: null }));
+  if (imagesError) {
+    console.error("Error fetching primary images:", imagesError);
   }
 
-  // Group images by part_id
-  const imagesByPartId = images.reduce(
+  // Group product images by part_id
+  const imagesByPartId = (images || []).reduce(
     (acc, img) => {
       if (!acc[img.part_id]) acc[img.part_id] = [];
       acc[img.part_id].push(img);
@@ -36,11 +35,40 @@ async function enrichWithPrimaryImages(
     {} as Record<string, any[]>
   );
 
+  // Find parts without product images to fetch their 360 frames
+  const partsWithoutImages = parts.filter(
+    (p) => !imagesByPartId[p.id] || imagesByPartId[p.id].length === 0
+  );
+
+  // Fetch first 360 frame for parts without product images
+  let framesByPartId: Record<string, string> = {};
+  if (partsWithoutImages.length > 0) {
+    const partIdsWithoutImages = partsWithoutImages.map((p) => p.id);
+    const { data: frames, error: framesError } = await supabase
+      .from("part_360_frames")
+      .select("part_id, image_url, frame_number")
+      .in("part_id", partIdsWithoutImages)
+      .eq("frame_number", 1); // Get first frame only
+
+    if (framesError) {
+      console.error("Error fetching 360 frames:", framesError);
+    } else if (frames) {
+      framesByPartId = frames.reduce(
+        (acc, frame) => {
+          acc[frame.part_id] = frame.image_url;
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+    }
+  }
+
   // Add primary_image_url to each part
-  // Primary image is always the first one by display_order (already sorted)
+  // Priority: product image > first 360 frame > null
   return parts.map((part) => {
     const partImages = imagesByPartId[part.id] || [];
-    const primaryImage = partImages[0]?.image_url || null;
+    const primaryImage =
+      partImages[0]?.image_url || framesByPartId[part.id] || null;
 
     return {
       ...part,
