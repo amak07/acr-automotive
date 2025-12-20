@@ -47,10 +47,26 @@ export function BrandingSettings() {
   });
 
   // Form setup with default banners array
+  // Ensure all banner fields have proper defaults to prevent validation errors
   const formDefaults = settings
     ? {
         ...settings,
-        banners: settings.banners || [],
+        company_name: settings.company_name || "",
+        logo_url: settings.logo_url || "",
+        favicon_url: settings.favicon_url || "",
+        banners: (settings.banners || []).map((banner) => ({
+          id: banner.id || `banner-${Date.now()}`,
+          image_url: banner.image_url || "",
+          mobile_image_url: banner.mobile_image_url || "",
+          title: banner.title || "",
+          subtitle: banner.subtitle || "",
+          cta_text: banner.cta_text || "",
+          cta_link: banner.cta_link || "",
+          display_order:
+            typeof banner.display_order === "number" ? banner.display_order : 0,
+          is_active:
+            typeof banner.is_active === "boolean" ? banner.is_active : true,
+        })),
       }
     : undefined;
 
@@ -267,6 +283,16 @@ export function BrandingSettings() {
     updateMutation.mutate(data);
   };
 
+  // Debug handler to log validation errors when form submission fails
+  const onValidationError = (errors: Record<string, unknown>) => {
+    console.error("[BrandingSettings] Form validation errors:", errors);
+    toast({
+      variant: "destructive",
+      title: t("admin.settings.branding.error"),
+      description: "Please check the form for errors",
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -277,7 +303,10 @@ export function BrandingSettings() {
 
   return (
     <div className="bg-white rounded-lg border border-acr-gray-300 shadow-md p-4 md:p-6">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={handleSubmit(onSubmit, onValidationError)}
+        className="space-y-6"
+      >
         {/* Company Name */}
         <div>
           <label className="block text-sm font-semibold text-acr-gray-900 mb-2">

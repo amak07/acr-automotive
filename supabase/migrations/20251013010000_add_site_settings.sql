@@ -8,18 +8,14 @@
 -- CLEANUP: Drop existing objects if they exist (for safe re-runs)
 -- ============================================================================
 
--- Drop RLS policies first
-DROP POLICY IF EXISTS "Admin full access settings" ON site_settings;
-DROP POLICY IF EXISTS "Public read settings" ON site_settings;
+-- Drop table first (CASCADE will drop dependent policies)
+DROP TABLE IF EXISTS site_settings CASCADE;
 
--- Drop storage policies
+-- Drop storage policies (storage.objects table always exists)
 DROP POLICY IF EXISTS "Admin Delete Site Assets" ON storage.objects;
 DROP POLICY IF EXISTS "Admin Update Site Assets" ON storage.objects;
 DROP POLICY IF EXISTS "Admin Upload Site Assets" ON storage.objects;
 DROP POLICY IF EXISTS "Public Access Site Assets" ON storage.objects;
-
--- Drop table (CASCADE will drop dependent objects)
-DROP TABLE IF EXISTS site_settings CASCADE;
 
 -- ============================================================================
 -- TABLE: SITE_SETTINGS (Key-value JSONB storage for dynamic settings)
