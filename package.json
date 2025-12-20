@@ -29,6 +29,7 @@
     "bootstrap:test": "cross-env NODE_ENV=test tsx scripts/db/bootstrap-import.ts",
     "check-prod": "cross-env NODE_ENV=production tsx scripts/db/check-production.ts",
     "clear-prod": "cross-env NODE_ENV=production tsx scripts/db/clear-production.ts",
+    "prod:import-seed": "cross-env NODE_ENV=production tsx scripts/db/import-seed-production.ts",
     "types:generate": "node scripts/db/generate-types.js test",
     "types:generate:prod": "node scripts/db/generate-types.js prod",
     "//    ": "",
