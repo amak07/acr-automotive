@@ -12,7 +12,7 @@
     "//": "",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
-    "supabase:reset": "npx supabase db reset && echo '\n⚠️  Database reset complete! Run npm run db:restore-snapshot to restore your data.'",
+    "supabase:reset": "tsx scripts/db/reset-database.ts",
     "supabase:status": "npx supabase status",
     "// ": "",
     "db:save-snapshot": "tsx scripts/db/save-dev-snapshot.ts",

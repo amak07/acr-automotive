@@ -40,7 +40,7 @@ RETURNS TABLE(
   cross_refs_updated INTEGER
 )
 SECURITY DEFINER
-AS $$
+AS $function$
 DECLARE
   v_parts_added INTEGER := 0;
   v_parts_updated INTEGER := 0;
@@ -243,7 +243,7 @@ BEGIN
     v_cross_refs_updated;
 
 END;
-$$ LANGUAGE plpgsql;
+$function$ LANGUAGE plpgsql;
 
 -- =====================================================
 -- Add helpful comments

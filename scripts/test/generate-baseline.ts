@@ -53,12 +53,12 @@ async function generateBaseline() {
     // Export all parts from the database
     const excelBuffer = await exportService.exportAllData();
 
-    // Create fixtures directory if it doesn't exist
-    const fixturesDir = path.join(process.cwd(), "tests", "fixtures");
-    await fs.mkdir(fixturesDir, { recursive: true });
+    // Create tmp directory if it doesn't exist
+    const tmpDir = path.join(process.cwd(), "tmp");
+    await fs.mkdir(tmpDir, { recursive: true });
 
-    // Write the baseline export to tests/fixtures
-    const baselinePath = path.join(fixturesDir, "baseline-export.xlsx");
+    // Write the baseline export to tmp/ (where test-full-import-pipeline.ts expects it)
+    const baselinePath = path.join(tmpDir, "baseline-export.xlsx");
     await fs.writeFile(baselinePath, Buffer.from(excelBuffer));
 
     console.log(`\n✅ Baseline export generated: ${baselinePath}`);
@@ -68,11 +68,10 @@ async function generateBaseline() {
     console.log(`   File size: ${(stats.size / 1024).toFixed(2)} KB`);
 
     console.log("\n📋 Next steps:");
-    console.log("   1. Commit baseline-export.xlsx to git");
+    console.log("   1. Run npm test to verify all tests pass");
     console.log(
-      "   2. Update test-full-import-pipeline.ts to use this fixture"
+      "   2. Note: tmp/ is gitignored - regenerate after fresh clone"
     );
-    console.log("   3. Run npm test to verify all tests pass");
   } catch (error) {
     console.error("\n❌ Export failed:", error);
     throw error;
