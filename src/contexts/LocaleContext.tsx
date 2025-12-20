@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 import { Locale, TranslationKeys } from "@/lib/i18n/translation-keys";
 import { t as translateFn } from "@/lib/i18n";
 
@@ -26,28 +20,34 @@ interface LocaleProviderProps {
   children: ReactNode;
 }
 
-export function LocaleProvider({ children }: LocaleProviderProps) {
-  // State to track current locale
-  const [locale, setLocale] = useState<Locale>("en");
+// Helper to get initial locale (runs once on mount, avoids setState in effect)
+function getInitialLocale(isDevMode: boolean): Locale {
+  if (typeof window === "undefined") {
+    // SSR: default based on environment
+    return isDevMode ? "en" : "es";
+  }
 
+  if (isDevMode) {
+    // In development, check localStorage for saved preference
+    const savedLocale = localStorage.getItem("acr-locale") as Locale;
+    if (savedLocale === "en" || savedLocale === "es") {
+      return savedLocale;
+    }
+    return "en"; // Default to English in dev
+  }
+
+  // In production, always Spanish
+  return "es";
+}
+
+export function LocaleProvider({ children }: LocaleProviderProps) {
   // Check if we're in development mode
   const isDevMode = process.env.NODE_ENV === "development";
 
-  // Initialize locale based on environment
-  useEffect(() => {
-    if (isDevMode) {
-      // In development, check localStorage for saved preference
-      const savedLocale = localStorage.getItem("acr-locale") as Locale;
-      if (savedLocale === "en" || savedLocale === "es") {
-        setLocale(savedLocale);
-      } else {
-        setLocale("en"); // Default to English in dev
-      }
-    } else {
-      // In production, always Spanish
-      setLocale("es");
-    }
-  }, [isDevMode]);
+  // State to track current locale - initialize with correct value immediately
+  const [locale, setLocale] = useState<Locale>(() =>
+    getInitialLocale(isDevMode)
+  );
 
   // Function to handle locale changes
   const handleSetLocale = (newLocale: Locale) => {

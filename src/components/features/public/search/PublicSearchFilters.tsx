@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, Car, Package } from "lucide-react";
 import {
@@ -49,10 +49,6 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
   const [activeTab, setActiveTab] = useState(getInitialTab());
   const { data, isLoading, error } = useVehicleOptions();
 
-  // dropdown list options.
-  const [models, setModels] = useState<string[] | undefined>();
-  const [years, setYears] = useState<number[] | undefined>();
-
   // selected options for SearchTerms - initialize from URL
   const [selectedMake, setSelectedMake] = useState<string>(
     searchParams?.get("make") || ""
@@ -69,33 +65,43 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
     searchParams?.get("sku") || ""
   );
 
-  // Sync internal state with URL params when they change (browser back/forward)
-  useEffect(() => {
-    setSelectedMake(searchParams?.get("make") || "");
-    setSelectedModel(searchParams?.get("model") || "");
-    setSelectedYear(searchParams?.get("year") || "");
-    setSkuTerm(searchParams?.get("sku") || "");
-
-    // Update active tab based on which search type has params
-    const skuParam = searchParams?.get("sku");
-    if (skuParam) {
-      setActiveTab("sku");
-    } else if (searchParams?.get("make")) {
-      setActiveTab("vehicle");
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
+  // Derive dropdown options from data + selected values (no setState in effects)
+  const models = useMemo(() => {
     if (selectedMake && data?.models) {
-      setModels(data.models[selectedMake]);
+      return data.models[selectedMake];
     }
+    return undefined;
   }, [selectedMake, data?.models]);
 
-  useEffect(() => {
+  const years = useMemo(() => {
     if (selectedModel && selectedMake && data?.years) {
-      setYears(data.years[`${selectedMake}-${selectedModel}`]);
+      return data.years[`${selectedMake}-${selectedModel}`];
     }
+    return undefined;
   }, [selectedModel, selectedMake, data?.years]);
+
+  // Sync internal state with URL params when they change (browser back/forward)
+  // Using a ref to track previous values to avoid unnecessary re-renders
+  useEffect(() => {
+    const makeParam = searchParams?.get("make") || "";
+    const modelParam = searchParams?.get("model") || "";
+    const yearParam = searchParams?.get("year") || "";
+    const skuParam = searchParams?.get("sku") || "";
+
+    // Only update if values actually changed (prevents cascading renders)
+    if (makeParam !== selectedMake) setSelectedMake(makeParam);
+    if (modelParam !== selectedModel) setSelectedModel(modelParam);
+    if (yearParam !== selectedYear) setSelectedYear(yearParam);
+    if (skuParam !== skuTerm) setSkuTerm(skuParam);
+
+    // Update active tab based on which search type has params
+    if (skuParam) {
+      setActiveTab("sku");
+    } else if (makeParam) {
+      setActiveTab("vehicle");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const handleVehicleSearch = () => {
     if (selectedMake && selectedModel && selectedYear) {
