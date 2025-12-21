@@ -9,6 +9,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      # Supabase local development credentials (standard demo keys)
+      NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      DATABASE_URL: postgresql://postgres:postgres@localhost:54322/postgres
+      ADMIN_PASSWORD: ci_test_password
 
     steps:
       - uses: actions/checkout@v4
@@ -30,18 +36,11 @@ jobs:
       - name: Start Supabase
         run: npx supabase start
 
-      - name: Create .env.local
-        run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321" >> .env.local
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0" >> .env.local
-          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres" >> .env.local
-          echo "ADMIN_PASSWORD=ci_test_password" >> .env.local
-
       - name: Seed database
         run: |
           # Wait for database to be ready
           for i in {1..30}; do
-            if psql postgresql://postgres:postgres@localhost:54322/postgres -c '\q' 2>/dev/null; then
+            if psql $DATABASE_URL -c '\q' 2>/dev/null; then
               echo "Database is ready!"
               break
             fi
@@ -49,7 +48,7 @@ jobs:
             sleep 2
           done
           # Seed with test data from fixtures
-          psql postgresql://postgres:postgres@localhost:54322/postgres < tests/fixtures/seed-data.sql
+          psql $DATABASE_URL < tests/fixtures/seed-data.sql
 
       - name: Generate baseline export
         run: npx tsx scripts/test/generate-baseline.ts
