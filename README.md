@@ -2,6 +2,7 @@
 
 A professional auto parts cross-reference search platform built for Mexican B2B distributors. This application enables parts counter staff to quickly find equivalent parts using competitor SKUs or vehicle specifications.
 
+[![CI](https://github.com/amak07/acr-automotive/actions/workflows/ci.yml/badge.svg)](https://github.com/amak07/acr-automotive/actions/workflows/ci.yml)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=next.js&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white)
