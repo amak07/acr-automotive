@@ -28,23 +28,19 @@ jobs:
         run: npm run lint
 
       - name: Start Supabase
-        run: |
-          # Start Supabase - this will fail on complex migrations but that's OK
-          npx supabase start || true
-          # Wait for database to be ready
-          sleep 5
-
-      - name: Apply migrations via psql
-        run: |
-          # The Supabase CLI can't handle $function$ blocks in migrations
-          # Apply the problematic migration directly via psql (same as local reset script)
-          for migration in supabase/migrations/*.sql; do
-            echo "Applying $migration..."
-            psql postgresql://postgres:postgres@localhost:54322/postgres -f "$migration" 2>/dev/null || true
-          done
+        run: npx supabase start
 
       - name: Seed database
         run: |
+          # Wait for database to be ready
+          for i in {1..30}; do
+            if psql postgresql://postgres:postgres@localhost:54322/postgres -c '\q' 2>/dev/null; then
+              echo "Database is ready!"
+              break
+            fi
+            echo "Waiting for database... ($i/30)"
+            sleep 2
+          done
           # Seed with test data from fixtures
           psql postgresql://postgres:postgres@localhost:54322/postgres < tests/fixtures/seed-data.sql
 
