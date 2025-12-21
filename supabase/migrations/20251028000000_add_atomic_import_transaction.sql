@@ -255,12 +255,6 @@ COMMENT ON FUNCTION execute_atomic_import IS
 -- =====================================================
 -- Migration Complete
 -- =====================================================
-
-DO $$
-BEGIN
-  RAISE NOTICE 'Migration 008 completed successfully';
-  RAISE NOTICE 'Created execute_atomic_import() function';
-  RAISE NOTICE 'All import operations now atomic (all-or-nothing)';
-  RAISE NOTICE '';
-  RAISE NOTICE 'ImportService can now use this function for true transaction rollback';
-END $$;
+-- Created execute_atomic_import() function
+-- All import operations now atomic (all-or-nothing)
+-- ImportService can now use this function for true transaction rollback
