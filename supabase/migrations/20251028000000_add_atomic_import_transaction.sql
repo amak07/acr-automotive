@@ -40,7 +40,7 @@ RETURNS TABLE(
   cross_refs_updated INTEGER
 )
 SECURITY DEFINER
-AS $function$
+AS $$
 DECLARE
   v_parts_added INTEGER := 0;
   v_parts_updated INTEGER := 0;
@@ -243,24 +243,4 @@ BEGIN
     v_cross_refs_updated;
 
 END;
-$function$ LANGUAGE plpgsql;
-
--- =====================================================
--- Add helpful comments
--- =====================================================
-
-COMMENT ON FUNCTION execute_atomic_import IS
-  'Executes bulk import operations atomically. If ANY operation fails, ALL changes are rolled back automatically. This prevents partial imports that would leave the database in an inconsistent state.';
-
--- =====================================================
--- Migration Complete
--- =====================================================
-
-DO $$
-BEGIN
-  RAISE NOTICE 'Migration 008 completed successfully';
-  RAISE NOTICE 'Created execute_atomic_import() function';
-  RAISE NOTICE 'All import operations now atomic (all-or-nothing)';
-  RAISE NOTICE '';
-  RAISE NOTICE 'ImportService can now use this function for true transaction rollback';
-END $$;
+$$ LANGUAGE plpgsql;

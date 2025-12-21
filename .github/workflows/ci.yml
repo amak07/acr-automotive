@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      # Supabase local development credentials (standard demo keys)
+      NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      DATABASE_URL: postgresql://postgres:postgres@localhost:54322/postgres
+      ADMIN_PASSWORD: ci_test_password
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Start Supabase
+        run: npx supabase start
+
+      - name: Seed database
+        run: |
+          # Wait for database to be ready
+          for i in {1..30}; do
+            if psql $DATABASE_URL -c '\q' 2>/dev/null; then
+              echo "Database is ready!"
+              break
+            fi
+            echo "Waiting for database... ($i/30)"
+            sleep 2
+          done
+          # Seed with test data from fixtures
+          psql $DATABASE_URL < tests/fixtures/seed-data.sql
+
+      - name: Generate baseline export
+        run: npx tsx scripts/test/generate-baseline.ts
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build

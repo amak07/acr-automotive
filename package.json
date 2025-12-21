@@ -41,6 +41,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
+      "eslint --fix --max-warnings=0",
       "prettier --write"
     ],
     "*.{json,md}": [
@@ -111,6 +112,8 @@
     "zod": "^4.0.17"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
