@@ -53,6 +53,9 @@ jobs:
           # Seed with test data from fixtures
           psql postgresql://postgres:postgres@localhost:54322/postgres < tests/fixtures/seed-data.sql
 
+      - name: Generate baseline export
+        run: npx tsx scripts/test/generate-baseline.ts
+
       - name: Run tests
         run: npm test
 
