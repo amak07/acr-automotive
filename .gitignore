@@ -31,9 +31,11 @@ dist/
 # IDE and Editor files
 .vscode/
 .idea/
-.claude/
+# Claude Code local files (ignore contents, allow specific files/folders)
+.claude/*
 !.claude/session-tracker.sh
 !.claude/README.md
+!.claude/skills/
 *.swp
 *.swo
 *~
