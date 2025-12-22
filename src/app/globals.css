@@ -1,6 +1,133 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-acr-red-50: #fef2f2;
+  --color-acr-red-100: #fee2e2;
+  --color-acr-red-200: #fecaca;
+  --color-acr-red-300: #fca5a5;
+  --color-acr-red-400: #f87171;
+  --color-acr-red-500: #ed1c24;
+  --color-acr-red-600: #d91920;
+  --color-acr-red-700: #b91c1c;
+  --color-acr-red-800: #991b1b;
+  --color-acr-red-900: #7f1d1d;
+
+  --color-acr-success-50: #ecfdf5;
+  --color-acr-success-100: #d1fae5;
+  --color-acr-success-500: #10b981;
+  --color-acr-success-600: #059669;
+  --color-acr-success: #10b981;
+
+  --color-acr-warning-50: #fffbeb;
+  --color-acr-warning-100: #fef3c7;
+  --color-acr-warning-500: #f59e0b;
+  --color-acr-warning-600: #d97706;
+  --color-acr-warning: #f59e0b;
+
+  --color-acr-info-50: #eff6ff;
+  --color-acr-info-100: #dbeafe;
+  --color-acr-info-500: #3b82f6;
+  --color-acr-info-600: #2563eb;
+  --color-acr-info: #3b82f6;
+
+  --color-acr-gray-50: #f8f9fa;
+  --color-acr-gray-100: #f3f4f6;
+  --color-acr-gray-200: #e5e7eb;
+  --color-acr-gray-300: #d1d5db;
+  --color-acr-gray-400: #9ca3af;
+  --color-acr-gray-500: #6b7280;
+  --color-acr-gray-600: #4b5563;
+  --color-acr-gray-700: #374151;
+  --color-acr-gray-800: #1f2937;
+  --color-acr-gray-900: #111827;
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+
+  --tracking-tighter: -0.02em;
+  --tracking-tight: -0.01em;
+  --tracking-extra-tight: -0.03em;
+  --tracking-headline: -0.015em;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+  --text-7xl: 4.5rem;
+  --text-8xl: 6rem;
+
+  --leading-extra-tight: 1.1;
+  --leading-heading: 1.16;
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  --font-sans:
+    var(--font-noto-sans), Noto Sans, -apple-system, BlinkMacSystemFont,
+    Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif;
+  --font-mono:
+    SF Mono, Monaco, Inconsolata, Roboto Mono, Consolas, Liberation Mono, Menlo,
+    Courier, monospace;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 @layer base {
   :root {
@@ -114,23 +241,28 @@
 
   /* Exo 2 branded headings */
   .acr-brand-heading {
-    @apply font-[family-name:var(--font-exo2)] font-bold tracking-tight;
+    font-family: var(--font-exo2);
+    @apply font-bold tracking-tight;
   }
 
   .acr-brand-heading-xl {
-    @apply acr-brand-heading text-xl lg:text-2xl;
+    font-family: var(--font-exo2);
+    @apply font-bold tracking-tight text-xl lg:text-2xl;
   }
 
   .acr-brand-heading-2xl {
-    @apply acr-brand-heading text-2xl lg:text-3xl;
+    font-family: var(--font-exo2);
+    @apply font-bold tracking-tight text-2xl lg:text-3xl;
   }
 
   .acr-brand-heading-3xl {
-    @apply acr-brand-heading text-3xl lg:text-4xl;
+    font-family: var(--font-exo2);
+    @apply font-bold tracking-tight text-3xl lg:text-4xl;
   }
 
   .acr-brand-heading-4xl {
-    @apply acr-brand-heading text-4xl lg:text-5xl;
+    font-family: var(--font-exo2);
+    @apply font-bold tracking-tight text-4xl lg:text-5xl;
   }
 
   /* Custom ping animation for FABs with limited radius */

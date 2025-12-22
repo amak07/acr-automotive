@@ -1,3 +1,7 @@
+---
+title: "Validation Patterns"
+---
+
 # Validation Patterns
 
 > **Purpose**: Zod schema patterns, type inference, and validation strategy
@@ -23,7 +27,7 @@
 
 ```typescript
 // TypeScript says this is fine at compile-time
-type User = { name: string, age: number };
+type User = { name: string; age: number };
 
 // But at runtime, this could be ANYTHING from API/user input:
 const user: User = await request.json(); // Could be { name: 123, age: "old" }
@@ -48,15 +52,16 @@ type User = z.infer<typeof userSchema>; // { name: string, age: number }
 
 ### Zod vs Alternatives
 
-| Feature | Zod | Yup | Joi | io-ts |
-|---------|-----|-----|-----|-------|
-| TypeScript inference | ✅ Excellent | ⚠️ Limited | ❌ None | ✅ Good |
-| Bundle size | ✅ Small (12kb) | ⚠️ Medium (28kb) | ❌ Large (145kb) | ✅ Small |
-| Schema composition | ✅ Excellent | ✅ Good | ✅ Good | ⚠️ Complex |
-| Error messages | ✅ Clear | ✅ Good | ✅ Good | ⚠️ Verbose |
-| React Hook Form | ✅ Native | ✅ Resolver | ⚠️ Requires adapter | ❌ No |
+| Feature              | Zod             | Yup              | Joi                 | io-ts      |
+| -------------------- | --------------- | ---------------- | ------------------- | ---------- |
+| TypeScript inference | ✅ Excellent    | ⚠️ Limited       | ❌ None             | ✅ Good    |
+| Bundle size          | ✅ Small (12kb) | ⚠️ Medium (28kb) | ❌ Large (145kb)    | ✅ Small   |
+| Schema composition   | ✅ Excellent    | ✅ Good          | ✅ Good             | ⚠️ Complex |
+| Error messages       | ✅ Clear        | ✅ Good          | ✅ Good             | ⚠️ Verbose |
+| React Hook Form      | ✅ Native       | ✅ Resolver      | ⚠️ Requires adapter | ❌ No      |
 
 **Why Zod for ACR Automotive**:
+
 - Perfect TypeScript integration (single source of truth)
 - Small bundle size (matters for client-side validation)
 - Excellent React Hook Form support
@@ -71,6 +76,7 @@ type User = z.infer<typeof userSchema>; // { name: string, age: number }
 **File**: [src/lib/schemas/admin.ts](../../src/lib/schemas/admin.ts)
 
 **Structure**:
+
 ```typescript
 // ===== PARTS SCHEMAS =====
 export const queryPartsSchema = z.object({ ... });
@@ -106,6 +112,7 @@ export const brandingSchema = z.object({ ... });
 ```
 
 **Benefits**:
+
 - Single source of truth
 - Reusable across routes
 - Easier to maintain
@@ -118,6 +125,7 @@ export const brandingSchema = z.object({ ... });
 **Pattern**: Route-specific `schemas.ts` files re-export from central schemas.
 
 **Example**: [src/app/api/admin/parts/schemas.ts](../../src/app/api/admin/parts/schemas.ts)
+
 ```typescript
 // Re-export from centralized schemas
 export {
@@ -129,10 +137,11 @@ export {
   type CreatePartParams,
   type UpdatePartParams,
   type DeletePartParams,
-} from '@/lib/schemas/admin';
+} from "@/lib/schemas/admin";
 ```
 
 **Why Re-export**:
+
 - Shorter imports in route handlers
 - Can rename for route context (`queryPartsSchema` → `querySchema`)
 - Still maintain single source of truth
@@ -151,7 +160,7 @@ export const queryPartsSchema = z.object({
   id: z.uuid().optional(),
 
   // Pagination
-  limit: z.coerce.number().default(50),    // String "50" → Number 50
+  limit: z.coerce.number().default(50), // String "50" → Number 50
   offset: z.coerce.number().default(0),
 
   // Sorting
@@ -171,11 +180,13 @@ export const queryPartsSchema = z.object({
 ```
 
 **Why `z.coerce.number()`**:
+
 - URL query params are always strings: `?offset=50&limit=20`
 - `z.number()` would fail validation
 - `z.coerce.number()` converts strings to numbers
 
 **Usage**:
+
 ```typescript
 const { searchParams } = new URL(request.url);
 const rawParams = Object.fromEntries(searchParams.entries());
@@ -194,22 +205,23 @@ const params = queryPartsSchema.parse(rawParams);
 ```typescript
 export const createPartSchema = z.object({
   // Required fields
-  sku_number: z.string().min(1),              // At least 1 char
-  part_type: z.string().min(1).max(100),      // 1-100 chars
+  sku_number: z.string().min(1), // At least 1 char
+  part_type: z.string().min(1).max(100), // 1-100 chars
 
   // Optional fields
   position_type: z.string().max(50).optional(),
   abs_type: z.string().max(20).optional(),
   bolt_pattern: z.string().max(50).optional(),
   drive_type: z.string().max(50).optional(),
-  specifications: z.string().optional(),       // No max length
+  specifications: z.string().optional(), // No max length
 
   // Validated optional fields
-  image_url: z.string().url().optional(),      // Must be URL if provided
+  image_url: z.string().url().optional(), // Must be URL if provided
 });
 ```
 
 **Field Types**:
+
 - `z.string()` - Any string
 - `.min(1)` - Not empty
 - `.max(100)` - Max length
@@ -224,20 +236,22 @@ export const createPartSchema = z.object({
 
 ```typescript
 export const updatePartSchema = createPartSchema
-  .omit({ sku_number: true })  // Can't change SKU
-  .partial()                    // All fields optional
+  .omit({ sku_number: true }) // Can't change SKU
+  .partial() // All fields optional
   .extend({
-    id: z.uuid("PartID is required."),  // ID is required
+    id: z.uuid("PartID is required."), // ID is required
   });
 ```
 
 **Composition Methods**:
+
 - `.omit({ field: true })` - Remove field
 - `.partial()` - Make all fields optional
 - `.extend({ ... })` - Add new fields
 - `.pick({ field: true })` - Keep only certain fields
 
 **Result**:
+
 ```typescript
 // createPartSchema
 {
@@ -269,6 +283,7 @@ export const deletePartSchema = z.object({
 ```
 
 **Custom Error Message**:
+
 - Default: "Invalid uuid"
 - Custom: "PartID is required." (more actionable)
 
@@ -293,6 +308,7 @@ export const bulkCreatePartsSchema = z.object({
 ```
 
 **Benefits**:
+
 - Validates each array item
 - Reuses single-resource schema
 - Clear error messages with array indexes
@@ -312,6 +328,7 @@ export const queryPartsSchema = z.object({
 ```
 
 **Error Message**:
+
 ```json
 {
   "field": "sort_order",
@@ -335,14 +352,17 @@ export const contactInfoSchema = z.object({
 
 export const bannerSchema = z.object({
   id: z.string(),
-  image_url: z.string().refine(
-    (val) => val === "" || z.string().url().safeParse(val).success,
-    { message: "Must be a valid URL or empty" }
-  ),
-  mobile_image_url: z.string().refine(
-    (val) => val === "" || z.string().url().safeParse(val).success,
-    { message: "Must be a valid URL or empty" }
-  ).optional(),
+  image_url: z
+    .string()
+    .refine((val) => val === "" || z.string().url().safeParse(val).success, {
+      message: "Must be a valid URL or empty",
+    }),
+  mobile_image_url: z
+    .string()
+    .refine((val) => val === "" || z.string().url().safeParse(val).success, {
+      message: "Must be a valid URL or empty",
+    })
+    .optional(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
   cta_text: z.string().optional(),
@@ -355,11 +375,12 @@ export const brandingSchema = z.object({
   company_name: z.string().min(1, "Company name is required"),
   logo_url: z.string(),
   favicon_url: z.string(),
-  banners: z.array(bannerSchema),  // Array of nested objects
+  banners: z.array(bannerSchema), // Array of nested objects
 });
 ```
 
 **Custom Refinements**:
+
 ```typescript
 .refine(
   (val) => val === "" || z.string().url().safeParse(val).success,
@@ -368,6 +389,7 @@ export const brandingSchema = z.object({
 ```
 
 **Explanation**:
+
 - Allow empty string OR valid URL
 - `.safeParse()` returns `{ success: boolean, ... }` (doesn't throw)
 - Custom error message
@@ -399,6 +421,7 @@ export const updateSettingSchema = z.discriminatedUnion("key", [
 ```
 
 **Benefits**:
+
 - Type safety based on discriminant (`key`)
 - Validates `value` based on `key`
 - Clear error messages
@@ -428,6 +451,7 @@ function createUser(user: User) {
 ```
 
 **Single Source of Truth**:
+
 - Change schema → type updates automatically
 - No manual type definitions
 - Schema IS the contract
@@ -444,6 +468,7 @@ export type CreatePartParams = z.infer<typeof createPartSchema>;
 ```
 
 **Usage**:
+
 ```typescript
 import { createPartSchema, CreatePartParams } from "@/lib/schemas/admin";
 
@@ -497,12 +522,14 @@ External Data → Zod Validation → Internal System
 ```
 
 **Examples of External Data**:
+
 - HTTP request bodies
 - Query parameters
 - File uploads
 - Third-party API responses
 
 **NOT Validated**:
+
 - Internal function calls (TypeScript handles this)
 - Database responses (Supabase types are trusted)
 
@@ -544,6 +571,7 @@ export async function POST(request: NextRequest) {
 ```
 
 **Key Points**:
+
 - Validation happens BEFORE business logic
 - Invalid data never reaches database
 - ZodError is caught and transformed to API error format
@@ -589,6 +617,7 @@ function PartForm() {
 ```
 
 **Benefits**:
+
 - Same validation rules on client and server
 - Immediate feedback (no server round-trip)
 - Type-safe form handling
@@ -627,6 +656,7 @@ try {
 ```
 
 **Important Fields**:
+
 - `message`: Human-readable error
 - `path`: Field name (array for nested fields)
 - `code`: Error type (for programmatic handling)
@@ -643,8 +673,8 @@ if (error instanceof ZodError) {
     {
       success: false,
       errors: error.issues.map((issue) => ({
-        field: issue.path.join("."),  // ["user", "email"] → "user.email"
-        message: issue.message,        // "Invalid email"
+        field: issue.path.join("."), // ["user", "email"] → "user.email"
+        message: issue.message, // "Invalid email"
       })),
     },
     { status: 400 }
@@ -653,6 +683,7 @@ if (error instanceof ZodError) {
 ```
 
 **Result**:
+
 ```json
 {
   "success": false,
@@ -676,12 +707,13 @@ if (error instanceof ZodError) {
 **Pattern**: Pass string to Zod methods.
 
 ```typescript
-z.uuid("PartID is required")  // Instead of "Invalid uuid"
-z.string().min(1, "SKU cannot be empty")  // Instead of default
-z.number().int("Must be an integer")
+z.uuid("PartID is required"); // Instead of "Invalid uuid"
+z.string().min(1, "SKU cannot be empty"); // Instead of default
+z.number().int("Must be an integer");
 ```
 
 **When to Use Custom Messages**:
+
 - Default is too technical ("Invalid uuid" → "PartID is required")
 - Need Spanish translation
 - Want more context ("Required" → "Part type is required")
@@ -696,13 +728,14 @@ z.number().int("Must be an integer")
 const result = schema.safeParse(data);
 
 if (result.success) {
-  console.log(result.data);  // Validated data
+  console.log(result.data); // Validated data
 } else {
-  console.log(result.error.issues);  // Validation errors
+  console.log(result.error.issues); // Validation errors
 }
 ```
 
 **When to Use**:
+
 - Custom error handling
 - Conditional validation
 - Refinements (see custom refinements above)
@@ -734,6 +767,7 @@ export const queryPartsSchema = z.object({
 ```
 
 **Usage**:
+
 ```typescript
 // URL: /api/admin/parts?search=brake&limit=20
 const { searchParams } = new URL(request.url);
@@ -769,8 +803,8 @@ export const createPartSchema = z.object({
 });
 
 export const updatePartSchema = createPartSchema
-  .omit({ sku_number: true })  // Can't update SKU
-  .partial()                    // All fields optional
+  .omit({ sku_number: true }) // Can't update SKU
+  .partial() // All fields optional
   .extend({ id: z.uuid("PartID is required.") });
 
 export const deletePartSchema = z.object({
@@ -779,6 +813,7 @@ export const deletePartSchema = z.object({
 ```
 
 **Inferred Types**:
+
 ```typescript
 type CreatePartParams = {
   sku_number: string;
@@ -813,14 +848,17 @@ type DeletePartParams = {
 ```typescript
 export const bannerSchema = z.object({
   id: z.string(),
-  image_url: z.string().refine(
-    (val) => val === "" || z.string().url().safeParse(val).success,
-    { message: "Must be a valid URL or empty" }
-  ),
-  mobile_image_url: z.string().refine(
-    (val) => val === "" || z.string().url().safeParse(val).success,
-    { message: "Must be a valid URL or empty" }
-  ).optional(),
+  image_url: z
+    .string()
+    .refine((val) => val === "" || z.string().url().safeParse(val).success, {
+      message: "Must be a valid URL or empty",
+    }),
+  mobile_image_url: z
+    .string()
+    .refine((val) => val === "" || z.string().url().safeParse(val).success, {
+      message: "Must be a valid URL or empty",
+    })
+    .optional(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
   cta_text: z.string().optional(),
@@ -833,11 +871,12 @@ export const brandingSchema = z.object({
   company_name: z.string().min(1, "Company name is required"),
   logo_url: z.string(),
   favicon_url: z.string(),
-  banners: z.array(bannerSchema),  // Array validation
+  banners: z.array(bannerSchema), // Array validation
 });
 ```
 
 **Usage**:
+
 ```typescript
 const data = {
   company_name: "ACR Automotive",

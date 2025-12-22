@@ -1,3 +1,7 @@
+---
+title: "Excel Format Specification - ACR Data Management"
+---
+
 # Excel Format Specification - ACR Data Management
 
 **Project**: ACR Automotive - Bulk Export/Import System
@@ -12,12 +16,14 @@
 This document defines the exact Excel format used for ACR's bulk export/import system. All exported files follow this specification. Users must export first, modify the exported file, then re-import.
 
 **Current Implementation** (Phase 8.1):
+
 - ✅ **Export service** - Full and filtered catalog export
 - ✅ **ExcelJS library** - Professional Excel file generation with hidden columns
 - ✅ **3-sheet structure** - Parts, Vehicle Applications, Cross References
 - ⏳ **Import service** - Coming in Phase 8.2
 
 **Key Principles**:
+
 - ✅ **Export-only workflow** - No blank templates allowed
 - ✅ **Hidden ID columns** - UUIDs for ID-based matching
 - ✅ **3-sheet structure** - Parts, Vehicle_Applications, Cross_References
@@ -29,13 +35,13 @@ This document defines the exact Excel format used for ACR's bulk export/import s
 
 ### Workbook Metadata
 
-| Property | Value |
-|----------|-------|
-| File Format | `.xlsx` (Excel 2007+) |
-| Encoding | UTF-8 |
-| Sheet Count | 3 (required) |
-| Max File Size | 50 MB |
-| Max Rows | 1,048,576 per sheet (Excel limit) |
+| Property      | Value                             |
+| ------------- | --------------------------------- |
+| File Format   | `.xlsx` (Excel 2007+)             |
+| Encoding      | UTF-8                             |
+| Sheet Count   | 3 (required)                      |
+| Max File Size | 50 MB                             |
+| Max Rows      | 1,048,576 per sheet (Excel limit) |
 
 ### Sheet Names (Exact Match Required)
 
@@ -51,18 +57,18 @@ This document defines the exact Excel format used for ACR's bulk export/import s
 
 ### Column Structure (Phase 8.1 - Current Database Schema)
 
-| Column | Field Name | Type | Required | Hidden | Max Length | Notes |
-|--------|------------|------|----------|--------|------------|-------|
-| A | `_id` | UUID | Yes* | ✅ Yes | 36 | Primary key (hidden column) |
-| B | `acr_sku` | String | Yes | No | 50 | ACR part number |
-| C | `part_type` | String | Yes | No | 100 | Part type (e.g., "Wheel Hub", "Brake Rotor") |
-| D | `position_type` | String | No | No | 50 | Position (e.g., "Front", "Rear", "Front Left") |
-| E | `abs_type` | String | No | No | 20 | ABS compatibility |
-| F | `bolt_pattern` | String | No | No | 50 | Wheel bolt pattern |
-| G | `drive_type` | String | No | No | 50 | Drive type (e.g., "2WD", "4WD", "AWD") |
-| H | `specifications` | String | No | No | - | Technical specifications (TEXT field) |
+| Column | Field Name       | Type   | Required | Hidden | Max Length | Notes                                          |
+| ------ | ---------------- | ------ | -------- | ------ | ---------- | ---------------------------------------------- |
+| A      | `_id`            | UUID   | Yes\*    | ✅ Yes | 36         | Primary key (hidden column)                    |
+| B      | `acr_sku`        | String | Yes      | No     | 50         | ACR part number                                |
+| C      | `part_type`      | String | Yes      | No     | 100        | Part type (e.g., "Wheel Hub", "Brake Rotor")   |
+| D      | `position_type`  | String | No       | No     | 50         | Position (e.g., "Front", "Rear", "Front Left") |
+| E      | `abs_type`       | String | No       | No     | 20         | ABS compatibility                              |
+| F      | `bolt_pattern`   | String | No       | No     | 50         | Wheel bolt pattern                             |
+| G      | `drive_type`     | String | No       | No     | 50         | Drive type (e.g., "2WD", "4WD", "AWD")         |
+| H      | `specifications` | String | No       | No     | -          | Technical specifications (TEXT field)          |
 
-**\* _id is required for updates/deletes, omitted for new rows (adds)**
+**\* \_id is required for updates/deletes, omitted for new rows (adds)**
 
 ### Example Data (Parts) - Actual Production Data
 
@@ -75,6 +81,7 @@ This document defines the exact Excel format used for ACR's bulk export/import s
 ```
 
 **Notes**:
+
 - Row 1 (headers) is required
 - Most parts currently show "PENDING" for part_type (data to be filled in later)
 - Optional fields (position_type, abs_type, etc.) are empty until cataloging is complete
@@ -87,14 +94,15 @@ Hidden columns are set using ExcelJS library:
 ```typescript
 // ExcelJS implementation
 worksheet.columns = [
-  { header: '_id', key: 'id', width: 36, hidden: true },  // Column A
-  { header: 'ACR_SKU', key: 'acr_sku', width: 15 },       // Column B
-  { header: 'Part_Type', key: 'part_type', width: 20 },   // Column C
+  { header: "_id", key: "id", width: 36, hidden: true }, // Column A
+  { header: "ACR_SKU", key: "acr_sku", width: 15 }, // Column B
+  { header: "Part_Type", key: "part_type", width: 20 }, // Column C
   // ... rest of columns
 ];
 ```
 
 **User Experience**:
+
 - Column A (`_id`) is invisible in Excel by default
 - Users can unhide manually (View → Unhide Columns) if needed for debugging
 - IDs are preserved when user edits visible columns
@@ -106,17 +114,17 @@ worksheet.columns = [
 
 ### Column Structure (Phase 8.1 - Current Database Schema)
 
-| Column | Field Name | Type | Required | Hidden | Max Length | Notes |
-|--------|------------|------|----------|--------|------------|-------|
-| A | `_id` | UUID | Yes* | ✅ Yes | 36 | Primary key (hidden) |
-| B | `_part_id` | UUID | Yes | ✅ Yes | 36 | Foreign key to Parts._id (hidden) |
-| C | `acr_sku` | String | Yes | No | 50 | ACR part number (joined from parts table) |
-| D | `make` | String | Yes | No | 50 | Vehicle make (e.g., "MAZDA", "NISSAN") |
-| E | `model` | String | Yes | No | 100 | Vehicle model (e.g., "3", "NP300 FRONTIER") |
-| F | `start_year` | Integer | Yes | No | - | Start year (e.g., 2004) |
-| G | `end_year` | Integer | Yes | No | - | End year (e.g., 2009) |
+| Column | Field Name   | Type    | Required | Hidden | Max Length | Notes                                       |
+| ------ | ------------ | ------- | -------- | ------ | ---------- | ------------------------------------------- |
+| A      | `_id`        | UUID    | Yes\*    | ✅ Yes | 36         | Primary key (hidden)                        |
+| B      | `_part_id`   | UUID    | Yes      | ✅ Yes | 36         | Foreign key to Parts.\_id (hidden)          |
+| C      | `acr_sku`    | String  | Yes      | No     | 50         | ACR part number (joined from parts table)   |
+| D      | `make`       | String  | Yes      | No     | 50         | Vehicle make (e.g., "MAZDA", "NISSAN")      |
+| E      | `model`      | String  | Yes      | No     | 100        | Vehicle model (e.g., "3", "NP300 FRONTIER") |
+| F      | `start_year` | Integer | Yes      | No     | -          | Start year (e.g., 2004)                     |
+| G      | `end_year`   | Integer | Yes      | No     | -          | End year (e.g., 2009)                       |
 
-**\* _id is required for updates/deletes, omitted for new rows (adds)**
+**\* \_id is required for updates/deletes, omitted for new rows (adds)**
 
 ### Example Data (Vehicle Applications) - Actual Production Data
 
@@ -129,6 +137,7 @@ worksheet.columns = [
 ```
 
 **Notes**:
+
 - `_part_id` must reference a valid `_id` from Parts sheet
 - `acr_sku` is **joined from parts table** (read-only, for user reference)
 - Humberto uses `acr_sku` to map VAs to parts (not UUID)
@@ -143,15 +152,15 @@ worksheet.columns = [
 
 ### Column Structure (Phase 8.1 - Current Database Schema)
 
-| Column | Field Name | Type | Required | Hidden | Max Length | Notes |
-|--------|------------|------|----------|--------|------------|-------|
-| A | `_id` | UUID | Yes* | ✅ Yes | 36 | Primary key (hidden) |
-| B | `_acr_part_id` | UUID | Yes | ✅ Yes | 36 | Foreign key to Parts._id (hidden) |
-| C | `acr_sku` | String | Yes | No | 50 | ACR part number (joined from parts table) |
-| D | `competitor_brand` | String | No | No | 50 | Competitor brand name (optional) |
-| E | `competitor_sku` | String | Yes | No | 50 | Competitor part number |
+| Column | Field Name         | Type   | Required | Hidden | Max Length | Notes                                     |
+| ------ | ------------------ | ------ | -------- | ------ | ---------- | ----------------------------------------- |
+| A      | `_id`              | UUID   | Yes\*    | ✅ Yes | 36         | Primary key (hidden)                      |
+| B      | `_acr_part_id`     | UUID   | Yes      | ✅ Yes | 36         | Foreign key to Parts.\_id (hidden)        |
+| C      | `acr_sku`          | String | Yes      | No     | 50         | ACR part number (joined from parts table) |
+| D      | `competitor_brand` | String | No       | No     | 50         | Competitor brand name (optional)          |
+| E      | `competitor_sku`   | String | Yes      | No     | 50         | Competitor part number                    |
 
-**\* _id is required for updates/deletes, omitted for new rows (adds)**
+**\* \_id is required for updates/deletes, omitted for new rows (adds)**
 
 ### Example Data (Cross References) - Actual Production Data
 
@@ -164,6 +173,7 @@ worksheet.columns = [
 ```
 
 **Notes**:
+
 - `_acr_part_id` must reference a valid `_id` from Parts sheet
 - `acr_sku` is **joined from parts table** (read-only, for user reference)
 - Humberto uses `acr_sku` to map CRs to parts (not UUID)
@@ -185,6 +195,7 @@ worksheet.columns = [
 **Validation**: Standard UUID v4 format (case-insensitive)
 
 **Usage**:
+
 - `_id` - Primary key
 - `_tenant_id` - Tenant identifier (future)
 - `_part_id` - Foreign key reference
@@ -198,6 +209,7 @@ worksheet.columns = [
 **Empty Strings**: Treated as `NULL` in database
 
 **Validation**:
+
 - Max length enforced (see column specs)
 - Special characters allowed
 - Line breaks preserved in multi-line fields (description, notes)
@@ -238,50 +250,50 @@ worksheet.columns = [
 
 Import will be **blocked** if any of these errors are found:
 
-| Code | Severity | Description | Example |
-|------|----------|-------------|---------|
-| E1 | Error | Missing hidden ID columns | File not exported from ACR system |
-| E2 | Error | Duplicate ACR_SKU within file | Two rows with same `acr_sku` |
-| E3 | Error | Empty required field | `acr_sku` is blank |
-| E4 | Error | Invalid UUID format | `_id` = "invalid-uuid" |
-| E5 | Error | Orphaned foreign key | `_part_id` not in Parts sheet |
-| E6 | Error | Invalid year range | `year_end` < `year_start` |
-| E7 | Error | Negative price | `price` = -10.00 |
-| E8 | Error | Negative stock quantity | `stock_quantity` = -5 |
-| E9 | Error | Invalid frame count | `viewer_360_frame_count` = 100 (max 48) |
-| E10 | Error | String exceeds max length | `description` > 1000 chars |
-| E11 | Error | Invalid number format | `price` = "abc" |
-| E12 | Error | Year out of range | `year_start` = 1800 (min 1900) |
-| E13 | Error | Invalid boolean value | `discontinued` = "maybe" |
-| E14 | Error | Required sheet missing | No "Parts" sheet found |
-| E15 | Error | Duplicate header columns | Two "acr_sku" columns |
-| E16 | Error | Missing required headers | No "brand" column |
-| E17 | Error | Invalid sheet name | Sheet named "Parts_" (extra char) |
-| E18 | Error | File format invalid | `.csv` file instead of `.xlsx` |
-| E19 | Error | File size exceeds limit | File > 50 MB |
-| E20 | Error | Malformed Excel file | Corrupted file structure |
-| E21 | Error | Referential integrity violation | Delete part with vehicle apps |
-| E22 | Error | MIME type mismatch | File extension vs actual format |
-| E23 | Error | Encoding error | Invalid UTF-8 characters |
+| Code | Severity | Description                     | Example                                 |
+| ---- | -------- | ------------------------------- | --------------------------------------- |
+| E1   | Error    | Missing hidden ID columns       | File not exported from ACR system       |
+| E2   | Error    | Duplicate ACR_SKU within file   | Two rows with same `acr_sku`            |
+| E3   | Error    | Empty required field            | `acr_sku` is blank                      |
+| E4   | Error    | Invalid UUID format             | `_id` = "invalid-uuid"                  |
+| E5   | Error    | Orphaned foreign key            | `_part_id` not in Parts sheet           |
+| E6   | Error    | Invalid year range              | `year_end` < `year_start`               |
+| E7   | Error    | Negative price                  | `price` = -10.00                        |
+| E8   | Error    | Negative stock quantity         | `stock_quantity` = -5                   |
+| E9   | Error    | Invalid frame count             | `viewer_360_frame_count` = 100 (max 48) |
+| E10  | Error    | String exceeds max length       | `description` > 1000 chars              |
+| E11  | Error    | Invalid number format           | `price` = "abc"                         |
+| E12  | Error    | Year out of range               | `year_start` = 1800 (min 1900)          |
+| E13  | Error    | Invalid boolean value           | `discontinued` = "maybe"                |
+| E14  | Error    | Required sheet missing          | No "Parts" sheet found                  |
+| E15  | Error    | Duplicate header columns        | Two "acr_sku" columns                   |
+| E16  | Error    | Missing required headers        | No "brand" column                       |
+| E17  | Error    | Invalid sheet name              | Sheet named "Parts\_" (extra char)      |
+| E18  | Error    | File format invalid             | `.csv` file instead of `.xlsx`          |
+| E19  | Error    | File size exceeds limit         | File > 50 MB                            |
+| E20  | Error    | Malformed Excel file            | Corrupted file structure                |
+| E21  | Error    | Referential integrity violation | Delete part with vehicle apps           |
+| E22  | Error    | MIME type mismatch              | File extension vs actual format         |
+| E23  | Error    | Encoding error                  | Invalid UTF-8 characters                |
 
 ### Warning Rules (12 Total)
 
 Import will **proceed** with warnings (user review recommended):
 
-| Code | Severity | Description | Example |
-|------|----------|-------------|---------|
-| W1 | Warning | ACR_SKU changed | Changed "ACR-001" → "ACR-001-V2" |
-| W2 | Warning | Large price increase (>50%) | Price $50 → $80 (60% increase) |
-| W3 | Warning | Stock dropped to zero | `stock_quantity` 100 → 0 |
-| W4 | Warning | Part marked discontinued | `discontinued` FALSE → TRUE |
-| W5 | Warning | Price decreased significantly | Price $100 → $40 (60% decrease) |
-| W6 | Warning | Frame count reduced | `viewer_360_frame_count` 24 → 12 |
-| W7 | Warning | Year range narrowed | `year_start` 2015 → 2017 (loses 2015-2016) |
-| W8 | Warning | Description significantly shortened | Description 500 chars → 50 chars |
-| W9 | Warning | Category changed | `category_1` changed |
-| W10 | Warning | Brand changed | `brand` "ACR" → "OEM" |
-| W11 | Warning | Cross-reference deleted | Removed competitor mapping |
-| W12 | Warning | Vehicle application removed | Deleted vehicle compatibility |
+| Code | Severity | Description                         | Example                                    |
+| ---- | -------- | ----------------------------------- | ------------------------------------------ |
+| W1   | Warning  | ACR_SKU changed                     | Changed "ACR-001" → "ACR-001-V2"           |
+| W2   | Warning  | Large price increase (>50%)         | Price $50 → $80 (60% increase)             |
+| W3   | Warning  | Stock dropped to zero               | `stock_quantity` 100 → 0                   |
+| W4   | Warning  | Part marked discontinued            | `discontinued` FALSE → TRUE                |
+| W5   | Warning  | Price decreased significantly       | Price $100 → $40 (60% decrease)            |
+| W6   | Warning  | Frame count reduced                 | `viewer_360_frame_count` 24 → 12           |
+| W7   | Warning  | Year range narrowed                 | `year_start` 2015 → 2017 (loses 2015-2016) |
+| W8   | Warning  | Description significantly shortened | Description 500 chars → 50 chars           |
+| W9   | Warning  | Category changed                    | `category_1` changed                       |
+| W10  | Warning  | Brand changed                       | `brand` "ACR" → "OEM"                      |
+| W11  | Warning  | Cross-reference deleted             | Removed competitor mapping                 |
+| W12  | Warning  | Vehicle application removed         | Deleted vehicle compatibility              |
 
 ---
 
@@ -314,6 +326,7 @@ Import will **proceed** with warnings (user review recommended):
    - Example: `_id` = "999e8400-e29b-41d4-a716-446655440000" (not in DB)
 
 **Why ID-Based Only?**
+
 - ✅ Multi-tenant safe (no SKU collisions)
 - ✅ Prevents data loss (SKU changes don't lose history)
 - ✅ Simpler logic (no ambiguous matches)
@@ -327,30 +340,30 @@ Import will **proceed** with warnings (user review recommended):
 
 Recommended column widths for readability:
 
-| Sheet | Column | Width | Notes |
-|-------|--------|-------|-------|
-| Parts | A (_id) | 0 | Hidden |
-| Parts | B (_tenant_id) | 0 | Hidden |
-| Parts | C (acr_sku) | 15 | |
-| Parts | D (brand) | 20 | |
-| Parts | E (category_1) | 20 | |
-| Parts | F-G (category_2/3) | 20 | |
-| Parts | H (description) | 40 | |
-| Parts | I (price) | 12 | |
-| Parts | J (stock_quantity) | 15 | |
-| Parts | K (discontinued) | 12 | |
-| Parts | L (notes) | 30 | |
-| Parts | M-N (360 viewer) | 18 | |
+| Sheet | Column             | Width | Notes  |
+| ----- | ------------------ | ----- | ------ |
+| Parts | A (\_id)           | 0     | Hidden |
+| Parts | B (\_tenant_id)    | 0     | Hidden |
+| Parts | C (acr_sku)        | 15    |        |
+| Parts | D (brand)          | 20    |        |
+| Parts | E (category_1)     | 20    |        |
+| Parts | F-G (category_2/3) | 20    |        |
+| Parts | H (description)    | 40    |        |
+| Parts | I (price)          | 12    |        |
+| Parts | J (stock_quantity) | 15    |        |
+| Parts | K (discontinued)   | 12    |        |
+| Parts | L (notes)          | 30    |        |
+| Parts | M-N (360 viewer)   | 18    |        |
 
 ### Cell Formats
 
-| Field Type | Excel Format Code | Example |
-|------------|-------------------|---------|
-| UUID | `@` (Text) | `550e8400-e29b-41d4-a716-446655440000` |
-| String | `@` (Text) | `ACR Brand` |
-| Number (Price) | `0.00` | `45.99` |
-| Integer | `0` | `150` |
-| Boolean | `General` | `TRUE` |
+| Field Type     | Excel Format Code | Example                                |
+| -------------- | ----------------- | -------------------------------------- |
+| UUID           | `@` (Text)        | `550e8400-e29b-41d4-a716-446655440000` |
+| String         | `@` (Text)        | `ACR Brand`                            |
+| Number (Price) | `0.00`            | `45.99`                                |
+| Integer        | `0`               | `150`                                  |
+| Boolean        | `General`         | `TRUE`                                 |
 
 ### Header Row Formatting
 
@@ -370,16 +383,19 @@ Recommended column widths for readability:
 **Future State**: Auto-populated by backend based on user authentication
 
 **User Experience**:
+
 - Users see empty `_tenant_id` column (hidden)
 - Backend automatically filters/sets `tenant_id` on import
 - Users cannot manually edit `_tenant_id` (validation error if modified)
 
 **Schema**:
+
 ```sql
 tenant_id UUID DEFAULT NULL
 ```
 
 **When Multi-Tenancy Activates**:
+
 1. Backend adds authentication check
 2. `tenant_id` auto-set on import: `tenantId = getCurrentUserTenant()`
 3. Export filters by tenant: `WHERE tenant_id = $1`
@@ -481,14 +497,15 @@ _id                                  | _tenant_id | _part_id                    
 
 ## Import Performance Expectations
 
-| File Size | Row Count | Parse Time | Validation Time | Import Time | Total Time |
-|-----------|-----------|------------|-----------------|-------------|------------|
-| 1 MB | 1,000 rows | <1s | <2s | <5s | <8s |
-| 5 MB | 5,000 rows | <2s | <3s | <10s | <15s |
-| 10 MB | 10,000 rows | <3s | <5s | <20s | <28s |
-| 50 MB | 50,000 rows | <10s | <15s | <60s | <85s |
+| File Size | Row Count   | Parse Time | Validation Time | Import Time | Total Time |
+| --------- | ----------- | ---------- | --------------- | ----------- | ---------- |
+| 1 MB      | 1,000 rows  | <1s        | <2s             | <5s         | <8s        |
+| 5 MB      | 5,000 rows  | <2s        | <3s             | <10s        | <15s       |
+| 10 MB     | 10,000 rows | <3s        | <5s             | <20s        | <28s       |
+| 50 MB     | 50,000 rows | <10s       | <15s            | <60s        | <85s       |
 
 **Notes**:
+
 - Times are estimates for single-user environment
 - Actual performance depends on server specs
 - Validation time increases with complex rules
@@ -507,8 +524,9 @@ _id                                  | _tenant_id | _part_id                    
 
 ### Error: "Orphaned foreign key"
 
-**Cause**: `_part_id` in Vehicle_Applications/Cross_References doesn't match any Parts._id
+**Cause**: `_part_id` in Vehicle_Applications/Cross_References doesn't match any Parts.\_id
 **Solution**:
+
 1. Check `_part_id` value in error message
 2. Verify corresponding row exists in Parts sheet
 3. Copy correct `_id` from Parts sheet (unhide column A)
@@ -519,6 +537,7 @@ _id                                  | _tenant_id | _part_id                    
 
 **Cause**: Multiple rows in Parts sheet have same `acr_sku`
 **Solution**:
+
 1. Search for duplicate SKU in Excel (Ctrl+F)
 2. Remove or modify duplicate row
 3. Re-import
@@ -537,6 +556,7 @@ _id                                  | _tenant_id | _part_id                    
 
 **Cause**: `_id` column corrupted or manually edited
 **Solution**:
+
 1. Re-export fresh file
 2. Copy visible data from corrupted file
 3. Paste into fresh export (preserves hidden IDs)
@@ -545,9 +565,9 @@ _id                                  | _tenant_id | _part_id                    
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0 | Oct 2025 | Initial specification |
+| Version | Date     | Changes               |
+| ------- | -------- | --------------------- |
+| 1.0     | Oct 2025 | Initial specification |
 
 ---
 

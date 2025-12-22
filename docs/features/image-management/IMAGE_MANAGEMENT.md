@@ -1,3 +1,7 @@
+---
+title: "Image Management System"
+---
+
 # Image Management System
 
 > **Complete guide** to the ACR Automotive dual-mode image system: static product photos and interactive 360° viewer
@@ -73,21 +77,25 @@ create index idx_part_360_frames_part_id on part_360_frames(part_id);
 Supabase Storage bucket: `acr-part-images`
 
 #### Static Images Path Pattern
+
 ```
 {partId}_{timestamp}_{randomSuffix}.{ext}
 ```
 
 Example:
+
 ```
 550e8400-e29b-41d4-a716-446655440000_1698765432000_a7f3b2c.jpg
 ```
 
 #### 360° Frames Path Pattern
+
 ```
 360-viewer/{acr_sku}/frame-{number}.jpg
 ```
 
 Example:
+
 ```
 360-viewer/ACR-BR-001/frame-000.jpg
 360-viewer/ACR-BR-001/frame-001.jpg
@@ -105,6 +113,7 @@ Example:
 Fetch all images for a part, ordered by `display_order`.
 
 **Response**:
+
 ```typescript
 {
   data: PartImage[]
@@ -112,6 +121,7 @@ Fetch all images for a part, ordered by `display_order`.
 ```
 
 **Example**:
+
 ```typescript
 const response = await fetch(`/api/admin/parts/${partId}/images`);
 const { data } = await response.json();
@@ -125,15 +135,18 @@ const { data } = await response.json();
 Upload multiple images for a part (max 6 total per part).
 
 **Request**: `multipart/form-data`
+
 - `files`: File[] - Array of image files
 
 **Validation Rules**:
+
 - Maximum 6 images per part (enforced)
 - File type: `image/*` only
 - File size: 5MB max per file
 - Rejected files are skipped, not failed
 
 **Response**:
+
 ```typescript
 {
   success: true,
@@ -143,9 +156,10 @@ Upload multiple images for a part (max 6 total per part).
 ```
 
 **Example**:
+
 ```typescript
 const formData = new FormData();
-files.forEach(file => formData.append("files", file));
+files.forEach((file) => formData.append("files", file));
 
 const response = await fetch(`/api/admin/parts/${partId}/images`, {
   method: "POST",
@@ -157,6 +171,7 @@ const { images, count } = await response.json();
 ```
 
 **Behavior**:
+
 - New images are assigned `display_order = max(existing.display_order) + 1`
 - If part has 3 images (orders 0, 1, 2), new uploads get orders 3, 4, 5
 - First uploaded image becomes primary only if no images exist
@@ -168,6 +183,7 @@ const { images, count } = await response.json();
 Reorder images by providing a new sequence of image IDs.
 
 **Request Body**:
+
 ```typescript
 {
   image_ids: string[]  // Array of UUIDs in desired order
@@ -175,13 +191,15 @@ Reorder images by providing a new sequence of image IDs.
 ```
 
 **Response**:
+
 ```typescript
 {
-  success: true
+  success: true;
 }
 ```
 
 **Example**:
+
 ```typescript
 // User drags image C to position 1
 const newOrder = [imageC.id, imageA.id, imageB.id];
@@ -207,6 +225,7 @@ await fetch(`/api/admin/parts/${partId}/images/reorder`, {
 Set an image as primary (deprecated - use reorder instead).
 
 **Response**:
+
 ```typescript
 {
   success: true,
@@ -223,13 +242,15 @@ Set an image as primary (deprecated - use reorder instead).
 Update image caption.
 
 **Request Body**:
+
 ```typescript
 {
-  caption: string | null
+  caption: string | null;
 }
 ```
 
 **Response**:
+
 ```typescript
 {
   success: true,
@@ -244,13 +265,15 @@ Update image caption.
 Delete an image and its storage file.
 
 **Response**:
+
 ```typescript
 {
-  success: true
+  success: true;
 }
 ```
 
 **Cleanup Process**:
+
 1. Fetch image record to get `image_url`
 2. Extract storage path from URL
 3. Delete from Supabase Storage (`acr-part-images` bucket)
@@ -267,6 +290,7 @@ Delete an image and its storage file.
 Fetch all 360° frames for a part, ordered by `frame_number`.
 
 **Response**:
+
 ```typescript
 {
   frames: Part360Frame[],
@@ -281,21 +305,24 @@ Fetch all 360° frames for a part, ordered by `frame_number`.
 Upload 360° frames for a part. Replaces any existing 360° viewer.
 
 **Request**: `multipart/form-data`
+
 - Multiple files (12-48 frames)
 
 **Configuration**:
+
 ```typescript
 const CONFIG = {
-  minFrames: 12,           // Minimum for acceptable rotation
-  recommendedFrames: 24,   // Optimal smoothness
-  maxFrames: 48,           // Maximum allowed
-  targetDimension: 1200,   // Resize target (longest edge)
-  jpegQuality: 85,         // Compression quality
-  maxFileSize: 10485760,   // 10MB per file
+  minFrames: 12, // Minimum for acceptable rotation
+  recommendedFrames: 24, // Optimal smoothness
+  maxFrames: 48, // Maximum allowed
+  targetDimension: 1200, // Resize target (longest edge)
+  jpegQuality: 85, // Compression quality
+  maxFileSize: 10485760, // 10MB per file
 };
 ```
 
 **Processing Pipeline**:
+
 ```typescript
 // 1. Validate frame count
 if (files.length < 12) throw Error("Minimum 12 frames required");
@@ -356,6 +383,7 @@ await supabase
 ```
 
 **Response**:
+
 ```typescript
 {
   success: true,
@@ -367,12 +395,14 @@ await supabase
 ```
 
 **Image Optimization Benefits**:
+
 - **Consistent dimensions**: All frames 1200x1200px with white background
 - **Smaller file sizes**: 70-85% compression via MozJPEG
 - **Progressive loading**: Better perceived performance
 - **Format standardization**: All frames become JPEG regardless of input
 
 **Example Upload**:
+
 ```typescript
 // User uploads 24 PNG files (12MB total)
 // Sharp converts to JPEGs (3MB total - 75% reduction)
@@ -386,15 +416,17 @@ await supabase
 Delete all 360° frames for a part.
 
 **Cleanup Process**:
+
 1. Fetch all frame records
 2. Delete all frames from storage
 3. Delete all frame records from database
 4. Update part: `has_360_viewer = false`, `viewer_360_frame_count = 0`
 
 **Response**:
+
 ```typescript
 {
-  success: true
+  success: true;
 }
 ```
 
@@ -411,26 +443,28 @@ Delete all 360° frames for a part.
 ```
 
 **Features**:
+
 - Multi-file upload with drag-and-drop
 - Image count display (`3/6`)
 - Upload button with loading state
 - Delegates to `ImageGalleryEditor` for editing
 
 **Validation**:
+
 ```typescript
 const MAX_IMAGES = 6;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // Frontend validation (before upload)
-validFiles = files.filter(file =>
-  file.type.startsWith("image/") &&
-  file.size <= MAX_FILE_SIZE
+validFiles = files.filter(
+  (file) => file.type.startsWith("image/") && file.size <= MAX_FILE_SIZE
 );
 
 // Backend enforces same rules
 ```
 
 **TanStack Query Integration**:
+
 ```typescript
 // Fetch images
 const { data: images } = useQuery({
@@ -446,7 +480,7 @@ const { data: images } = useQuery({
 const uploadMutation = useMutation({
   mutationFn: async (files: FileList) => {
     const formData = new FormData();
-    Array.from(files).forEach(file => formData.append("files", file));
+    Array.from(files).forEach((file) => formData.append("files", file));
     const res = await fetch(`/api/admin/parts/${partId}/images`, {
       method: "POST",
       body: formData,
@@ -460,7 +494,7 @@ const uploadMutation = useMutation({
       predicate: (query) => {
         const key = query.queryKey as string[];
         return key[0] === "public" && key[1] === "parts";
-      }
+      },
     });
   },
 });
@@ -481,12 +515,14 @@ const uploadMutation = useMutation({
 ```
 
 **Features**:
+
 - Drag-and-drop reordering with visual feedback
 - Primary image indicator (first image)
 - Delete button with confirmation
 - Responsive grid (3 columns desktop, 2 mobile)
 
 **Example Reorder Flow**:
+
 ```typescript
 // Initial order: [A, B, C]
 // User drags B to first position
@@ -517,9 +553,11 @@ onReorder(newOrder);
 ```
 
 **View Mode Logic**:
+
 ```typescript
 // Automatic mode selection
-const defaultMode: ViewMode = (has360Viewer && frames.length > 0) ? "360" : "photo";
+const defaultMode: ViewMode =
+  has360Viewer && frames.length > 0 ? "360" : "photo";
 
 // User can override by clicking thumbnails
 const [userSelectedView, setUserSelectedView] = useState<ViewMode | null>(null);
@@ -528,10 +566,12 @@ const viewMode: ViewMode = userSelectedView ?? defaultMode;
 ```
 
 **Layout**:
+
 - **Desktop**: Vertical thumbnail strip (left) + main viewer (right)
 - **Mobile**: Main viewer (top) + horizontal thumbnail strip (bottom)
 
 **Features**:
+
 - **360° Mode**: Interactive rotation with drag/swipe
 - **Photo Mode**: Pinch-to-zoom via `react-zoom-pan-pinch`
 - **Thumbnail Navigation**: Click to switch between modes/photos
@@ -556,12 +596,13 @@ const optimized = await sharp(inputBuffer)
   .jpeg({
     quality: 85,
     progressive: true,
-    mozjpeg: true,  // Superior compression
+    mozjpeg: true, // Superior compression
   })
   .toBuffer();
 ```
 
 **Benefits**:
+
 - Faster page loads (4x smaller payloads)
 - Consistent dimensions (easier rendering)
 - Progressive JPEGs (better perceived performance)
@@ -571,6 +612,7 @@ const optimized = await sharp(inputBuffer)
 ### 2. Batch Image Enrichment (N+1 Prevention)
 
 **❌ Bad Pattern** (15 queries for 15 parts):
+
 ```typescript
 for (const part of parts) {
   const { data: images } = await supabase
@@ -584,9 +626,10 @@ for (const part of parts) {
 ```
 
 **✅ Good Pattern** (1 query for all parts):
+
 ```typescript
 // Single batch query
-const partIds = parts.map(p => p.id);
+const partIds = parts.map((p) => p.id);
 const { data: images } = await supabase
   .from("part_images")
   .select("part_id, image_url, display_order")
@@ -601,7 +644,7 @@ const imagesByPartId = images.reduce((acc, img) => {
 }, {});
 
 // Attach primary image to each part
-parts.forEach(part => {
+parts.forEach((part) => {
   part.primary_image_url = imagesByPartId[part.id]?.[0]?.image_url || null;
 });
 ```
@@ -618,8 +661,8 @@ parts.forEach(part => {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,   // 5 minutes (data stays fresh)
-      gcTime: 10 * 60 * 1000,     // 10 minutes (cache retention)
+      staleTime: 5 * 60 * 1000, // 5 minutes (data stays fresh)
+      gcTime: 10 * 60 * 1000, // 10 minutes (cache retention)
       refetchOnWindowFocus: false, // Don't refetch on tab switch
     },
   },
@@ -627,6 +670,7 @@ const queryClient = new QueryClient({
 ```
 
 **Cache Invalidation Strategy**:
+
 ```typescript
 // After image upload/reorder/delete
 queryClient.invalidateQueries({ queryKey: ["part-images", partId] });
@@ -636,7 +680,7 @@ queryClient.invalidateQueries({
   predicate: (query) => {
     const key = query.queryKey as string[];
     return key[0] === "public" && key[1] === "parts" && key[2] === "list";
-  }
+  },
 });
 ```
 
@@ -652,17 +696,18 @@ queryClient.invalidateQueries({
 
 ```typescript
 // Old approach (leaves orphans):
-const newPath = `360-viewer/${partId}/${uuid()}.jpg`;  // Random name
+const newPath = `360-viewer/${partId}/${uuid()}.jpg`; // Random name
 
 // ACR approach (atomic replace):
 const newPath = `360-viewer/${acr_sku}/frame-${i}.jpg`; // Deterministic name
 
 await supabase.storage
   .from("acr-part-images")
-  .upload(newPath, buffer, { upsert: true });  // Overwrites old file
+  .upload(newPath, buffer, { upsert: true }); // Overwrites old file
 ```
 
 **Benefits**:
+
 - No orphaned storage files
 - Simpler cleanup logic
 - Atomic updates (old viewer → new viewer)
@@ -678,7 +723,7 @@ await supabase.storage
 const files = [photo1.jpg, photo2.jpg, photo3.jpg];
 const formData = new FormData();
 
-files.forEach(file => formData.append("files", file));
+files.forEach((file) => formData.append("files", file));
 
 const response = await fetch(`/api/admin/parts/${partId}/images`, {
   method: "POST",
@@ -697,8 +742,9 @@ console.log(`Primary image: ${images[0].image_url}`);
 ```
 
 **Timeline**:
+
 - 0ms: API receives 3 files (4MB total)
-- 50ms: Validation passes (image/* check, size check)
+- 50ms: Validation passes (image/\* check, size check)
 - 100ms: Upload to Supabase Storage
 - 150ms: Create database records
 - 200ms: Response sent to client
@@ -740,14 +786,14 @@ await fetch(`/api/admin/parts/${partId}/images/reorder`, {
 ```typescript
 // Admin shoots 24 photos rotating around brake rotor
 const frames = [
-  frame000.png,  // 0° (500KB)
-  frame001.png,  // 15° (520KB)
+  frame000.png, // 0° (500KB)
+  frame001.png, // 15° (520KB)
   // ... 22 more frames
-  frame023.png,  // 345° (510KB)
+  frame023.png, // 345° (510KB)
 ];
 
 const formData = new FormData();
-frames.forEach(frame => formData.append("files", frame));
+frames.forEach((frame) => formData.append("files", frame));
 
 const response = await fetch(`/api/admin/parts/${partId}/360-frames`, {
   method: "POST",
@@ -757,7 +803,9 @@ const response = await fetch(`/api/admin/parts/${partId}/360-frames`, {
 const { success, frameCount, frames: uploaded } = await response.json();
 
 console.log(`Uploaded ${frameCount} frames`);
-console.log(`Total size: ${uploaded.reduce((sum, f) => sum + f.file_size_bytes, 0)} bytes`);
+console.log(
+  `Total size: ${uploaded.reduce((sum, f) => sum + f.file_size_bytes, 0)} bytes`
+);
 
 // Processing timeline:
 // 0ms: Receive 24 PNG files (12MB total)
@@ -770,6 +818,7 @@ console.log(`Total size: ${uploaded.reduce((sum, f) => sum + f.file_size_bytes, 
 ```
 
 **Sharp Optimization Log**:
+
 ```
 [360-frames] Optimized frame000.png: 500KB → 120KB (24%)
 [360-frames] Optimized frame001.png: 520KB → 125KB (24%)
@@ -800,6 +849,7 @@ const { success } = await response.json();
 ```
 
 **Error Handling**:
+
 ```typescript
 // If storage deletion fails (network error, etc.)
 console.error("Storage deletion failed - continuing with DB delete");
@@ -894,6 +944,7 @@ console.error("Storage deletion failed - continuing with DB delete");
 ### Manual Testing Checklist
 
 #### Static Images
+
 - [ ] Upload single image (becomes primary)
 - [ ] Upload multiple images (max 6)
 - [ ] Attempt to upload 7th image (should reject)
@@ -904,6 +955,7 @@ console.error("Storage deletion failed - continuing with DB delete");
 - [ ] Delete all images (verify empty state)
 
 #### 360° Viewer
+
 - [ ] Upload 24 frames (optimal count)
 - [ ] Upload 12 frames (minimum, should succeed with warning)
 - [ ] Upload 10 frames (should reject)
@@ -923,7 +975,10 @@ describe("POST /api/admin/parts/[id]/images", () => {
 
     // Act: Attempt 7th upload
     const formData = new FormData();
-    formData.append("files", new File(["test"], "test.jpg", { type: "image/jpeg" }));
+    formData.append(
+      "files",
+      new File(["test"], "test.jpg", { type: "image/jpeg" })
+    );
 
     const response = await fetch(`/api/admin/parts/${partId}/images`, {
       method: "POST",
@@ -943,13 +998,16 @@ describe("POST /api/admin/parts/[id]/images", () => {
 ## Related Documentation
 
 ### Architecture
+
 - **[Architecture Overview](../../architecture/OVERVIEW.md)** - Storage layer and file management
 - **[API Design](../../architecture/API_DESIGN.md)** - RESTful patterns for multipart uploads
 
 ### Database
+
 - **[Database Schema](../../database/DATABASE.md)** - Complete schema for `part_images` and `part_360_frames`
 
 ### Other Features
+
 - **[Search System](../search/SEARCH_SYSTEM.md)** - How primary images are used in search results
 
 ---

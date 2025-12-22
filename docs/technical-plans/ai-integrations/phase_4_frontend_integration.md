@@ -1,4 +1,9 @@
+---
+title: "Phase 4: Frontend Integration (UI)"
+---
+
 # Phase 4: Frontend Integration (UI)
+
 ## UI Components, User Experience, and React Implementation
 
 ---
@@ -16,6 +21,7 @@ Phase 5 implements the user-facing AI search interface, replacing ACR's current 
 ### **Decision 1: Single Universal Search Bar (No Toggle)**
 
 **What We're Building**:
+
 ```
 ONE search input that handles everything:
 ✓ SKU lookup: "ACR-MAZA-001"
@@ -26,6 +32,7 @@ ONE search input that handles everything:
 ```
 
 **Why This Decision**:
+
 - ✅ **Industry Standard**: Amazon, Google Shopping, McMaster-Carr all use single universal search
 - ✅ **Simpler UX**: No user decision fatigue ("which search should I use?")
 - ✅ **Faster Workflow**: Counter staff type once, system routes intelligently
@@ -33,6 +40,7 @@ ONE search input that handles everything:
 - ✅ **AI Invisible**: Users get better results without thinking about how
 
 **What We Rejected**:
+
 - ❌ Toggle between "AI Search" and "Traditional Search" (confusing, implies one is worse)
 - ❌ Separate SKU and Vehicle inputs (cluttered, requires user to choose)
 - ❌ ChatGPT-style conversation interface (wrong pattern for product search)
@@ -44,6 +52,7 @@ ONE search input that handles everything:
 ### **Decision 2: Progressive Disclosure, Not Conversation**
 
 **What We're Building**:
+
 ```typescript
 // Incomplete query handling
 User: "rodamientos Honda"
@@ -60,6 +69,7 @@ Display: New chips appear
 ```
 
 **Why This Decision**:
+
 - ✅ **Industry Standard**: Google Shopping, Amazon, Perplexity Shopping all use progressive disclosure
 - ✅ **Faster**: No waiting for AI clarification questions
 - ✅ **Visual**: See all options at once, don't guess
@@ -67,6 +77,7 @@ Display: New chips appear
 - ✅ **Offline-Friendly**: Filter chips work instantly without API calls
 
 **What We Rejected**:
+
 - ❌ Multi-turn conversation ("¿Para qué modelo?" → wait for response → "¿Para qué año?")
 - ❌ ChatGPT-style back-and-forth (wrong UX for product search)
 - ❌ Forced sequential refinement (slower, more frustrating)
@@ -78,32 +89,35 @@ Display: New chips appear
 ### **Decision 3: Dynamic Page Sizing Based on Query Type**
 
 **What We're Building**:
+
 ```typescript
 interface PageSizeStrategy {
   // Exact SKU lookup
-  'sku_lookup': 1,              // Just fetch the one part
-  
+  sku_lookup: 1; // Just fetch the one part
+
   // Complete vehicle search
-  'complete_vehicle': 10,        // Standard pagination
-  
+  complete_vehicle: 10; // Standard pagination
+
   // Incomplete vehicle search
-  'incomplete_vehicle': 999,     // Fetch ALL for instant filtering
-  
+  incomplete_vehicle: 999; // Fetch ALL for instant filtering
+
   // Vague semantic search
-  'semantic_vague': 50,          // Larger pages for browsing
-  
+  semantic_vague: 50; // Larger pages for browsing
+
   // Default
-  'default': 20
+  default: 20;
 }
 ```
 
 **Why This Decision**:
+
 - ✅ **Industry Standard**: Amazon adjusts page size (24-48) based on query specificity
 - ✅ **Better UX**: No pagination when showing 20 results, instant filtering for incomplete queries
 - ✅ **Performance**: ACR's 865 parts make fetching all Honda parts (87) fast (~174KB, <50ms)
 - ✅ **Smart**: System adapts to user intent automatically
 
 **Technical Reasoning**:
+
 ```typescript
 // For incomplete queries like "honda":
 Fetch all 87 Honda parts once (174KB)
@@ -118,6 +132,7 @@ No pagination needed
 ```
 
 **What We Rejected**:
+
 - ❌ Fixed page size (10 always) - forces unnecessary pagination for small result sets
 - ❌ Always fetch all 865 parts - wasteful for specific queries
 - ❌ Always paginate at 10 - bad UX when only 6 results exist
@@ -127,6 +142,7 @@ No pagination needed
 ### **Decision 4: Advanced Filters Panel (Preserve Current UX)**
 
 **What We're Building**:
+
 ```
 Primary Interface: Universal AI Search
   ↓
@@ -137,18 +153,21 @@ Secondary Interface: Advanced Filters (toggle)
 ```
 
 **Current UX (Before)**:
+
 ```
 Primary: Vehicle Search (dropdowns)
 Toggle → Secondary: SKU Search (input)
 ```
 
 **New UX (After)**:
+
 ```
 Primary: Universal AI Search (one input)
 Toggle → Secondary: Advanced Filters (dropdowns + checkboxes)
 ```
 
 **Why This Decision**:
+
 - ✅ Preserves familiar pattern for existing users
 - ✅ Power users still have precise control
 - ✅ Counter staff can use either workflow
@@ -161,6 +180,7 @@ Toggle → Secondary: Advanced Filters (dropdowns + checkboxes)
 ### **Decision 5: Voice Search Integration**
 
 **What We're Building**:
+
 ```typescript
 // Microphone button next to search input
 [🔍 Buscar rodamientos...] [🎤]
@@ -176,18 +196,21 @@ Normal AI search executes
 ```
 
 **Why This Decision**:
+
 - ✅ **Counter Staff Workflow**: Hands-free when busy with customers
 - ✅ **No Backend Changes**: Browser-native speech recognition
 - ✅ **Free**: No API costs, works offline after initial permission
 - ✅ **Tablet-Friendly**: Common on modern tablets
 
 **Technical Details**:
+
 - Uses browser Web Speech API (webkitSpeechRecognition)
 - Language: Spanish (Mexico) - "es-MX"
 - Works in Chrome, Edge, Safari (not Firefox)
 - Microphone permission requested on first use
 
 **What We Rejected**:
+
 - ❌ External speech API (Google Cloud Speech) - adds cost and complexity
 - ❌ Server-side speech processing - adds latency
 - ❌ Always-on listening - privacy concern, battery drain
@@ -197,6 +220,7 @@ Normal AI search executes
 ### **Decision 6: Recent Searches with Local Storage**
 
 **What We're Building**:
+
 ```
 Below search input:
 🕐 Búsquedas recientes:
@@ -208,12 +232,14 @@ Below search input:
 ```
 
 **Why This Decision**:
+
 - ✅ **Counter Workflow**: Staff often look up same parts multiple times per day
 - ✅ **Fast Access**: One click vs retyping entire query
 - ✅ **Persistent**: Survives browser close (local storage)
 - ✅ **Privacy**: Stored locally, not on server
 
 **Storage Choice: Local Storage (not Session Storage)**:
+
 ```typescript
 // Local Storage: Persists days/weeks
 ✓ Counter staff closing browser at end of shift
@@ -232,6 +258,7 @@ Below search input:
 ### **Decision 7: Loading States - Skeleton Loaders**
 
 **What We're Building**:
+
 ```typescript
 // While AI search executes (500-800ms)
 [Search input with query visible]
@@ -243,12 +270,14 @@ Below search input:
 ```
 
 **Why This Decision**:
+
 - ✅ **Industry Standard**: Amazon, Google, all modern sites use skeleton loaders
 - ✅ **Perceived Performance**: Feels faster than spinners
 - ✅ **Context Preservation**: User sees table structure while loading
 - ✅ **No Surprise**: Table appears in expected location
 
 **What We Rejected**:
+
 - ❌ Spinner/loading circle - feels like "waiting"
 - ❌ "AI is thinking..." message - unnecessary, focuses on tech not results
 - ❌ Progress bar - adds anxiety ("how long will this take?")
@@ -259,6 +288,7 @@ Below search input:
 ### **Decision 8: Error Handling - Silent Fallback + Toast**
 
 **What We're Building**:
+
 ```typescript
 // If AI search fails:
 1. Silently try traditional search
@@ -270,12 +300,14 @@ Below search input:
 ```
 
 **Why This Decision**:
+
 - ✅ **Industry Standard**: Algolia, Amazon all use silent fallback
 - ✅ **Always Functional**: Search never "fails" from user perspective
 - ✅ **No Alarm**: User gets results without error anxiety
 - ✅ **Transparent**: Toast informs but doesn't block
 
 **What We Rejected**:
+
 - ❌ Error modal blocking screen
 - ❌ "Try again" button (fallback already tried)
 - ❌ Red error message (too alarming)
@@ -330,23 +362,23 @@ import { useUniversalSearch } from '@/hooks/useUniversalSearch'
 export function UniversalSearchInterface() {
   const [query, setQuery] = useState('')
   const [showFilters, setShowFilters] = useState(false)
-  
-  const { 
-    results, 
-    isLoading, 
+
+  const {
+    results,
+    isLoading,
     strategy,
-    showFilterChips 
+    showFilterChips
   } = useUniversalSearch(query)
-  
+
   const handleSearch = (searchQuery: string) => {
     setQuery(searchQuery)
     // Search executes automatically via useUniversalSearch
   }
-  
+
   const handleVoiceInput = (transcript: string) => {
     setQuery(transcript)
   }
-  
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Main Search Input */}
@@ -362,11 +394,11 @@ export function UniversalSearchInterface() {
             className="pl-12 pr-24 h-14 text-lg"
             autoFocus
           />
-          
+
           {/* Voice Search Button */}
           <div className="absolute right-2 top-2 flex gap-1">
             <VoiceSearchButton onTranscript={handleVoiceInput} />
-            
+
             {/* Advanced Filters Toggle */}
             <Button
               variant="ghost"
@@ -378,16 +410,16 @@ export function UniversalSearchInterface() {
             </Button>
           </div>
         </div>
-        
+
         {/* Helper Text */}
         <p className="text-sm text-muted-foreground text-center">
           💡 Ejemplo: "rodamientos Honda Civic 2018" o "ACR-MAZA-001"
         </p>
-        
+
         {/* Recent Searches */}
         <RecentSearches onSelectSearch={handleSearch} />
       </div>
-      
+
       {/* Search Results */}
       {query && (
         <SearchResults
@@ -398,7 +430,7 @@ export function UniversalSearchInterface() {
           showFilterChips={showFilterChips}
         />
       )}
-      
+
       {/* Advanced Filters Panel (Slide-out) */}
       <AdvancedFiltersPanel
         open={showFilters}
@@ -431,38 +463,38 @@ interface VoiceSearchButtonProps {
 export function VoiceSearchButton({ onTranscript }: VoiceSearchButtonProps) {
   const [isListening, setIsListening] = useState(false)
   const [isSupported, setIsSupported] = useState(false)
-  
+
   useEffect(() => {
     // Check browser support
     setIsSupported('webkitSpeechRecognition' in window)
   }, [])
-  
+
   const startListening = () => {
     if (!isSupported) {
       toast.error('Búsqueda por voz no disponible en este navegador')
       return
     }
-    
+
     // @ts-ignore - webkitSpeechRecognition not in TypeScript types
     const recognition = new webkitSpeechRecognition()
     recognition.lang = 'es-MX' // Mexican Spanish
     recognition.continuous = false
     recognition.interimResults = false
-    
+
     recognition.onstart = () => {
       setIsListening(true)
     }
-    
+
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript
       onTranscript(transcript)
       setIsListening(false)
     }
-    
+
     recognition.onerror = (event: any) => {
       console.error('Voice recognition error:', event.error)
       setIsListening(false)
-      
+
       if (event.error === 'no-speech') {
         toast.error('No se detectó voz. Intenta de nuevo.')
       } else if (event.error === 'not-allowed') {
@@ -471,18 +503,18 @@ export function VoiceSearchButton({ onTranscript }: VoiceSearchButtonProps) {
         toast.error('Error en búsqueda por voz')
       }
     }
-    
+
     recognition.onend = () => {
       setIsListening(false)
     }
-    
+
     recognition.start()
   }
-  
+
   if (!isSupported) {
     return null // Hide button if not supported
   }
-  
+
   return (
     <Button
       variant="ghost"
@@ -520,11 +552,11 @@ interface RecentSearchesProps {
 
 export function RecentSearches({ onSelectSearch }: RecentSearchesProps) {
   const { searches, addRecentSearch } = useRecentSearches()
-  
+
   if (searches.length === 0) {
     return null
   }
-  
+
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -565,7 +597,7 @@ const MAX_AGE_DAYS = 30
 
 export function useRecentSearches() {
   const [searches, setSearches] = useState<RecentSearch[]>([])
-  
+
   // Load from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -574,14 +606,14 @@ export function useRecentSearches() {
         const parsed: RecentSearch[] = JSON.parse(stored)
         const now = Date.now()
         const maxAge = MAX_AGE_DAYS * 24 * 60 * 60 * 1000
-        
+
         // Filter: remove old searches, keep max 10
         const filtered = parsed
           .filter(s => now - s.timestamp < maxAge)
           .slice(0, MAX_SEARCHES)
-        
+
         setSearches(filtered)
-        
+
         // Clean up localStorage if filtered
         if (filtered.length !== parsed.length) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered))
@@ -592,31 +624,31 @@ export function useRecentSearches() {
       }
     }
   }, [])
-  
+
   const addRecentSearch = (query: string) => {
     // Don't add if empty or very short
     if (query.trim().length < 2) return
-    
+
     // Remove duplicates (case-insensitive)
     const filtered = searches.filter(
       s => s.query.toLowerCase() !== query.toLowerCase()
     )
-    
+
     // Add to front
     const updated = [
       { query: query.trim(), timestamp: Date.now() },
       ...filtered
     ].slice(0, MAX_SEARCHES)
-    
+
     setSearches(updated)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
   }
-  
+
   const clearRecentSearches = () => {
     setSearches([])
     localStorage.removeItem(STORAGE_KEY)
   }
-  
+
   return {
     searches,
     addRecentSearch,
@@ -658,12 +690,12 @@ export function SearchResults({
 }: SearchResultsProps) {
   const [filteredResults, setFilteredResults] = useState<Part[]>([])
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({})
-  
+
   // Use filtered results if filters applied, otherwise use all results
-  const displayResults = Object.keys(activeFilters).length > 0 
-    ? filteredResults 
+  const displayResults = Object.keys(activeFilters).length > 0
+    ? filteredResults
     : results
-  
+
   // Loading state - skeleton loader
   if (isLoading) {
     return (
@@ -678,7 +710,7 @@ export function SearchResults({
       </div>
     )
   }
-  
+
   // No results
   if (!results || results.length === 0) {
     return (
@@ -696,7 +728,7 @@ export function SearchResults({
       </div>
     )
   }
-  
+
   // Results found
   return (
     <div className="mt-8 space-y-6">
@@ -714,7 +746,7 @@ export function SearchResults({
           )}
         </div>
       </div>
-      
+
       {/* Filter Chips (for incomplete queries) */}
       {showFilterChips && results.length > 10 && (
         <FilterChips
@@ -725,10 +757,10 @@ export function SearchResults({
           }}
         />
       )}
-      
+
       {/* Parts Table (existing component) */}
       <PartsTable data={displayResults || results} />
-      
+
       {/* Pagination (only if not fetching all) */}
       {strategy && !strategy.shouldFetchAll && results.length > strategy.pageSize && (
         <Pagination
@@ -764,24 +796,24 @@ interface FilterChipsProps {
 export function FilterChips({ results, onFilterChange }: FilterChipsProps) {
   const [selectedModel, setSelectedModel] = useState<string | null>(null)
   const [selectedYear, setSelectedYear] = useState<number | null>(null)
-  
+
   // Generate filter options from results
   const filterOptions = useMemo(() => {
     const models = new Map<string, number>()
     const years = new Map<number, number>()
-    
+
     results.forEach(part => {
       part.vehicle_applications?.forEach(va => {
         // Count models
         models.set(va.model, (models.get(va.model) || 0) + 1)
-        
+
         // Count years (expand year range)
         for (let y = va.start_year; y <= va.end_year; y++) {
           years.set(y, (years.get(y) || 0) + 1)
         }
       })
     })
-    
+
     return {
       models: Array.from(models.entries())
         .map(([model, count]) => ({ value: model, count }))
@@ -791,17 +823,17 @@ export function FilterChips({ results, onFilterChange }: FilterChipsProps) {
         .sort((a, b) => b.value - a.value) // Newest first
     }
   }, [results])
-  
+
   // Apply filters
   const applyFilters = (model: string | null, year: number | null) => {
     let filtered = results
-    
+
     if (model) {
       filtered = filtered.filter(part =>
         part.vehicle_applications?.some(va => va.model === model)
       )
     }
-    
+
     if (year) {
       filtered = filtered.filter(part =>
         part.vehicle_applications?.some(va =>
@@ -809,32 +841,32 @@ export function FilterChips({ results, onFilterChange }: FilterChipsProps) {
         )
       )
     }
-    
+
     const activeFilters: Record<string, any> = {}
     if (model) activeFilters.model = model
     if (year) activeFilters.year = year
-    
+
     onFilterChange(filtered, activeFilters)
   }
-  
+
   const handleModelClick = (model: string) => {
     const newModel = selectedModel === model ? null : model
     setSelectedModel(newModel)
     applyFilters(newModel, selectedYear)
   }
-  
+
   const handleYearClick = (year: number) => {
     const newYear = selectedYear === year ? null : year
     setSelectedYear(newYear)
     applyFilters(selectedModel, newYear)
   }
-  
+
   const clearFilters = () => {
     setSelectedModel(null)
     setSelectedYear(null)
     onFilterChange(results, {})
   }
-  
+
   return (
     <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
       {/* Model Filters */}
@@ -855,7 +887,7 @@ export function FilterChips({ results, onFilterChange }: FilterChipsProps) {
           </div>
         </div>
       )}
-      
+
       {/* Year Filters (only show if model selected) */}
       {selectedModel && filterOptions.years.length > 1 && (
         <div className="space-y-2">
@@ -874,7 +906,7 @@ export function FilterChips({ results, onFilterChange }: FilterChipsProps) {
           </div>
         </div>
       )}
-      
+
       {/* Clear Filters */}
       {(selectedModel || selectedYear) && (
         <button
@@ -936,21 +968,21 @@ export function AdvancedFiltersPanel({
     position: [] as string[],
     abs: [] as string[]
   })
-  
+
   const handleApply = () => {
     // Construct query from filters
     const parts: string[] = []
-    
+
     if (filters.make) parts.push(filters.make)
     if (filters.model) parts.push(filters.model)
     if (filters.year) parts.push(filters.year)
     if (filters.position.length > 0) parts.push(filters.position.join(' '))
-    
+
     const query = parts.join(' ')
     onApplyFilters(query)
     onClose()
   }
-  
+
   const handleReset = () => {
     setFilters({
       make: '',
@@ -960,7 +992,7 @@ export function AdvancedFiltersPanel({
       abs: []
     })
   }
-  
+
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent side="right" className="w-96 overflow-y-auto">
@@ -970,12 +1002,12 @@ export function AdvancedFiltersPanel({
             Búsqueda precisa por especificaciones
           </SheetDescription>
         </SheetHeader>
-        
+
         <div className="space-y-6 mt-6">
           {/* Vehicle Filters */}
           <div className="space-y-4">
             <h3 className="font-medium">Vehículo</h3>
-            
+
             <div className="space-y-2">
               <Label>Marca</Label>
               <Select
@@ -994,7 +1026,7 @@ export function AdvancedFiltersPanel({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label>Modelo</Label>
               <Select
@@ -1025,7 +1057,7 @@ export function AdvancedFiltersPanel({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label>Año</Label>
               <Select
@@ -1046,11 +1078,11 @@ export function AdvancedFiltersPanel({
               </Select>
             </div>
           </div>
-          
+
           {/* Part Specifications */}
           <div className="space-y-4">
             <h3 className="font-medium">Especificaciones</h3>
-            
+
             <div className="space-y-2">
               <Label>Posición</Label>
               <div className="space-y-2">
@@ -1060,14 +1092,14 @@ export function AdvancedFiltersPanel({
                     checked={filters.position.includes('Delantero')}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          position: [...prev.position, 'Delantero'] 
+                        setFilters(prev => ({
+                          ...prev,
+                          position: [...prev.position, 'Delantero']
                         }))
                       } else {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          position: prev.position.filter(p => p !== 'Delantero') 
+                        setFilters(prev => ({
+                          ...prev,
+                          position: prev.position.filter(p => p !== 'Delantero')
                         }))
                       }
                     }}
@@ -1076,21 +1108,21 @@ export function AdvancedFiltersPanel({
                     Delantero
                   </label>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="rear"
                     checked={filters.position.includes('Trasero')}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          position: [...prev.position, 'Trasero'] 
+                        setFilters(prev => ({
+                          ...prev,
+                          position: [...prev.position, 'Trasero']
                         }))
                       } else {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          position: prev.position.filter(p => p !== 'Trasero') 
+                        setFilters(prev => ({
+                          ...prev,
+                          position: prev.position.filter(p => p !== 'Trasero')
                         }))
                       }
                     }}
@@ -1099,21 +1131,21 @@ export function AdvancedFiltersPanel({
                     Trasero
                   </label>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="left"
                     checked={filters.position.includes('Izquierdo')}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          position: [...prev.position, 'Izquierdo'] 
+                        setFilters(prev => ({
+                          ...prev,
+                          position: [...prev.position, 'Izquierdo']
                         }))
                       } else {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          position: prev.position.filter(p => p !== 'Izquierdo') 
+                        setFilters(prev => ({
+                          ...prev,
+                          position: prev.position.filter(p => p !== 'Izquierdo')
                         }))
                       }
                     }}
@@ -1122,21 +1154,21 @@ export function AdvancedFiltersPanel({
                     Izquierdo
                   </label>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="right"
                     checked={filters.position.includes('Derecho')}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          position: [...prev.position, 'Derecho'] 
+                        setFilters(prev => ({
+                          ...prev,
+                          position: [...prev.position, 'Derecho']
                         }))
                       } else {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          position: prev.position.filter(p => p !== 'Derecho') 
+                        setFilters(prev => ({
+                          ...prev,
+                          position: prev.position.filter(p => p !== 'Derecho')
                         }))
                       }
                     }}
@@ -1147,7 +1179,7 @@ export function AdvancedFiltersPanel({
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label>ABS</Label>
               <div className="space-y-2">
@@ -1157,14 +1189,14 @@ export function AdvancedFiltersPanel({
                     checked={filters.abs.includes('Con ABS')}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          abs: [...prev.abs, 'Con ABS'] 
+                        setFilters(prev => ({
+                          ...prev,
+                          abs: [...prev.abs, 'Con ABS']
                         }))
                       } else {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          abs: prev.abs.filter(a => a !== 'Con ABS') 
+                        setFilters(prev => ({
+                          ...prev,
+                          abs: prev.abs.filter(a => a !== 'Con ABS')
                         }))
                       }
                     }}
@@ -1173,21 +1205,21 @@ export function AdvancedFiltersPanel({
                     Con ABS
                   </label>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="without-abs"
                     checked={filters.abs.includes('Sin ABS')}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          abs: [...prev.abs, 'Sin ABS'] 
+                        setFilters(prev => ({
+                          ...prev,
+                          abs: [...prev.abs, 'Sin ABS']
                         }))
                       } else {
-                        setFilters(prev => ({ 
-                          ...prev, 
-                          abs: prev.abs.filter(a => a !== 'Sin ABS') 
+                        setFilters(prev => ({
+                          ...prev,
+                          abs: prev.abs.filter(a => a !== 'Sin ABS')
                         }))
                       }
                     }}
@@ -1199,7 +1231,7 @@ export function AdvancedFiltersPanel({
               </div>
             </div>
           </div>
-          
+
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4 border-t">
             <Button
@@ -1233,55 +1265,55 @@ export function AdvancedFiltersPanel({
 ```typescript
 // src/hooks/useUniversalSearch.ts
 
-import { useQuery } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
-import { determineSearchStrategy } from '@/lib/ai/search-strategy'
-import { AISearchResponse, SearchStrategy } from '@/types'
+import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { determineSearchStrategy } from "@/lib/ai/search-strategy";
+import { AISearchResponse, SearchStrategy } from "@/types";
 
 export function useUniversalSearch(query: string) {
-  const [strategy, setStrategy] = useState<SearchStrategy | null>(null)
-  
+  const [strategy, setStrategy] = useState<SearchStrategy | null>(null);
+
   // Step 1: Execute AI search
-  const { 
-    data: searchResponse, 
+  const {
+    data: searchResponse,
     isLoading,
-    error 
+    error,
   } = useQuery<AISearchResponse>({
-    queryKey: ['universal-search', query],
+    queryKey: ["universal-search", query],
     queryFn: async () => {
-      const response = await fetch('/api/ai/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
-      })
-      
+      const response = await fetch("/api/ai/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+
       if (!response.ok) {
-        throw new Error('Search failed')
+        throw new Error("Search failed");
       }
-      
-      return response.json()
+
+      return response.json();
     },
     enabled: query.length > 2,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     retry: 1, // Only retry once on failure
     onError: (error) => {
-      console.error('Search error:', error)
+      console.error("Search error:", error);
       // Error handling via fallback in component
-    }
-  })
-  
+    },
+  });
+
   // Step 2: Determine display strategy based on response
   useEffect(() => {
     if (searchResponse) {
       const displayStrategy = determineSearchStrategy(
-        searchResponse.searchMethod || 'traditional',
+        searchResponse.searchMethod || "traditional",
         searchResponse.totalResults || 0,
         searchResponse.confidence || 0
-      )
-      setStrategy(displayStrategy)
+      );
+      setStrategy(displayStrategy);
     }
-  }, [searchResponse])
-  
+  }, [searchResponse]);
+
   return {
     results: searchResponse?.results,
     totalResults: searchResponse?.totalResults,
@@ -1290,8 +1322,8 @@ export function useUniversalSearch(query: string) {
     error,
     strategy,
     showFilterChips: strategy?.showFilters || false,
-    searchMethod: searchResponse?.searchMethod
-  }
+    searchMethod: searchResponse?.searchMethod,
+  };
 }
 ```
 
@@ -1301,11 +1333,11 @@ export function useUniversalSearch(query: string) {
 // src/lib/ai/search-strategy.ts
 
 export interface SearchStrategy {
-  pageSize: number
-  shouldFetchAll: boolean
-  showFilters: boolean
-  paginationType: 'traditional' | 'show_all' | 'infinite'
-  searchMethod: 'traditional' | 'semantic' | 'hybrid'
+  pageSize: number;
+  shouldFetchAll: boolean;
+  showFilters: boolean;
+  paginationType: "traditional" | "show_all" | "infinite";
+  searchMethod: "traditional" | "semantic" | "hybrid";
 }
 
 export function determineSearchStrategy(
@@ -1313,59 +1345,58 @@ export function determineSearchStrategy(
   resultCount: number,
   confidence: number
 ): SearchStrategy {
-  
   // Exact match (SKU lookup)
-  if (searchMethod === 'sku_lookup' || resultCount === 1) {
+  if (searchMethod === "sku_lookup" || resultCount === 1) {
     return {
       pageSize: 1,
       shouldFetchAll: true,
       showFilters: false,
-      paginationType: 'traditional',
-      searchMethod: 'traditional'
-    }
+      paginationType: "traditional",
+      searchMethod: "traditional",
+    };
   }
-  
+
   // Complete vehicle search (precise results)
-  if (searchMethod === 'vehicle_search' && confidence > 0.9) {
+  if (searchMethod === "vehicle_search" && confidence > 0.9) {
     return {
       pageSize: 10,
       shouldFetchAll: resultCount <= 20,
       showFilters: false,
-      paginationType: 'traditional',
-      searchMethod: 'traditional'
-    }
+      paginationType: "traditional",
+      searchMethod: "traditional",
+    };
   }
-  
+
   // Incomplete search (needs filtering)
   if (resultCount > 20 && resultCount < 200) {
     return {
       pageSize: 999,
       shouldFetchAll: true,
       showFilters: true,
-      paginationType: 'show_all',
-      searchMethod: searchMethod as any
-    }
+      paginationType: "show_all",
+      searchMethod: searchMethod as any,
+    };
   }
-  
+
   // Vague semantic search (browsing mode)
-  if (searchMethod === 'semantic' || confidence < 0.8) {
+  if (searchMethod === "semantic" || confidence < 0.8) {
     return {
       pageSize: 50,
       shouldFetchAll: false,
       showFilters: true,
-      paginationType: 'traditional',
-      searchMethod: 'semantic'
-    }
+      paginationType: "traditional",
+      searchMethod: "semantic",
+    };
   }
-  
+
   // Default strategy
   return {
     pageSize: 20,
     shouldFetchAll: false,
     showFilters: false,
-    paginationType: 'traditional',
-    searchMethod: 'traditional'
-  }
+    paginationType: "traditional",
+    searchMethod: "traditional",
+  };
 }
 ```
 
@@ -1412,7 +1443,7 @@ const mobileStyles = {
 
 ```typescript
 // Larger, more prominent on mobile
-<VoiceSearchButton 
+<VoiceSearchButton
   className={isMobile ? 'h-14 w-14' : 'h-10 w-10'}
   showLabel={isMobile}
 />
@@ -1426,14 +1457,14 @@ const mobileStyles = {
 
 ```typescript
 // Prevent excessive API calls while typing
-import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export function UniversalSearchInterface() {
-  const [query, setQuery] = useState('')
-  const debouncedQuery = useDebouncedValue(query, 300) // Wait 300ms after typing stops
-  
-  const { results } = useUniversalSearch(debouncedQuery)
-  
+  const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query, 300); // Wait 300ms after typing stops
+
+  const { results } = useUniversalSearch(debouncedQuery);
+
   // User types: "honda civic 2018"
   // API calls only once, 300ms after they stop typing
 }
@@ -1444,11 +1475,11 @@ export function UniversalSearchInterface() {
 ```typescript
 // TanStack Query automatically caches results
 useQuery({
-  queryKey: ['universal-search', query],
+  queryKey: ["universal-search", query],
   queryFn: fetchSearch,
   staleTime: 5 * 60 * 1000, // Consider fresh for 5 minutes
   cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-})
+});
 
 // Same query within 5 minutes = instant result (no API call)
 ```
@@ -1459,11 +1490,9 @@ useQuery({
 // Filter chips work instantly (client-side)
 const handleFilterClick = (filterValue: string) => {
   // Immediate UI update
-  setFilteredResults(
-    results.filter(r => matchesFilter(r, filterValue))
-  )
+  setFilteredResults(results.filter((r) => matchesFilter(r, filterValue)));
   // No loading state, no API call
-}
+};
 ```
 
 ### **4. Prefetching Common Searches**
@@ -1471,15 +1500,15 @@ const handleFilterClick = (filterValue: string) => {
 ```typescript
 // Prefetch popular searches in background
 useEffect(() => {
-  const popularSearches = ['Honda Civic', 'Toyota Camry', 'Ford F-150']
-  
-  popularSearches.forEach(search => {
+  const popularSearches = ["Honda Civic", "Toyota Camry", "Ford F-150"];
+
+  popularSearches.forEach((search) => {
     queryClient.prefetchQuery({
-      queryKey: ['universal-search', search],
-      queryFn: () => fetchSearch(search)
-    })
-  })
-}, [])
+      queryKey: ["universal-search", search],
+      queryFn: () => fetchSearch(search),
+    });
+  });
+}, []);
 ```
 
 ---
@@ -1492,22 +1521,22 @@ useEffect(() => {
 // Track search behavior
 interface SearchAnalytics {
   // Engagement
-  totalSearches: number
-  voiceSearchUsage: number       // % of searches via voice
-  recentSearchClicks: number     // How often recent searches used
-  filterChipUsage: number        // % of incomplete queries that use filters
-  
+  totalSearches: number;
+  voiceSearchUsage: number; // % of searches via voice
+  recentSearchClicks: number; // How often recent searches used
+  filterChipUsage: number; // % of incomplete queries that use filters
+
   // Performance
-  avgTimeToResults: number       // How long until results appear
-  searchesPerSession: number     // How many searches per visit
-  
+  avgTimeToResults: number; // How long until results appear
+  searchesPerSession: number; // How many searches per visit
+
   // Quality
-  noResultsRate: number          // % of searches with 0 results
-  refinementRate: number         // % of searches that get refined
-  
+  noResultsRate: number; // % of searches with 0 results
+  refinementRate: number; // % of searches that get refined
+
   // Method Distribution
-  semanticSearchRate: number     // % using semantic search
-  traditionalSearchRate: number  // % using traditional search
+  semanticSearchRate: number; // % using semantic search
+  traditionalSearchRate: number; // % using traditional search
 }
 ```
 
@@ -1517,26 +1546,26 @@ interface SearchAnalytics {
 // src/lib/analytics.ts
 
 export function trackSearchEvent(event: {
-  query: string
-  method: 'voice' | 'keyboard' | 'recent_search' | 'filter_chip'
-  resultsCount: number
-  searchStrategy: string
-  timeToResults: number
+  query: string;
+  method: "voice" | "keyboard" | "recent_search" | "filter_chip";
+  resultsCount: number;
+  searchStrategy: string;
+  timeToResults: number;
 }) {
   // Send to analytics service
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', 'search', {
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("event", "search", {
       search_term: event.query,
       search_method: event.method,
       results_count: event.resultsCount,
       search_strategy: event.searchStrategy,
-      time_to_results: event.timeToResults
-    })
+      time_to_results: event.timeToResults,
+    });
   }
-  
+
   // Log for debugging in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Search Event:', event)
+  if (process.env.NODE_ENV === "development") {
+    console.log("Search Event:", event);
   }
 }
 ```
@@ -1553,11 +1582,11 @@ export function trackSearchEvent(event: {
 export function useFeatureFlag(flagName: string): boolean {
   // Check environment variable
   const envFlag = process.env[`NEXT_PUBLIC_FEATURE_${flagName.toUpperCase()}`]
-  
+
   if (envFlag !== undefined) {
     return envFlag === 'true'
   }
-  
+
   // Check localStorage (for admin override)
   if (typeof window !== 'undefined') {
     const localFlag = localStorage.getItem(`feature_${flagName}`)
@@ -1565,7 +1594,7 @@ export function useFeatureFlag(flagName: string): boolean {
       return localFlag === 'true'
     }
   }
-  
+
   // Default: disabled
   return false
 }
@@ -1573,8 +1602,8 @@ export function useFeatureFlag(flagName: string): boolean {
 // Usage in components
 export function SearchPage() {
   const useUniversalSearch = useFeatureFlag('universal_search')
-  
-  return useUniversalSearch 
+
+  return useUniversalSearch
     ? <UniversalSearchInterface />
     : <LegacySearchInterface />
 }
@@ -1610,7 +1639,7 @@ Week 4: Full Rollout (100% of users)
 // If issues arise, instant rollback via environment variable
 
 // Vercel Dashboard → Environment Variables
-NEXT_PUBLIC_FEATURE_UNIVERSAL_SEARCH=false
+NEXT_PUBLIC_FEATURE_UNIVERSAL_SEARCH = false;
 
 // Redeploy (automatic)
 // All users revert to legacy search interface
@@ -1709,34 +1738,38 @@ Tablet:
 ## 🎓 **Summary: What Phase 5 Delivers**
 
 ### **User Experience**
+
 ✅ Single universal search bar (replaces separate SKU + Vehicle inputs)  
 ✅ Voice search for hands-free operation  
 ✅ Recent searches for quick re-searching  
 ✅ Progressive disclosure with filter chips (no conversation needed)  
 ✅ Advanced filters panel for power users  
 ✅ Skeleton loaders for perceived performance  
-✅ Silent fallback with toast notifications  
+✅ Silent fallback with toast notifications
 
 ### **Technical Implementation**
+
 ✅ React components with TypeScript  
 ✅ TanStack Query for state management  
 ✅ Local Storage for recent searches  
 ✅ Browser Web Speech API for voice  
 ✅ Dynamic page sizing based on query type  
 ✅ Client-side filtering for instant results  
-✅ Feature flags for gradual rollout  
+✅ Feature flags for gradual rollout
 
 ### **Performance**
+
 ✅ Debounced input (300ms)  
 ✅ Query caching (5 min stale time)  
 ✅ Optimistic UI (instant filters)  
-✅ Efficient data fetching (fetch all for incomplete, paginate for complete)  
+✅ Efficient data fetching (fetch all for incomplete, paginate for complete)
 
 ### **Mobile Optimization**
+
 ✅ Large touch targets (44px+)  
 ✅ Voice search prominence  
 ✅ Horizontal scroll for recent searches  
-✅ Responsive filter chips  
+✅ Responsive filter chips
 
 ---
 

@@ -1,3 +1,7 @@
+---
+title: "Phase 2: Excel Import + Rollback System - Production Plan"
+---
+
 # Phase 2: Excel Import + Rollback System - Production Plan
 
 **Project**: ACR Automotive - Category 1 Data Management System
@@ -25,7 +29,7 @@ Phase 2 delivers a production-grade Excel import system with validation, preview
 
 - ✅ **ID-based matching only** (no field-based fallback)
 - ✅ **Export-only workflow** (users must export first to get IDs)
-- ✅ **Hidden ID columns** in Excel (_id, _tenant_id)
+- ✅ **Hidden ID columns** in Excel (\_id, \_tenant_id)
 - ✅ **ACR_SKU semi-immutable** (allow changes with BIG warning)
 - ✅ **Sequential rollback** (newest first, last 3 snapshots visible)
 - ✅ **13 hours testing allocation** for production safety
@@ -115,8 +119,8 @@ Phase 2 uses the schema created in Phase 1:
 // Excel Import Service - Parse uploaded files with hidden ID columns
 // ============================================================================
 
-import * as XLSX from 'xlsx';
-import { z } from 'zod';
+import * as XLSX from "xlsx";
+import { z } from "zod";
 
 // ----------------------------------------------------------------------------
 // Types
@@ -142,8 +146,8 @@ export interface ParsedExcelFile {
 
 // Raw row types (before validation)
 export interface ParsedPartRow {
-  _id?: string;                    // Hidden column
-  _tenant_id?: string;              // Hidden column (future)
+  _id?: string; // Hidden column
+  _tenant_id?: string; // Hidden column (future)
   acr_sku: string;
   brand: string;
   category_1: string;
@@ -161,7 +165,7 @@ export interface ParsedPartRow {
 export interface ParsedVehicleAppRow {
   _id?: string;
   _tenant_id?: string;
-  _part_id?: string;               // Hidden foreign key
+  _part_id?: string; // Hidden foreign key
   make: string;
   model: string;
   year_start: number;
@@ -173,7 +177,7 @@ export interface ParsedVehicleAppRow {
 export interface ParsedCrossRefRow {
   _id?: string;
   _tenant_id?: string;
-  _part_id?: string;               // Hidden foreign key
+  _part_id?: string; // Hidden foreign key
   competitor_brand: string;
   competitor_sku: string;
   notes?: string;
@@ -192,16 +196,16 @@ export class ExcelImportService {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, {
-        type: 'array',
+        type: "array",
         cellDates: true,
         cellNF: false,
         cellText: false,
       });
 
       // Expected sheet names (exact match)
-      const SHEET_PARTS = 'Parts';
-      const SHEET_VEHICLE_APPS = 'Vehicle_Applications';
-      const SHEET_CROSS_REFS = 'Cross_References';
+      const SHEET_PARTS = "Parts";
+      const SHEET_VEHICLE_APPS = "Vehicle_Applications";
+      const SHEET_CROSS_REFS = "Cross_References";
 
       // Validate sheet structure
       const sheetNames = workbook.SheetNames;
@@ -225,14 +229,20 @@ export class ExcelImportService {
         defval: undefined,
         raw: false,
       });
-      const vehicleAppsData = XLSX.utils.sheet_to_json<ParsedVehicleAppRow>(vehicleAppsSheet, {
-        defval: undefined,
-        raw: false,
-      });
-      const crossRefsData = XLSX.utils.sheet_to_json<ParsedCrossRefRow>(crossRefsSheet, {
-        defval: undefined,
-        raw: false,
-      });
+      const vehicleAppsData = XLSX.utils.sheet_to_json<ParsedVehicleAppRow>(
+        vehicleAppsSheet,
+        {
+          defval: undefined,
+          raw: false,
+        }
+      );
+      const crossRefsData = XLSX.utils.sheet_to_json<ParsedCrossRefRow>(
+        crossRefsSheet,
+        {
+          defval: undefined,
+          raw: false,
+        }
+      );
 
       // Check for hidden ID columns
       const hasHiddenIds = this.detectHiddenColumns(partsSheet);
@@ -263,9 +273,9 @@ export class ExcelImportService {
         },
       };
     } catch (error) {
-      console.error('[ExcelImportService] Parse error:', error);
+      console.error("[ExcelImportService] Parse error:", error);
       throw new Error(
-        `Failed to parse Excel file: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to parse Excel file: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }
@@ -274,13 +284,13 @@ export class ExcelImportService {
    * Detect if file has hidden ID columns (_id, _tenant_id)
    */
   private detectHiddenColumns(sheet: XLSX.WorkSheet): boolean {
-    const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
-    const firstRow = XLSX.utils.sheet_to_json(sheet, { header: 1 })[0] as string[];
+    const range = XLSX.utils.decode_range(sheet["!ref"] || "A1");
+    const firstRow = XLSX.utils.sheet_to_json(sheet, {
+      header: 1,
+    })[0] as string[];
 
-    return firstRow.some(col =>
-      col === '_id' ||
-      col === '_tenant_id' ||
-      col === '_part_id'
+    return firstRow.some(
+      (col) => col === "_id" || col === "_tenant_id" || col === "_part_id"
     );
   }
 
@@ -289,13 +299,15 @@ export class ExcelImportService {
    * Checks file extension and MIME type
    */
   validateFileFormat(file: File): void {
-    const validExtensions = ['.xlsx', '.xls'];
+    const validExtensions = [".xlsx", ".xls"];
     const validMimeTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
     ];
 
-    const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    const extension = file.name
+      .substring(file.name.lastIndexOf("."))
+      .toLowerCase();
 
     if (!validExtensions.includes(extension)) {
       throw new Error(
@@ -331,27 +343,32 @@ export class ExcelImportService {
 // Validation Engine - 23 Error Rules + 12 Warning Rules
 // ============================================================================
 
-import { z } from 'zod';
-import { ParsedExcelFile, ParsedPartRow, ParsedVehicleAppRow, ParsedCrossRefRow } from './ExcelImportService';
+import { z } from "zod";
+import {
+  ParsedExcelFile,
+  ParsedPartRow,
+  ParsedVehicleAppRow,
+  ParsedCrossRefRow,
+} from "./ExcelImportService";
 
 // ----------------------------------------------------------------------------
 // Validation Result Types
 // ----------------------------------------------------------------------------
 
-export type ValidationSeverity = 'error' | 'warning';
+export type ValidationSeverity = "error" | "warning";
 
 export interface ValidationIssue {
   severity: ValidationSeverity;
-  sheet: 'Parts' | 'Vehicle_Applications' | 'Cross_References';
-  row: number;                      // Excel row number (1-indexed)
+  sheet: "Parts" | "Vehicle_Applications" | "Cross_References";
+  row: number; // Excel row number (1-indexed)
   field: string;
   message: string;
-  code: string;                     // Error/warning code for i18n
+  code: string; // Error/warning code for i18n
   currentValue?: any;
 }
 
 export interface ValidationResult {
-  valid: boolean;                   // true if no errors (warnings OK)
+  valid: boolean; // true if no errors (warnings OK)
   errors: ValidationIssue[];
   warnings: ValidationIssue[];
   stats: {
@@ -412,7 +429,10 @@ export class ValidationEngine {
    * Validate entire Excel file
    * Returns all errors and warnings found
    */
-  async validate(parsed: ParsedExcelFile, existingData: ExistingDataSnapshot): Promise<ValidationResult> {
+  async validate(
+    parsed: ParsedExcelFile,
+    existingData: ExistingDataSnapshot
+  ): Promise<ValidationResult> {
     const errors: ValidationIssue[] = [];
     const warnings: ValidationIssue[] = [];
 
@@ -448,18 +468,21 @@ export class ValidationEngine {
   // Schema Validation (Zod)
   // --------------------------------------------------------------------------
 
-  private validatePartsSchema(rows: ParsedPartRow[], errors: ValidationIssue[]): void {
+  private validatePartsSchema(
+    rows: ParsedPartRow[],
+    errors: ValidationIssue[]
+  ): void {
     rows.forEach((row, index) => {
       const result = PartRowSchema.safeParse(row);
       if (!result.success) {
-        result.error.issues.forEach(issue => {
+        result.error.issues.forEach((issue) => {
           errors.push({
-            severity: 'error',
-            sheet: 'Parts',
-            row: index + 2,  // +2 for header row + 0-index
-            field: issue.path.join('.'),
+            severity: "error",
+            sheet: "Parts",
+            row: index + 2, // +2 for header row + 0-index
+            field: issue.path.join("."),
             message: issue.message,
-            code: 'SCHEMA_VALIDATION_ERROR',
+            code: "SCHEMA_VALIDATION_ERROR",
             currentValue: row[issue.path[0] as keyof ParsedPartRow],
           });
         });
@@ -467,18 +490,21 @@ export class ValidationEngine {
     });
   }
 
-  private validateVehicleAppsSchema(rows: ParsedVehicleAppRow[], errors: ValidationIssue[]): void {
+  private validateVehicleAppsSchema(
+    rows: ParsedVehicleAppRow[],
+    errors: ValidationIssue[]
+  ): void {
     rows.forEach((row, index) => {
       const result = VehicleAppRowSchema.safeParse(row);
       if (!result.success) {
-        result.error.issues.forEach(issue => {
+        result.error.issues.forEach((issue) => {
           errors.push({
-            severity: 'error',
-            sheet: 'Vehicle_Applications',
+            severity: "error",
+            sheet: "Vehicle_Applications",
             row: index + 2,
-            field: issue.path.join('.'),
+            field: issue.path.join("."),
             message: issue.message,
-            code: 'SCHEMA_VALIDATION_ERROR',
+            code: "SCHEMA_VALIDATION_ERROR",
             currentValue: row[issue.path[0] as keyof ParsedVehicleAppRow],
           });
         });
@@ -486,18 +512,21 @@ export class ValidationEngine {
     });
   }
 
-  private validateCrossRefsSchema(rows: ParsedCrossRefRow[], errors: ValidationIssue[]): void {
+  private validateCrossRefsSchema(
+    rows: ParsedCrossRefRow[],
+    errors: ValidationIssue[]
+  ): void {
     rows.forEach((row, index) => {
       const result = CrossRefRowSchema.safeParse(row);
       if (!result.success) {
-        result.error.issues.forEach(issue => {
+        result.error.issues.forEach((issue) => {
           errors.push({
-            severity: 'error',
-            sheet: 'Cross_References',
+            severity: "error",
+            sheet: "Cross_References",
             row: index + 2,
-            field: issue.path.join('.'),
+            field: issue.path.join("."),
             message: issue.message,
-            code: 'SCHEMA_VALIDATION_ERROR',
+            code: "SCHEMA_VALIDATION_ERROR",
             currentValue: row[issue.path[0] as keyof ParsedCrossRefRow],
           });
         });
@@ -520,12 +549,13 @@ export class ValidationEngine {
     // E1: Missing required hidden ID columns
     if (!parsed.parts.hasHiddenIds) {
       errors.push({
-        severity: 'error',
-        sheet: 'Parts',
+        severity: "error",
+        sheet: "Parts",
         row: 1,
-        field: '_id',
-        message: 'File must be exported from ACR system. Missing hidden ID columns. Please export first, then modify and re-import.',
-        code: 'MISSING_HIDDEN_IDS',
+        field: "_id",
+        message:
+          "File must be exported from ACR system. Missing hidden ID columns. Please export first, then modify and re-import.",
+        code: "MISSING_HIDDEN_IDS",
       });
     }
 
@@ -538,12 +568,12 @@ export class ValidationEngine {
 
       if (count > 1) {
         errors.push({
-          severity: 'error',
-          sheet: 'Parts',
+          severity: "error",
+          sheet: "Parts",
           row: index + 2,
-          field: 'acr_sku',
+          field: "acr_sku",
           message: `Duplicate ACR_SKU found in file: ${row.acr_sku}`,
-          code: 'DUPLICATE_ACR_SKU',
+          code: "DUPLICATE_ACR_SKU",
           currentValue: row.acr_sku,
         });
       }
@@ -553,34 +583,34 @@ export class ValidationEngine {
     parsed.parts.data.forEach((row, index) => {
       if (!row.acr_sku?.trim()) {
         errors.push({
-          severity: 'error',
-          sheet: 'Parts',
+          severity: "error",
+          sheet: "Parts",
           row: index + 2,
-          field: 'acr_sku',
-          message: 'ACR_SKU is required',
-          code: 'REQUIRED_FIELD_EMPTY',
+          field: "acr_sku",
+          message: "ACR_SKU is required",
+          code: "REQUIRED_FIELD_EMPTY",
           currentValue: row.acr_sku,
         });
       }
       if (!row.brand?.trim()) {
         errors.push({
-          severity: 'error',
-          sheet: 'Parts',
+          severity: "error",
+          sheet: "Parts",
           row: index + 2,
-          field: 'brand',
-          message: 'Brand is required',
-          code: 'REQUIRED_FIELD_EMPTY',
+          field: "brand",
+          message: "Brand is required",
+          code: "REQUIRED_FIELD_EMPTY",
           currentValue: row.brand,
         });
       }
       if (!row.category_1?.trim()) {
         errors.push({
-          severity: 'error',
-          sheet: 'Parts',
+          severity: "error",
+          sheet: "Parts",
           row: index + 2,
-          field: 'category_1',
-          message: 'Category 1 is required',
-          code: 'REQUIRED_FIELD_EMPTY',
+          field: "category_1",
+          message: "Category 1 is required",
+          code: "REQUIRED_FIELD_EMPTY",
           currentValue: row.category_1,
         });
       }
@@ -590,29 +620,31 @@ export class ValidationEngine {
     parsed.parts.data.forEach((row, index) => {
       if (row._id && !this.isValidUUID(row._id)) {
         errors.push({
-          severity: 'error',
-          sheet: 'Parts',
+          severity: "error",
+          sheet: "Parts",
           row: index + 2,
-          field: '_id',
-          message: 'Invalid UUID format for _id',
-          code: 'INVALID_UUID',
+          field: "_id",
+          message: "Invalid UUID format for _id",
+          code: "INVALID_UUID",
           currentValue: row._id,
         });
       }
     });
 
     // E5: Orphaned foreign keys (_part_id not in parts sheet)
-    const partIds = new Set(parsed.parts.data.map(p => p._id).filter(Boolean));
+    const partIds = new Set(
+      parsed.parts.data.map((p) => p._id).filter(Boolean)
+    );
 
     parsed.vehicleApplications.data.forEach((row, index) => {
       if (row._part_id && !partIds.has(row._part_id)) {
         errors.push({
-          severity: 'error',
-          sheet: 'Vehicle_Applications',
+          severity: "error",
+          sheet: "Vehicle_Applications",
           row: index + 2,
-          field: '_part_id',
+          field: "_part_id",
           message: `Referenced part ID does not exist in Parts sheet: ${row._part_id}`,
-          code: 'ORPHANED_FOREIGN_KEY',
+          code: "ORPHANED_FOREIGN_KEY",
           currentValue: row._part_id,
         });
       }
@@ -621,12 +653,12 @@ export class ValidationEngine {
     parsed.crossReferences.data.forEach((row, index) => {
       if (row._part_id && !partIds.has(row._part_id)) {
         errors.push({
-          severity: 'error',
-          sheet: 'Cross_References',
+          severity: "error",
+          sheet: "Cross_References",
           row: index + 2,
-          field: '_part_id',
+          field: "_part_id",
           message: `Referenced part ID does not exist in Parts sheet: ${row._part_id}`,
-          code: 'ORPHANED_FOREIGN_KEY',
+          code: "ORPHANED_FOREIGN_KEY",
           currentValue: row._part_id,
         });
       }
@@ -636,12 +668,12 @@ export class ValidationEngine {
     parsed.vehicleApplications.data.forEach((row, index) => {
       if (row.year_end && row.year_end < row.year_start) {
         errors.push({
-          severity: 'error',
-          sheet: 'Vehicle_Applications',
+          severity: "error",
+          sheet: "Vehicle_Applications",
           row: index + 2,
-          field: 'year_end',
+          field: "year_end",
           message: `year_end (${row.year_end}) cannot be before year_start (${row.year_start})`,
-          code: 'INVALID_YEAR_RANGE',
+          code: "INVALID_YEAR_RANGE",
           currentValue: row.year_end,
         });
       }
@@ -651,12 +683,12 @@ export class ValidationEngine {
     parsed.parts.data.forEach((row, index) => {
       if (row.price !== undefined && row.price < 0) {
         errors.push({
-          severity: 'error',
-          sheet: 'Parts',
+          severity: "error",
+          sheet: "Parts",
           row: index + 2,
-          field: 'price',
-          message: 'Price cannot be negative',
-          code: 'NEGATIVE_PRICE',
+          field: "price",
+          message: "Price cannot be negative",
+          code: "NEGATIVE_PRICE",
           currentValue: row.price,
         });
       }
@@ -666,12 +698,12 @@ export class ValidationEngine {
     parsed.parts.data.forEach((row, index) => {
       if (row.stock_quantity !== undefined && row.stock_quantity < 0) {
         errors.push({
-          severity: 'error',
-          sheet: 'Parts',
+          severity: "error",
+          sheet: "Parts",
           row: index + 2,
-          field: 'stock_quantity',
-          message: 'Stock quantity cannot be negative',
-          code: 'NEGATIVE_STOCK',
+          field: "stock_quantity",
+          message: "Stock quantity cannot be negative",
+          code: "NEGATIVE_STOCK",
           currentValue: row.stock_quantity,
         });
       }
@@ -680,14 +712,17 @@ export class ValidationEngine {
     // E9: Invalid 360 viewer frame count
     parsed.parts.data.forEach((row, index) => {
       if (row.viewer_360_frame_count !== undefined) {
-        if (row.viewer_360_frame_count < 12 || row.viewer_360_frame_count > 48) {
+        if (
+          row.viewer_360_frame_count < 12 ||
+          row.viewer_360_frame_count > 48
+        ) {
           errors.push({
-            severity: 'error',
-            sheet: 'Parts',
+            severity: "error",
+            sheet: "Parts",
             row: index + 2,
-            field: 'viewer_360_frame_count',
-            message: 'Frame count must be between 12 and 48',
-            code: 'INVALID_FRAME_COUNT',
+            field: "viewer_360_frame_count",
+            message: "Frame count must be between 12 and 48",
+            code: "INVALID_FRAME_COUNT",
             currentValue: row.viewer_360_frame_count,
           });
         }
@@ -705,12 +740,12 @@ export class ValidationEngine {
         const existing = existingData.parts.get(row._id);
         if (existing && existing.acr_sku !== row.acr_sku) {
           warnings.push({
-            severity: 'warning',
-            sheet: 'Parts',
+            severity: "warning",
+            sheet: "Parts",
             row: index + 2,
-            field: 'acr_sku',
+            field: "acr_sku",
             message: `⚠️ ACR_SKU changed from "${existing.acr_sku}" to "${row.acr_sku}". This may break references and affect search history.`,
-            code: 'ACR_SKU_CHANGED',
+            code: "ACR_SKU_CHANGED",
             currentValue: row.acr_sku,
           });
         }
@@ -722,15 +757,16 @@ export class ValidationEngine {
       if (row._id && row.price) {
         const existing = existingData.parts.get(row._id);
         if (existing?.price) {
-          const increase = ((row.price - existing.price) / existing.price) * 100;
+          const increase =
+            ((row.price - existing.price) / existing.price) * 100;
           if (increase > 50) {
             warnings.push({
-              severity: 'warning',
-              sheet: 'Parts',
+              severity: "warning",
+              sheet: "Parts",
               row: index + 2,
-              field: 'price',
+              field: "price",
               message: `Price increased by ${increase.toFixed(1)}% (${existing.price} → ${row.price})`,
-              code: 'LARGE_PRICE_INCREASE',
+              code: "LARGE_PRICE_INCREASE",
               currentValue: row.price,
             });
           }
@@ -742,14 +778,18 @@ export class ValidationEngine {
     parsed.parts.data.forEach((row, index) => {
       if (row._id && row.stock_quantity === 0) {
         const existing = existingData.parts.get(row._id);
-        if (existing && existing.stock_quantity && existing.stock_quantity > 0) {
+        if (
+          existing &&
+          existing.stock_quantity &&
+          existing.stock_quantity > 0
+        ) {
           warnings.push({
-            severity: 'warning',
-            sheet: 'Parts',
+            severity: "warning",
+            sheet: "Parts",
             row: index + 2,
-            field: 'stock_quantity',
+            field: "stock_quantity",
             message: `Stock dropped to zero (was ${existing.stock_quantity})`,
-            code: 'STOCK_DEPLETED',
+            code: "STOCK_DEPLETED",
             currentValue: row.stock_quantity,
           });
         }
@@ -762,12 +802,12 @@ export class ValidationEngine {
         const existing = existingData.parts.get(row._id);
         if (existing && !existing.discontinued) {
           warnings.push({
-            severity: 'warning',
-            sheet: 'Parts',
+            severity: "warning",
+            sheet: "Parts",
             row: index + 2,
-            field: 'discontinued',
-            message: 'Part marked as discontinued',
-            code: 'PART_DISCONTINUED',
+            field: "discontinued",
+            message: "Part marked as discontinued",
+            code: "PART_DISCONTINUED",
             currentValue: row.discontinued,
           });
         }
@@ -795,7 +835,8 @@ export class ValidationEngine {
   // --------------------------------------------------------------------------
 
   private isValidUUID(uuid: string): boolean {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     return uuidRegex.test(uuid);
   }
 }
@@ -805,7 +846,7 @@ export class ValidationEngine {
 // ----------------------------------------------------------------------------
 
 export interface ExistingDataSnapshot {
-  parts: Map<string, ParsedPartRow>;               // Keyed by _id
+  parts: Map<string, ParsedPartRow>; // Keyed by _id
   vehicleApplications: Map<string, ParsedVehicleAppRow>;
   crossReferences: Map<string, ParsedCrossRefRow>;
 }
@@ -822,21 +863,26 @@ export interface ExistingDataSnapshot {
 // Diff Engine - ID-Based Matching to Detect Changes
 // ============================================================================
 
-import { ParsedExcelFile, ParsedPartRow, ParsedVehicleAppRow, ParsedCrossRefRow } from './ExcelImportService';
-import { ExistingDataSnapshot } from './ValidationEngine';
+import {
+  ParsedExcelFile,
+  ParsedPartRow,
+  ParsedVehicleAppRow,
+  ParsedCrossRefRow,
+} from "./ExcelImportService";
+import { ExistingDataSnapshot } from "./ValidationEngine";
 
 // ----------------------------------------------------------------------------
 // Diff Result Types
 // ----------------------------------------------------------------------------
 
-export type ChangeType = 'add' | 'update' | 'delete';
+export type ChangeType = "add" | "update" | "delete";
 
 export interface PartDiff {
   type: ChangeType;
-  id?: string;                      // For updates/deletes
-  before?: ParsedPartRow;           // For updates/deletes
-  after?: ParsedPartRow;            // For adds/updates
-  changes?: FieldChange[];          // For updates
+  id?: string; // For updates/deletes
+  before?: ParsedPartRow; // For updates/deletes
+  after?: ParsedPartRow; // For adds/updates
+  changes?: FieldChange[]; // For updates
 }
 
 export interface VehicleAppDiff {
@@ -951,7 +997,7 @@ export class DiffEngine {
     const uploadedIds = new Set<string>();
 
     // Detect adds and updates
-    uploaded.forEach(row => {
+    uploaded.forEach((row) => {
       if (row._id) {
         uploadedIds.add(row._id);
         const existingRow = existing.get(row._id);
@@ -961,7 +1007,7 @@ export class DiffEngine {
           const changes = this.detectFieldChanges(existingRow, row);
           if (changes.length > 0) {
             updates.push({
-              type: 'update',
+              type: "update",
               id: row._id,
               before: existingRow,
               after: row,
@@ -971,14 +1017,14 @@ export class DiffEngine {
         } else {
           // Add: ID in uploaded but not in existing
           adds.push({
-            type: 'add',
+            type: "add",
             after: row,
           });
         }
       } else {
         // Add: No ID means new row
         adds.push({
-          type: 'add',
+          type: "add",
           after: row,
         });
       }
@@ -988,7 +1034,7 @@ export class DiffEngine {
     existing.forEach((row, id) => {
       if (!uploadedIds.has(id)) {
         deletes.push({
-          type: 'delete',
+          type: "delete",
           id,
           before: row,
         });
@@ -1005,14 +1051,18 @@ export class DiffEngine {
   private diffVehicleApps(
     uploaded: ParsedVehicleAppRow[],
     existing: Map<string, ParsedVehicleAppRow>
-  ): { adds: VehicleAppDiff[]; updates: VehicleAppDiff[]; deletes: VehicleAppDiff[] } {
+  ): {
+    adds: VehicleAppDiff[];
+    updates: VehicleAppDiff[];
+    deletes: VehicleAppDiff[];
+  } {
     const adds: VehicleAppDiff[] = [];
     const updates: VehicleAppDiff[] = [];
     const deletes: VehicleAppDiff[] = [];
 
     const uploadedIds = new Set<string>();
 
-    uploaded.forEach(row => {
+    uploaded.forEach((row) => {
       if (row._id) {
         uploadedIds.add(row._id);
         const existingRow = existing.get(row._id);
@@ -1021,7 +1071,7 @@ export class DiffEngine {
           const changes = this.detectFieldChanges(existingRow, row);
           if (changes.length > 0) {
             updates.push({
-              type: 'update',
+              type: "update",
               id: row._id,
               before: existingRow,
               after: row,
@@ -1030,13 +1080,13 @@ export class DiffEngine {
           }
         } else {
           adds.push({
-            type: 'add',
+            type: "add",
             after: row,
           });
         }
       } else {
         adds.push({
-          type: 'add',
+          type: "add",
           after: row,
         });
       }
@@ -1045,7 +1095,7 @@ export class DiffEngine {
     existing.forEach((row, id) => {
       if (!uploadedIds.has(id)) {
         deletes.push({
-          type: 'delete',
+          type: "delete",
           id,
           before: row,
         });
@@ -1062,14 +1112,18 @@ export class DiffEngine {
   private diffCrossRefs(
     uploaded: ParsedCrossRefRow[],
     existing: Map<string, ParsedCrossRefRow>
-  ): { adds: CrossRefDiff[]; updates: CrossRefDiff[]; deletes: CrossRefDiff[] } {
+  ): {
+    adds: CrossRefDiff[];
+    updates: CrossRefDiff[];
+    deletes: CrossRefDiff[];
+  } {
     const adds: CrossRefDiff[] = [];
     const updates: CrossRefDiff[] = [];
     const deletes: CrossRefDiff[] = [];
 
     const uploadedIds = new Set<string>();
 
-    uploaded.forEach(row => {
+    uploaded.forEach((row) => {
       if (row._id) {
         uploadedIds.add(row._id);
         const existingRow = existing.get(row._id);
@@ -1078,7 +1132,7 @@ export class DiffEngine {
           const changes = this.detectFieldChanges(existingRow, row);
           if (changes.length > 0) {
             updates.push({
-              type: 'update',
+              type: "update",
               id: row._id,
               before: existingRow,
               after: row,
@@ -1087,13 +1141,13 @@ export class DiffEngine {
           }
         } else {
           adds.push({
-            type: 'add',
+            type: "add",
             after: row,
           });
         }
       } else {
         adds.push({
-          type: 'add',
+          type: "add",
           after: row,
         });
       }
@@ -1102,7 +1156,7 @@ export class DiffEngine {
     existing.forEach((row, id) => {
       if (!uploadedIds.has(id)) {
         deletes.push({
-          type: 'delete',
+          type: "delete",
           id,
           before: row,
         });
@@ -1124,10 +1178,11 @@ export class DiffEngine {
 
     // Compare all fields (except hidden ID columns)
     const fieldsToCompare = Object.keys(after).filter(
-      key => !key.startsWith('_') && key !== 'created_at' && key !== 'updated_at'
+      (key) =>
+        !key.startsWith("_") && key !== "created_at" && key !== "updated_at"
     );
 
-    fieldsToCompare.forEach(field => {
+    fieldsToCompare.forEach((field) => {
       const oldValue = before[field];
       const newValue = after[field];
 
@@ -1150,7 +1205,7 @@ export class DiffEngine {
     if (b === null || b === undefined) return false;
 
     // Handle primitive types
-    if (typeof a !== 'object') return a === b;
+    if (typeof a !== "object") return a === b;
 
     // Handle dates
     if (a instanceof Date && b instanceof Date) {
@@ -1174,10 +1229,10 @@ export class DiffEngine {
 // Import Service - Execute validated import with snapshot creation
 // ============================================================================
 
-import { supabase } from '@/lib/supabase/client';
-import { ParsedExcelFile } from './ExcelImportService';
-import { DiffResult } from './DiffEngine';
-import { BulkOperationsService } from '@/services/bulk/BulkOperationsService';
+import { supabase } from "@/lib/supabase/client";
+import { ParsedExcelFile } from "./ExcelImportService";
+import { DiffResult } from "./DiffEngine";
+import { BulkOperationsService } from "@/services/bulk/BulkOperationsService";
 
 // ----------------------------------------------------------------------------
 // Import Service
@@ -1206,11 +1261,11 @@ export class ImportService {
     tenantId?: string
   ): Promise<ImportResult> {
     try {
-      console.log('[ImportService] Starting import execution...');
+      console.log("[ImportService] Starting import execution...");
 
       // Step 1: Create snapshot (before making changes)
       const snapshot = await this.createSnapshot(tenantId);
-      console.log('[ImportService] Pre-import snapshot created');
+      console.log("[ImportService] Pre-import snapshot created");
 
       // Step 2: Execute bulk operations in atomic transaction
       const startTime = Date.now();
@@ -1218,11 +1273,13 @@ export class ImportService {
       const result = await this.executeBulkOperations(diff, tenantId);
 
       const executionTime = Date.now() - startTime;
-      console.log(`[ImportService] Bulk operations completed in ${executionTime}ms`);
+      console.log(
+        `[ImportService] Bulk operations completed in ${executionTime}ms`
+      );
 
       // Step 3: Save import history
       const { data: historyRecord, error: historyError } = await supabase
-        .from('import_history')
+        .from("import_history")
         .insert({
           tenant_id: tenantId || null,
           imported_by: userId || null,
@@ -1241,7 +1298,7 @@ export class ImportService {
 
       if (historyError) throw historyError;
 
-      console.log('[ImportService] Import history saved:', historyRecord.id);
+      console.log("[ImportService] Import history saved:", historyRecord.id);
 
       // Step 4: Clean up old snapshots (keep last 3)
       await this.cleanupOldSnapshots(tenantId);
@@ -1253,9 +1310,9 @@ export class ImportService {
         executionTimeMs: executionTime,
       };
     } catch (error) {
-      console.error('[ImportService] Import failed:', error);
+      console.error("[ImportService] Import failed:", error);
       throw new Error(
-        `Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Import failed: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }
@@ -1272,11 +1329,13 @@ export class ImportService {
     // Fetch all data (filtered by tenant if multi-tenant)
     const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
 
-    const [partsResult, vehicleAppsResult, crossRefsResult] = await Promise.all([
-      supabase.from('parts').select('*').match(tenantFilter),
-      supabase.from('vehicle_applications').select('*').match(tenantFilter),
-      supabase.from('cross_references').select('*').match(tenantFilter),
-    ]);
+    const [partsResult, vehicleAppsResult, crossRefsResult] = await Promise.all(
+      [
+        supabase.from("parts").select("*").match(tenantFilter),
+        supabase.from("vehicle_applications").select("*").match(tenantFilter),
+        supabase.from("cross_references").select("*").match(tenantFilter),
+      ]
+    );
 
     if (partsResult.error) throw partsResult.error;
     if (vehicleAppsResult.error) throw vehicleAppsResult.error;
@@ -1304,49 +1363,53 @@ export class ImportService {
   ): Promise<void> {
     // Execute deletes first (prevent constraint violations)
     if (diff.crossReferences.deletes.length > 0) {
-      const ids = diff.crossReferences.deletes.map(d => d.id!).filter(Boolean);
+      const ids = diff.crossReferences.deletes
+        .map((d) => d.id!)
+        .filter(Boolean);
       await this.bulkService.deleteCrossReferences(ids, tenantId);
     }
 
     if (diff.vehicleApplications.deletes.length > 0) {
-      const ids = diff.vehicleApplications.deletes.map(d => d.id!).filter(Boolean);
+      const ids = diff.vehicleApplications.deletes
+        .map((d) => d.id!)
+        .filter(Boolean);
       await this.bulkService.deleteVehicleApplications(ids, tenantId);
     }
 
     if (diff.parts.deletes.length > 0) {
-      const ids = diff.parts.deletes.map(d => d.id!).filter(Boolean);
+      const ids = diff.parts.deletes.map((d) => d.id!).filter(Boolean);
       await this.bulkService.deleteParts(ids, tenantId);
     }
 
     // Execute adds
     if (diff.parts.adds.length > 0) {
-      const data = diff.parts.adds.map(d => d.after!);
+      const data = diff.parts.adds.map((d) => d.after!);
       await this.bulkService.createParts(data as any, tenantId);
     }
 
     if (diff.vehicleApplications.adds.length > 0) {
-      const data = diff.vehicleApplications.adds.map(d => d.after!);
+      const data = diff.vehicleApplications.adds.map((d) => d.after!);
       await this.bulkService.createVehicleApplications(data as any, tenantId);
     }
 
     if (diff.crossReferences.adds.length > 0) {
-      const data = diff.crossReferences.adds.map(d => d.after!);
+      const data = diff.crossReferences.adds.map((d) => d.after!);
       await this.bulkService.createCrossReferences(data as any, tenantId);
     }
 
     // Execute updates
     if (diff.parts.updates.length > 0) {
-      const data = diff.parts.updates.map(d => d.after!);
+      const data = diff.parts.updates.map((d) => d.after!);
       await this.bulkService.updateParts(data as any, tenantId);
     }
 
     if (diff.vehicleApplications.updates.length > 0) {
-      const data = diff.vehicleApplications.updates.map(d => d.after!);
+      const data = diff.vehicleApplications.updates.map((d) => d.after!);
       await this.bulkService.updateVehicleApplications(data as any, tenantId);
     }
 
     if (diff.crossReferences.updates.length > 0) {
-      const data = diff.crossReferences.updates.map(d => d.after!);
+      const data = diff.crossReferences.updates.map((d) => d.after!);
       await this.bulkService.updateCrossReferences(data as any, tenantId);
     }
   }
@@ -1364,29 +1427,34 @@ export class ImportService {
 
     // Get all snapshots for this tenant, ordered by newest first
     const { data: snapshots, error } = await supabase
-      .from('import_history')
-      .select('id, created_at')
+      .from("import_history")
+      .select("id, created_at")
       .match(tenantFilter)
-      .order('created_at', { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) {
-      console.error('[ImportService] Failed to fetch snapshots:', error);
+      console.error("[ImportService] Failed to fetch snapshots:", error);
       return; // Don't fail import if cleanup fails
     }
 
     // Keep last 3, delete rest
     if (snapshots && snapshots.length > 3) {
-      const toDelete = snapshots.slice(3).map(s => s.id);
+      const toDelete = snapshots.slice(3).map((s) => s.id);
 
       const { error: deleteError } = await supabase
-        .from('import_history')
+        .from("import_history")
         .delete()
-        .in('id', toDelete);
+        .in("id", toDelete);
 
       if (deleteError) {
-        console.error('[ImportService] Failed to cleanup old snapshots:', deleteError);
+        console.error(
+          "[ImportService] Failed to cleanup old snapshots:",
+          deleteError
+        );
       } else {
-        console.log(`[ImportService] Cleaned up ${toDelete.length} old snapshots`);
+        console.log(
+          `[ImportService] Cleaned up ${toDelete.length} old snapshots`
+        );
       }
     }
   }
@@ -1420,7 +1488,7 @@ export interface ImportResult {
 // Rollback Service - Sequential rollback with snapshot restoration
 // ============================================================================
 
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from "@/lib/supabase/client";
 
 // ----------------------------------------------------------------------------
 // Rollback Service
@@ -1446,41 +1514,44 @@ export class RollbackService {
     tenantId?: string
   ): Promise<RollbackResult> {
     try {
-      console.log('[RollbackService] Starting rollback to import:', importId);
+      console.log("[RollbackService] Starting rollback to import:", importId);
 
       // Step 1: Validate sequential enforcement
       await this.validateSequentialRollback(importId, tenantId);
 
       // Step 2: Load snapshot
       const { data: importRecord, error: fetchError } = await supabase
-        .from('import_history')
-        .select('*')
-        .eq('id', importId)
+        .from("import_history")
+        .select("*")
+        .eq("id", importId)
         .single();
 
       if (fetchError || !importRecord) {
-        throw new Error('Import record not found');
+        throw new Error("Import record not found");
       }
 
       const snapshot = importRecord.snapshot_data;
-      console.log('[RollbackService] Snapshot loaded');
+      console.log("[RollbackService] Snapshot loaded");
 
       // Step 3: Delete all current data (atomic transaction)
       await this.deleteAllData(tenantId);
-      console.log('[RollbackService] Current data deleted');
+      console.log("[RollbackService] Current data deleted");
 
       // Step 4: Restore snapshot data (atomic transaction)
       await this.restoreSnapshotData(snapshot, tenantId);
-      console.log('[RollbackService] Snapshot data restored');
+      console.log("[RollbackService] Snapshot data restored");
 
       // Step 5: Delete consumed snapshot
       const { error: deleteError } = await supabase
-        .from('import_history')
+        .from("import_history")
         .delete()
-        .eq('id', importId);
+        .eq("id", importId);
 
       if (deleteError) {
-        console.error('[RollbackService] Failed to delete snapshot:', deleteError);
+        console.error(
+          "[RollbackService] Failed to delete snapshot:",
+          deleteError
+        );
         // Don't fail rollback if cleanup fails
       }
 
@@ -1494,9 +1565,9 @@ export class RollbackService {
         },
       };
     } catch (error) {
-      console.error('[RollbackService] Rollback failed:', error);
+      console.error("[RollbackService] Rollback failed:", error);
       throw new Error(
-        `Rollback failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Rollback failed: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }
@@ -1517,22 +1588,22 @@ export class RollbackService {
 
     // Get all snapshots, ordered by newest first
     const { data: snapshots, error } = await supabase
-      .from('import_history')
-      .select('id, created_at')
+      .from("import_history")
+      .select("id, created_at")
       .match(tenantFilter)
-      .order('created_at', { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(3);
 
     if (error) throw error;
 
     if (!snapshots || snapshots.length === 0) {
-      throw new Error('No import snapshots available');
+      throw new Error("No import snapshots available");
     }
 
     // Must be the newest snapshot
     if (snapshots[0].id !== importId) {
       throw new Error(
-        'Must rollback newest import first. Sequential rollback enforced.'
+        "Must rollback newest import first. Sequential rollback enforced."
       );
     }
   }
@@ -1549,9 +1620,9 @@ export class RollbackService {
     const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
 
     // Delete in order: cross_refs → vehicle_apps → parts (cascade safe)
-    await supabase.from('cross_references').delete().match(tenantFilter);
-    await supabase.from('vehicle_applications').delete().match(tenantFilter);
-    await supabase.from('parts').delete().match(tenantFilter);
+    await supabase.from("cross_references").delete().match(tenantFilter);
+    await supabase.from("vehicle_applications").delete().match(tenantFilter);
+    await supabase.from("parts").delete().match(tenantFilter);
   }
 
   // --------------------------------------------------------------------------
@@ -1562,17 +1633,23 @@ export class RollbackService {
    * Restore snapshot data in atomic transaction
    * Preserves UUIDs, timestamps, and all metadata
    */
-  private async restoreSnapshotData(snapshot: any, tenantId?: string): Promise<void> {
+  private async restoreSnapshotData(
+    snapshot: any,
+    tenantId?: string
+  ): Promise<void> {
     // Restore parts first (parent table)
     if (snapshot.parts && snapshot.parts.length > 0) {
-      const { error } = await supabase.from('parts').insert(snapshot.parts);
+      const { error } = await supabase.from("parts").insert(snapshot.parts);
       if (error) throw error;
     }
 
     // Restore vehicle applications
-    if (snapshot.vehicle_applications && snapshot.vehicle_applications.length > 0) {
+    if (
+      snapshot.vehicle_applications &&
+      snapshot.vehicle_applications.length > 0
+    ) {
       const { error } = await supabase
-        .from('vehicle_applications')
+        .from("vehicle_applications")
         .insert(snapshot.vehicle_applications);
       if (error) throw error;
     }
@@ -1580,7 +1657,7 @@ export class RollbackService {
     // Restore cross references
     if (snapshot.cross_references && snapshot.cross_references.length > 0) {
       const { error } = await supabase
-        .from('cross_references')
+        .from("cross_references")
         .insert(snapshot.cross_references);
       if (error) throw error;
     }
@@ -1597,10 +1674,12 @@ export class RollbackService {
     const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
 
     const { data, error } = await supabase
-      .from('import_history')
-      .select('id, created_at, file_name, rows_imported, import_summary, imported_by')
+      .from("import_history")
+      .select(
+        "id, created_at, file_name, rows_imported, import_summary, imported_by"
+      )
       .match(tenantFilter)
-      .order('created_at', { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(3);
 
     if (error) throw error;
@@ -1644,6 +1723,7 @@ export interface ImportSnapshot {
 **Problem**: What happens when records are manually edited between import and rollback?
 
 **Scenario**:
+
 ```
 Timeline:
 T1: Import A executed (100 parts updated via Excel)
@@ -1713,7 +1793,8 @@ try {
       title: "Cannot Rollback",
       message: `${error.conflictCount} part(s) were manually edited after this import.`,
       affectedParts: error.conflictingParts,
-      guidance: "To rollback, you must first manually revert changes to these parts, or accept that manual edits will be lost."
+      guidance:
+        "To rollback, you must first manually revert changes to these parts, or accept that manual edits will be lost.",
     });
   }
 }
@@ -1778,21 +1859,24 @@ CREATE TRIGGER update_cross_references_updated_at
 **Import API**: `src/app/api/admin/import/route.ts`
 
 ```typescript
-import { NextRequest, NextResponse } from 'next/server';
-import { ExcelImportService } from '@/services/excel/import/ExcelImportService';
-import { ValidationEngine, ExistingDataSnapshot } from '@/services/excel/import/ValidationEngine';
-import { DiffEngine } from '@/services/excel/import/DiffEngine';
-import { ImportService } from '@/services/excel/import/ImportService';
-import { supabase } from '@/lib/supabase/client';
+import { NextRequest, NextResponse } from "next/server";
+import { ExcelImportService } from "@/services/excel/import/ExcelImportService";
+import {
+  ValidationEngine,
+  ExistingDataSnapshot,
+} from "@/services/excel/import/ValidationEngine";
+import { DiffEngine } from "@/services/excel/import/DiffEngine";
+import { ImportService } from "@/services/excel/import/ImportService";
+import { supabase } from "@/lib/supabase/client";
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const file = formData.get('file') as File;
-    const action = formData.get('action') as string; // 'validate' | 'execute'
+    const file = formData.get("file") as File;
+    const action = formData.get("action") as string; // 'validate' | 'execute'
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
     // Step 1: Parse Excel file
@@ -1805,8 +1889,9 @@ export async function POST(req: NextRequest) {
     if (!importService.isExportedFile(parsed)) {
       return NextResponse.json(
         {
-          error: 'Invalid file format',
-          message: 'File must be exported from ACR system. Please export first, then modify and re-import.',
+          error: "Invalid file format",
+          message:
+            "File must be exported from ACR system. Please export first, then modify and re-import.",
         },
         { status: 400 }
       );
@@ -1835,7 +1920,7 @@ export async function POST(req: NextRequest) {
     const diffEngine = new DiffEngine();
     const diff = await diffEngine.generateDiff(parsed, existingData);
 
-    if (action === 'validate') {
+    if (action === "validate") {
       // Return validation + diff for preview
       return NextResponse.json({
         success: true,
@@ -1844,7 +1929,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (action === 'execute') {
+    if (action === "execute") {
       // Step 5: Execute import
       const importSvc = new ImportService();
       const result = await importSvc.executeImport(parsed, diff);
@@ -1855,13 +1940,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error) {
-    console.error('[API /admin/import] Error:', error);
+    console.error("[API /admin/import] Error:", error);
     return NextResponse.json(
       {
-        error: 'Import failed',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: "Import failed",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
@@ -1870,15 +1955,19 @@ export async function POST(req: NextRequest) {
 
 async function loadExistingData(): Promise<ExistingDataSnapshot> {
   const [partsResult, vehicleAppsResult, crossRefsResult] = await Promise.all([
-    supabase.from('parts').select('*'),
-    supabase.from('vehicle_applications').select('*'),
-    supabase.from('cross_references').select('*'),
+    supabase.from("parts").select("*"),
+    supabase.from("vehicle_applications").select("*"),
+    supabase.from("cross_references").select("*"),
   ]);
 
   return {
-    parts: new Map((partsResult.data || []).map(p => [p.id, p as any])),
-    vehicleApplications: new Map((vehicleAppsResult.data || []).map(v => [v.id, v as any])),
-    crossReferences: new Map((crossRefsResult.data || []).map(c => [c.id, c as any])),
+    parts: new Map((partsResult.data || []).map((p) => [p.id, p as any])),
+    vehicleApplications: new Map(
+      (vehicleAppsResult.data || []).map((v) => [v.id, v as any])
+    ),
+    crossReferences: new Map(
+      (crossRefsResult.data || []).map((c) => [c.id, c as any])
+    ),
   };
 }
 ```
@@ -1886,15 +1975,18 @@ async function loadExistingData(): Promise<ExistingDataSnapshot> {
 **Rollback API**: `src/app/api/admin/rollback/route.ts` (updated with conflict detection)
 
 ```typescript
-import { NextRequest, NextResponse } from 'next/server';
-import { RollbackService } from '@/services/excel/rollback/RollbackService';
+import { NextRequest, NextResponse } from "next/server";
+import { RollbackService } from "@/services/excel/rollback/RollbackService";
 
 export async function POST(req: NextRequest) {
   try {
     const { importId } = await req.json();
 
     if (!importId) {
-      return NextResponse.json({ error: 'Import ID required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Import ID required" },
+        { status: 400 }
+      );
     }
 
     const rollbackService = new RollbackService();
@@ -1905,11 +1997,11 @@ export async function POST(req: NextRequest) {
       result,
     });
   } catch (error) {
-    console.error('[API /admin/rollback] Error:', error);
+    console.error("[API /admin/rollback] Error:", error);
     return NextResponse.json(
       {
-        error: 'Rollback failed',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: "Rollback failed",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
@@ -1926,11 +2018,11 @@ export async function GET(req: NextRequest) {
       snapshots,
     });
   } catch (error) {
-    console.error('[API /admin/rollback] Error:', error);
+    console.error("[API /admin/rollback] Error:", error);
     return NextResponse.json(
       {
-        error: 'Failed to fetch snapshots',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: "Failed to fetch snapshots",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
@@ -2276,18 +2368,19 @@ export function RollbackManager() {
 
 ### Test Coverage
 
-| Test Type | Hours | Description |
-|-----------|-------|-------------|
-| Excel Parsing Tests | 1.0h | Valid/invalid files, hidden columns, encoding |
-| Validation Engine Tests | 1.5h | All 23 error rules + 12 warning rules |
-| Diff Engine Tests | 1.0h | ID matching, adds/updates/deletes, edge cases |
-| Import Integration Tests | 1.5h | Full import flow, snapshot creation, atomicity |
-| Rollback Integration Tests | 1.0h | Sequential enforcement, snapshot restoration |
-| UI Component Tests | 0.5h | Import wizard, rollback manager |
+| Test Type                  | Hours | Description                                    |
+| -------------------------- | ----- | ---------------------------------------------- |
+| Excel Parsing Tests        | 1.0h  | Valid/invalid files, hidden columns, encoding  |
+| Validation Engine Tests    | 1.5h  | All 23 error rules + 12 warning rules          |
+| Diff Engine Tests          | 1.0h  | ID matching, adds/updates/deletes, edge cases  |
+| Import Integration Tests   | 1.5h  | Full import flow, snapshot creation, atomicity |
+| Rollback Integration Tests | 1.0h  | Sequential enforcement, snapshot restoration   |
+| UI Component Tests         | 0.5h  | Import wizard, rollback manager                |
 
 ### Critical Test Cases
 
 **Excel Parsing**:
+
 - ✅ Valid exported file with hidden IDs
 - ❌ File without hidden IDs (should reject)
 - ❌ Corrupted Excel file
@@ -2295,6 +2388,7 @@ export function RollbackManager() {
 - ✅ Special characters in data
 
 **Validation Rules**:
+
 - ❌ E1: Missing hidden IDs
 - ❌ E2: Duplicate ACR_SKU
 - ❌ E5: Orphaned foreign keys
@@ -2302,18 +2396,21 @@ export function RollbackManager() {
 - ⚠️ W2: Large price increase (>50%)
 
 **Diff Engine**:
+
 - ✅ ID-based matching (no field fallback)
-- ✅ Detect add (row with no _id)
-- ✅ Detect update (row with _id, field changed)
+- ✅ Detect add (row with no \_id)
+- ✅ Detect update (row with \_id, field changed)
 - ✅ Detect delete (existing row not in upload)
 
 **Import Flow**:
+
 - ✅ Snapshot created before changes
 - ✅ Atomic transaction (all-or-nothing)
 - ✅ Import history saved correctly
 - ✅ Old snapshots cleaned up (keep last 3)
 
 **Rollback Flow**:
+
 - ❌ Cannot rollback out of order (sequential enforcement)
 - ✅ Rollback restores exact snapshot state
 - ✅ Snapshot deleted after successful rollback
@@ -2326,6 +2423,7 @@ export function RollbackManager() {
 ### Week 1: Excel Parsing + Validation (14-16 hours)
 
 **Day 1-2 (8h)**: Excel Import Service
+
 - [ ] Create `ExcelImportService.ts`
 - [ ] Implement `parseFile()` with SheetJS
 - [ ] Add hidden column detection
@@ -2333,6 +2431,7 @@ export function RollbackManager() {
 - [ ] Write unit tests (1h)
 
 **Day 3-4 (6-8h)**: Validation Engine
+
 - [ ] Create `ValidationEngine.ts`
 - [ ] Implement Zod schema validation
 - [ ] Implement 23 error rules
@@ -2344,6 +2443,7 @@ export function RollbackManager() {
 ### Week 2: Diff Engine + Import Service (14-16 hours)
 
 **Day 1-2 (6-8h)**: Diff Engine
+
 - [ ] Create `DiffEngine.ts`
 - [ ] Implement ID-based matching
 - [ ] Implement add/update/delete detection
@@ -2351,6 +2451,7 @@ export function RollbackManager() {
 - [ ] Write unit tests (1h)
 
 **Day 3-4 (8h)**: Import Service
+
 - [ ] Create `ImportService.ts`
 - [ ] Implement snapshot creation
 - [ ] Implement bulk operations execution
@@ -2362,6 +2463,7 @@ export function RollbackManager() {
 ### Week 3: Rollback + API Routes (14-16 hours)
 
 **Day 1-2 (6-8h)**: Rollback Service
+
 - [ ] Create `RollbackService.ts`
 - [ ] Implement sequential enforcement validation
 - [ ] Implement snapshot restoration
@@ -2369,6 +2471,7 @@ export function RollbackManager() {
 - [ ] Write integration tests (1h)
 
 **Day 3-4 (8h)**: API Routes
+
 - [ ] Create `/api/admin/import` route
 - [ ] Create `/api/admin/rollback` route
 - [ ] Add error handling and logging
@@ -2379,6 +2482,7 @@ export function RollbackManager() {
 ### Week 4: Admin UI Components (6-9 hours)
 
 **Day 1-2 (4-5h)**: Import Wizard
+
 - [ ] Create `ImportWizard.tsx`
 - [ ] Implement 4-step flow (upload → validate → preview → execute)
 - [ ] Add validation error display
@@ -2386,6 +2490,7 @@ export function RollbackManager() {
 - [ ] Add warning review section
 
 **Day 2-3 (2-4h)**: Rollback Manager
+
 - [ ] Create `RollbackManager.tsx`
 - [ ] Display last 3 snapshots
 - [ ] Add sequential enforcement UI (lock older snapshots)
@@ -2397,6 +2502,7 @@ export function RollbackManager() {
 ## Success Criteria
 
 ✅ **Functional Requirements**:
+
 - Import wizard completes full flow (upload → validate → preview → execute)
 - All 23 error rules block import
 - All 12 warning rules display but allow proceed
@@ -2405,18 +2511,21 @@ export function RollbackManager() {
 - Last 3 snapshots visible, auto-cleanup works
 
 ✅ **Performance Requirements**:
+
 - Validation completes in <5 seconds for 10,000 rows
 - Import execution completes in <30 seconds for 10,000 rows
 - Snapshot creation completes in <10 seconds
 - Rollback completes in <30 seconds
 
 ✅ **Data Integrity**:
+
 - All operations use atomic transactions
 - No orphaned records after import
 - Snapshots restore 100% accurate data
 - Foreign key constraints enforced
 
 ✅ **UX Requirements**:
+
 - Clear error messages with row numbers
 - Visual diff preview before execute
 - Confirmation modals for destructive actions
@@ -2429,6 +2538,7 @@ export function RollbackManager() {
 ### High Risk: Import Corrupts Data
 
 **Mitigation**:
+
 - Atomic transactions (all-or-nothing)
 - Snapshot created BEFORE any changes
 - Comprehensive validation (3 layers: Zod → Business → DB)
@@ -2437,6 +2547,7 @@ export function RollbackManager() {
 ### Medium Risk: Rollback Fails
 
 **Mitigation**:
+
 - Sequential enforcement prevents out-of-order rollbacks
 - Full snapshot stored in JSONB (no reconstruction)
 - Atomic transaction for restore operation
@@ -2445,6 +2556,7 @@ export function RollbackManager() {
 ### Low Risk: Performance Issues
 
 **Mitigation**:
+
 - Bulk operations from Phase 1 (optimized)
 - Database indexes already in place
 - JSONB for snapshots (efficient storage)

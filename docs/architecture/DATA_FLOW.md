@@ -1,3 +1,7 @@
+---
+title: "Data Flow & Request Lifecycle"
+---
+
 # Data Flow & Request Lifecycle
 
 > **Purpose**: Request lifecycle, data flow patterns, and caching strategy
@@ -165,12 +169,14 @@
 ### Search Performance Optimizations
 
 **1. Trigram Indexes**
+
 ```sql
 CREATE INDEX idx_parts_acr_sku_trgm ON parts USING gin (acr_sku gin_trgm_ops);
 CREATE INDEX idx_cross_references_competitor_sku_trgm ON cross_references USING gin (competitor_sku gin_trgm_ops);
 ```
 
 **2. Multi-Stage Search** (Fast → Slow)
+
 ```sql
 -- Stage 1: Exact match (fastest)
 SELECT * FROM parts WHERE acr_sku ILIKE 'ACR-BR-001';
@@ -187,6 +193,7 @@ WHERE similarity(va.make || ' ' || va.model, 'toyota camry') > 0.3;
 ```
 
 **3. No N+1 Queries for Images**
+
 ```typescript
 // ❌ N+1 Query Problem
 for (const part of parts) {
@@ -199,7 +206,7 @@ for (const part of parts) {
 }
 
 // ✅ Single Batch Query
-const partIds = parts.map(p => p.id);
+const partIds = parts.map((p) => p.id);
 const { data: images } = await supabase
   .from("part_images")
   .select("part_id, image_url")
@@ -298,6 +305,7 @@ const { data: images } = await supabase
 ```
 
 **Files**:
+
 - Hook: [src/hooks/admin/useCreatePart.ts](../../src/hooks/admin/useCreatePart.ts)
 - API: [src/app/api/admin/parts/route.ts](../../src/app/api/admin/parts/route.ts)
 
@@ -366,6 +374,7 @@ const { data: images } = await supabase
 ```
 
 **Database Schema** (CASCADE):
+
 ```sql
 CREATE TABLE vehicle_applications (
   id UUID PRIMARY KEY,
@@ -460,21 +469,21 @@ CREATE TABLE vehicle_applications (
 ### Atomicity Guarantee
 
 **PostgreSQL Multi-Row INSERT is Atomic**:
+
 ```typescript
 // This is ALL or NOTHING
-const { data, error } = await supabase
-  .from("parts")
-  .insert([
-    { acr_sku: "ACR-001", part_type: "Brake Rotor" },
-    { acr_sku: "ACR-002", part_type: "Brake Pad" },
-    { acr_sku: "ACR-001", part_type: "Brake Caliper" },  // DUPLICATE SKU
-  ]);
+const { data, error } = await supabase.from("parts").insert([
+  { acr_sku: "ACR-001", part_type: "Brake Rotor" },
+  { acr_sku: "ACR-002", part_type: "Brake Pad" },
+  { acr_sku: "ACR-001", part_type: "Brake Caliper" }, // DUPLICATE SKU
+]);
 
 // Result: error = "duplicate key value violates unique constraint"
 // ALL rows rolled back, NONE inserted
 ```
 
 **Why This Matters**:
+
 - No partial failures
 - Database stays consistent
 - Easier error handling (no cleanup needed)
@@ -633,37 +642,41 @@ async function fetchAllParts() {
 ### Stale Time Strategy
 
 **Parts List** (Medium Change Frequency):
+
 ```typescript
 useQuery({
   queryKey: queryKeys.parts.list(filters),
   queryFn: fetchParts,
-  staleTime: 5 * 60 * 1000,   // 5 minutes
-  gcTime: 10 * 60 * 1000,     // 10 minutes
+  staleTime: 5 * 60 * 1000, // 5 minutes
+  gcTime: 10 * 60 * 1000, // 10 minutes
 });
 ```
 
 **Timeline**:
+
 - **0:00 - 5:00**: Data FRESH (no refetch on remount)
 - **5:00 - 10:00**: Data STALE (background refetch on remount)
 - **10:00+**: Data GARBAGE COLLECTED (removed from memory)
 
 **Site Settings** (Low Change Frequency):
+
 ```typescript
 useQuery({
   queryKey: ["settings"],
   queryFn: fetchSettings,
-  staleTime: 15 * 60 * 1000,  // 15 minutes
-  gcTime: 30 * 60 * 1000,     // 30 minutes
+  staleTime: 15 * 60 * 1000, // 15 minutes
+  gcTime: 30 * 60 * 1000, // 30 minutes
 });
 ```
 
 **Stats** (High Change Frequency):
+
 ```typescript
 useQuery({
   queryKey: ["admin", "stats"],
   queryFn: fetchStats,
-  staleTime: 30 * 1000,       // 30 seconds
-  gcTime: 60 * 1000,          // 1 minute
+  staleTime: 30 * 1000, // 30 seconds
+  gcTime: 60 * 1000, // 1 minute
 });
 ```
 
@@ -672,6 +685,7 @@ useQuery({
 ### Cache Invalidation Patterns
 
 **After Create**:
+
 ```typescript
 onSuccess: () => {
   // Invalidate lists (new item added)
@@ -683,10 +697,11 @@ onSuccess: () => {
   queryClient.invalidateQueries({
     queryKey: queryKeys.admin.stats(),
   });
-}
+};
 ```
 
 **After Update**:
+
 ```typescript
 onSuccess: (_, variables) => {
   // Invalidate specific item
@@ -698,10 +713,11 @@ onSuccess: (_, variables) => {
   queryClient.invalidateQueries({
     queryKey: queryKeys.parts.lists(),
   });
-}
+};
 ```
 
 **After Delete**:
+
 ```typescript
 onSuccess: (_, variables) => {
   // Remove from cache
@@ -716,7 +732,7 @@ onSuccess: (_, variables) => {
 
   // Invalidate related data
   invalidatePartRelatedQueries(queryClient, variables.id);
-}
+};
 ```
 
 ---
@@ -738,7 +754,7 @@ for (const part of parts) {
 
 ```typescript
 // ✅ Single Batch Query
-const partIds = parts.map(p => p.id);
+const partIds = parts.map((p) => p.id);
 const images = await supabase
   .from("part_images")
   .select("part_id, image_url")
@@ -765,11 +781,7 @@ await createPart3();
 
 ```typescript
 // ✅ Parallel (fast)
-await Promise.all([
-  createPart1(),
-  createPart2(),
-  createPart3(),
-]);
+await Promise.all([createPart1(), createPart2(), createPart3()]);
 // Total: 1 x query time (concurrent)
 ```
 
@@ -778,6 +790,7 @@ await Promise.all([
 ### 3. Pagination for Large Lists
 
 **Client-Side Pagination** (all data at once):
+
 ```typescript
 // ❌ Fetch all 9,600 parts at once
 const { data } = await supabase.from("parts").select("*");
@@ -785,6 +798,7 @@ const { data } = await supabase.from("parts").select("*");
 ```
 
 **Server-Side Pagination** (page by page):
+
 ```typescript
 // ✅ Fetch 50 parts at a time
 const { data, count } = await supabase
@@ -800,11 +814,13 @@ const { data, count } = await supabase
 ### 4. Index Usage
 
 **Trigram Indexes for Fuzzy Search**:
+
 ```sql
 CREATE INDEX idx_parts_acr_sku_trgm ON parts USING gin (acr_sku gin_trgm_ops);
 ```
 
 **B-tree Indexes for Exact Match**:
+
 ```sql
 CREATE UNIQUE INDEX idx_parts_acr_sku ON parts (acr_sku);
 CREATE INDEX idx_vehicle_applications_part_id ON vehicle_applications (part_id);

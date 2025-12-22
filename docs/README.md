@@ -1,3 +1,7 @@
+---
+title: "ACR Automotive Documentation Index"
+---
+
 # ACR Automotive Documentation Index
 
 > **Navigation guide** for all project documentation

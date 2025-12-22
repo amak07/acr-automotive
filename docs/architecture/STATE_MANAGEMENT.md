@@ -1,3 +1,7 @@
+---
+title: "State Management"
+---
+
 # State Management
 
 > **Purpose**: TanStack Query and React Context patterns for client-side state
@@ -21,6 +25,7 @@
 ### State Categories
 
 **Server State** (data from API):
+
 - Parts list
 - Vehicle applications
 - Cross references
@@ -28,12 +33,14 @@
 - **Managed by**: TanStack Query
 
 **UI State** (local to application):
+
 - Current locale (en/es)
 - Form state (inputs, validation)
 - Modal open/closed
 - **Managed by**: React Context + useState
 
 **URL State** (shareable/bookmarkable):
+
 - Search filters
 - Pagination (offset, limit)
 - Sort order
@@ -46,6 +53,7 @@
 **Decision**: Use TanStack Query + Context instead of Zustand.
 
 **Rationale**:
+
 - **TanStack Query** handles 80% of state (server data)
 - **React Context** handles remaining 20% (locale, UI)
 - Avoid unnecessary dependencies
@@ -60,6 +68,7 @@
 ### Why TanStack Query
 
 **Problems It Solves**:
+
 1. Caching (avoid refetching same data)
 2. Background updates (keep data fresh)
 3. Loading states (automatic loading/error/success)
@@ -90,7 +99,9 @@ export function useGetParts(queryParams: AdminPartsQueryParams) {
       searchParams.append("limit", queryParams.limit.toString());
       // ... add other params
 
-      const response = await fetch(`/api/admin/parts?${searchParams.toString()}`);
+      const response = await fetch(
+        `/api/admin/parts?${searchParams.toString()}`
+      );
       if (!response.ok) throw new Error("failed to fetch parts list");
 
       const result = await response.json();
@@ -98,13 +109,14 @@ export function useGetParts(queryParams: AdminPartsQueryParams) {
     },
 
     // 3. Cache options
-    staleTime: 5 * 60 * 1000,  // 5 minutes (data considered fresh)
-    gcTime: 10 * 60 * 1000,    // 10 minutes (cache kept in memory)
+    staleTime: 5 * 60 * 1000, // 5 minutes (data considered fresh)
+    gcTime: 10 * 60 * 1000, // 10 minutes (cache kept in memory)
   });
 }
 ```
 
 **Usage in Component**:
+
 ```typescript
 function PartsListPage() {
   const { data, isLoading, error } = useGetParts({
@@ -128,6 +140,7 @@ function PartsListPage() {
 ```
 
 **Benefits**:
+
 - **Automatic loading state**: No `useState` needed
 - **Automatic caching**: Same query = no refetch
 - **Automatic error handling**: No try-catch needed
@@ -174,6 +187,7 @@ export function useCreatePart() {
 ```
 
 **Usage in Component**:
+
 ```typescript
 function CreatePartForm() {
   const createPart = useCreatePart();
@@ -199,6 +213,7 @@ function CreatePartForm() {
 ```
 
 **Benefits**:
+
 - **Automatic invalidation**: Parts list refreshes after creation
 - **Loading state**: `isPending` for button disable
 - **Error handling**: Try-catch for error toast
@@ -228,8 +243,7 @@ export const queryKeys = {
     list: (filters: Record<string, any>) =>
       [...queryKeys.parts.lists(), { filters }] as const,
     details: () => [...queryKeys.parts.all, "detail"] as const,
-    detail: (id: string) =>
-      [...queryKeys.parts.details(), { id }] as const,
+    detail: (id: string) => [...queryKeys.parts.details(), { id }] as const,
   },
 
   vehicleApplications: {
@@ -264,6 +278,7 @@ export const queryKeys = {
 ```
 
 **Query Key Hierarchy**:
+
 ```
 ["parts"]                          // All parts queries
 ["parts", "list"]                  // All parts list queries
@@ -273,6 +288,7 @@ export const queryKeys = {
 ```
 
 **Invalidation Strategy**:
+
 ```typescript
 // Invalidate ALL parts queries
 queryClient.invalidateQueries({ queryKey: queryKeys.parts.all });
@@ -287,16 +303,24 @@ queryClient.invalidateQueries({
 ```
 
 **Helper Function**:
+
 ```typescript
-export const invalidatePartRelatedQueries = (queryClient: any, partId: string) => {
+export const invalidatePartRelatedQueries = (
+  queryClient: any,
+  partId: string
+) => {
   // Invalidate the specific part
   queryClient.invalidateQueries({ queryKey: queryKeys.parts.detail(partId) });
 
   // Invalidate vehicle applications for this part
-  queryClient.invalidateQueries({ queryKey: queryKeys.vehicleApplications.byPart(partId) });
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.vehicleApplications.byPart(partId),
+  });
 
   // Invalidate cross references for this part
-  queryClient.invalidateQueries({ queryKey: queryKeys.crossReferences.byPart(partId) });
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.crossReferences.byPart(partId),
+  });
 
   // Invalidate parts list (counts may have changed)
   queryClient.invalidateQueries({ queryKey: queryKeys.parts.lists() });
@@ -371,6 +395,7 @@ export function useLocale() {
 ```
 
 **Usage**:
+
 ```typescript
 // In root layout
 export default function RootLayout({ children }) {
@@ -401,11 +426,13 @@ function Header() {
 ### When to Use Context
 
 **Use Context For**:
+
 - Global UI state (theme, locale, sidebar state)
 - Infrequently changing data
 - Avoiding prop drilling
 
 **Don't Use Context For**:
+
 - Server data (use TanStack Query)
 - Frequently changing data (causes re-renders)
 - Data with complex invalidation logic
@@ -421,6 +448,7 @@ function Header() {
 **Purpose**: Sync component state with URL search params (shareable URLs).
 
 **Pattern**:
+
 ```typescript
 export function useURLState<T>(key: string, defaultValue: T) {
   const router = useRouter();
@@ -443,6 +471,7 @@ export function useURLState<T>(key: string, defaultValue: T) {
 ```
 
 **Usage**:
+
 ```typescript
 function PartsListPage() {
   const [search, setSearch] = useURLState("search", "");
@@ -462,6 +491,7 @@ function PartsListPage() {
 ```
 
 **Benefits**:
+
 - Shareable URLs (`/admin/parts?search=brake`)
 - Browser back/forward works
 - Bookmark-able filtered views
@@ -475,6 +505,7 @@ function PartsListPage() {
 **Purpose**: Preserve search params when navigating (e.g., back button keeps filters).
 
 **Pattern**:
+
 ```typescript
 export function usePreserveSearchParams() {
   const searchParams = useSearchParams();
@@ -489,6 +520,7 @@ export function usePreserveSearchParams() {
 ```
 
 **Usage**:
+
 ```typescript
 function PartRow({ part }: { part: PartSummary }) {
   const { getHref } = usePreserveSearchParams();
@@ -521,12 +553,13 @@ function PartRow({ part }: { part: PartSummary }) {
 useQuery({
   queryKey: ["parts"],
   queryFn: fetchParts,
-  staleTime: 5 * 60 * 1000,   // 5 minutes (fresh)
-  gcTime: 10 * 60 * 1000,     // 10 minutes (in memory)
+  staleTime: 5 * 60 * 1000, // 5 minutes (fresh)
+  gcTime: 10 * 60 * 1000, // 10 minutes (in memory)
 });
 ```
 
 **Timeline**:
+
 ```
 0:00 - Query executes, data fetched
 0:00 - 5:00  → Data is FRESH (no refetch on component remount)
@@ -535,6 +568,7 @@ useQuery({
 ```
 
 **Recommended Values**:
+
 - **Fast-changing data** (user activity): `staleTime: 30s, gcTime: 1min`
 - **Medium data** (parts list): `staleTime: 5min, gcTime: 10min`
 - **Slow-changing data** (site settings): `staleTime: 15min, gcTime: 30min`
@@ -546,9 +580,12 @@ useQuery({
 **When**: After mutations (create, update, delete).
 
 **Pattern**:
+
 ```typescript
 const createPart = useMutation({
-  mutationFn: async (data) => { /* ... */ },
+  mutationFn: async (data) => {
+    /* ... */
+  },
   onSuccess: () => {
     // Invalidate all parts lists
     queryClient.invalidateQueries({
@@ -559,6 +596,7 @@ const createPart = useMutation({
 ```
 
 **Specific vs Broad Invalidation**:
+
 ```typescript
 // ✅ Specific (efficient)
 queryClient.invalidateQueries({
@@ -579,7 +617,9 @@ queryClient.invalidateQueries({
 
 ```typescript
 const updatePart = useMutation({
-  mutationFn: async (data) => { /* ... */ },
+  mutationFn: async (data) => {
+    /* ... */
+  },
 
   onMutate: async (newData) => {
     // Cancel outgoing queries
@@ -588,7 +628,9 @@ const updatePart = useMutation({
     });
 
     // Snapshot previous value
-    const previous = queryClient.getQueryData(queryKeys.parts.detail(newData.id));
+    const previous = queryClient.getQueryData(
+      queryKeys.parts.detail(newData.id)
+    );
 
     // Optimistically update cache
     queryClient.setQueryData(queryKeys.parts.detail(newData.id), newData);
@@ -615,6 +657,7 @@ const updatePart = useMutation({
 ```
 
 **When to Use**:
+
 - Frequent updates (toggle active status)
 - User expects instant feedback
 - Network is slow

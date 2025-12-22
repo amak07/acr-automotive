@@ -1,3 +1,7 @@
+---
+title: "ENHANCEMENTS.md - Technical Enhancement Roadmap"
+---
+
 # ENHANCEMENTS.md - Technical Enhancement Roadmap
 
 > **Post-MVP Technical Improvements**: Prioritized enhancements for system scalability, performance, and functionality.

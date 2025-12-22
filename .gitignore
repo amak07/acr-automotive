@@ -109,6 +109,9 @@ uploads/
 # Generated types
 /generated/
 
+# Fumadocs generated files
+.source/
+
 # Bulk upload test photos (keep CTK512016 as reference)
 public/ACR*/
 public/IMAGENES*/

@@ -1,3 +1,7 @@
+---
+title: "Excel Export Service Documentation"
+---
+
 # Excel Export Service Documentation
 
 > **Phase 8.1 Implementation**: Complete catalog export to Excel with hidden ID columns
@@ -23,6 +27,7 @@ PostgreSQL → Catalog data (9,593 records)
 ```
 
 **Why ExcelJS over SheetJS:**
+
 - ✅ **Free hidden columns** - Community edition supports column.hidden property
 - ✅ **Full Excel features** - Frozen panes, column widths, cell formatting
 - ✅ **Better performance** - Handles large datasets efficiently
@@ -47,12 +52,14 @@ PostgreSQL → Catalog data (9,593 records)
 Download complete catalog in Excel format.
 
 **Request:**
+
 ```http
 GET /api/admin/export HTTP/1.1
 Host: localhost:3000
 ```
 
 **Response:**
+
 ```http
 HTTP/1.1 200 OK
 Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
@@ -67,6 +74,7 @@ X-Export-Total: 9593
 ```
 
 **Response Headers:**
+
 - `Content-Type` - Excel MIME type
 - `Content-Disposition` - Download with timestamped filename
 - `X-Export-Parts` - Number of parts exported
@@ -75,18 +83,20 @@ X-Export-Total: 9593
 - `X-Export-Total` - Total records exported
 
 **Example (curl):**
+
 ```bash
 curl http://localhost:3000/api/admin/export > export.xlsx
 ```
 
 **Example (JavaScript):**
+
 ```javascript
-const response = await fetch('/api/admin/export');
+const response = await fetch("/api/admin/export");
 const blob = await response.blob();
 const url = window.URL.createObjectURL(blob);
-const a = document.createElement('a');
+const a = document.createElement("a");
 a.href = url;
-a.download = `acr-catalog-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+a.download = `acr-catalog-export-${new Date().toISOString().split("T")[0]}.xlsx`;
 a.click();
 ```
 
@@ -97,8 +107,8 @@ a.click();
 **Columns:**
 | Column | Header | Key | Width | Hidden | Description |
 |--------|--------|-----|-------|--------|-------------|
-| A | _id | id | 36 | ✓ | Part UUID (for update matching) |
-| B | _tenant_id | tenant_id | 36 | ✓ | Tenant UUID (NULL for MVP) |
+| A | \_id | id | 36 | ✓ | Part UUID (for update matching) |
+| B | \_tenant_id | tenant_id | 36 | ✓ | Tenant UUID (NULL for MVP) |
 | C | ACR_SKU | acr_sku | 15 | ✗ | ACR part number (visible) |
 | D | Part_Type | part_type | 20 | ✗ | Part category (visible) |
 | E | Description | description | 40 | ✗ | Part description (visible) |
@@ -106,6 +116,7 @@ a.click();
 | G | Notes | notes | 30 | ✗ | Additional notes (visible) |
 
 **Features:**
+
 - Frozen header row (first row stays visible when scrolling)
 - Hidden ID columns (columns A & B)
 - Sorted by ACR_SKU ascending
@@ -115,9 +126,9 @@ a.click();
 **Columns:**
 | Column | Header | Key | Width | Hidden | Description |
 |--------|--------|-----|-------|--------|-------------|
-| A | _id | id | 36 | ✓ | Vehicle application UUID |
-| B | _tenant_id | tenant_id | 36 | ✓ | Tenant UUID (NULL for MVP) |
-| C | _part_id | part_id | 36 | ✓ | Foreign key to parts table |
+| A | \_id | id | 36 | ✓ | Vehicle application UUID |
+| B | \_tenant_id | tenant_id | 36 | ✓ | Tenant UUID (NULL for MVP) |
+| C | \_part_id | part_id | 36 | ✓ | Foreign key to parts table |
 | D | Make | make | 15 | ✗ | Vehicle make (Honda, Toyota, etc.) |
 | E | Model | model | 20 | ✗ | Vehicle model (Civic, Camry, etc.) |
 | F | Start_Year | start_year | 12 | ✗ | First year of fitment |
@@ -126,6 +137,7 @@ a.click();
 | I | Notes | notes | 30 | ✗ | Additional notes (optional) |
 
 **Features:**
+
 - Frozen header row
 - Hidden ID columns (columns A, B, C)
 - Sorted by part_id, make, model, start_year
@@ -135,13 +147,14 @@ a.click();
 **Columns:**
 | Column | Header | Key | Width | Hidden | Description |
 |--------|--------|-----|-------|--------|-------------|
-| A | _id | id | 36 | ✓ | Cross-reference UUID |
-| B | _tenant_id | tenant_id | 36 | ✓ | Tenant UUID (NULL for MVP) |
-| C | _part_id | acr_part_id | 36 | ✓ | Foreign key to parts table |
+| A | \_id | id | 36 | ✓ | Cross-reference UUID |
+| B | \_tenant_id | tenant_id | 36 | ✓ | Tenant UUID (NULL for MVP) |
+| C | \_part_id | acr_part_id | 36 | ✓ | Foreign key to parts table |
 | D | Competitor_Brand | competitor_brand | 20 | ✗ | Competitor brand name |
 | E | Competitor_SKU | competitor_sku | 20 | ✗ | Competitor part number |
 
 **Features:**
+
 - Frozen header row
 - Hidden ID columns (columns A, B, C)
 - Sorted by acr_part_id, competitor_brand, competitor_sku
@@ -155,18 +168,21 @@ Located in: `src/lib/services/ExcelExportService.ts`
 ```typescript
 export class ExcelExportService {
   // Main export method
-  async exportAllData(): Promise<Buffer>
+  async exportAllData(): Promise<Buffer>;
 
   // Pagination helper (bypasses PostgREST 1000-row limit)
-  private async fetchAllRows(tableName: string, orderBy: string): Promise<any[]>
+  private async fetchAllRows(
+    tableName: string,
+    orderBy: string
+  ): Promise<any[]>;
 
   // Sheet builders
-  private addPartsSheet(workbook: ExcelJS.Workbook, parts: any[]): void
-  private addVehiclesSheet(workbook: ExcelJS.Workbook, vehicles: any[]): void
-  private addCrossRefsSheet(workbook: ExcelJS.Workbook, crossRefs: any[]): void
+  private addPartsSheet(workbook: ExcelJS.Workbook, parts: any[]): void;
+  private addVehiclesSheet(workbook: ExcelJS.Workbook, vehicles: any[]): void;
+  private addCrossRefsSheet(workbook: ExcelJS.Workbook, crossRefs: any[]): void;
 
   // Statistics for response headers
-  async getExportStats(): Promise<ExportStats>
+  async getExportStats(): Promise<ExportStats>;
 }
 ```
 
@@ -206,6 +222,7 @@ private async fetchAllRows(tableName: string, orderBy: string): Promise<any[]> {
 ```
 
 **Performance:**
+
 - Parts (877 rows): 1 query
 - Vehicles (2,304 rows): 3 queries (1000 + 1000 + 304)
 - Cross-refs (6,412 rows): 7 queries (1000 × 6 + 412)
@@ -217,25 +234,27 @@ ExcelJS provides built-in support for hidden columns via the `hidden` property:
 
 ```typescript
 worksheet.columns = [
-  { header: '_id', key: 'id', width: 36, hidden: true },  // Hidden
-  { header: '_tenant_id', key: 'tenant_id', width: 36, hidden: true },  // Hidden
-  { header: 'ACR_SKU', key: 'acr_sku', width: 15 },  // Visible
+  { header: "_id", key: "id", width: 36, hidden: true }, // Hidden
+  { header: "_tenant_id", key: "tenant_id", width: 36, hidden: true }, // Hidden
+  { header: "ACR_SKU", key: "acr_sku", width: 15 }, // Visible
   // ... more columns
 ];
 ```
 
 **How it works:**
+
 1. ExcelJS sets the `hidden` attribute in the Excel XML
 2. Excel respects the attribute and hides columns A & B
 3. Columns are still present in the file (data intact)
 4. Users can unhide via Excel: Home → Format → Hide & Unhide → Unhide Columns
 
 **Verification:**
+
 ```typescript
 // Reading with ExcelJS preserves hidden state
 const workbook = new ExcelJS.Workbook();
-await workbook.xlsx.readFile('export.xlsx');
-const worksheet = workbook.getWorksheet('Parts');
+await workbook.xlsx.readFile("export.xlsx");
+const worksheet = workbook.getWorksheet("Parts");
 const idColumn = worksheet.getColumn(1);
 console.log(idColumn.hidden); // true
 ```
@@ -245,10 +264,11 @@ console.log(idColumn.hidden); // true
 Frozen panes keep the header row visible when scrolling:
 
 ```typescript
-worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+worksheet.views = [{ state: "frozen", ySplit: 1 }];
 ```
 
 **Result:**
+
 - Users can scroll through thousands of rows
 - Column headers always visible at top
 - Better UX for large datasets
@@ -272,6 +292,7 @@ Export Duration: 1,768ms - 5,470ms
 ```
 
 **Scaling Estimates:**
+
 - 10k records: ~2-3 seconds
 - 50k records: ~8-12 seconds
 - 100k records: ~15-25 seconds
@@ -285,6 +306,7 @@ ExcelJS generates files in memory before writing:
 - Buffer overhead: ~2x file size during generation
 
 **Optimization for larger datasets:**
+
 - Use ExcelJS streaming API for >100k rows
 - Generate sheets sequentially instead of in parallel
 - Write to temp file instead of Buffer
@@ -292,6 +314,7 @@ ExcelJS generates files in memory before writing:
 ### Database Impact
 
 **Query Pattern:**
+
 ```sql
 -- 11 queries total, executed in parallel:
 
@@ -309,11 +332,13 @@ SELECT * FROM cross_references ORDER BY acr_part_id, competitor_brand, competito
 ```
 
 **Index Usage:**
+
 - Full table scans (intentional - exporting all data)
 - ORDER BY uses natural row order when possible
 - No WHERE clauses (fetching everything)
 
 **Concurrency:**
+
 - Read-only queries (no locks)
 - Safe to run during normal operations
 - No impact on write operations
@@ -325,6 +350,7 @@ SELECT * FROM cross_references ORDER BY acr_part_id, competitor_brand, competito
 Located in: `scripts/test-excel-export.ts`
 
 Run with:
+
 ```bash
 npm run test:export
 ```
@@ -333,7 +359,7 @@ npm run test:export
 
 1. ✅ **3 Required Sheets** - Validates Parts, Vehicle Applications, Cross References sheets exist
 2. ✅ **Parts Sheet Structure** - Verifies all 7 column headers present
-3. ✅ **Hidden Columns** - Confirms _id and _tenant_id are hidden (using ExcelJS reader)
+3. ✅ **Hidden Columns** - Confirms \_id and \_tenant_id are hidden (using ExcelJS reader)
 4. ✅ **Parts Row Count** - 877 rows match database count
 5. ✅ **Vehicles Sheet Structure** - Verifies all 9 column headers present
 6. ✅ **Vehicles Row Count** - 2,304 rows match database count
@@ -341,6 +367,7 @@ npm run test:export
 8. ✅ **Cross-Refs Row Count** - 6,412 rows match database count
 
 **Expected Output:**
+
 ```
 🧪 Testing Excel Export API...
 
@@ -376,25 +403,27 @@ npm run test:export
 ### Manual Testing
 
 **Browser Test:**
+
 ```javascript
 // In browser console or React component
-const response = await fetch('/api/admin/export');
+const response = await fetch("/api/admin/export");
 const blob = await response.blob();
 
 // Check response headers
-console.log('Parts:', response.headers.get('X-Export-Parts'));
-console.log('Vehicles:', response.headers.get('X-Export-Vehicles'));
-console.log('Cross-Refs:', response.headers.get('X-Export-CrossRefs'));
+console.log("Parts:", response.headers.get("X-Export-Parts"));
+console.log("Vehicles:", response.headers.get("X-Export-Vehicles"));
+console.log("Cross-Refs:", response.headers.get("X-Export-CrossRefs"));
 
 // Download file
 const url = window.URL.createObjectURL(blob);
-const a = document.createElement('a');
+const a = document.createElement("a");
 a.href = url;
-a.download = 'test-export.xlsx';
+a.download = "test-export.xlsx";
 a.click();
 ```
 
 **Open in Excel and verify:**
+
 1. Columns A & B are hidden (right-click column C → Unhide to verify they exist)
 2. Header row is frozen (scroll down, headers stay visible)
 3. All data matches database records
@@ -416,6 +445,7 @@ a.click();
 **HTTP Status**: 500 Internal Server Error
 
 **Common Causes:**
+
 - Database connection timeout
 - Invalid query syntax
 - Network issues
@@ -440,18 +470,20 @@ a.click();
 **Symptom**: File downloads but won't open in Excel
 
 **Causes:**
+
 - Incorrect MIME type
 - Corrupted buffer
 - Browser extension interference
 
 **Debug:**
+
 ```javascript
 // Check buffer integrity
 const buffer = await response.arrayBuffer();
-console.log('File size:', buffer.byteLength); // Should be >100KB
+console.log("File size:", buffer.byteLength); // Should be >100KB
 
 // Verify MIME type
-console.log('Content-Type:', response.headers.get('Content-Type'));
+console.log("Content-Type:", response.headers.get("Content-Type"));
 // Should be: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 ```
 
@@ -464,7 +496,7 @@ All exported data belongs to the default tenant:
 ```typescript
 worksheet.addRow({
   id: part.id,
-  tenant_id: part.tenant_id || null,  // Always NULL for MVP
+  tenant_id: part.tenant_id || null, // Always NULL for MVP
   acr_sku: part.acr_sku,
   // ... other fields
 });
@@ -501,11 +533,13 @@ private async fetchAllRows(tableName: string, orderBy: string, tenantId: string)
 ```typescript
 export async function GET(request: NextRequest) {
   // Get tenant ID from authenticated session
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const tenantId = user?.user_metadata?.tenant_id;
 
   if (!tenantId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const service = new ExcelExportService();
@@ -519,11 +553,13 @@ export async function GET(request: NextRequest) {
 ### Current State (MVP)
 
 **No Authentication:**
+
 - Endpoint is publicly accessible
 - Anyone can export all catalog data
 - Acceptable for single-tenant MVP
 
 **Data Exposure:**
+
 - All catalog data is exported
 - UUIDs are visible in hidden columns
 - No sensitive customer data (parts catalog is public info)
@@ -533,11 +569,15 @@ export async function GET(request: NextRequest) {
 **Required Enhancements:**
 
 1. **Authentication**
+
    ```typescript
    // Require admin role
-   const { data: { user }, error } = await supabase.auth.getUser();
-   if (!user || user.role !== 'admin') {
-     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+   const {
+     data: { user },
+     error,
+   } = await supabase.auth.getUser();
+   if (!user || user.role !== "admin") {
+     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
    }
    ```
 
@@ -547,10 +587,11 @@ export async function GET(request: NextRequest) {
    - Track export history in database
 
 3. **Audit Logging**
+
    ```typescript
-   await supabase.from('audit_log').insert({
+   await supabase.from("audit_log").insert({
      user_id: user.id,
-     action: 'catalog_export',
+     action: "catalog_export",
      timestamp: new Date(),
      record_count: stats.totalRecords,
    });
@@ -586,6 +627,7 @@ async exportAllDataStreaming(): Promise<NodeJS.ReadableStream> {
 ```
 
 **Benefits:**
+
 - Constant memory usage (~10MB regardless of dataset size)
 - Can export millions of rows
 - Faster time-to-first-byte
@@ -609,6 +651,7 @@ async exportFiltered(filters: ExportFilters): Promise<Buffer> {
 ```
 
 **Use Cases:**
+
 - Export only brake parts
 - Export only Honda fitments
 - Export only recent changes
@@ -620,15 +663,26 @@ Let users choose which columns to export:
 ```typescript
 interface ExportOptions {
   parts: {
-    columns: ('acr_sku' | 'part_type' | 'description' | 'oem_number' | 'notes')[];
+    columns: (
+      | "acr_sku"
+      | "part_type"
+      | "description"
+      | "oem_number"
+      | "notes"
+    )[];
     includeIds: boolean;
   };
-  vehicles: { /* similar */ };
-  crossRefs: { /* similar */ };
+  vehicles: {
+    /* similar */
+  };
+  crossRefs: {
+    /* similar */
+  };
 }
 ```
 
 **Benefits:**
+
 - Smaller file sizes
 - Focused exports for specific tasks
 - Better UX for advanced users
@@ -639,10 +693,18 @@ Pre-defined export configurations:
 
 ```typescript
 const templates = {
-  'full-catalog': { /* all data, all columns */ },
-  'parts-only': { /* just parts, no relationships */ },
-  'inventory-update': { /* parts + stock levels (future feature) */ },
-  'pricing-update': { /* parts + pricing (future feature) */ },
+  "full-catalog": {
+    /* all data, all columns */
+  },
+  "parts-only": {
+    /* just parts, no relationships */
+  },
+  "inventory-update": {
+    /* parts + stock levels (future feature) */
+  },
+  "pricing-update": {
+    /* parts + pricing (future feature) */
+  },
 };
 ```
 
@@ -651,16 +713,19 @@ const templates = {
 ### Issue: File won't open in Excel
 
 **Symptoms:**
+
 - "Excel cannot open the file" error
 - File appears corrupted
 
 **Debug Steps:**
+
 1. Check file size: `ls -lh export.xlsx` (should be >100KB)
 2. Verify it's a ZIP file: `unzip -l export.xlsx` (should list XML files)
 3. Check MIME type in response headers
 4. Try opening with LibreOffice/Google Sheets
 
 **Common Causes:**
+
 - Buffer corruption during download
 - Browser extension interfering
 - Antivirus blocking download
@@ -668,14 +733,17 @@ const templates = {
 ### Issue: Hidden columns are visible
 
 **Symptoms:**
-- Can see _id, _tenant_id columns in Excel
+
+- Can see \_id, \_tenant_id columns in Excel
 
 **Debug Steps:**
+
 1. Verify using ExcelJS:
+
    ```typescript
    const wb = new ExcelJS.Workbook();
-   await wb.xlsx.readFile('export.xlsx');
-   const ws = wb.getWorksheet('Parts');
+   await wb.xlsx.readFile("export.xlsx");
+   const ws = wb.getWorksheet("Parts");
    console.log(ws.getColumn(1).hidden); // Should be true
    ```
 
@@ -683,18 +751,21 @@ const templates = {
 3. Manually hide: Right-click column A → Hide
 
 **Cause:**
+
 - Excel 2003 or older doesn't fully support hidden columns
 - Excel on web has limited support
 
 ### Issue: Wrong number of rows
 
 **Symptoms:**
+
 - Parts: 877 expected, 1000 exported
 - Vehicles: 2304 expected, 1000 exported
 
 **Cause:** Pagination not working (PostgREST limit hit)
 
 **Fix:**
+
 1. Check `fetchAllRows()` has `range()` calls
 2. Verify `hasMore` logic correctly detects last page
 3. Check database logs for query counts
@@ -702,15 +773,18 @@ const templates = {
 ### Issue: Slow export (>30 seconds)
 
 **Symptoms:**
+
 - Export takes very long
 - Request times out
 
 **Debug Steps:**
+
 1. Check record counts: `SELECT COUNT(*) FROM parts;`
 2. Profile database queries: Check Supabase dashboard
 3. Check server logs for pagination timing
 
 **Optimizations:**
+
 - Add database indexes on ORDER BY columns
 - Increase PAGE_SIZE from 1000 to 5000
 - Use streaming export for very large datasets
