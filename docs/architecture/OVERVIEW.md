@@ -1,3 +1,8 @@
+---
+title: Architecture Overview
+description: System architecture overview for ACR Automotive
+---
+
 # Architecture Overview
 
 > **Purpose**: 30,000-foot view of ACR Automotive system architecture
@@ -100,21 +105,25 @@
 ## Core Layers
 
 ### 1. Client Layer
+
 **Technology**: Next.js 15 App Router, React 19, TypeScript 5.8
 
 **Responsibilities**:
+
 - UI rendering (server and client components)
 - Form handling (React Hook Form + Zod)
 - State management (TanStack Query + Context)
 - Internationalization (custom i18n system)
 
 **Organization**:
+
 - Feature-based component structure (`features/admin/`, `features/public/`, `shared/`)
 - Domain-based hooks (`hooks/api/admin/`, `hooks/api/public/`)
 - ACR design system in dedicated folder
 - App Router pages follow Next.js conventions
 
 **Patterns**:
+
 - Server components by default
 - Client components only when needed (`"use client"`)
 - Parallel data fetching with React Suspense
@@ -125,15 +134,18 @@
 ---
 
 ### 2. API Layer
+
 **Technology**: Next.js Route Handlers (App Router API routes)
 
 **Responsibilities**:
+
 - RESTful API endpoints
 - Request validation (Zod schemas)
 - Response formatting
 - Error handling and transformation
 
 **Endpoints**:
+
 ```
 /api/public/
   parts              # Search parts (public)
@@ -151,6 +163,7 @@
 ```
 
 **Conventions**:
+
 - One resource per route folder
 - Zod validation at entry point
 - Consistent response format: `{ success, data, timestamp }`
@@ -161,9 +174,11 @@
 ---
 
 ### 3. Service Layer
+
 **Technology**: TypeScript classes with grouped methods
 
 **Responsibilities**:
+
 - Complex business logic
 - Multi-step operations
 - Pagination bypass (PostgREST limits)
@@ -172,6 +187,7 @@
 **Organization**: Services grouped by domain in `src/services/`
 
 **Services**:
+
 - **BulkOperationsService** - Atomic bulk creates/updates/deletes
   - Field mapping (sku_number → acr_sku)
   - Concurrent operations with Promise.all
@@ -182,6 +198,7 @@
   - Frozen headers and formatting
 
 **When to Use Service Layer**:
+
 - Multi-table operations
 - Complex transformations
 - Performance optimizations (pagination, batching)
@@ -192,9 +209,11 @@
 ---
 
 ### 4. Validation Layer
+
 **Technology**: Zod schemas
 
 **Responsibilities**:
+
 - Request body validation
 - Query parameter parsing
 - Type inference (Zod → TypeScript)
@@ -203,6 +222,7 @@
 **Schema Centralization**: [src/lib/schemas/admin.ts](../../src/lib/schemas/admin.ts)
 
 **Pattern**:
+
 ```typescript
 // 1. Define Zod schema
 export const createPartSchema = z.object({
@@ -219,6 +239,7 @@ const validated = createPartSchema.parse(requestBody);
 ```
 
 **Benefits**:
+
 - Runtime validation + compile-time types
 - Single source of truth
 - Automatic error messages
@@ -229,9 +250,11 @@ const validated = createPartSchema.parse(requestBody);
 ---
 
 ### 5. Database Layer
+
 **Technology**: Supabase (PostgreSQL 15) with Row-Level Security
 
 **Schema**:
+
 ```
 parts
 ├── id (uuid, PK)
@@ -259,6 +282,7 @@ part_images (future enhancement)
 ```
 
 **Design Decisions**:
+
 - UUID primary keys (better for distributed systems)
 - Text vs VARCHAR (PostgreSQL treats them the same)
 - Cascading deletes (maintain referential integrity)
@@ -272,6 +296,7 @@ part_images (future enhancement)
 ## Data Flow
 
 ### Public Search Request (Example)
+
 ```
 1. User searches "ACR-123" in public UI
    ↓
@@ -298,6 +323,7 @@ part_images (future enhancement)
 ```
 
 ### Admin Bulk Create (Example)
+
 ```
 1. User uploads Excel file in admin UI
    ↓
@@ -327,28 +353,31 @@ part_images (future enhancement)
 ## Technology Stack
 
 ### Frontend
-| Technology | Version | Purpose | Why Chosen |
-|-----------|---------|---------|------------|
-| **Next.js** | 15 | React framework | App Router, RSC, built-in API routes |
-| **React** | 19 | UI library | Industry standard, concurrent features |
-| **TypeScript** | 5.8 | Type safety | Catch bugs at compile time |
-| **TanStack Query** | 5.x | Server state | Caching, invalidation, optimistic updates |
-| **React Hook Form** | 7.x | Form handling | Performance, Zod integration |
-| **Zod** | 3.x | Validation | Runtime + compile-time types |
-| **Tailwind CSS** | 3.x | Styling | Utility-first, fast development |
-| **shadcn/ui** | - | Component base | Copy pattern, not NPM dependency |
+
+| Technology          | Version | Purpose         | Why Chosen                                |
+| ------------------- | ------- | --------------- | ----------------------------------------- |
+| **Next.js**         | 15      | React framework | App Router, RSC, built-in API routes      |
+| **React**           | 19      | UI library      | Industry standard, concurrent features    |
+| **TypeScript**      | 5.8     | Type safety     | Catch bugs at compile time                |
+| **TanStack Query**  | 5.x     | Server state    | Caching, invalidation, optimistic updates |
+| **React Hook Form** | 7.x     | Form handling   | Performance, Zod integration              |
+| **Zod**             | 3.x     | Validation      | Runtime + compile-time types              |
+| **Tailwind CSS**    | 3.x     | Styling         | Utility-first, fast development           |
+| **shadcn/ui**       | -       | Component base  | Copy pattern, not NPM dependency          |
 
 ### Backend
-| Technology | Purpose | Why Chosen |
-|-----------|---------|------------|
-| **Supabase** | Database + Auth | PostgreSQL + RLS, type-safe client |
-| **PostgreSQL** | 15 | Relational database | Trigram search, JSON support, reliability |
-| **ExcelJS** | - | Excel generation | Hidden columns, formatting, no dependencies |
+
+| Technology     | Purpose         | Why Chosen                         |
+| -------------- | --------------- | ---------------------------------- | ------------------------------------------- |
+| **Supabase**   | Database + Auth | PostgreSQL + RLS, type-safe client |
+| **PostgreSQL** | 15              | Relational database                | Trigram search, JSON support, reliability   |
+| **ExcelJS**    | -               | Excel generation                   | Hidden columns, formatting, no dependencies |
 
 ### Deployment
-| Service | Purpose |
-|---------|---------|
-| **Vercel** | Hosting |
+
+| Service            | Purpose  |
+| ------------------ | -------- |
+| **Vercel**         | Hosting  |
 | **Supabase Cloud** | Database |
 
 **See**: [docs/PLANNING.md](../PLANNING.md) for tech stack rationale
@@ -358,9 +387,11 @@ part_images (future enhancement)
 ## Design Principles
 
 ### 1. Copy, Don't Import (Components)
+
 **Principle**: Own your component code, don't depend on external libraries
 
 **Why**:
+
 - Maximum customization
 - No version lock-in
 - No breaking changes from updates
@@ -368,6 +399,7 @@ part_images (future enhancement)
 **Example**: shadcn/ui components copied into `src/components/ui/` and customized
 
 **Implementation**:
+
 - ACR design system in `src/components/acr/`
 - Tailwind CSS utilities for shared styles
 - TypeScript for type safety
@@ -375,21 +407,25 @@ part_images (future enhancement)
 ---
 
 ### 2. Server Components by Default
+
 **Principle**: Use React Server Components unless interactivity is needed
 
 **Why**:
+
 - Faster initial page load
 - Smaller JavaScript bundle
 - Better SEO
 - Direct database access
 
 **When to Use Client Components**:
+
 - Form interactions (onChange, onSubmit)
 - Browser APIs (localStorage, window)
 - React hooks (useState, useEffect)
 - Event handlers (onClick, onKeyDown)
 
 **Pattern**:
+
 ```typescript
 // Server Component (default)
 export default function ProductList() {
@@ -408,20 +444,24 @@ export default function SearchForm() {
 ---
 
 ### 3. Type Safety Everywhere
+
 **Principle**: No `any` types, Zod schemas for all external data
 
 **Why**:
+
 - Catch bugs at compile-time
 - Self-documenting code
 - Refactoring confidence
 - API contract enforcement
 
 **Pattern**:
+
 ```
 Database → Zod schema → TypeScript type → API → Form
 ```
 
 **Example**:
+
 ```typescript
 // 1. Zod schema (runtime validation)
 const schema = z.object({ name: z.string() });
@@ -439,9 +479,11 @@ function createPart(params: Params) { ... }
 ---
 
 ### 4. Centralized Query Keys
+
 **Principle**: Single source of truth for TanStack Query cache keys
 
 **Why**:
+
 - Avoid cache invalidation bugs
 - Consistent cache hierarchy
 - Easy to find all queries for a resource
@@ -449,14 +491,16 @@ function createPart(params: Params) { ... }
 **File**: [src/hooks/common/queryKeys.ts](../../src/hooks/common/queryKeys.ts)
 
 **Pattern**:
+
 ```typescript
-queryKeys.parts.all           // ["parts"]
-queryKeys.parts.lists()       // ["parts", "list"]
-queryKeys.parts.list(filters) // ["parts", "list", { filters }]
-queryKeys.parts.detail(id)    // ["parts", "detail", { id }]
+queryKeys.parts.all; // ["parts"]
+queryKeys.parts.lists(); // ["parts", "list"]
+queryKeys.parts.list(filters); // ["parts", "list", { filters }]
+queryKeys.parts.detail(id); // ["parts", "detail", { id }]
 ```
 
 **Usage**:
+
 ```typescript
 // Fetch
 useQuery({ queryKey: queryKeys.parts.detail(id), ... });
@@ -468,14 +512,17 @@ queryClient.invalidateQueries({ queryKey: queryKeys.parts.lists() });
 ---
 
 ### 5. Atomic Operations
+
 **Principle**: Use PostgreSQL's ACID guarantees for data consistency
 
 **Why**:
+
 - No partial failures
 - Data integrity
 - Simplified error handling
 
 **Example**:
+
 ```typescript
 // Multi-row INSERT is atomic in PostgreSQL
 const { data, error } = await supabase
@@ -490,14 +537,17 @@ const { data, error } = await supabase
 ---
 
 ### 6. Fail Fast with Zod
+
 **Principle**: Validate at API boundaries, reject invalid data immediately
 
 **Why**:
+
 - Security (input validation)
 - Clear error messages
 - No invalid data in database
 
 **Pattern**:
+
 ```typescript
 export async function POST(request: NextRequest) {
   try {
@@ -524,6 +574,7 @@ export async function POST(request: NextRequest) {
 ## Related Documentation
 
 ### Architecture Deep Dives
+
 - [CODE_ORGANIZATION.md](CODE_ORGANIZATION.md) - File structure & organizational principles ⭐ **NEW**
 - [API_DESIGN.md](API_DESIGN.md) - RESTful patterns, error handling
 - [SERVICE_LAYER.md](SERVICE_LAYER.md) - Service pattern, when to use
@@ -534,11 +585,13 @@ export async function POST(request: NextRequest) {
 - [COMPONENT_ARCHITECTURE.md](COMPONENT_ARCHITECTURE.md) - ACR design system
 
 ### Feature Documentation
+
 - [docs/features/](../features/) - Feature-specific docs
 - [docs/database/DATABASE.md](../database/DATABASE.md) - Complete schema
 - [docs/PLANNING.md](../PLANNING.md) - Tech stack rationale
 
 ### Development
+
 - [docs/TASKS.md](../TASKS.md) - Current work and priorities
 - [CLAUDE.md](../../CLAUDE.md) - Context for AI assistants
 

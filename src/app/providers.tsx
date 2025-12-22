@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { RootProvider } from "fumadocs-ui/provider/next";
 import { useState } from "react";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
@@ -20,9 +21,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SettingsProvider>
-        <LocaleProvider>{children}</LocaleProvider>
-      </SettingsProvider>
+      <RootProvider>
+        <SettingsProvider>
+          <LocaleProvider>{children}</LocaleProvider>
+        </SettingsProvider>
+      </RootProvider>
     </QueryClientProvider>
   );
 }

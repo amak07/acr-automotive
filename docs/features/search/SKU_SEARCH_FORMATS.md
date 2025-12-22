@@ -1,3 +1,7 @@
+---
+title: "SKU Search Format Guide"
+---
+
 # SKU Search Format Guide
 
 > **Purpose**: User-facing guide explaining supported SKU search formats
@@ -10,6 +14,7 @@
 ## Overview
 
 ACR Automotive's search system accepts SKUs in **any format**. You don't need to worry about:
+
 - ✅ Hyphens or spaces
 - ✅ Upper or lowercase letters
 - ✅ Special characters
@@ -103,22 +108,27 @@ BR-00  → Finds ACR-BR-001, ACR-BR-002, ACR-BR-003, ...
 Search results show **match quality** to help you identify the best match:
 
 ### Exact Match (100% confidence)
+
 - ✅ You searched: `ACR-15002`
 - ✅ Found: `ACR-15002` (exact match)
 
 ### Prefix Added (95% confidence)
+
 - ✅ You searched: `15002` (missing ACR)
 - ✅ Found: `ACR-15002` (we added "ACR" for you)
 
 ### Partial Match (90% confidence)
+
 - ✅ You searched: `1500`
 - ✅ Found: Multiple parts (`ACR-15002`, `ACR-15003`, ...)
 
 ### Competitor Cross-Reference (100% confidence)
+
 - ✅ You searched: `TM-512348` (competitor SKU)
 - ✅ Found: `ACR-BR-001` (via cross-reference)
 
 ### Fuzzy Match (60-90% confidence)
+
 - ✅ You searched: `ACR-BR-01` (typo - missing last digit)
 - ✅ Found: `ACR-BR-001` (similarity: 91%)
 
@@ -173,6 +183,7 @@ Search results show **match quality** to help you identify the best match:
 **Search speed**: Under 300 milliseconds (usually ~150ms)
 
 **Search strategies** (automatic fallback):
+
 1. Exact normalized match (~50-100ms)
 2. With ACR prefix added (~50-100ms)
 3. Partial match (~100-150ms)
@@ -207,12 +218,12 @@ These edge cases may not return accurate results:
 
 ### Quick Reference Card
 
-| Customer Says | You Type | Result |
-|---------------|----------|--------|
-| "TM-512348" | `tm 512348` | ✅ ACR-BR-001 |
-| "ACR fifteen thousand two" | `15002` | ✅ ACR-15002 |
-| "Brake part, BR double-oh-one" | `br001` | ✅ ACR-BR-001 |
-| "Part number starts with 1500" | `1500` | ✅ Multiple parts |
+| Customer Says                  | You Type    | Result            |
+| ------------------------------ | ----------- | ----------------- |
+| "TM-512348"                    | `tm 512348` | ✅ ACR-BR-001     |
+| "ACR fifteen thousand two"     | `15002`     | ✅ ACR-15002      |
+| "Brake part, BR double-oh-one" | `br001`     | ✅ ACR-BR-001     |
+| "Part number starts with 1500" | `1500`      | ✅ Multiple parts |
 
 ### Common Mistakes (That Still Work!)
 
@@ -273,6 +284,7 @@ These edge cases may not return accurate results:
 ### Q: What if the system can't find my part?
 
 **A**: Try:
+
 1. Partial search (fewer characters)
 2. Check for typos
 3. Try competitor SKU instead

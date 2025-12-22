@@ -1,3 +1,7 @@
+---
+title: "Code Organization"
+---
+
 # Code Organization
 
 > **Purpose**: Principles and patterns for organizing code in the ACR Automotive codebase
@@ -31,6 +35,7 @@ The ACR Automotive codebase follows **industry-standard organizational patterns*
 ### 1. Separation by Purpose, Not File Type
 
 **❌ Anti-pattern** (by file type):
+
 ```
 src/
 ├── components/  # All components mixed together
@@ -39,6 +44,7 @@ src/
 ```
 
 **✅ Good pattern** (by purpose/domain):
+
 ```
 src/
 ├── components/
@@ -56,6 +62,7 @@ src/
 Components and logic are organized by **what they do** (feature), not **how they work** (role).
 
 **Example**:
+
 ```
 components/features/admin/parts/     # All parts-related admin UI
 components/features/admin/settings/  # All settings-related admin UI
@@ -66,6 +73,7 @@ components/features/admin/settings/  # All settings-related admin UI
 Related hooks are grouped in a single file by domain, not split into individual files.
 
 **Example**:
+
 ```typescript
 // ✅ Good: All parts hooks together
 // src/hooks/api/admin/parts.ts
@@ -76,6 +84,7 @@ export function useUpdatePartById() { ... }
 ```
 
 **Benefits**:
+
 - Fewer files to navigate
 - Related functionality together
 - Cleaner imports
@@ -83,12 +92,14 @@ export function useUpdatePartById() { ... }
 ### 4. Clear Lib vs Services Boundary
 
 **`lib/`** = Low-level utilities and infrastructure
+
 - No business logic
 - Reusable across domains
 - Stateless helpers
 - Examples: parsers, validation schemas, database clients
 
 **`services/`** = Business logic and orchestration
+
 - Domain-specific operations
 - Complex multi-step workflows
 - Stateful operations
@@ -140,6 +151,7 @@ src/components/
 ```
 
 **When to use each**:
+
 - `acr/` - Project-specific design system components
 - `ui/` - Base components from shadcn/ui (copied, not imported)
 - `features/admin/` - Admin-specific UI
@@ -169,6 +181,7 @@ src/hooks/
 ```
 
 **Migration path**:
+
 - **New code**: Use `@/hooks/api/admin/parts`
 - **Old code**: Legacy imports still work
 
@@ -233,6 +246,7 @@ SearchFilters.tsx       # Filter component
 ```
 
 **Suffixes**:
+
 - `List` - Lists data (PartsList, VehiclesList)
 - `Form` - Form component (PartForm)
 - `Container` - Container/wrapper (PartFormContainer)
@@ -251,6 +265,7 @@ useUpdatePartById()      # Update part
 ```
 
 **Domain files**:
+
 ```
 parts.ts          # All parts hooks
 vehicles.ts       # All vehicle hooks
@@ -284,11 +299,13 @@ test-bulk-operations.ts
 ### Components
 
 **Create a new feature folder when**:
+
 - Feature has 3+ related components
 - Feature has unique business logic
 - Feature is conceptually distinct
 
 **Example**: Creating a new admin feature
+
 ```
 src/components/features/admin/inventory/
 ├── InventoryList.tsx
@@ -299,10 +316,12 @@ src/components/features/admin/inventory/
 ### Hooks
 
 **Create a new domain file when**:
+
 - Adding hooks for a new resource type
 - Grouping 2+ related hooks
 
 **Example**: Adding orders feature
+
 ```
 src/hooks/api/admin/orders.ts
 export function useGetOrders() { ... }
@@ -313,11 +332,13 @@ export function useUpdateOrder() { ... }
 ### Services
 
 **Create a new service when**:
+
 - Complex multi-step business logic
 - Need to bypass API limitations (pagination, etc.)
 - Reusable across multiple endpoints
 
 **Example**: Adding a reporting service
+
 ```
 src/services/reports/
 └── ReportGenerationService.ts
@@ -352,6 +373,7 @@ src/services/reports/
 **Scenario**: Adding vehicle inventory tracking
 
 **Steps**:
+
 1. Create component folder: `src/components/features/admin/inventory/`
 2. Create hooks: `src/hooks/api/admin/inventory.ts`
 3. Create service (if needed): `src/services/inventory/InventoryService.ts`
@@ -362,6 +384,7 @@ src/services/reports/
 **Scenario**: Adding a parts comparison tool
 
 **Steps**:
+
 1. Create component folder: `src/components/features/public/compare/`
 2. Create hooks: `src/hooks/api/public/compare.ts`
 3. Create API route: `src/app/api/public/compare/route.ts`
@@ -376,10 +399,10 @@ Old hook imports still work for backwards compatibility:
 
 ```typescript
 // Old way (still works)
-import { useGetParts } from '@/hooks/admin'
+import { useGetParts } from "@/hooks/admin";
 
 // New way (preferred)
-import { useGetParts } from '@/hooks/api/admin/parts'
+import { useGetParts } from "@/hooks/api/admin/parts";
 ```
 
 **Recommendation**: Update imports gradually as you touch files

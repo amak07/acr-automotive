@@ -1,3 +1,7 @@
+---
+title: "Internationalization (i18n) System"
+---
+
 # Internationalization (i18n) System
 
 > **Purpose**: Custom i18n architecture for English/Spanish bilingual support
@@ -22,6 +26,7 @@
 **Purpose**: Bilingual support for ACR Automotive (English + Spanish).
 
 **Key Features**:
+
 - Type-safe translation keys
 - Custom lightweight implementation
 - Development toggle (English for dev, Spanish for production)
@@ -38,15 +43,16 @@
 
 ### Custom vs next-intl/react-i18next
 
-| Feature | Custom | next-intl | react-i18next |
-|---------|--------|-----------|---------------|
-| Bundle size | ✅ ~2KB | ⚠️ ~25KB | ❌ ~50KB |
-| TypeScript safety | ✅ Excellent | ✅ Good | ⚠️ Limited |
-| Learning curve | ✅ Minimal | ⚠️ Moderate | ❌ Steep |
-| Server components | ✅ Native | ✅ Supported | ⚠️ Client-only |
-| Our needs | ✅ Perfect fit | ⚠️ Overkill | ❌ Too complex |
+| Feature           | Custom         | next-intl    | react-i18next  |
+| ----------------- | -------------- | ------------ | -------------- |
+| Bundle size       | ✅ ~2KB        | ⚠️ ~25KB     | ❌ ~50KB       |
+| TypeScript safety | ✅ Excellent   | ✅ Good      | ⚠️ Limited     |
+| Learning curve    | ✅ Minimal     | ⚠️ Moderate  | ❌ Steep       |
+| Server components | ✅ Native      | ✅ Supported | ⚠️ Client-only |
+| Our needs         | ✅ Perfect fit | ⚠️ Overkill  | ❌ Too complex |
 
 **Decision Rationale**:
+
 - Only 2 locales (en/es) - no need for complex i18n library
 - TypeScript type safety is critical
 - Minimal bundle size for performance
@@ -81,36 +87,37 @@ src/contexts/
 **Purpose**: Define ALL translation keys as TypeScript types.
 
 ```typescript
-export type Locale = 'en' | 'es';
+export type Locale = "en" | "es";
 
 export interface TranslationKeys {
   // Admin Header
-  'admin.header.title': string;
-  'admin.header.admin': string;
-  'admin.header.languageToggle': string;
-  'admin.header.viewPublic': string;
+  "admin.header.title": string;
+  "admin.header.admin": string;
+  "admin.header.languageToggle": string;
+  "admin.header.viewPublic": string;
 
   // Admin Dashboard
-  'admin.dashboard.totalParts': string;
-  'admin.dashboard.applications': string;
+  "admin.dashboard.totalParts": string;
+  "admin.dashboard.applications": string;
 
   // Common Actions
-  'common.actions.view': string;
-  'common.actions.edit': string;
-  'common.actions.save': string;
-  'common.actions.cancel': string;
-  'common.actions.delete': string;
+  "common.actions.view": string;
+  "common.actions.edit": string;
+  "common.actions.save": string;
+  "common.actions.cancel": string;
+  "common.actions.delete": string;
 
   // Part Types
-  'parts.types.maza': string;
-  'parts.types.disco': string;
-  'parts.types.balero': string;
+  "parts.types.maza": string;
+  "parts.types.disco": string;
+  "parts.types.balero": string;
 
   // ... 100+ more keys
 }
 ```
 
 **Benefits**:
+
 - TypeScript autocomplete for all keys
 - Compile-time errors for typos
 - Easy to find all translation usage (search for key)
@@ -151,8 +158,9 @@ export const translations: Record<
 ```
 
 **Structure**:
+
 ```typescript
-Record<KeyName, Record<Locale, TranslatedText>>
+Record<KeyName, Record<Locale, TranslatedText>>;
 //     ↑              ↑          ↑
 //  "admin.header"   "en"     "Admin Management"
 //                   "es"     "Administración"
@@ -187,6 +195,7 @@ export { translations } from "@/lib/i18n/translations";
 ```
 
 **Usage (Direct)**:
+
 ```typescript
 import { t } from "@/lib/i18n";
 
@@ -255,6 +264,7 @@ export function useLocale() {
 ```
 
 **Usage in Components**:
+
 ```typescript
 function Header() {
   const { locale, setLocale, t } = useLocale();
@@ -279,15 +289,17 @@ function Header() {
 **Pattern**: `{scope}.{component}.{element}`
 
 **Examples**:
+
 ```typescript
-'admin.header.title'           // Admin scope → Header component → Title element
-'admin.parts.newButton'        // Admin scope → Parts component → New button
-'common.actions.save'          // Common scope → Actions group → Save action
-'parts.types.maza'             // Parts scope → Types group → Hub part type
-'common.error.generic'         // Common scope → Error group → Generic error
+"admin.header.title"; // Admin scope → Header component → Title element
+"admin.parts.newButton"; // Admin scope → Parts component → New button
+"common.actions.save"; // Common scope → Actions group → Save action
+"parts.types.maza"; // Parts scope → Types group → Hub part type
+"common.error.generic"; // Common scope → Error group → Generic error
 ```
 
 **Scopes**:
+
 - `admin.*` - Admin interface
 - `public.*` - Public catalog
 - `common.*` - Shared across admin/public
@@ -299,12 +311,14 @@ function Header() {
 ### Hierarchical Structure
 
 **Benefits of Namespacing**:
+
 1. **Autocomplete**: Type `admin.` → see all admin keys
 2. **Grouping**: All header keys together
 3. **Clarity**: `admin.parts.sku` is clearer than just `sku`
 4. **Searchability**: Find all uses of `admin.header.*`
 
 **Example Hierarchy**:
+
 ```
 admin
 ├── header
@@ -396,6 +410,7 @@ export function PartForm() {
 ```
 
 **Benefits**:
+
 - No need to pass `locale` parameter
 - Automatically reactive to locale changes
 - Cleaner code
@@ -502,9 +517,9 @@ export interface TranslationKeys {
   // ... existing keys
 
   // NEW: Bulk operations
-  'admin.bulk.uploadExcel': string;
-  'admin.bulk.processing': string;
-  'admin.bulk.successMessage': string;
+  "admin.bulk.uploadExcel": string;
+  "admin.bulk.processing": string;
+  "admin.bulk.successMessage": string;
 }
 ```
 
@@ -554,10 +569,10 @@ export function BulkUploadForm() {
 
 ```typescript
 // ✅ Valid - key exists
-t("admin.bulk.uploadExcel")
+t("admin.bulk.uploadExcel");
 
 // ❌ Compile error - typo
-t("admin.bulk.uploadExcell")
+t("admin.bulk.uploadExcell");
 //     ~~~~~~~~~~~~~~~~~~~~ Type error: Key does not exist
 ```
 
@@ -566,12 +581,14 @@ t("admin.bulk.uploadExcell")
 ### Best Practices
 
 **DO**:
+
 - Use hierarchical keys (`admin.parts.sku`, not just `sku`)
 - Add both English and Spanish translations
 - Test both locales during development
 - Keep translations close to where they're used (easy to verify)
 
 **DON'T**:
+
 - Hardcode UI text strings
 - Use English text directly (always use translation key)
 - Mix translation systems (always use custom i18n)
@@ -623,11 +640,13 @@ function LanguageToggle() {
 **2. localStorage Persistence**
 
 Development saves preference:
+
 ```typescript
 localStorage.setItem("acr-locale", "en"); // Persists across refreshes
 ```
 
 Production ignores:
+
 ```typescript
 // Production always uses "es", never reads localStorage
 ```
@@ -637,6 +656,7 @@ Production ignores:
 ### Production Behavior
 
 **Locked to Spanish**:
+
 ```typescript
 // Production
 const locale = "es"; // Always
@@ -654,11 +674,13 @@ const translations = t("admin.header.title", "es"); // "Administración"
 If app needs more locales (e.g., Portuguese):
 
 **1. Update Type**:
+
 ```typescript
-export type Locale = 'en' | 'es' | 'pt';
+export type Locale = "en" | "es" | "pt";
 ```
 
 **2. Add Translations**:
+
 ```typescript
 "admin.header.title": {
   en: "Admin Management",
@@ -668,6 +690,7 @@ export type Locale = 'en' | 'es' | 'pt';
 ```
 
 **3. Update Logic**:
+
 ```typescript
 // LocaleContext: Support 3 locales
 if (savedLocale === "en" || savedLocale === "es" || savedLocale === "pt") {
