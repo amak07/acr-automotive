@@ -42,7 +42,7 @@ export function Footer() {
         <div className="flex flex-col items-center gap-6">
           {/* Logo */}
           <Link href={homeLink} className="hover:opacity-80 transition-opacity">
-            <AcrLogo className="h-8" />
+            <AcrLogo className="h-14 md:h-12 lg:h-14" />
           </Link>
 
           {/* Social/Contact Links */}

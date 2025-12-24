@@ -308,4 +308,125 @@
     border-radius: 5px !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
   }
+
+  /* ============================================
+   * ACR Animation System
+   * Noticeable but not distracting animations
+   * ============================================ */
+
+  /* Page/Component Entrance Animations */
+  @keyframes acr-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes acr-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes acr-scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes acr-slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Utility Classes for Animations
+     Base delay of 0.7s accounts for preloader (600ms min + fade overlap) */
+  .acr-animate-fade-up {
+    animation: acr-fade-up 0.4s ease-out 0.7s forwards;
+    opacity: 0;
+  }
+
+  .acr-animate-fade-in {
+    animation: acr-fade-in 0.3s ease-out 0.7s forwards;
+    opacity: 0;
+  }
+
+  .acr-animate-scale-in {
+    animation: acr-scale-in 0.35s ease-out 0.7s forwards;
+    opacity: 0;
+  }
+
+  .acr-animate-slide-up {
+    animation: acr-slide-up 0.45s ease-out 0.7s forwards;
+    opacity: 0;
+  }
+
+  /* Stagger Delays for Grid Items (50ms increments, added to base animation delay) */
+  .acr-stagger-1 { animation-delay: 0.75s; }
+  .acr-stagger-2 { animation-delay: 0.8s; }
+  .acr-stagger-3 { animation-delay: 0.85s; }
+  .acr-stagger-4 { animation-delay: 0.9s; }
+  .acr-stagger-5 { animation-delay: 0.95s; }
+  .acr-stagger-6 { animation-delay: 1s; }
+  .acr-stagger-7 { animation-delay: 1.05s; }
+  .acr-stagger-8 { animation-delay: 1.1s; }
+  .acr-stagger-9 { animation-delay: 1.15s; }
+  .acr-stagger-10 { animation-delay: 1.2s; }
+  .acr-stagger-11 { animation-delay: 1.25s; }
+  .acr-stagger-12 { animation-delay: 1.3s; }
+
+  /* Search Ready Pulse - subtle attention-grabbing animation */
+  @keyframes acr-pulse-ready {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(237, 28, 36, 0);
+    }
+    50% {
+      box-shadow: 0 0 0 4px rgba(237, 28, 36, 0.3);
+    }
+  }
+
+  .acr-pulse-ready {
+    animation: acr-pulse-ready 2s ease-in-out infinite;
+  }
+
+  /* Input focus glow effect */
+  .acr-input-glow:focus-within {
+    box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.15);
+    border-color: var(--color-acr-red-500);
+  }
+
+  /* Page background pattern (subtle industrial dot grid) */
+  .acr-page-bg-pattern {
+    background-color: var(--color-acr-gray-100);
+    background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Simple gradient alternative */
+  .acr-page-bg-gradient {
+    background: linear-gradient(
+      to bottom,
+      var(--color-acr-gray-50) 0%,
+      var(--color-acr-gray-100) 15%,
+      var(--color-acr-gray-100) 100%
+    );
+  }
 }

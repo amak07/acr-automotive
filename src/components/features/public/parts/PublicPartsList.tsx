@@ -7,25 +7,60 @@ import { useSearchParams } from "next/navigation";
 import { PartSearchResult } from "@/types";
 import { useLocale } from "@/contexts/LocaleContext";
 import { TranslationKeys } from "@/lib/i18n/translation-keys";
-import { Skeleton, SkeletonPartsGrid } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-// Individual part card with image loading state
+// Stagger class lookup for animation delays
+const staggerClasses = [
+  "acr-stagger-1",
+  "acr-stagger-2",
+  "acr-stagger-3",
+  "acr-stagger-4",
+  "acr-stagger-5",
+  "acr-stagger-6",
+  "acr-stagger-7",
+  "acr-stagger-8",
+  "acr-stagger-9",
+  "acr-stagger-10",
+  "acr-stagger-11",
+  "acr-stagger-12",
+] as const;
+
+// Individual part card with image loading state and entrance animation
 function PartCard({
   part,
   currentSearch,
   t,
+  index,
 }: {
   part: PartSearchResult;
   currentSearch: string;
   t: (key: keyof TranslationKeys) => string;
+  index: number;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Get stagger class based on index (wraps after 12)
+  const staggerClass = staggerClasses[index % staggerClasses.length];
 
   return (
     <Link
       href={`/parts/${encodeURIComponent(part.acr_sku)}${currentSearch ? `?${currentSearch}` : ""}`}
-      className="bg-white border border-acr-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg hover:border-acr-gray-400 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 group relative flex flex-col"
+      className={cn(
+        // Entrance animation with stagger
+        "acr-animate-fade-up",
+        staggerClass,
+        // Card styling - red hover hints with warm glow
+        "bg-white border border-acr-gray-300 rounded-xl overflow-hidden",
+        "shadow-md transition-all duration-300",
+        // Red hover enhancements
+        "hover:border-acr-red-300 hover:shadow-lg",
+        "hover:shadow-[0_8px_30px_-12px_rgba(237,28,36,0.15)]",
+        // Interaction states
+        "cursor-pointer active:scale-[0.99]",
+        "focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:ring-offset-2",
+        "group relative flex flex-col"
+      )}
     >
       {/* Image Container - Minimal padding for larger image */}
       <div className="pt-2 px-2 pb-1">
@@ -45,9 +80,9 @@ function PartCard({
             onLoad={() => setImageLoaded(true)}
           />
 
-          {/* Hover Overlay - Baleros-Bisa Style */}
-          <div className="absolute inset-0 bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-            <div className="bg-white text-black px-4 py-2 text-sm font-medium rounded shadow-lg">
+          {/* Hover Overlay - Enhanced with red accent */}
+          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <div className="bg-white text-acr-gray-900 px-4 py-2 text-sm font-semibold rounded-lg shadow-lg border border-acr-red-200">
               {t("public.parts.viewDetails")}
             </div>
           </div>
@@ -98,13 +133,17 @@ export function PublicPartsList(props: PublicPartsListProps) {
   const currentSearch = searchParams?.toString() || "";
 
   if (isDataLoading) {
-    return <SkeletonPartsGrid count={6} />;
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="w-8 h-8 border-3 border-acr-gray-200 border-t-acr-red-500 rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (
     <div>
       {/* Parts Count Display */}
-      <div className="mb-4">
+      <div className="mb-4 acr-animate-fade-in">
         <p className="text-sm text-acr-gray-600 font-medium">
           {partsCount > 0
             ? partsCount === 1
@@ -134,12 +173,13 @@ export function PublicPartsList(props: PublicPartsListProps) {
 
       {/* Product Grid - Full width to match search bar */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {partsData.map((part) => (
+        {partsData.map((part, index) => (
           <PartCard
             key={part.id}
             part={part}
             currentSearch={currentSearch}
             t={t}
+            index={index}
           />
         ))}
       </div>

@@ -65,6 +65,11 @@ export interface AcrHeaderProps {
   title: string;
 
   /**
+   * Optional tagline/subtitle displayed below title on desktop
+   */
+  tagline?: string;
+
+  /**
    * Current locale for language toggle
    * @optional - if not provided, language toggle will not be shown
    */
@@ -181,8 +186,10 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
       <header
         ref={ref}
         className={cn(
-          "transition-colors",
-          `border-b border-acr-${borderVariant}`,
+          // Red accent line at top - brand signature (thicker 2px)
+          "relative before:absolute before:top-0 before:left-0 before:right-0 before:h-0.5 before:bg-acr-red-500",
+          // Base styling with shadow instead of hard border
+          "transition-colors shadow-md",
           isMobileMenuOpen ? "bg-acr-gray-50" : "bg-white",
           className
         )}
@@ -196,7 +203,7 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
                 href={homeLink}
                 className="flex-shrink-0 hover:opacity-80 transition-opacity"
               >
-                <AcrLogo className="h-10 md:h-7 lg:h-8" />
+                <AcrLogo className="h-14 md:h-12 lg:h-14" />
               </Link>
               {title && (
                 <h1 className="acr-brand-heading-xl text-acr-gray-800 truncate hidden md:block">
