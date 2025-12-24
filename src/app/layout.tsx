@@ -20,8 +20,52 @@ const exo2 = Exo_2({
 });
 
 export const metadata: Metadata = {
-  title: "ACR Automotive",
-  description: "Auto parts cross-reference search system for ACR Automotive",
+  title: "ACR Automotive | Catálogo Profesional de Autopartes",
+  description:
+    "Catálogo profesional de mazas, baleros y juntas homocinéticas. Búsqueda por vehículo, referencias cruzadas y especificaciones técnicas.",
+  keywords: [
+    "mazas",
+    "baleros",
+    "juntas homocinéticas",
+    "autopartes",
+    "refacciones",
+    "ACR Automotive",
+    "catálogo autopartes",
+    "wheel bearings",
+    "hub assemblies",
+    "CV joints",
+  ],
+  authors: [{ name: "ACR Automotive" }],
+  creator: "ACR Automotive",
+  publisher: "ACR Automotive",
+  metadataBase: new URL("https://www.acr-automotive.com"),
+  alternates: {
+    canonical: "/",
+    languages: {
+      "es-MX": "/",
+      "en-US": "/",
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_MX",
+    alternateLocale: "en_US",
+    url: "https://www.acr-automotive.com",
+    siteName: "ACR Automotive",
+    title: "ACR Automotive | Catálogo Profesional de Autopartes",
+    description:
+      "Catálogo profesional de mazas, baleros y juntas homocinéticas. Búsqueda por vehículo y referencias cruzadas.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ACR Automotive | Catálogo Profesional de Autopartes",
+    description:
+      "Catálogo profesional de mazas, baleros y juntas homocinéticas.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -40,7 +84,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <body
         className={`${notoSans.variable} ${exo2.variable} font-sans flex flex-col min-h-screen`}
         suppressHydrationWarning={true}
