@@ -118,3 +118,6 @@ uploads/
 public/ACR*/
 public/IMAGENES*/
 public/CTK*/
+
+# Product images (served locally, not tracked in git)
+public/product-images/
