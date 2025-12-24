@@ -1,3 +1,7 @@
+---
+title: "Test Suite Infrastructure Summary"
+---
+
 # Test Suite Infrastructure Summary
 
 **Generated:** 2025-11-11
@@ -419,7 +423,7 @@ afterAll(async () => {
 
 **Key Content:**
 
-```env
+```bash
 # Shared Supabase Instance (Dev and Test)
 NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...

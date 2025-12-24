@@ -1,3 +1,7 @@
+---
+title: "API Reference"
+---
+
 # API Reference
 
 > **Complete API documentation** for ACR Automotive - All public and admin endpoints
@@ -16,17 +20,20 @@ All APIs follow REST conventions and return JSON responses (except Excel export 
 ## Table of Contents
 
 ### Public APIs
+
 - [Search Parts](#get-apipublicparts)
 - [Get Vehicle Options](#get-apipublicvehicle-options)
 - [Get Site Settings](#get-apipublicsettings)
 
 ### Admin APIs - Parts Management
+
 - [List/Get Parts](#get-apiadminparts)
 - [Create Part](#post-apiadminparts)
 - [Update Part](#put-apiadminparts)
 - [Delete Part](#delete-apiadminparts)
 
 ### Admin APIs - Bulk Operations
+
 - [Bulk Create Parts](#post-apiadminbulkpartscreate)
 - [Bulk Update Parts](#put-apiadminbulkpartsupdate)
 - [Bulk Delete Parts](#delete-apiadminbulkpartsdelete)
@@ -38,6 +45,7 @@ All APIs follow REST conventions and return JSON responses (except Excel export 
 - [Bulk Delete Cross-References](#delete-apiadminbulkcross-referencesdelete)
 
 ### Admin APIs - Image Management
+
 - [List Part Images](#get-apiadminpartsidfimages)
 - [Upload Images](#post-apiadminpartsidfimages)
 - [Reorder Images](#put-apiadminpartsidfimagesreorder)
@@ -49,6 +57,7 @@ All APIs follow REST conventions and return JSON responses (except Excel export 
 - [Delete 360° Viewer](#delete-apiadminpartsidf360-frames)
 
 ### Admin APIs - Other
+
 - [Export to Excel](#get-apiadminexport)
 - [Get Admin Stats](#get-apiadminstats)
 - [Get Filter Options](#get-apiadminfilter-options)
@@ -64,6 +73,7 @@ All APIs follow REST conventions and return JSON responses (except Excel export 
 ## Response Format
 
 ### Success Response
+
 ```typescript
 {
   data: T | T[],      // Single object or array
@@ -73,6 +83,7 @@ All APIs follow REST conventions and return JSON responses (except Excel export 
 ```
 
 ### Error Response
+
 ```typescript
 {
   error: string,           // Human-readable error message
@@ -85,6 +96,7 @@ All APIs follow REST conventions and return JSON responses (except Excel export 
 ```
 
 ### HTTP Status Codes
+
 - `200 OK` - Successful GET/PUT/DELETE
 - `201 Created` - Successful POST
 - `400 Bad Request` - Validation error
@@ -104,14 +116,17 @@ Search parts by vehicle (Make/Model/Year) or SKU.
 ### Query Parameters
 
 **Vehicle Search**:
+
 - `make?: string` - Vehicle make (e.g., "HONDA")
 - `model?: string` - Vehicle model (e.g., "CIVIC")
 - `year?: string` - Vehicle year (e.g., "2018")
 
 **SKU Search**:
+
 - `sku_term?: string` - ACR SKU or competitor SKU (e.g., "ACR-BR-001" or "TM512342")
 
 **Pagination**:
+
 - `limit?: number` - Results per page (default: 15)
 - `offset?: number` - Results to skip (default: 0)
 
@@ -140,22 +155,26 @@ Search parts by vehicle (Make/Model/Year) or SKU.
 ### Examples
 
 **Vehicle Search**:
+
 ```bash
 GET /api/public/parts?make=HONDA&model=CIVIC&year=2018&limit=15&offset=0
 ```
 
 **SKU Search (Exact ACR SKU)**:
+
 ```bash
 GET /api/public/parts?sku_term=ACR-BR-001
 ```
 
 **SKU Search (Competitor Cross-Reference)**:
+
 ```bash
 GET /api/public/parts?sku_term=TM512342
 # Returns ACR-BR-001 via cross_references table
 ```
 
 **SKU Search (Fuzzy Match)**:
+
 ```bash
 GET /api/public/parts?sku_term=ACR-BR-00
 # Returns ACR-BR-001 with similarity: 0.85
@@ -204,18 +223,21 @@ Get cascading dropdown options for Make/Model/Year.
 ### Examples
 
 **Get All Makes**:
+
 ```bash
 GET /api/public/vehicle-options
 # Response: { makes: ["HONDA", "TOYOTA", "FORD", ...] }
 ```
 
 **Get Models for HONDA**:
+
 ```bash
 GET /api/public/vehicle-options?make=HONDA
 # Response: { models: ["ACCORD", "CIVIC", "CR-V", ...] }
 ```
 
 **Get Years for HONDA CIVIC**:
+
 ```bash
 GET /api/public/vehicle-options?make=HONDA&model=CIVIC
 # Response: { years: [2018, 2019, 2020, 2021, 2022] }
@@ -224,6 +246,7 @@ GET /api/public/vehicle-options?make=HONDA&model=CIVIC
 ### Year Expansion
 
 Years are stored as ranges (e.g., "2018-2022") but expanded in response:
+
 ```typescript
 // Database: "2018-2022"
 // Response: [2018, 2019, 2020, 2021, 2022]
@@ -289,9 +312,11 @@ List all parts (paginated) or get single part with full details.
 ### Query Parameters
 
 **Single Part**:
+
 - `id?: string` - Part UUID (if provided, returns single part with relationships)
 
 **List Parts (all optional)**:
+
 - `limit?: number` - Results per page (default: 15)
 - `offset?: number` - Results to skip (default: 0)
 - `sort_by?: string` - Column to sort by (default: "created_at")
@@ -342,16 +367,19 @@ List all parts (paginated) or get single part with full details.
 ### Examples
 
 **Get Single Part**:
+
 ```bash
 GET /api/admin/parts?id=550e8400-e29b-41d4-a716-446655440000
 ```
 
 **List All Parts (Paginated)**:
+
 ```bash
 GET /api/admin/parts?limit=15&offset=0&sort_by=created_at&sort_order=desc
 ```
 
 **Search and Filter**:
+
 ```bash
 GET /api/admin/parts?search=ACR-BR&part_type=Brake%20Rotor&limit=15
 ```
@@ -382,7 +410,7 @@ Create a new part.
 
 ```typescript
 {
-  data: Array<Part>  // Created part
+  data: Array<Part>; // Created part
 }
 ```
 
@@ -405,6 +433,7 @@ Content-Type: application/json
 ### Error Responses
 
 **Duplicate SKU (409)**:
+
 ```json
 {
   "error": "A part with this part number already exists"
@@ -412,12 +441,11 @@ Content-Type: application/json
 ```
 
 **Validation Error (400)**:
+
 ```json
 {
   "error": "Validation failed",
-  "issues": [
-    { "field": "part_type", "message": "Required" }
-  ]
+  "issues": [{ "field": "part_type", "message": "Required" }]
 }
 ```
 
@@ -447,7 +475,7 @@ Update an existing part.
 
 ```typescript
 {
-  data: Array<Part>  // Updated part
+  data: Array<Part>; // Updated part
 }
 ```
 
@@ -467,6 +495,7 @@ Content-Type: application/json
 ### Error Responses
 
 **Part Not Found (404)**:
+
 ```json
 {
   "error": "Part not found"
@@ -483,7 +512,7 @@ Delete a part (cascades to vehicle_applications and cross_references).
 
 ```typescript
 {
-  id: string  // Part UUID
+  id: string; // Part UUID
 }
 ```
 
@@ -491,7 +520,7 @@ Delete a part (cascades to vehicle_applications and cross_references).
 
 ```typescript
 {
-  data: Array<Part>  // Deleted part
+  data: Array<Part>; // Deleted part
 }
 ```
 
@@ -528,7 +557,7 @@ Create multiple parts in a single transaction.
     bolt_pattern?: string;
     drive_type?: string;
     specifications?: any;
-  }>
+  }>;
 }
 ```
 
@@ -568,14 +597,14 @@ Update multiple parts in a single transaction.
 ```typescript
 {
   parts: Array<{
-    id: string;              // Required for update
+    id: string; // Required for update
     part_type?: string;
     position_type?: string;
     abs_type?: string;
     bolt_pattern?: string;
     drive_type?: string;
     specifications?: any;
-  }>
+  }>;
 }
 ```
 
@@ -623,11 +652,11 @@ Create multiple vehicle applications in a single transaction.
 ```typescript
 {
   vehicles: Array<{
-    part_id: string;      // Part UUID
+    part_id: string; // Part UUID
     make: string;
     model: string;
-    year_range: string;   // e.g., "2018-2022" or "2020"
-  }>
+    year_range: string; // e.g., "2018-2022" or "2020"
+  }>;
 }
 ```
 
@@ -652,11 +681,11 @@ Update multiple vehicle applications.
 ```typescript
 {
   vehicles: Array<{
-    id: string;           // VehicleApplication UUID
+    id: string; // VehicleApplication UUID
     make?: string;
     model?: string;
     year_range?: string;
-  }>
+  }>;
 }
 ```
 
@@ -685,10 +714,10 @@ Create multiple cross-references in a single transaction.
 ```typescript
 {
   cross_references: Array<{
-    acr_part_id: string;       // ACR part UUID
-    competitor_brand: string;  // e.g., "Centric", "Wagner"
-    competitor_sku: string;    // e.g., "120.44171"
-  }>
+    acr_part_id: string; // ACR part UUID
+    competitor_brand: string; // e.g., "Centric", "Wagner"
+    competitor_sku: string; // e.g., "120.44171"
+  }>;
 }
 ```
 
@@ -713,10 +742,10 @@ Update multiple cross-references.
 ```typescript
 {
   cross_references: Array<{
-    id: string;                // CrossReference UUID
+    id: string; // CrossReference UUID
     competitor_brand?: string;
     competitor_sku?: string;
-  }>
+  }>;
 }
 ```
 
@@ -751,11 +780,11 @@ Get all images for a part, ordered by `display_order`.
     part_id: string;
     image_url: string;
     display_order: number;
-    is_primary: boolean;       // Deprecated (use display_order=0 instead)
+    is_primary: boolean; // Deprecated (use display_order=0 instead)
     caption: string | null;
     created_at: string;
     updated_at: string;
-  }>
+  }>;
 }
 ```
 
@@ -805,6 +834,7 @@ files: [image1.jpg, image2.jpg, image3.jpg]
 ### Error Responses
 
 **Max Capacity (400)**:
+
 ```json
 {
   "error": "Maximum of 6 images per part"
@@ -812,6 +842,7 @@ files: [image1.jpg, image2.jpg, image3.jpg]
 ```
 
 **Remaining Slots (400)**:
+
 ```json
 {
   "error": "Can only upload 2 more image(s). Maximum 6 images per part."
@@ -838,7 +869,7 @@ Reorder images by providing new sequence.
 
 ```typescript
 {
-  success: true
+  success: true;
 }
 ```
 
@@ -882,7 +913,7 @@ Update image caption.
 
 ```typescript
 {
-  caption: string | null
+  caption: string | null;
 }
 ```
 
@@ -905,7 +936,7 @@ Delete an image (removes from storage and database).
 
 ```typescript
 {
-  success: true
+  success: true;
 }
 ```
 
@@ -969,6 +1000,7 @@ Upload 360° frames (replaces existing viewer).
 ### Image Processing
 
 All frames are optimized with Sharp:
+
 - Resized to 1200x1200 (contain fit with white background)
 - Converted to progressive JPEG (quality 85)
 - MozJPEG compression
@@ -997,6 +1029,7 @@ files: [frame-000.png, frame-001.png, ..., frame-023.png]  # 24 frames
 ### Error Responses
 
 **Too Few Frames (400)**:
+
 ```json
 {
   "error": "Minimum 12 frames required",
@@ -1005,6 +1038,7 @@ files: [frame-000.png, frame-001.png, ..., frame-023.png]  # 24 frames
 ```
 
 **Too Many Frames (400)**:
+
 ```json
 {
   "error": "Maximum 48 frames allowed",
@@ -1022,7 +1056,7 @@ Delete all 360° frames for a part.
 
 ```typescript
 {
-  success: true
+  success: true;
 }
 ```
 
@@ -1060,6 +1094,7 @@ Export catalog data to Excel file (3-sheet format).
 **Filename**: `acr-catalog-export-{YYYY-MM-DD}.xlsx` or `acr-filtered-export-{YYYY-MM-DD}.xlsx`
 
 **Custom Headers**:
+
 ```
 X-Export-Parts: 9600
 X-Export-Vehicles: 18000
@@ -1070,6 +1105,7 @@ X-Export-Total: 39600
 ### Excel Structure
 
 3 sheets:
+
 1. **Parts** - All part data with hidden ID column
 2. **Vehicle Applications** - All vehicle apps with hidden part_id column
 3. **Cross References** - All cross-refs with hidden acr_part_id column
@@ -1077,12 +1113,14 @@ X-Export-Total: 39600
 ### Examples
 
 **Export All**:
+
 ```bash
 GET /api/admin/export
 # Downloads: acr-catalog-export-2025-10-25.xlsx
 ```
 
 **Export Filtered**:
+
 ```bash
 GET /api/admin/export?part_type=Brake%20Rotor&search=civic
 # Downloads: acr-filtered-export-2025-10-25.xlsx
@@ -1148,7 +1186,7 @@ Verify admin password.
 
 ```typescript
 {
-  password: string
+  password: string;
 }
 ```
 
@@ -1156,7 +1194,7 @@ Verify admin password.
 
 ```typescript
 {
-  success: true
+  success: true;
 }
 ```
 
@@ -1312,6 +1350,7 @@ List all cross-references.
 **Current**: No rate limiting (MVP)
 
 **Recommended**:
+
 - Public APIs: 60 requests/minute per IP
 - Admin APIs: 300 requests/minute per session
 
@@ -1320,10 +1359,13 @@ List all cross-references.
 ## Authentication
 
 ### Public APIs
+
 No authentication required.
 
 ### Admin APIs
+
 **MVP**: Client-side password protection via `sessionStorage`
+
 - User authenticates via `/api/admin/auth`
 - Session token stored in `sessionStorage`
 - HOC (`withAdminAuth`) checks token before rendering
@@ -1337,6 +1379,7 @@ No authentication required.
 **Allowed Origins**: Same-origin only (Next.js default)
 
 **Headers**:
+
 ```
 Access-Control-Allow-Origin: [your-domain]
 Access-Control-Allow-Methods: GET, POST, PUT, DELETE
@@ -1348,11 +1391,13 @@ Access-Control-Allow-Headers: Content-Type
 ## Caching
 
 ### Public APIs
+
 - `/api/public/settings`: 10-minute cache (via TanStack Query)
 - `/api/public/vehicle-options`: 5-minute cache
 - `/api/public/parts`: No cache (real-time search)
 
 ### Admin APIs
+
 No caching (always fresh data).
 
 ---
@@ -1374,6 +1419,7 @@ No caching (always fresh data).
 ### PostgreSQL Errors
 
 **Unique Constraint Violation (409)**:
+
 ```json
 {
   "error": "A part with this part number already exists"
@@ -1381,6 +1427,7 @@ No caching (always fresh data).
 ```
 
 **Foreign Key Violation (400)**:
+
 ```json
 {
   "error": "Referenced part does not exist"

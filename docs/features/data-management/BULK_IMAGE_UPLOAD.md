@@ -1,3 +1,7 @@
+---
+title: "Bulk Image Upload"
+---
+
 # Bulk Image Upload
 
 > **Feature Status**: Complete

@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useSyncExternalStore,
+} from "react";
+import { createPortal } from "react-dom";
 import { Loader2, Maximize2, Minimize2 } from "lucide-react";
 import { AcrButton } from "@/components/acr";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -63,35 +70,44 @@ export function Part360Viewer({
   }, [showInstructions]);
 
   // Calculate frame index from drag distance
-  const calculateFrameFromDrag = useCallback((deltaX: number): number => {
-    const frameChange = Math.floor(deltaX / DRAG_SENSITIVITY);
-    let newFrame = lastFrameOnDragStart.current + frameChange;
+  const calculateFrameFromDrag = useCallback(
+    (deltaX: number): number => {
+      const frameChange = Math.floor(deltaX / DRAG_SENSITIVITY);
+      let newFrame = lastFrameOnDragStart.current + frameChange;
 
-    // Wrap around
-    while (newFrame < 0) newFrame += totalFrames;
-    while (newFrame >= totalFrames) newFrame -= totalFrames;
+      // Wrap around
+      while (newFrame < 0) newFrame += totalFrames;
+      while (newFrame >= totalFrames) newFrame -= totalFrames;
 
-    return newFrame;
-  }, [totalFrames]);
+      return newFrame;
+    },
+    [totalFrames]
+  );
 
   // Mouse/Touch event handlers
-  const handleDragStart = useCallback((clientX: number) => {
-    setIsDragging(true);
-    dragStartX.current = clientX;
-    lastFrameOnDragStart.current = currentFrame;
-    hideInstructions();
-  }, [currentFrame, hideInstructions]);
+  const handleDragStart = useCallback(
+    (clientX: number) => {
+      setIsDragging(true);
+      dragStartX.current = clientX;
+      lastFrameOnDragStart.current = currentFrame;
+      hideInstructions();
+    },
+    [currentFrame, hideInstructions]
+  );
 
-  const handleDragMove = useCallback((clientX: number) => {
-    if (!isDragging) return;
+  const handleDragMove = useCallback(
+    (clientX: number) => {
+      if (!isDragging) return;
 
-    const deltaX = clientX - dragStartX.current;
-    const newFrame = calculateFrameFromDrag(deltaX);
+      const deltaX = clientX - dragStartX.current;
+      const newFrame = calculateFrameFromDrag(deltaX);
 
-    if (newFrame !== currentFrame) {
-      setCurrentFrame(newFrame);
-    }
-  }, [isDragging, calculateFrameFromDrag, currentFrame]);
+      if (newFrame !== currentFrame) {
+        setCurrentFrame(newFrame);
+      }
+    },
+    [isDragging, calculateFrameFromDrag, currentFrame]
+  );
 
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
@@ -207,69 +223,84 @@ export function Part360Viewer({
   // Loading state (first frame not loaded yet)
   const isLoading = !loadedFrames.has(0);
 
+  // Track if we're mounted (for portal) - using useSyncExternalStore to avoid setState in effect
+  const isMounted = useSyncExternalStore(
+    () => () => {}, // No-op subscribe since mount state doesn't change
+    () => true, // Client is always mounted
+    () => false // Server is never mounted
+  );
+
+  // Fullscreen overlay rendered via portal to document.body
+  const fullscreenOverlay =
+    isFullscreen && isMounted
+      ? createPortal(
+          <div className="fixed inset-0 z-[9999] bg-black">
+            <div
+              className="relative h-full w-full select-none"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              style={{
+                cursor: isDragging ? "grabbing" : "grab",
+                touchAction: "none",
+              }}
+              role="img"
+              aria-label={alt}
+              tabIndex={0}
+            >
+              {/* Current frame image - using img for 360 viewer performance (dynamic src switching) */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={frameUrls[currentFrame]}
+                alt={`${alt} - Frame ${currentFrame + 1} of ${totalFrames}`}
+                className="absolute inset-0 w-full h-full object-contain"
+                draggable={false}
+              />
+
+              {/* Instruction overlay */}
+              {showInstructions && (
+                <div className="absolute inset-x-0 bottom-4 md:inset-0 flex items-end md:items-center justify-center pointer-events-none">
+                  <div className="bg-black/60 text-white px-3 py-1.5 md:px-6 md:py-3 rounded-full backdrop-blur-sm">
+                    <p className="text-xs md:text-sm font-medium flex items-center gap-1 md:gap-2">
+                      <span>←</span>
+                      <span>{t("partDetails.viewer360.dragToRotate")}</span>
+                      <span>→</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Exit fullscreen button */}
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="absolute top-2 right-2 md:top-4 md:right-4 bg-white/90 hover:bg-white text-acr-gray-700 hover:text-acr-gray-900 p-1.5 md:p-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 backdrop-blur-sm border border-acr-gray-200"
+                title="Exit fullscreen"
+                aria-label="Exit fullscreen"
+              >
+                <Minimize2 className="w-4 h-4 md:w-5 md:h-5" />
+              </button>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
   return (
     <>
-      {/* Fullscreen mode - render at root level */}
-      {isFullscreen && (
-        <div className="fixed inset-0 z-50 bg-black">
-          <div
-            className="relative h-full w-full select-none"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseLeave}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            style={{
-              cursor: isDragging ? "grabbing" : "grab",
-              touchAction: "none",
-            }}
-            role="img"
-            aria-label={alt}
-            tabIndex={0}
-          >
-            {/* Current frame image */}
-            <img
-              src={frameUrls[currentFrame]}
-              alt={`${alt} - Frame ${currentFrame + 1} of ${totalFrames}`}
-              className="absolute inset-0 w-full h-full object-contain"
-              draggable={false}
-            />
-
-            {/* Instruction overlay */}
-            {showInstructions && (
-              <div className="absolute inset-x-0 bottom-4 md:inset-0 flex items-end md:items-center justify-center pointer-events-none">
-                <div className="bg-black/60 text-white px-3 py-1.5 md:px-6 md:py-3 rounded-full backdrop-blur-sm">
-                  <p className="text-xs md:text-sm font-medium flex items-center gap-1 md:gap-2">
-                    <span>←</span>
-                    <span>{t("partDetails.viewer360.dragToRotate")}</span>
-                    <span>→</span>
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Exit fullscreen button */}
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              className="absolute top-2 right-2 md:top-4 md:right-4 bg-white/90 hover:bg-white text-acr-gray-700 hover:text-acr-gray-900 p-1.5 md:p-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 backdrop-blur-sm border border-acr-gray-200"
-              title="Exit fullscreen"
-              aria-label="Exit fullscreen"
-            >
-              <Minimize2 className="w-4 h-4 md:w-5 md:h-5" />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Fullscreen mode - render via portal at document.body */}
+      {fullscreenOverlay}
 
       {/* Normal mode - embedded in page */}
       {!isFullscreen && (
         <div
           ref={containerRef}
           className={`relative overflow-hidden flex items-center justify-center ${transparent ? "" : "bg-acr-gray-100 rounded-lg"} ${className}`}
-          style={{ touchAction: "none" }} // Prevent default touch behaviors
+          style={{ touchAction: "none" }}
         >
           {/* Main viewer area */}
           <div
@@ -299,6 +330,7 @@ export function Part360Viewer({
                 </div>
               </div>
             ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 ref={imageRef}
                 src={frameUrls[currentFrame]}

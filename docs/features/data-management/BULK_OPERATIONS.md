@@ -1,3 +1,7 @@
+---
+title: "Bulk Operations API Documentation"
+---
+
 # Bulk Operations API Documentation
 
 > **Phase 8.1 Implementation**: Bulk create/update/delete operations for administrative data management
@@ -23,6 +27,7 @@ HTTP Request → Zod Validation → BulkOperationsService → Supabase → Postg
 ### Single-Table Atomicity (Phase 8.1)
 
 Each bulk operation operates on **a single table only**:
+
 - PostgreSQL automatically treats multi-row `INSERT`/`UPDATE`/`DELETE` as atomic
 - Either all rows succeed, or none do (rollback on error)
 - No explicit transaction management needed for single-table operations
@@ -34,6 +39,7 @@ Each bulk operation operates on **a single table only**:
 ### Parts Operations
 
 #### Create Parts
+
 ```http
 POST /api/admin/bulk/parts/create
 Content-Type: application/json
@@ -54,6 +60,7 @@ Content-Type: application/json
 **Limits**: 1-1000 parts per request
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -74,6 +81,7 @@ Content-Type: application/json
 ```
 
 #### Update Parts
+
 ```http
 POST /api/admin/bulk/parts/update
 Content-Type: application/json
@@ -95,6 +103,7 @@ Content-Type: application/json
 **Required Field**: `id` (UUID of existing part)
 
 #### Delete Parts
+
 ```http
 POST /api/admin/bulk/parts/delete
 Content-Type: application/json
@@ -111,12 +120,14 @@ Content-Type: application/json
 **Limits**: 1-1000 IDs per request
 
 **Cascade Behavior**: PostgreSQL `ON DELETE CASCADE` automatically removes:
+
 - Associated vehicle applications
 - Associated cross-references
 
 ### Vehicle Applications Operations
 
 #### Create Vehicle Applications
+
 ```http
 POST /api/admin/bulk/vehicles/create
 Content-Type: application/json
@@ -139,17 +150,20 @@ Content-Type: application/json
 **Limits**: 1-5000 vehicles per request
 
 **Required Fields**:
+
 - `part_id` (must exist in `parts` table)
 - `make`
 - `model`
 - `start_year`
 
 **Optional Fields**:
+
 - `end_year`
 - `engine`
 - `notes`
 
 #### Update Vehicle Applications
+
 ```http
 POST /api/admin/bulk/vehicles/update
 Content-Type: application/json
@@ -171,6 +185,7 @@ Content-Type: application/json
 **Limits**: 1-5000 vehicles per request
 
 #### Delete Vehicle Applications
+
 ```http
 POST /api/admin/bulk/vehicles/delete
 Content-Type: application/json
@@ -188,6 +203,7 @@ Content-Type: application/json
 ### Cross-References Operations
 
 #### Create Cross-References
+
 ```http
 POST /api/admin/bulk/cross-references/create
 Content-Type: application/json
@@ -206,11 +222,13 @@ Content-Type: application/json
 **Limits**: 1-10,000 cross-references per request
 
 **Required Fields**:
+
 - `acr_part_id` (must exist in `parts` table)
 - `competitor_sku`
 - `competitor_brand`
 
 #### Update Cross-References
+
 ```http
 POST /api/admin/bulk/cross-references/update
 Content-Type: application/json
@@ -230,6 +248,7 @@ Content-Type: application/json
 **Limits**: 1-10,000 cross-references per request
 
 #### Delete Cross-References
+
 ```http
 POST /api/admin/bulk/cross-references/delete
 Content-Type: application/json
@@ -265,6 +284,7 @@ Content-Type: application/json
 ```
 
 **Common Validation Errors**:
+
 - Empty arrays
 - Exceeding max limits (1000/5000/10000)
 - Missing required fields
@@ -286,6 +306,7 @@ Content-Type: application/json
 ```
 
 **Common Database Errors**:
+
 - Duplicate SKU numbers
 - Foreign key violations (part_id doesn't exist)
 - Invalid UUIDs
@@ -307,36 +328,38 @@ Located in: `src/lib/schemas/admin.ts`
 
 ```typescript
 // Base schemas (single entity)
-createPartSchema
-updatePartSchema
-createVehicleApplicationSchema
-updateVehicleApplicationSchema
-createCrossReferenceSchema
-updateCrossReferenceSchema
+createPartSchema;
+updatePartSchema;
+createVehicleApplicationSchema;
+updateVehicleApplicationSchema;
+createCrossReferenceSchema;
+updateCrossReferenceSchema;
 
 // Bulk schemas (arrays with min/max)
-bulkCreatePartsSchema         // min: 1, max: 1000
-bulkUpdatePartsSchema         // min: 1, max: 1000
-bulkDeletePartsSchema         // min: 1, max: 1000
-bulkCreateVehiclesSchema      // min: 1, max: 5000
-bulkUpdateVehiclesSchema      // min: 1, max: 5000
-bulkDeleteVehiclesSchema      // min: 1, max: 5000
-bulkCreateCrossRefsSchema     // min: 1, max: 10000
-bulkUpdateCrossRefsSchema     // min: 1, max: 10000
-bulkDeleteCrossRefsSchema     // min: 1, max: 10000
+bulkCreatePartsSchema; // min: 1, max: 1000
+bulkUpdatePartsSchema; // min: 1, max: 1000
+bulkDeletePartsSchema; // min: 1, max: 1000
+bulkCreateVehiclesSchema; // min: 1, max: 5000
+bulkUpdateVehiclesSchema; // min: 1, max: 5000
+bulkDeleteVehiclesSchema; // min: 1, max: 5000
+bulkCreateCrossRefsSchema; // min: 1, max: 10000
+bulkUpdateCrossRefsSchema; // min: 1, max: 10000
+bulkDeleteCrossRefsSchema; // min: 1, max: 10000
 
 // Result schema
-bulkOperationResultSchema
+bulkOperationResultSchema;
 ```
 
 ### Schema Design Principles
 
 1. **Type Safety**: All schemas use TypeScript type inference
+
    ```typescript
    export type CreatePartParams = z.infer<typeof createPartSchema>;
    ```
 
 2. **Reusability**: Bulk schemas compose base schemas
+
    ```typescript
    export const bulkCreatePartsSchema = z.object({
      parts: z.array(createPartSchema).min(1).max(1000),
@@ -357,19 +380,27 @@ Located in: `src/lib/services/BulkOperationsService.ts`
 ```typescript
 export class BulkOperationsService {
   // Parts operations
-  async createParts(parts: CreatePartParams[]): Promise<BulkOperationResult>
-  async updateParts(parts: UpdatePartParams[]): Promise<BulkOperationResult>
-  async deleteParts(ids: string[]): Promise<BulkOperationResult>
+  async createParts(parts: CreatePartParams[]): Promise<BulkOperationResult>;
+  async updateParts(parts: UpdatePartParams[]): Promise<BulkOperationResult>;
+  async deleteParts(ids: string[]): Promise<BulkOperationResult>;
 
   // Vehicle operations
-  async createVehicleApplications(vehicles: CreateVehicleApplicationParams[]): Promise<BulkOperationResult>
-  async updateVehicleApplications(vehicles: UpdateVehicleApplicationParams[]): Promise<BulkOperationResult>
-  async deleteVehicleApplications(ids: string[]): Promise<BulkOperationResult>
+  async createVehicleApplications(
+    vehicles: CreateVehicleApplicationParams[]
+  ): Promise<BulkOperationResult>;
+  async updateVehicleApplications(
+    vehicles: UpdateVehicleApplicationParams[]
+  ): Promise<BulkOperationResult>;
+  async deleteVehicleApplications(ids: string[]): Promise<BulkOperationResult>;
 
   // Cross-reference operations
-  async createCrossReferences(crossRefs: CreateCrossReferenceParams[]): Promise<BulkOperationResult>
-  async updateCrossReferences(crossRefs: UpdateCrossReferenceParams[]): Promise<BulkOperationResult>
-  async deleteCrossReferences(ids: string[]): Promise<BulkOperationResult>
+  async createCrossReferences(
+    crossRefs: CreateCrossReferenceParams[]
+  ): Promise<BulkOperationResult>;
+  async updateCrossReferences(
+    crossRefs: UpdateCrossReferenceParams[]
+  ): Promise<BulkOperationResult>;
+  async deleteCrossReferences(ids: string[]): Promise<BulkOperationResult>;
 }
 ```
 
@@ -422,30 +453,33 @@ async createParts(parts: CreatePartParams[]): Promise<BulkOperationResult & { da
 ### Database Schema Mapping
 
 **Parts**: `sku_number` → `acr_sku`
+
 ```typescript
 {
-  sku_number: "ACR-123"     // API param
-  acr_sku: "ACR-123"        // Database column
+  sku_number: "ACR-123"; // API param
+  acr_sku: "ACR-123"; // Database column
 }
 ```
 
 **Vehicle Applications**: Direct mapping (no transforms)
+
 ```typescript
 {
-  part_id: "uuid"
-  make: "Honda"
-  model: "Civic"
-  start_year: 2018
-  end_year: 2020
+  part_id: "uuid";
+  make: "Honda";
+  model: "Civic";
+  start_year: 2018;
+  end_year: 2020;
 }
 ```
 
 **Cross-References**: `acr_part_id` → database column
+
 ```typescript
 {
-  acr_part_id: "uuid"          // API param
-  competitor_sku: "BREMBO-123"
-  competitor_brand: "Brembo"
+  acr_part_id: "uuid"; // API param
+  competitor_sku: "BREMBO-123";
+  competitor_brand: "Brembo";
 }
 ```
 
@@ -453,13 +487,14 @@ async createParts(parts: CreatePartParams[]): Promise<BulkOperationResult & { da
 
 ### Batch Size Recommendations
 
-| Entity Type | Min | Max | Recommended Batch |
-|-------------|-----|-----|-------------------|
-| Parts | 1 | 1,000 | 100-500 |
-| Vehicles | 1 | 5,000 | 500-2,000 |
-| Cross-Refs | 1 | 10,000 | 1,000-5,000 |
+| Entity Type | Min | Max    | Recommended Batch |
+| ----------- | --- | ------ | ----------------- |
+| Parts       | 1   | 1,000  | 100-500           |
+| Vehicles    | 1   | 5,000  | 500-2,000         |
+| Cross-Refs  | 1   | 10,000 | 1,000-5,000       |
 
 **Rationale**:
+
 - **Parts**: Lower limit due to potential cascade deletes
 - **Vehicles**: Medium limit, frequently used
 - **Cross-Refs**: Highest limit, simple structure
@@ -475,6 +510,7 @@ Create 2 Cross References:     447ms
 ```
 
 **Scaling Expectations**:
+
 - Small batches (1-10): < 500ms
 - Medium batches (10-100): 500ms-2s
 - Large batches (100-1000): 2s-10s
@@ -482,11 +518,13 @@ Create 2 Cross References:     447ms
 ### Database Impact
 
 **Index Usage**:
+
 - Primary key lookups: O(log n)
 - Foreign key checks: O(log n) per row
 - Unique constraint checks: O(log n) per row
 
 **Locking Behavior**:
+
 - Row-level locks during INSERT/UPDATE
 - Minimal contention (admin-only operations)
 - No deadlock risk (single-table operations)
@@ -498,11 +536,13 @@ Create 2 Cross References:     447ms
 Located in: `scripts/test-bulk-operations.ts`
 
 Run with:
+
 ```bash
 npm run test:bulk
 ```
 
 **Test Coverage**:
+
 1. ✅ Create 3 parts (success case)
 2. ✅ Create 2 vehicle applications with real part IDs (success case)
 3. ✅ Create 2 cross-references with real part IDs (success case)
@@ -510,6 +550,7 @@ npm run test:bulk
 5. ✅ Max limit validation - 1001 parts (error case)
 
 **Expected Output**:
+
 ```
 📈 Summary: 3/5 tests passed
    - 3/3 create operations successful
@@ -541,18 +582,18 @@ curl -X POST http://localhost:3000/api/admin/bulk/parts/create \
 Recommended test structure:
 
 ```typescript
-describe('BulkOperationsService', () => {
-  describe('createParts', () => {
-    it('should create multiple parts atomically')
-    it('should rollback on error')
-    it('should handle duplicate SKUs')
-  })
+describe("BulkOperationsService", () => {
+  describe("createParts", () => {
+    it("should create multiple parts atomically");
+    it("should rollback on error");
+    it("should handle duplicate SKUs");
+  });
 
-  describe('createVehicleApplications', () => {
-    it('should validate part_id exists')
-    it('should validate year ranges')
-  })
-})
+  describe("createVehicleApplications", () => {
+    it("should validate part_id exists");
+    it("should validate year ranges");
+  });
+});
 ```
 
 ## Security Considerations
@@ -560,10 +601,12 @@ describe('BulkOperationsService', () => {
 ### Authentication
 
 **Current State (MVP)**:
+
 - No authentication implemented yet
 - Endpoints are public (development only)
 
 **Phase 9 (Planned)**:
+
 - Admin authentication with Supabase Auth
 - Row-level security (RLS) policies
 - API key validation
@@ -571,12 +614,14 @@ describe('BulkOperationsService', () => {
 ### Input Validation
 
 **Zod Validation** (current):
+
 - Type checking
 - Min/max constraints
 - Required fields
 - Format validation (UUIDs, years)
 
 **SQL Injection Protection**:
+
 - Supabase SDK uses parameterized queries
 - No raw SQL in bulk operations
 - PostgreSQL prepared statements
@@ -584,6 +629,7 @@ describe('BulkOperationsService', () => {
 ### Rate Limiting
 
 **Not Implemented** (Phase 9):
+
 - Recommended: 10 requests/minute per IP
 - Recommended: 1000 parts/minute per account
 
@@ -592,6 +638,7 @@ describe('BulkOperationsService', () => {
 ### Phase 8.2: Multi-Table Atomicity
 
 **Excel Import Service**:
+
 ```typescript
 class ImportService {
   async importFromExcel(file: File): Promise<ImportResult> {
@@ -606,6 +653,7 @@ class ImportService {
 ```
 
 **PostgreSQL Function**:
+
 ```sql
 CREATE OR REPLACE FUNCTION import_excel_data(
   parts jsonb,
@@ -645,6 +693,7 @@ $$ LANGUAGE plpgsql;
 ### Monitoring & Observability
 
 **Recommended Metrics**:
+
 - Request count by endpoint
 - Average batch size
 - P50/P95/P99 response times
@@ -652,12 +701,13 @@ $$ LANGUAGE plpgsql;
 - Database query performance
 
 **Logging**:
+
 ```typescript
-logger.info('Bulk create parts', {
+logger.info("Bulk create parts", {
   count: parts.length,
   duration: elapsed,
   success: result.success,
-})
+});
 ```
 
 ## Troubleshooting
@@ -665,18 +715,21 @@ logger.info('Bulk create parts', {
 ### Common Issues
 
 **Issue**: "Foreign key violation" when creating vehicles
+
 ```
 Solution: Ensure part_id exists in parts table first
 Check: SELECT id FROM parts WHERE id = 'uuid'
 ```
 
 **Issue**: "Duplicate key constraint" when creating parts
+
 ```
 Solution: Check for existing SKU numbers
 Check: SELECT acr_sku FROM parts WHERE acr_sku = 'ACR-123'
 ```
 
 **Issue**: "Maximum limit exceeded"
+
 ```
 Solution: Split request into smaller batches
 Parts: max 1000
@@ -685,6 +738,7 @@ Cross-refs: max 10000
 ```
 
 **Issue**: Slow response times
+
 ```
 Solution: Check batch size and database indexes
 Recommended: Use smaller batches (100-500 items)

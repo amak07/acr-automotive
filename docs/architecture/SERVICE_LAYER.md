@@ -1,3 +1,7 @@
+---
+title: "Service Layer Pattern"
+---
+
 # Service Layer Pattern
 
 > **Purpose**: When and how to use the service layer for complex business logic
@@ -21,12 +25,14 @@
 **Definition**: A service layer is a collection of TypeScript classes that encapsulate complex business logic, separate from API routes and UI components.
 
 **Purpose**:
+
 - Isolate business logic from framework code (Next.js routes)
 - Enable reusability across multiple endpoints
 - Simplify testing (no HTTP mocking needed)
 - Handle multi-step operations
 
 **Analogy**:
+
 ```
 ┌─────────────────┐
 │   API Route     │  ← Thin controller (validation, HTTP handling)
@@ -57,6 +63,7 @@
 **Example**: Bulk operations (create 100 parts atomically)
 
 **Why Service Layer**:
+
 - Encapsulates orchestration logic
 - Handles transactions/rollbacks
 - Clear separation of concerns
@@ -72,6 +79,7 @@
 **Example**: Excel export (9,600 parts)
 
 **Why Service Layer**:
+
 - Multi-page fetching logic
 - Progress tracking
 - Memory management
@@ -87,6 +95,7 @@
 **Example**: Excel import (parse → validate → transform → insert)
 
 **Why Service Layer**:
+
 - Multi-stage processing
 - Error accumulation
 - Rollback on failure
@@ -100,6 +109,7 @@
 **Example**: Part creation logic used in both single create and bulk create.
 
 **Why Service Layer**:
+
 - DRY (Don't Repeat Yourself)
 - Consistent behavior
 - Easier to maintain
@@ -111,6 +121,7 @@
 **Use Case**: Calling third-party APIs (future: competitor price scraping).
 
 **Why Service Layer**:
+
 - Isolate external dependencies
 - Handle rate limiting
 - Mock for testing
@@ -124,6 +135,7 @@
 **Don't Use**: Single database query with no transformation.
 
 **Example**:
+
 ```typescript
 // ❌ Don't create a service for this
 class PartService {
@@ -165,6 +177,7 @@ export async function GET(request: NextRequest) {
 **Don't Use**: Single aggregation query (count, sum, average).
 
 **Example**:
+
 ```typescript
 // ❌ Don't need a service
 class StatsService {
@@ -186,11 +199,13 @@ const { count } = await supabase
 ### Class-Based Pattern
 
 **Why Classes**:
+
 - Group related methods
 - Share state (optional)
 - Clear instantiation
 
 **Pattern**:
+
 ```typescript
 export class MyService {
   // Optional: Shared dependencies
@@ -204,6 +219,7 @@ export class MyService {
 ```
 
 **Usage**:
+
 ```typescript
 const service = new MyService();
 const result = await service.createResource(params);
@@ -218,21 +234,22 @@ const result = await service.createResource(params);
 ```typescript
 type OperationResult = {
   success: boolean;
-  created?: number;    // For bulk creates
-  updated?: number;    // For bulk updates
-  deleted?: number;    // For bulk deletes
-  data?: T[];          // Successful results
-  errors?: Error[];    // Failed operations
+  created?: number; // For bulk creates
+  updated?: number; // For bulk updates
+  deleted?: number; // For bulk deletes
+  data?: T[]; // Successful results
+  errors?: Error[]; // Failed operations
 };
 
 type Error = {
-  index?: number;      // For bulk operations
-  field?: string;      // For validation errors
-  message: string;     // Human-readable error
+  index?: number; // For bulk operations
+  field?: string; // For validation errors
+  message: string; // Human-readable error
 };
 ```
 
 **Example**:
+
 ```typescript
 // Success
 {
@@ -287,6 +304,7 @@ async createParts(parts: CreatePartParams[]): Promise<BulkOperationResult> {
 ```
 
 **Why**:
+
 - API route handles HTTP status codes
 - Service focuses on business logic
 - Easier to test (no try-catch needed)
@@ -302,32 +320,43 @@ async createParts(parts: CreatePartParams[]): Promise<BulkOperationResult> {
 **Purpose**: Atomic bulk creates, updates, and deletes for parts, vehicles, and cross-references.
 
 **Methods**:
+
 ```typescript
 class BulkOperationsService {
   // Parts
-  async createParts(parts: CreatePartParams[]): Promise<BulkOperationResult>
-  async updateParts(parts: UpdatePartParams[]): Promise<BulkOperationResult>
-  async deleteParts(ids: string[]): Promise<BulkOperationResult>
+  async createParts(parts: CreatePartParams[]): Promise<BulkOperationResult>;
+  async updateParts(parts: UpdatePartParams[]): Promise<BulkOperationResult>;
+  async deleteParts(ids: string[]): Promise<BulkOperationResult>;
 
   // Vehicle Applications
-  async createVehicleApplications(vehicles: CreateVehicleApplicationParams[]): Promise<BulkOperationResult>
-  async updateVehicleApplications(vehicles: UpdateVehicleApplicationParams[]): Promise<BulkOperationResult>
-  async deleteVehicleApplications(ids: string[]): Promise<BulkOperationResult>
+  async createVehicleApplications(
+    vehicles: CreateVehicleApplicationParams[]
+  ): Promise<BulkOperationResult>;
+  async updateVehicleApplications(
+    vehicles: UpdateVehicleApplicationParams[]
+  ): Promise<BulkOperationResult>;
+  async deleteVehicleApplications(ids: string[]): Promise<BulkOperationResult>;
 
   // Cross References
-  async createCrossReferences(refs: CreateCrossReferenceParams[]): Promise<BulkOperationResult>
-  async updateCrossReferences(refs: UpdateCrossReferenceParams[]): Promise<BulkOperationResult>
-  async deleteCrossReferences(ids: string[]): Promise<BulkOperationResult>
+  async createCrossReferences(
+    refs: CreateCrossReferenceParams[]
+  ): Promise<BulkOperationResult>;
+  async updateCrossReferences(
+    refs: UpdateCrossReferenceParams[]
+  ): Promise<BulkOperationResult>;
+  async deleteCrossReferences(ids: string[]): Promise<BulkOperationResult>;
 }
 ```
 
 **Key Features**:
+
 - **Atomic operations**: PostgreSQL multi-row INSERT is atomic (all or nothing)
 - **Field mapping**: `sku_number` → `acr_sku` (API field names ≠ database column names)
 - **Concurrent updates**: Uses `Promise.all` for independent operations
 - **Error accumulation**: Collects all errors before returning
 
 **Example**:
+
 ```typescript
 const service = new BulkOperationsService();
 const result = await service.createParts([
@@ -351,29 +380,32 @@ if (result.success) {
 **Purpose**: Generate Excel workbooks with parts catalog data, bypassing PostgREST pagination limits.
 
 **Methods**:
+
 ```typescript
 class ExcelExportService {
   async exportPartsToExcel(
     filters?: ExportFilters
-  ): Promise<{ success: boolean; buffer?: Buffer; error?: string }>
+  ): Promise<{ success: boolean; buffer?: Buffer; error?: string }>;
 
   async exportVehicleApplicationsToExcel(
     partId: string
-  ): Promise<{ success: boolean; buffer?: Buffer; error?: string }>
+  ): Promise<{ success: boolean; buffer?: Buffer; error?: string }>;
 
   async exportCrossReferencesToExcel(
     partId: string
-  ): Promise<{ success: boolean; buffer?: Buffer; error?: string }>
+  ): Promise<{ success: boolean; buffer?: Buffer; error?: string }>;
 }
 ```
 
 **Key Features**:
+
 - **Pagination bypass**: Fetches ALL records using offset/limit loop
 - **Hidden columns**: Stores IDs in hidden columns for import matching
 - **Frozen headers**: First row frozen for scrolling
 - **ExcelJS**: Direct workbook generation (no temp files)
 
 **Example**:
+
 ```typescript
 const service = new ExcelExportService();
 const result = await service.exportPartsToExcel({
@@ -384,7 +416,8 @@ const result = await service.exportPartsToExcel({
 if (result.success) {
   return new NextResponse(result.buffer, {
     headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Type":
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "Content-Disposition": 'attachment; filename="parts-export.xlsx"',
     },
   });
@@ -531,6 +564,7 @@ async exportPartsToExcel(filters?: ExportFilters) {
 **Used By**: [src/app/api/admin/export/excel/route.ts](../../src/app/api/admin/export/excel/route.ts)
 
 **Why Service Layer**:
+
 - Complex multi-step process (paginate → transform → generate → buffer)
 - Reusable across different export endpoints
 - Isolated ExcelJS logic
@@ -594,11 +628,13 @@ async updateParts(parts: UpdatePartParams[]): Promise<BulkOperationResult> {
 ```
 
 **Why `Promise.all`**:
+
 - Updates are independent (no shared state)
 - Faster than sequential (100 updates in parallel vs 100 sequential)
 - PostgreSQL handles concurrency
 
 **Alternative (Sequential)**:
+
 ```typescript
 // ❌ Slower for independent operations
 for (const part of parts) {

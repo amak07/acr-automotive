@@ -1669,8 +1669,8 @@ export const translations: Record<
 
   // Public Interface
   "public.header.title": {
-    en: "Product Catalogue",
-    es: "Catálogo de Productos",
+    en: "Professional Parts Catalog",
+    es: "Catálogo Profesional de Refacciones",
   },
   "public.header.admin": {
     en: "Admin",
@@ -1987,6 +1987,10 @@ export const translations: Record<
   "admin.settings.branding.uploadBanner": {
     en: "Upload Banner",
     es: "Subir Banner",
+  },
+  "admin.settings.branding.uploadImage": {
+    en: "Upload Image",
+    es: "Subir Imagen",
   },
   "admin.settings.branding.bannerFormat": {
     en: "Banner image for homepage (PNG, JPG - recommended 1200x300px, max 5MB)",

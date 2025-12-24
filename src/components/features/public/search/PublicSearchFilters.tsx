@@ -15,6 +15,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { useVehicleOptions } from "@/hooks";
 import { CardError } from "@/components/ui/error-states";
 import { DEFAULT_PUBLIC_SEARCH_TERMS } from "@/app/constants";
+import { cn } from "@/lib/utils";
 
 export type PublicSearchTerms = {
   limit: number;
@@ -202,6 +203,12 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
     );
   }
 
+  // Check if vehicle search is ready (all fields filled)
+  const isVehicleSearchReady =
+    activeTab === "vehicle" && selectedMake && selectedModel && selectedYear;
+  const isSkuSearchReady = activeTab === "sku" && skuTerm.length > 0;
+  const isSearchReady = isVehicleSearchReady || isSkuSearchReady;
+
   return (
     <div className="bg-white p-3 rounded-lg border border-acr-gray-300 shadow-md lg:p-4">
       <AcrTabs value={activeTab} onValueChange={setActiveTab}>
@@ -320,7 +327,10 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             />
 
             <AcrButton
-              className="w-full h-12 mt-2"
+              className={cn(
+                "w-full h-12 mt-2",
+                isVehicleSearchReady && "acr-pulse-ready"
+              )}
               onClick={handleVehicleSearch}
               disabled={
                 !selectedMake || !selectedModel || !selectedYear || isLoading
@@ -329,12 +339,12 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
               {t("common.actions.search")}
             </AcrButton>
 
-            {/* Clear Filters Button - Mobile */}
+            {/* Clear Filters - Mobile */}
             {hasActiveFilters && (
               <AcrButton
                 onClick={clearAllFilters}
-                variant="ghost"
-                className="w-full text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100 mt-2"
+                variant="secondary"
+                className="w-full mt-2"
               >
                 {t("common.actions.clearFilters")}
               </AcrButton>
@@ -430,7 +440,10 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             />
 
             <AcrButton
-              className="whitespace-nowrap h-auto py-3"
+              className={cn(
+                "whitespace-nowrap h-auto py-3",
+                isVehicleSearchReady && "acr-pulse-ready"
+              )}
               onClick={handleVehicleSearch}
               disabled={
                 !selectedMake || !selectedModel || !selectedYear || isLoading
@@ -439,12 +452,12 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
               {t("common.actions.search")}
             </AcrButton>
 
-            {/* Clear Filters Button - Desktop (inline with Search) */}
+            {/* Clear Filters - Desktop */}
             {hasActiveFilters && (
               <AcrButton
                 onClick={clearAllFilters}
-                variant="ghost"
-                className="hidden md:inline-flex whitespace-nowrap h-auto py-3 text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100"
+                variant="secondary"
+                className="whitespace-nowrap"
               >
                 {t("common.actions.clearFilters")}
               </AcrButton>
@@ -469,7 +482,10 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             </div>
 
             <AcrButton
-              className="w-full h-12"
+              className={cn(
+                "w-full h-12",
+                isSkuSearchReady && "acr-pulse-ready"
+              )}
               onClick={handleSkuTermSearch}
               disabled={!skuTerm}
             >
@@ -492,31 +508,34 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             </div>
 
             <AcrButton
-              className="whitespace-nowrap h-auto py-3"
+              className={cn(
+                "whitespace-nowrap h-auto py-3",
+                isSkuSearchReady && "acr-pulse-ready"
+              )}
               onClick={handleSkuTermSearch}
               disabled={!skuTerm}
             >
               {t("common.actions.search")}
             </AcrButton>
 
-            {/* Clear Filters Button - Desktop (inline with Search) */}
+            {/* Clear Filters - Desktop */}
             {hasActiveFilters && (
               <AcrButton
                 onClick={clearAllFilters}
-                variant="ghost"
-                className="whitespace-nowrap h-auto py-3 text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100"
+                variant="secondary"
+                className="whitespace-nowrap"
               >
                 {t("common.actions.clearFilters")}
               </AcrButton>
             )}
           </div>
 
-          {/* Clear Filters Button - Mobile (full width below) */}
+          {/* Clear Filters - Mobile */}
           {hasActiveFilters && (
             <AcrButton
               onClick={clearAllFilters}
-              variant="ghost"
-              className="md:hidden w-full text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100 mt-3"
+              variant="secondary"
+              className="md:hidden w-full mt-3"
             >
               {t("common.actions.clearFilters")}
             </AcrButton>

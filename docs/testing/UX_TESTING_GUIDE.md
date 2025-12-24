@@ -1,3 +1,7 @@
+---
+title: "UX Testing Guide - ACR Automotive"
+---
+
 # UX Testing Guide - ACR Automotive
 
 > **Purpose**: Manual testing procedures for user experience, accessibility, and browser compatibility
@@ -42,13 +46,13 @@ Manual UX Tests (This Guide)  ← YOU ARE HERE
 
 ### When to Run Manual UX Tests
 
-| Scenario | Frequency | Time Required |
-|----------|-----------|---------------|
-| **Pre-release testing** | Before each production deploy | 2-4 hours |
-| **After major UI changes** | Wizard flow modifications | 1-2 hours |
-| **New browser support** | Adding iOS/Safari support | 2 hours |
-| **Accessibility audits** | Quarterly | 1 hour |
-| **Performance regression** | When tests slow down | 30 minutes |
+| Scenario                   | Frequency                     | Time Required |
+| -------------------------- | ----------------------------- | ------------- |
+| **Pre-release testing**    | Before each production deploy | 2-4 hours     |
+| **After major UI changes** | Wizard flow modifications     | 1-2 hours     |
+| **New browser support**    | Adding iOS/Safari support     | 2 hours       |
+| **Accessibility audits**   | Quarterly                     | 1 hour        |
+| **Performance regression** | When tests slow down          | 30 minutes    |
 
 ### Who Should Run These Tests
 
@@ -66,28 +70,33 @@ Manual UX Tests (This Guide)  ← YOU ARE HERE
 Use this checklist before each production deployment:
 
 #### Import Wizard Flow
+
 - [ ] Happy path: Upload → Validate → Review → Confirm → Success
 - [ ] Error path: Invalid file → Clear error message → Re-upload works
 - [ ] Warning path: Data changes → Acknowledge warnings → Import succeeds
 
 #### File Upload
+
 - [ ] Drag-and-drop works (visual feedback on hover)
 - [ ] File size validation (10MB limit, clear error if exceeded)
 - [ ] File type validation (.xlsx only, helpful error for .csv/.xls)
 - [ ] Large file progress (1000+ parts show progress indicator)
 
 #### Validation & Diff
+
 - [ ] Error messages include row/column/value (not just error code)
 - [ ] Warnings show before/after values
 - [ ] Cascade delete warnings require acknowledgment
 - [ ] Pagination works (20 items → Load More → Show All)
 
 #### Accessibility
+
 - [ ] Keyboard navigation (Tab through wizard, Enter to advance)
 - [ ] Screen reader announces errors/warnings
 - [ ] Focus visible on all interactive elements
 
 #### Browser Compatibility
+
 - [ ] Chrome Desktop: All features work
 - [ ] iPad Safari: File upload + touch interactions work
 
@@ -104,6 +113,7 @@ Use this checklist before each production deployment:
 **Test Data**: `fixtures/excel/unit/valid-add-new-parts.xlsx` (5 parts, no errors)
 
 **Steps**:
+
 1. Navigate to `/admin/import`
 2. **Step 1 - Upload**:
    - Drag file onto drop zone
@@ -126,12 +136,14 @@ Use this checklist before each production deployment:
    - **Expected**: "View Imported Parts" link visible
 
 **Success Criteria**:
+
 - ✅ No errors or warnings displayed
 - ✅ Each step transitions smoothly (no flicker/flash)
 - ✅ Import completes in <2 seconds
 - ✅ Success message includes import summary (5 parts added)
 
 **Failure Scenarios**:
+
 - ❌ Validation takes >5 seconds
 - ❌ "Next" button enabled before validation completes
 - ❌ Diff preview shows incorrect counts
@@ -146,6 +158,7 @@ Use this checklist before each production deployment:
 **Test Data**: `fixtures/excel/unit/error-missing-required-fields.xlsx` (3 errors)
 
 **Steps**:
+
 1. Upload file with validation errors
 2. **Step 2 - Validation**:
    - **Expected**: Red X icon, "3 errors found" message
@@ -164,6 +177,7 @@ Use this checklist before each production deployment:
    - **Expected**: "Validation Successful" if errors fixed
 
 **Success Criteria**:
+
 - ✅ Error messages are understandable to non-technical users
 - ✅ Row numbers match Excel (2-indexed, accounting for header row)
 - ✅ Re-upload works without refreshing page
@@ -178,6 +192,7 @@ Use this checklist before each production deployment:
 **Test Data**: `fixtures/excel/unit/warning-data-changes.xlsx` (5 warnings)
 
 **Steps**:
+
 1. Upload file with data changes
 2. **Step 2 - Validation**:
    - **Expected**: Yellow warning icon, "Validation successful with warnings"
@@ -195,6 +210,7 @@ Use this checklist before each production deployment:
    - **Expected**: Checkbox state persists during navigation
 
 **Success Criteria**:
+
 - ✅ Warnings don't block import (Next button enabled)
 - ✅ Before/after values clearly displayed
 - ✅ Acknowledgment checkbox optional but encouraged
@@ -207,6 +223,7 @@ Use this checklist before each production deployment:
 **Objective**: Verify state preservation when navigating backward
 
 **Steps**:
+
 1. Complete Steps 1-3 (Upload → Validation → Diff Preview)
 2. On Step 3 (Diff Preview), click "Back" button
    - **Expected**: Returns to Step 2 (Validation)
@@ -219,6 +236,7 @@ Use this checklist before each production deployment:
    - **Expected**: Proceeds directly to Step 2
 
 **Success Criteria**:
+
 - ✅ Back navigation doesn't trigger re-validation
 - ✅ Uploaded file state preserved
 - ✅ Diff results cached (not recalculated)
@@ -231,6 +249,7 @@ Use this checklist before each production deployment:
 **Objective**: Verify behavior when user refreshes browser mid-wizard
 
 **Steps**:
+
 1. Upload file and reach Step 2 (Validation complete)
 2. Press F5 or Cmd+R to refresh browser
    - **Expected**: Wizard resets to Step 1
@@ -238,11 +257,13 @@ Use this checklist before each production deployment:
    - **Expected**: No errors/crashes
 
 **Success Criteria**:
+
 - ✅ Wizard gracefully resets to initial state
 - ✅ No JavaScript errors in console
 - ✅ User can start new import immediately
 
 **Alternative Behavior** (Future Enhancement):
+
 - ⚠️ Save wizard state to localStorage
 - ⚠️ Restore state after refresh
 - ⚠️ Show "Continue previous import?" prompt
@@ -254,6 +275,7 @@ Use this checklist before each production deployment:
 **Objective**: Verify behavior when user presses browser back button
 
 **Steps**:
+
 1. Navigate to `/admin/import`
 2. Upload file, complete Step 2
 3. Press browser Back button (not wizard "Back" button)
@@ -264,6 +286,7 @@ Use this checklist before each production deployment:
    - **Expected**: Wizard reset to Step 1
 
 **Success Criteria**:
+
 - ✅ Browser back button behaves predictably
 - ✅ No errors when returning to import page
 - ✅ Wizard state doesn't persist across browser navigation
@@ -275,6 +298,7 @@ Use this checklist before each production deployment:
 **Objective**: Verify user can safely exit wizard
 
 **Steps**:
+
 1. Upload file, reach Step 3
 2. Click "Cancel" button
    - **Expected**: Confirmation modal: "Are you sure? Progress will be lost."
@@ -286,6 +310,7 @@ Use this checklist before each production deployment:
    - **Expected**: Import state cleared
 
 **Success Criteria**:
+
 - ✅ Confirmation modal prevents accidental exit
 - ✅ "Cancel" terminology clear (Cancel import vs Cancel modal)
 - ✅ Exit navigation works correctly
@@ -300,6 +325,7 @@ Use this checklist before each production deployment:
 **Objective**: Verify drag-and-drop usability and visual feedback
 
 **Steps**:
+
 1. Open `/admin/import` in browser
 2. Open file explorer, locate `valid-add-new-parts.xlsx`
 3. **Drag file** over drop zone (DON'T release yet)
@@ -314,6 +340,7 @@ Use this checklist before each production deployment:
    - **Expected**: Error message: "Only .xlsx files are supported"
 
 **Success Criteria**:
+
 - ✅ Visual feedback clear during drag (hover state)
 - ✅ Drop animation smooth (no flicker)
 - ✅ File type validation before parsing
@@ -326,6 +353,7 @@ Use this checklist before each production deployment:
 **Objective**: Verify traditional file picker works as alternative to drag-drop
 
 **Steps**:
+
 1. Click "Browse files" button in drop zone
    - **Expected**: Native file picker opens
    - **Expected**: File picker filtered to .xlsx files only (if browser supports)
@@ -336,6 +364,7 @@ Use this checklist before each production deployment:
    - **Expected**: Previous file selection replaced
 
 **Success Criteria**:
+
 - ✅ File picker opens correctly
 - ✅ File type filter applied (Excel files only)
 - ✅ Re-selection works without page refresh
@@ -349,6 +378,7 @@ Use this checklist before each production deployment:
 **Test Data**: Create 11MB file (or use `large-dataset.xlsx` if >10MB)
 
 **Steps**:
+
 1. Attempt to upload file >10MB
    - **Expected**: File rejected BEFORE parsing begins
    - **Expected**: Error message displayed:
@@ -359,12 +389,14 @@ Use this checklist before each production deployment:
    - **Expected**: Link to documentation about file size limits
 
 **Success Criteria**:
+
 - ✅ File size checked immediately (not after upload)
 - ✅ Error message includes actual file size and limit
 - ✅ Helpful suggestion provided (split into batches)
 - ✅ Help link navigates to correct documentation
 
 **Edge Case**: File exactly 10MB
+
 - **Expected**: Accepted (inclusive limit)
 
 ---
@@ -374,12 +406,14 @@ Use this checklist before each production deployment:
 **Objective**: Verify clear error messages for wrong file types
 
 **Test Files**:
+
 - `test.xls` (old Excel format)
 - `test.csv` (comma-separated values)
 - `test.txt` (plain text)
 - `test.pdf` (PDF)
 
 **Steps**:
+
 1. **Upload .xls file**
    - **Expected**: Error: "Old Excel format (.xls) not supported. Please save as .xlsx."
 2. **Upload .csv file**
@@ -389,6 +423,7 @@ Use this checklist before each production deployment:
    - **Expected**: Error: "Invalid file type. Only Excel files (.xlsx) are supported."
 
 **Success Criteria**:
+
 - ✅ File type detected before parsing
 - ✅ Error messages specific to file type (not generic)
 - ✅ Helpful recovery suggestions provided
@@ -403,6 +438,7 @@ Use this checklist before each production deployment:
 **Test Data**: Create corrupted .xlsx file (rename .txt to .xlsx, or corrupt valid file)
 
 **Steps**:
+
 1. Upload corrupted file
    - **Expected**: Parsing fails with clear error
    - **Expected**: Error message:
@@ -415,6 +451,7 @@ Use this checklist before each production deployment:
    - **Expected**: Wizard remains functional (can upload different file)
 
 **Success Criteria**:
+
 - ✅ Corruption detected during parsing
 - ✅ Error message non-technical (no stack traces shown to user)
 - ✅ Recovery suggestion clear (re-export file)
@@ -429,6 +466,7 @@ Use this checklist before each production deployment:
 **Simulation**: Use browser DevTools to throttle network to "Slow 3G"
 
 **Steps**:
+
 1. Open DevTools → Network tab → Set throttling to "Slow 3G"
 2. Upload 5MB file
    - **Expected**: Progress indicator shows upload in progress
@@ -444,6 +482,7 @@ Use this checklist before each production deployment:
    - **Expected**: Upload continues
 
 **Success Criteria**:
+
 - ✅ Timeout threshold reasonable (30s)
 - ✅ User can cancel long-running upload
 - ✅ User can choose to wait longer
@@ -458,6 +497,7 @@ Use this checklist before each production deployment:
 **Test Data**: `fixtures/excel/scenarios/01-quarterly-update.xlsx` (50 parts minimum)
 
 **Steps**:
+
 1. Upload file with 1000+ parts (or largest available fixture)
 2. During parsing:
    - **Expected**: Progress bar or spinner visible
@@ -468,6 +508,7 @@ Use this checklist before each production deployment:
    - **Expected**: Cancel button available
 
 **Success Criteria**:
+
 - ✅ Progress indicator appears for operations >1 second
 - ✅ Progress updates incrementally (not just spinner)
 - ✅ Time estimate reasonably accurate
@@ -482,6 +523,7 @@ Use this checklist before each production deployment:
 **Device**: iPad (iOS Safari)
 
 **Steps**:
+
 1. Navigate to `/admin/import` on iPad
 2. Tap "Browse files" button
    - **Expected**: iOS file picker opens
@@ -494,6 +536,7 @@ Use this checklist before each production deployment:
    - **Expected**: Graceful fallback to file picker button
 
 **Success Criteria**:
+
 - ✅ File picker works on iOS
 - ✅ Upload completes successfully
 - ✅ Drag-drop disabled gracefully (no error)
@@ -520,6 +563,7 @@ Please export from the system first before importing.
 ```
 
 **Verify**:
+
 - ✅ Message explains WHAT is wrong
 - ✅ Message explains WHY (must export first)
 - ✅ Message explains HOW to fix
@@ -536,6 +580,7 @@ Duplicate ACR_SKU "ACR-001" found in file
 ```
 
 **Verify**:
+
 - ✅ Shows which SKU is duplicated
 - ✅ Shows row number where duplicate found
 - ✅ Suggests recovery action
@@ -552,6 +597,7 @@ ACR_SKU is required
 ```
 
 **Verify**:
+
 - ✅ Shows which field is required
 - ✅ Shows exact location (row/column)
 - ✅ Explains field cannot be empty
@@ -568,6 +614,7 @@ Invalid UUID format: "invalid-uuid-format"
 ```
 
 **Verify**:
+
 - ✅ Shows invalid value
 - ✅ Explains likely cause (manual file creation)
 - ✅ Provides recovery steps (re-export)
@@ -584,6 +631,7 @@ ACR_SKU "ACR-999" does not reference any part in the Parts sheet
 ```
 
 **Verify**:
+
 - ✅ Shows which SKU is missing
 - ✅ Identifies referencing sheet
 - ✅ Provides TWO recovery options
@@ -599,11 +647,13 @@ End_Year (2020) cannot be before Start_Year (2025)
 ```
 
 **Verify**:
+
 - ✅ Shows both year values
 - ✅ Explains the constraint
 - ✅ Suggests valid input
 
 **Test All 23 Error Codes**:
+
 - [ ] E1 - Missing hidden columns
 - [ ] E2 - Duplicate ACR_SKU
 - [ ] E3 - Empty required field
@@ -615,6 +665,7 @@ End_Year (2020) cannot be before Start_Year (2025)
 - [ ] ... (continue for all 23)
 
 **Success Criteria**:
+
 - ✅ All error messages include row number
 - ✅ All error messages explain HOW to fix
 - ✅ Language understandable to non-developers
@@ -641,6 +692,7 @@ After:  SEED-001-CHANGED
 ```
 
 **Verify**:
+
 - ✅ Before value clearly labeled
 - ✅ After value clearly labeled
 - ✅ Impact explained
@@ -661,12 +713,14 @@ After:  "Front brake rotor for Honda Civic 2010-2015. Drilled and slotted..."
 ```
 
 **Verify**:
+
 - ✅ Shows full before/after text (truncated with ...)
 - ✅ Shows character counts
 - ✅ Shows percentage reduction
 - ✅ Warns about data loss
 
 **Test All 12 Warning Codes**:
+
 - [ ] W1 - ACR_SKU changed
 - [ ] W2 - Year range narrowed
 - [ ] W3 - Part type changed
@@ -677,6 +731,7 @@ After:  "Front brake rotor for Honda Civic 2010-2015. Drilled and slotted..."
 - [ ] ... (continue for all 12)
 
 **Success Criteria**:
+
 - ✅ Before/after values always shown
 - ✅ Warnings don't block import (informational only)
 - ✅ Acknowledgment checkbox optional but encouraged
@@ -691,6 +746,7 @@ After:  "Front brake rotor for Honda Civic 2010-2015. Drilled and slotted..."
 **Test Data**: Create file with errors in all 3 sheets
 
 **Expected UI**:
+
 ```
 Parts (5 errors)
   [Expand/Collapse]
@@ -712,6 +768,7 @@ Cross_References (2 errors)
 ```
 
 **Interactions**:
+
 1. Click "Parts (5 errors)"
    - **Expected**: Expands to show 5 error details
    - **Expected**: Icon changes (▶ to ▼)
@@ -721,6 +778,7 @@ Cross_References (2 errors)
    - **Verify**: What's the default state (all expanded vs all collapsed)
 
 **Success Criteria**:
+
 - ✅ Errors grouped by sheet name
 - ✅ Error count per sheet displayed in header
 - ✅ Expand/collapse works smoothly
@@ -735,6 +793,7 @@ Cross_References (2 errors)
 **Test Data**: Create row with multiple errors (empty SKU, invalid UUID, orphaned FK, max length, year range)
 
 **Expected UI**:
+
 ```
 Row 10 has 5 errors:
   1. E3: ACR_SKU is required
@@ -747,6 +806,7 @@ Row 10 has 5 errors:
 ```
 
 **Interactions**:
+
 1. **Expected**: Multiple errors on same row grouped together
 2. **Expected**: Row number prominently displayed
 3. **Expected**: Errors listed in severity order (E3 before E8)
@@ -754,6 +814,7 @@ Row 10 has 5 errors:
    - **Expected**: Expands to show full error messages with columns/values
 
 **Success Criteria**:
+
 - ✅ Row-level grouping when 3+ errors on same row
 - ✅ Error count shown ("5 errors")
 - ✅ Can expand/collapse details
@@ -768,6 +829,7 @@ Row 10 has 5 errors:
 **Test Data**: Create file with 100 validation errors
 
 **Expected Behavior**:
+
 ```
 Parts (100 errors)
   Showing 1-10 of 100
@@ -781,6 +843,7 @@ Parts (100 errors)
 ```
 
 **Interactions**:
+
 1. **Default**: Show first 10 errors
 2. Click "Load 10 more"
    - **Expected**: Shows errors 1-20
@@ -792,6 +855,7 @@ Parts (100 errors)
    - **Expected**: Scrollable list (not infinite scroll to bottom of page)
 
 **Success Criteria**:
+
 - ✅ Initial load shows 10-20 errors (not overwhelming)
 - ✅ Pagination clear and intuitive
 - ✅ "Show all" option available for power users
@@ -806,6 +870,7 @@ Parts (100 errors)
 **Test Data**: File with 5 warnings
 
 **Steps**:
+
 1. View validation results with warnings
    - **Expected**: Checkbox "I acknowledge these changes" (unchecked)
    - **Expected**: Checkbox below warning list
@@ -819,6 +884,7 @@ Parts (100 errors)
    - **Expected**: Checkbox state persists as unchecked
 
 **Success Criteria**:
+
 - ✅ Checkbox clearly labeled
 - ✅ State persists during wizard navigation
 - ✅ Acknowledgment optional (doesn't block import)
@@ -835,6 +901,7 @@ Parts (100 errors)
 **Test Data**: `fixtures/excel/unit/valid-add-new-parts.xlsx` (5 new parts)
 
 **Expected UI**:
+
 ```
 Summary: 5 adds, 0 updates, 0 deletes
 
@@ -849,6 +916,7 @@ Adds (5) [Collapse]
 ```
 
 **Interactions**:
+
 1. **Default**: Adds section expanded
 2. Each part shows:
    - ✅ Plus icon (green)
@@ -860,6 +928,7 @@ Adds (5) [Collapse]
    - **Expected**: Properties displayed in table format
 
 **Success Criteria**:
+
 - ✅ Green color coding for adds
 - ✅ Part details readable at a glance
 - ✅ Expand/collapse works per part
@@ -874,6 +943,7 @@ Adds (5) [Collapse]
 **Test Data**: File with 1 updated part (Part_Type changed from Rotor to Pad)
 
 **Expected UI**:
+
 ```
 Updates (1) [Collapse]
   [✏️] ACR-001 - Brake Rotor → Brake Pad
@@ -888,6 +958,7 @@ Updates (1) [Collapse]
 ```
 
 **Interactions**:
+
 1. **Expected**: Pencil/edit icon (yellow/orange)
 2. **Expected**: Changes section lists modified fields only
 3. **Expected**: Before → After arrows clearly displayed
@@ -896,6 +967,7 @@ Updates (1) [Collapse]
    - **Expected**: Expands to show all fields
 
 **Success Criteria**:
+
 - ✅ Only changed fields shown by default
 - ✅ Before → After format clear
 - ✅ Can view all fields (changed + unchanged)
@@ -910,6 +982,7 @@ Updates (1) [Collapse]
 **Test Data**: File with 1 deleted part (remove ACR-001 from export)
 
 **Expected UI**:
+
 ```
 Deletes (1) [Collapse]
   [🗑️] ACR-001 - Brake Rotor - Front
@@ -923,6 +996,7 @@ Deletes (1) [Collapse]
 ```
 
 **Interactions**:
+
 1. **Expected**: Trash icon (red)
 2. **Expected**: Part details shown (what will be deleted)
 3. **Expected**: Cascade delete warning if relationships exist
@@ -931,6 +1005,7 @@ Deletes (1) [Collapse]
    - **Expected**: Shows vehicle details (Make, Model, Year)
 
 **Success Criteria**:
+
 - ✅ Red color coding for deletes
 - ✅ Cascade delete impact clearly shown
 - ✅ Can view affected related records
@@ -945,6 +1020,7 @@ Deletes (1) [Collapse]
 **Test Data**: Create file with 100 new parts
 
 **Expected UI**:
+
 ```
 Adds (100) [Collapse]
   Showing 1-20 of 100
@@ -958,6 +1034,7 @@ Adds (100) [Collapse]
 ```
 
 **Interactions**:
+
 1. **Default**: Show 20 items
 2. Click "Load 20 more"
    - **Expected**: Shows items 1-40
@@ -970,6 +1047,7 @@ Adds (100) [Collapse]
    - **Expected**: Expanding one section doesn't affect others
 
 **Success Criteria**:
+
 - ✅ Pagination prevents UI lag (only render 20 at a time)
 - ✅ "Load more" smooth (no flash/reload)
 - ✅ "Show all" available for power users
@@ -984,6 +1062,7 @@ Adds (100) [Collapse]
 **Test Data**: Delete part that has 50 vehicle applications
 
 **Expected UI**:
+
 ```
 ⚠️ Warning: Cascade Deletes
 
@@ -999,6 +1078,7 @@ This action cannot be undone. The related records will be permanently removed.
 ```
 
 **Interactions**:
+
 1. **Expected**: Warning displayed prominently above Deletes section
 2. **Expected**: Counts shown (50 vehicle apps, 23 cross-refs)
 3. **Expected**: Checkbox "I understand..." (unchecked by default)
@@ -1014,6 +1094,7 @@ This action cannot be undone. The related records will be permanently removed.
      - Competitor brands of affected cross-refs
 
 **Success Criteria**:
+
 - ✅ Cascade warning impossible to miss
 - ✅ Impact quantified (50 apps, 23 refs)
 - ✅ Acknowledgment required (blocks progress)
@@ -1030,6 +1111,7 @@ This action cannot be undone. The related records will be permanently removed.
 **Objective**: Verify all functionality accessible via keyboard only (no mouse)
 
 **Test Procedure**:
+
 1. **Tab order**:
    - [ ] Tab through entire wizard in logical order
    - [ ] Focus indicator visible on all interactive elements
@@ -1057,6 +1139,7 @@ This action cannot be undone. The related records will be permanently removed.
    - [ ] Press Esc in wizard → No effect (or shows exit confirmation)
 
 **Success Criteria**:
+
 - ✅ All functionality accessible without mouse
 - ✅ Focus order logical and predictable
 - ✅ Focus indicator clearly visible (not browser default only)
@@ -1095,12 +1178,14 @@ This action cannot be undone. The related records will be permanently removed.
    - [ ] "Importing..." announced during import execution
 
 **Test with Screen Reader**:
+
 1. Navigate wizard from start to finish using only screen reader
 2. Verify all content readable
 3. Verify all actions performable
 4. Verify status changes announced
 
 **Success Criteria**:
+
 - ✅ All content accessible to screen reader
 - ✅ All actions performable with screen reader commands
 - ✅ Status changes announced automatically
@@ -1135,6 +1220,7 @@ This action cannot be undone. The related records will be permanently removed.
    - [ ] Disabled button: Clearly distinguishable but not ≥ 4.5:1 (WCAG exemption)
 
 **Success Criteria**:
+
 - ✅ All text meets WCAG AA contrast ratio (4.5:1 for normal text, 3:1 for large text)
 - ✅ Interactive elements distinguishable
 - ✅ No reliance on color alone (icons + text for errors/warnings/success)
@@ -1165,6 +1251,7 @@ This action cannot be undone. The related records will be permanently removed.
    - [ ] "View Imported Parts" link focusable
 
 **Success Criteria**:
+
 - ✅ Focus never lost (always on a focusable element)
 - ✅ Focus movements logical and expected
 - ✅ Modal focus trapping works correctly
@@ -1199,6 +1286,7 @@ This action cannot be undone. The related records will be permanently removed.
    - [ ] "3 errors found" has `role="alert"` or `aria-live="assertive"`
 
 **Success Criteria**:
+
 - ✅ ARIA attributes used appropriately (not overused)
 - ✅ Roles match visual presentation
 - ✅ Live regions announce changes correctly
@@ -1211,18 +1299,19 @@ This action cannot be undone. The related records will be permanently removed.
 
 Test all features across 6 browsers × 8 features = 48 test points
 
-| Feature | Chrome Desktop | Firefox Desktop | Safari Desktop | Edge Desktop | iOS Safari | iPad Safari |
-|---------|----------------|-----------------|----------------|--------------|------------|-------------|
-| **File upload (click)** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Drag-and-drop upload** | ✅ | ✅ | ⚠️ | ✅ | ❌ | ⚠️ |
-| **File type validation** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Excel parsing** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Validation display** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Diff preview** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Import execution** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Rollback** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Feature                  | Chrome Desktop | Firefox Desktop | Safari Desktop | Edge Desktop | iOS Safari | iPad Safari |
+| ------------------------ | -------------- | --------------- | -------------- | ------------ | ---------- | ----------- |
+| **File upload (click)**  | ✅             | ✅              | ✅             | ✅           | ✅         | ✅          |
+| **Drag-and-drop upload** | ✅             | ✅              | ⚠️             | ✅           | ❌         | ⚠️          |
+| **File type validation** | ✅             | ✅              | ✅             | ✅           | ✅         | ✅          |
+| **Excel parsing**        | ✅             | ✅              | ✅             | ✅           | ✅         | ✅          |
+| **Validation display**   | ✅             | ✅              | ✅             | ✅           | ✅         | ✅          |
+| **Diff preview**         | ✅             | ✅              | ✅             | ✅           | ✅         | ✅          |
+| **Import execution**     | ✅             | ✅              | ✅             | ✅           | ✅         | ✅          |
+| **Rollback**             | ✅             | ✅              | ✅             | ✅           | ✅         | ✅          |
 
 **Legend**:
+
 - ✅ Fully supported, tested, working
 - ⚠️ Partially supported (known limitations documented)
 - ❌ Not supported (graceful degradation)
@@ -1236,6 +1325,7 @@ Test all features across 6 browsers × 8 features = 48 test points
 **Primary development browser** - Most features developed here first
 
 **Test Focus**:
+
 - [ ] All wizard steps work flawlessly
 - [ ] No console errors
 - [ ] Performance benchmarks met (<2s import)
@@ -1246,12 +1336,14 @@ Test all features across 6 browsers × 8 features = 48 test points
 #### 8.2 Firefox Desktop (Priority: MEDIUM)
 
 **Test Focus**:
+
 - [ ] File drag-and-drop works (Firefox has stricter security)
 - [ ] Excel parsing works (ArrayBuffer handling)
 - [ ] CSS Grid layout correct (occasionally differs from Chrome)
 - [ ] Focus indicators visible (default Firefox styles different)
 
 **Known Issues**:
+
 - None currently documented
 
 ---
@@ -1259,12 +1351,14 @@ Test all features across 6 browsers × 8 features = 48 test points
 #### 8.3 Safari Desktop (Priority: MEDIUM)
 
 **Test Focus**:
+
 - [ ] File upload works (Safari file picker differences)
 - [ ] Drag-and-drop visual feedback works (Safari has stricter drag events)
 - [ ] Date/time display correct (Safari date formatting)
 - [ ] Web APIs supported (FileReader, Blob, etc.)
 
 **Known Issues**:
+
 - Drag-and-drop may require additional hover state handling
 
 ---
@@ -1272,10 +1366,12 @@ Test all features across 6 browsers × 8 features = 48 test points
 #### 8.4 Edge Desktop (Priority: LOW)
 
 **Test Focus**:
+
 - [ ] All features work (Edge is Chromium-based, should match Chrome)
 - [ ] No Edge-specific UI quirks
 
 **Known Issues**:
+
 - None expected (Chromium-based)
 
 ---
@@ -1283,15 +1379,18 @@ Test all features across 6 browsers × 8 features = 48 test points
 #### 8.5 iOS Safari (Priority: MEDIUM)
 
 **Test Focus**:
+
 - [ ] File upload from Files app works
 - [ ] Touch interactions work (tap vs click)
 - [ ] Scrolling smooth (no bounce issues)
 - [ ] Viewport sizing correct (notch handling)
 
 **Known Issues**:
+
 - Drag-and-drop NOT supported (iOS limitation) - Graceful fallback to file picker button
 
 **Expected Behavior**:
+
 - [ ] "Drag file here" text changes to "Tap to select file" on iOS
 - [ ] File picker opens on tap
 - [ ] No errors when drag-drop unavailable
@@ -1303,6 +1402,7 @@ Test all features across 6 browsers × 8 features = 48 test points
 **Primary device** for parts counter staff per PLANNING.md
 
 **Test Focus**:
+
 - [ ] File upload from Files app/iCloud Drive works
 - [ ] Touch target sizes ≥ 44×44px (Apple guidelines)
 - [ ] Landscape orientation works
@@ -1311,11 +1411,13 @@ Test all features across 6 browsers × 8 features = 48 test points
 - [ ] Large file upload (5MB) works reliably
 
 **Special Attention**:
+
 - iPad is the **PRIMARY DEVICE** - All features must work flawlessly
 - Test with actual iPad Pro (not just browser resize)
 - Test with both wifi and cellular data (if applicable)
 
 **Known Issues**:
+
 - Drag-and-drop may be limited - Provide clear "Tap to select file" fallback
 
 ---
@@ -1323,6 +1425,7 @@ Test all features across 6 browsers × 8 features = 48 test points
 ### Cross-Browser Testing Checklist
 
 **Before Release**:
+
 - [ ] Chrome Desktop: Full feature test (30 minutes)
 - [ ] Firefox Desktop: Smoke test (15 minutes)
 - [ ] Safari Desktop: Smoke test (15 minutes)
@@ -1340,13 +1443,13 @@ Test all features across 6 browsers × 8 features = 48 test points
 
 Target: **Sub-300ms search response times**, **<2s import execution**
 
-| Operation | Target | Measurement | Test File |
-|-----------|--------|-------------|-----------|
-| **File parsing** | <2s for 1000 parts | Upload → "Parsing complete" | 1000-part fixture |
-| **Validation** | <500ms | "Validating..." → Results displayed | Any valid file |
-| **Diff generation** | <300ms | Validation → Diff displayed | Any file |
-| **Import execution** | <2s per docs | "Importing..." → "Success" | 1000-part fixture |
-| **Rollback execution** | <2s per docs | "Rolling back..." → "Complete" | After import |
+| Operation              | Target             | Measurement                         | Test File         |
+| ---------------------- | ------------------ | ----------------------------------- | ----------------- |
+| **File parsing**       | <2s for 1000 parts | Upload → "Parsing complete"         | 1000-part fixture |
+| **Validation**         | <500ms             | "Validating..." → Results displayed | Any valid file    |
+| **Diff generation**    | <300ms             | Validation → Diff displayed         | Any file          |
+| **Import execution**   | <2s per docs       | "Importing..." → "Success"          | 1000-part fixture |
+| **Rollback execution** | <2s per docs       | "Rolling back..." → "Complete"      | After import      |
 
 ---
 
@@ -1355,18 +1458,21 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 **Test Data**: `fixtures/excel/unit/valid-add-new-parts.xlsx` (5 parts)
 
 **Procedure**:
+
 1. Open browser DevTools → Performance tab → Start recording
 2. Upload file
 3. Stop recording when validation completes
 4. Analyze timeline
 
 **Expected Results**:
+
 - Parsing: <200ms
 - Validation: <100ms
 - Diff generation: <50ms
 - Total (upload to validation complete): <500ms
 
 **Success Criteria**:
+
 - ✅ Total time <500ms
 - ✅ No long tasks >50ms (no UI freeze)
 - ✅ No memory leaks (memory returns to baseline)
@@ -1378,6 +1484,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 **Test Data**: `fixtures/excel/scenarios/01-quarterly-update.xlsx` (50 parts)
 
 **Expected Results**:
+
 - Parsing: <500ms
 - Validation: <300ms
 - Diff generation: <200ms
@@ -1385,6 +1492,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 - Total: <2s
 
 **Success Criteria**:
+
 - ✅ Total time <2s
 - ✅ Progress indicator appears (operation >500ms)
 - ✅ UI remains responsive (can click Cancel)
@@ -1396,6 +1504,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 **Test Data**: Generate 1000-part Excel file
 
 **Expected Results**:
+
 - Parsing: <2s
 - Validation: <500ms
 - Diff generation: <300ms
@@ -1403,12 +1512,14 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 - Rollback: <5s
 
 **Success Criteria**:
+
 - ✅ Parsing <2s
 - ✅ Progress indicator shown with incremental updates
 - ✅ Time estimate displayed ("~2 minutes remaining")
 - ✅ No browser "Page unresponsive" warning
 
 **If Performance Degrades**:
+
 - [ ] Check for N+1 queries in validation logic
 - [ ] Verify diff algorithm efficiency
 - [ ] Profile with Chrome DevTools Performance tab
@@ -1421,17 +1532,20 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 **Objective**: Verify performance on slow network (3G)
 
 **Procedure**:
+
 1. Open DevTools → Network tab → Throttle to "Slow 3G"
 2. Navigate to `/admin/import`
 3. Upload 5MB file
 
 **Expected Results**:
+
 - File upload progress indicator shown
 - Upload completes (may take 30-60 seconds)
 - Timeout handling if >60 seconds
 - Clear status messages ("Uploading... 2MB of 5MB")
 
 **Success Criteria**:
+
 - ✅ Upload doesn't fail on slow connection
 - ✅ Progress feedback clear
 - ✅ Timeout threshold reasonable (60s minimum)
@@ -1446,6 +1560,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 **Objective**: Verify user can fix errors and re-upload seamlessly
 
 **Steps**:
+
 1. Upload file with 3 validation errors
 2. View errors on Step 2
 3. Download file, fix errors in Excel, save
@@ -1456,6 +1571,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 5. Click "Next" to proceed to Step 3
 
 **Success Criteria**:
+
 - ✅ Re-upload works without page refresh
 - ✅ Previous errors cleared (not appended to new errors)
 - ✅ New validation uses new file data
@@ -1468,6 +1584,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 **Objective**: Verify import works after rolling back previous import
 
 **Steps**:
+
 1. Execute import successfully
 2. Navigate to Import History or Settings
 3. Click "Rollback" on recent import
@@ -1479,6 +1596,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
    - **Expected**: Import succeeds again
 
 **Success Criteria**:
+
 - ✅ Rollback restores database to previous state
 - ✅ Subsequent import treats data as new (not duplicate)
 - ✅ Import succeeds without errors
@@ -1490,6 +1608,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 **Objective**: Verify graceful handling of refresh during import execution
 
 **Steps**:
+
 1. Upload file, complete validation and diff preview
 2. Click "Import" button
 3. **Immediately** refresh browser (F5 / Cmd+R) while "Importing..." message displayed
@@ -1502,6 +1621,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
    - **Scenario B**: Import interrupted → No partial data, transaction rolled back
 
 **Success Criteria**:
+
 - ✅ No corrupt data in database (atomic transaction respected)
 - ✅ Wizard resets gracefully
 - ✅ User can start new import immediately
@@ -1516,6 +1636,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 **Simulation**: Use DevTools to simulate offline mode during import
 
 **Steps**:
+
 1. Upload file, reach confirmation step
 2. Open DevTools → Network tab → Set to "Offline"
 3. Click "Import"
@@ -1528,6 +1649,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
    - **Expected**: Import executes successfully
 
 **Success Criteria**:
+
 - ✅ Network failure detected
 - ✅ Error message clear and actionable
 - ✅ Retry option available
@@ -1540,6 +1662,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
 **Objective**: Verify system prevents two simultaneous imports
 
 **Steps**:
+
 1. Open import wizard in two browser tabs
 2. Tab 1: Upload file, complete validation, click "Import"
 3. Tab 2: While Tab 1 importing, upload different file and try to import
@@ -1552,6 +1675,7 @@ Target: **Sub-300ms search response times**, **<2s import execution**
    - **Expected**: Can now import new file
 
 **Success Criteria**:
+
 - ✅ Concurrent imports prevented (database lock or application-level check)
 - ✅ Clear error message explaining why import blocked
 - ✅ Suggestion to wait or rollback previous import
@@ -1567,12 +1691,12 @@ Integration tests that modify the database must clean up after themselves to ens
 
 ### Current Cleanup Gaps
 
-| Test File | Database Impact | Cleanup Status | Risk |
-|-----------|----------------|----------------|------|
-| `rollback-edge-cases.test.ts` | Creates imports & snapshots | ❌ NONE | HIGH |
-| `concurrent-import.test.ts` | Creates parts, imports, history | ❌ NONE | HIGH |
-| `large-dataset.test.ts` | Disabled (would create 10k parts) | N/A | LOW |
-| `test-full-import-pipeline.ts` | Full import + rollback | ⚠️ PARTIAL | MEDIUM |
+| Test File                      | Database Impact                   | Cleanup Status | Risk   |
+| ------------------------------ | --------------------------------- | -------------- | ------ |
+| `rollback-edge-cases.test.ts`  | Creates imports & snapshots       | ❌ NONE        | HIGH   |
+| `concurrent-import.test.ts`    | Creates parts, imports, history   | ❌ NONE        | HIGH   |
+| `large-dataset.test.ts`        | Disabled (would create 10k parts) | N/A            | LOW    |
+| `test-full-import-pipeline.ts` | Full import + rollback            | ⚠️ PARTIAL     | MEDIUM |
 
 ---
 
@@ -1581,9 +1705,9 @@ Integration tests that modify the database must clean up after themselves to ens
 **Use Case**: Integration tests that execute imports
 
 ```typescript
-import { RollbackService } from '@/services/excel/rollback/RollbackService';
+import { RollbackService } from "@/services/excel/rollback/RollbackService";
 
-describe('Import Integration Test', () => {
+describe("Import Integration Test", () => {
   // Track all imports for cleanup
   const importTracker = {
     ids: [] as string[],
@@ -1604,7 +1728,7 @@ describe('Import Integration Test', () => {
         }
       }
       this.ids = [];
-    }
+    },
   };
 
   // Cleanup after each test
@@ -1617,7 +1741,7 @@ describe('Import Integration Test', () => {
     await importTracker.cleanup();
   });
 
-  it('should import data successfully', async () => {
+  it("should import data successfully", async () => {
     const importService = new ImportService();
 
     // Execute import
@@ -1641,7 +1765,7 @@ describe('Import Integration Test', () => {
 **Use Case**: Ensure cleanup even if test throws error
 
 ```typescript
-it('should handle validation errors', async () => {
+it("should handle validation errors", async () => {
   let importId: string | null = null;
 
   try {
@@ -1650,7 +1774,6 @@ it('should handle validation errors', async () => {
 
     // Test assertions...
     expect(result.summary.errors).toBeGreaterThan(0);
-
   } catch (error) {
     // Test failed - cleanup before re-throwing
     if (importId) {
@@ -1673,7 +1796,7 @@ it('should handle validation errors', async () => {
 **Use Case**: Tests that execute multiple imports in parallel
 
 ```typescript
-describe('Concurrent Import Test', () => {
+describe("Concurrent Import Test", () => {
   const createdImports: string[] = [];
 
   afterEach(async () => {
@@ -1691,11 +1814,11 @@ describe('Concurrent Import Test', () => {
       }
 
       createdImports.length = 0; // Clear array
-      console.log('✅ Cleanup complete\n');
+      console.log("✅ Cleanup complete\n");
     }
   });
 
-  it('should handle concurrent imports', async () => {
+  it("should handle concurrent imports", async () => {
     const results = await Promise.allSettled([
       importService1.executeImport(data1),
       importService2.executeImport(data2),
@@ -1703,7 +1826,7 @@ describe('Concurrent Import Test', () => {
 
     // Track successful imports for cleanup
     results.forEach((result, idx) => {
-      if (result.status === 'fulfilled' && result.value?.importId) {
+      if (result.status === "fulfilled" && result.value?.importId) {
         createdImports.push(result.value.importId);
         console.log(`✅ Import ${idx + 1} succeeded: ${result.value.importId}`);
       }
@@ -1763,6 +1886,7 @@ Before merging integration tests, verify:
 ### Issue: Drag-and-Drop Not Working
 
 **Symptoms**:
+
 - File drop zone doesn't respond to drag
 - No visual feedback on hover
 - File doesn't upload after drop
@@ -1790,6 +1914,7 @@ Before merging integration tests, verify:
 ### Issue: Validation Takes Too Long (>5s)
 
 **Symptoms**:
+
 - "Validating..." message hangs
 - No progress indicator
 - Browser becomes unresponsive
@@ -1814,6 +1939,7 @@ Before merging integration tests, verify:
 ### Issue: Error Messages Not Displaying
 
 **Symptoms**:
+
 - Validation fails but no errors shown
 - Error count shows 0 despite validation failure
 - UI stuck on validation step
@@ -1837,6 +1963,7 @@ Before merging integration tests, verify:
 ### Issue: Import Fails with "Transaction Error"
 
 **Symptoms**:
+
 - "Importing..." completes with error
 - Error message: "Transaction failed after 3 attempts"
 - Database unchanged (no data imported)
@@ -1862,6 +1989,7 @@ Before merging integration tests, verify:
 ### Issue: Rollback Doesn't Restore Data
 
 **Symptoms**:
+
 - Rollback succeeds but data not restored
 - Import history snapshot empty
 - Parts count incorrect after rollback
@@ -1887,6 +2015,7 @@ Before merging integration tests, verify:
 ### Issue: Browser "Page Unresponsive" Warning
 
 **Symptoms**:
+
 - Browser warns "Page is not responding"
 - UI freezes during parsing or validation
 - Cannot interact with wizard
@@ -1933,6 +2062,7 @@ When reporting UX issues, include:
    - Device: Desktop, iPad Pro 12.9", iPhone 15, etc.
 
 **Example Bug Report**:
+
 ```
 Title: Drag-and-drop not working on iPad Safari
 
@@ -1967,10 +2097,12 @@ This UX testing guide covers **manual testing procedures** that complement the a
 - ✅ Database cleanup (test isolation)
 
 **Time Commitment**:
+
 - Pre-release testing: 2-4 hours
 - Quick smoke test: 30 minutes (Chrome + iPad Safari only)
 
 **Next Steps**:
+
 1. Bookmark this guide for pre-release testing
 2. Create manual testing checklist in project management tool
 3. Assign QA engineer for release validation

@@ -1,3 +1,7 @@
+---
+title: "Data Management Architecture Notes"
+---
+
 # Data Management Architecture Notes
 
 **Last Updated**: October 22, 2025
@@ -17,6 +21,7 @@ await supabase.from('parts').insert([100 parts]);
 ```
 
 **Endpoints**:
+
 - `POST /api/admin/bulk/parts/create` → Only `parts` table
 - `POST /api/admin/bulk/vehicles/create` → Only `vehicle_applications` table
 - `POST /api/admin/bulk/cross-references/create` → Only `cross_references` table
@@ -63,13 +68,14 @@ $$ LANGUAGE plpgsql;
 ```
 
 **Called from ImportService**:
+
 ```typescript
 class ImportService {
   async executeImport(data: ExcelData) {
-    return await supabase.rpc('bulk_import_all_tables', {
+    return await supabase.rpc("bulk_import_all_tables", {
       p_parts: data.parts,
       p_vehicles: data.vehicles,
-      p_cross_refs: data.crossRefs
+      p_cross_refs: data.crossRefs,
     });
   }
 }
@@ -86,21 +92,30 @@ class ImportService {
 ```typescript
 class BulkOperationsService {
   // Single-table operations (atomic within table)
-  async createParts(parts: CreatePartInput[]): Promise<Part[]>
-  async updateParts(parts: UpdatePartInput[]): Promise<Part[]>
-  async deleteParts(ids: string[]): Promise<void>
+  async createParts(parts: CreatePartInput[]): Promise<Part[]>;
+  async updateParts(parts: UpdatePartInput[]): Promise<Part[]>;
+  async deleteParts(ids: string[]): Promise<void>;
 
-  async createVehicleApplications(vehicles: CreateVehicleInput[]): Promise<VehicleApplication[]>
-  async updateVehicleApplications(vehicles: UpdateVehicleInput[]): Promise<VehicleApplication[]>
-  async deleteVehicleApplications(ids: string[]): Promise<void>
+  async createVehicleApplications(
+    vehicles: CreateVehicleInput[]
+  ): Promise<VehicleApplication[]>;
+  async updateVehicleApplications(
+    vehicles: UpdateVehicleInput[]
+  ): Promise<VehicleApplication[]>;
+  async deleteVehicleApplications(ids: string[]): Promise<void>;
 
-  async createCrossReferences(refs: CreateCrossRefInput[]): Promise<CrossReference[]>
-  async updateCrossReferences(refs: UpdateCrossRefInput[]): Promise<CrossReference[]>
-  async deleteCrossReferences(ids: string[]): Promise<void>
+  async createCrossReferences(
+    refs: CreateCrossRefInput[]
+  ): Promise<CrossReference[]>;
+  async updateCrossReferences(
+    refs: UpdateCrossRefInput[]
+  ): Promise<CrossReference[]>;
+  async deleteCrossReferences(ids: string[]): Promise<void>;
 }
 ```
 
 **Used by**:
+
 - Bulk API endpoints (`/api/admin/bulk/*`)
 - Each endpoint calls one service method
 
@@ -135,7 +150,7 @@ class ImportService {
 ```typescript
 class PartsService {
   async createOne(part: CreatePartInput): Promise<Part> {
-    return this.createMany([part])[0];  // Reuse bulk logic
+    return this.createMany([part])[0]; // Reuse bulk logic
   }
 
   async createMany(parts: CreatePartInput[]): Promise<Part[]> {
@@ -145,6 +160,7 @@ class PartsService {
 ```
 
 **Benefits**:
+
 - Single source of validation logic
 - Consistent behavior between single and bulk
 - Easier testing
@@ -156,6 +172,7 @@ class PartsService {
 ## Key Decisions
 
 **October 22, 2025**:
+
 1. ✅ Keep `BulkOperationsService` name for Phase 8.1 (clear separation)
 2. ✅ Single-table operations only in Phase 8.1 (atomic by default)
 3. ✅ Multi-table atomicity deferred to Phase 8.2 (PostgreSQL function)
@@ -164,6 +181,7 @@ class PartsService {
 ---
 
 **Maintainer Notes**:
+
 - Phase 8.1 builds the building blocks (single-table operations)
 - Phase 8.2 adds orchestration layer (multi-table atomicity)
 - Keep this file updated with architectural decisions

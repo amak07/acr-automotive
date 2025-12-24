@@ -545,6 +545,7 @@ export interface TranslationKeys {
   "admin.settings.branding.faviconFormat": string;
   "admin.settings.branding.banner": string;
   "admin.settings.branding.uploadBanner": string;
+  "admin.settings.branding.uploadImage": string;
   "admin.settings.branding.bannerFormat": string;
   "admin.settings.branding.uploadSuccess": string;
   "admin.settings.branding.uploadFailed": string;

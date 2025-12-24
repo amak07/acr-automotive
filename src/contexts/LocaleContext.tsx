@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useSyncExternalStore,
+  useCallback,
+  ReactNode,
+} from "react";
 import { Locale, TranslationKeys } from "@/lib/i18n/translation-keys";
 import { t as translateFn } from "@/lib/i18n";
 
@@ -20,44 +26,63 @@ interface LocaleProviderProps {
   children: ReactNode;
 }
 
-// Helper to get initial locale (runs once on mount, avoids setState in effect)
-function getInitialLocale(isDevMode: boolean): Locale {
-  if (typeof window === "undefined") {
-    // SSR: default based on environment
-    return isDevMode ? "en" : "es";
-  }
+// Get the default locale for SSR and initial hydration
+// IMPORTANT: This must return the same value on server and client to avoid hydration mismatch
+function getDefaultLocale(isDevMode: boolean): Locale {
+  // In dev, default to English; in production, default to Spanish
+  return isDevMode ? "en" : "es";
+}
 
-  if (isDevMode) {
-    // In development, check localStorage for saved preference
-    const savedLocale = localStorage.getItem("acr-locale") as Locale;
-    if (savedLocale === "en" || savedLocale === "es") {
-      return savedLocale;
-    }
-    return "en"; // Default to English in dev
-  }
+// Subscribe to storage events for locale changes
+function subscribeToLocale(callback: () => void): () => void {
+  window.addEventListener("storage", callback);
+  // Also listen to custom events for same-tab updates
+  window.addEventListener("locale-changed", callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("locale-changed", callback);
+  };
+}
 
-  // In production, always Spanish
-  return "es";
+// Read locale from localStorage (client snapshot)
+function getLocaleSnapshot(isDevMode: boolean): Locale {
+  if (typeof window === "undefined") return getDefaultLocale(isDevMode);
+  const savedLocale = localStorage.getItem("acr-locale") as Locale;
+  if (isDevMode && (savedLocale === "en" || savedLocale === "es")) {
+    return savedLocale;
+  }
+  return getDefaultLocale(isDevMode);
+}
+
+// Server snapshot - always returns default locale
+function getLocaleServerSnapshot(isDevMode: boolean): Locale {
+  return getDefaultLocale(isDevMode);
 }
 
 export function LocaleProvider({ children }: LocaleProviderProps) {
   // Check if we're in development mode
   const isDevMode = process.env.NODE_ENV === "development";
 
-  // State to track current locale - initialize with correct value immediately
-  const [locale, setLocale] = useState<Locale>(() =>
-    getInitialLocale(isDevMode)
+  // Use useSyncExternalStore to read locale from localStorage
+  // This avoids hydration mismatches and setState-in-effect issues
+  const locale = useSyncExternalStore(
+    subscribeToLocale,
+    () => getLocaleSnapshot(isDevMode),
+    () => getLocaleServerSnapshot(isDevMode)
   );
 
   // Function to handle locale changes
-  const handleSetLocale = (newLocale: Locale) => {
-    setLocale(newLocale);
-
-    // Save preference in development
-    if (isDevMode) {
-      localStorage.setItem("acr-locale", newLocale);
-    }
-  };
+  const handleSetLocale = useCallback(
+    (newLocale: Locale) => {
+      // Save preference in development
+      if (isDevMode) {
+        localStorage.setItem("acr-locale", newLocale);
+        // Dispatch custom event to trigger re-render in same tab
+        window.dispatchEvent(new Event("locale-changed"));
+      }
+    },
+    [isDevMode]
+  );
 
   // Translation function that uses current locale
   const t = (key: keyof TranslationKeys) => translateFn(key, locale);

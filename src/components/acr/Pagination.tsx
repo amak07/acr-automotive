@@ -5,7 +5,6 @@ import { useLocale } from "@/contexts/LocaleContext";
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
 } from "../ui/pagination";
@@ -68,7 +67,10 @@ export interface AcrPaginationProps {
  * ACR pagination component
  * Provides consistent pagination UI for both admin and public sections
  */
-export const AcrPagination = React.forwardRef<HTMLDivElement, AcrPaginationProps>(
+export const AcrPagination = React.forwardRef<
+  HTMLDivElement,
+  AcrPaginationProps
+>(
   (
     {
       currentPage,
@@ -130,49 +132,45 @@ export const AcrPagination = React.forwardRef<HTMLDivElement, AcrPaginationProps
     return (
       <div
         ref={ref}
-        className={`flex flex-col items-center gap-3 py-4 ${className || ""}`}
+        className={cn(
+          "flex flex-col items-center gap-3 py-4 px-6",
+          "bg-white rounded-lg shadow-sm border border-acr-gray-100",
+          className
+        )}
         {...props}
       >
-        {/* Mobile-first pagination */}
+        {/* Mobile-first pagination - simplified prev/next with page indicator */}
         <div className="lg:hidden">
-          <div className="flex items-center justify-between w-full max-w-xs gap-4">
+          <div className="flex items-center justify-center gap-3">
             <AcrButton
               onClick={handlePrevious}
               disabled={currentPage === 1}
               variant="secondary"
               size={size}
-              className="flex items-center gap-1"
+              className="px-3"
+              aria-label="Previous page"
             >
-              {t("pagination.previousShort")}
+              <ChevronLeft className="h-4 w-4" />
             </AcrButton>
 
-            <div className="flex items-center gap-1">
-              {getPageNumbers(true).map((page) => (
-                <AcrButton
-                  key={page}
-                  onClick={() => onPageChange(page)}
-                  variant={page === currentPage ? "primary" : "secondary"}
-                  size={size}
-                  className="w-10 h-10 p-0"
-                >
-                  {page}
-                </AcrButton>
-              ))}
-            </div>
+            <span className="text-sm font-medium text-acr-gray-700 min-w-[80px] text-center">
+              {currentPage} / {totalPages}
+            </span>
 
             <AcrButton
               onClick={handleNext}
               disabled={currentPage === totalPages}
               variant="secondary"
               size={size}
-              className="flex items-center gap-1"
+              className="px-3"
+              aria-label="Next page"
             >
-              {t("pagination.nextShort")}
+              <ChevronRight className="h-4 w-4" />
             </AcrButton>
           </div>
 
           {showInfo && (
-            <div className="acr-caption text-acr-gray-500 text-center mt-2">
+            <div className="acr-caption text-acr-gray-500 text-center mt-2 acr-animate-fade-in">
               {paginationText}
             </div>
           )}
@@ -204,11 +202,12 @@ export const AcrPagination = React.forwardRef<HTMLDivElement, AcrPaginationProps
                   <PaginationLink
                     onClick={() => onPageChange(page)}
                     isActive={page === currentPage}
-                    className={`cursor-pointer ${
+                    className={cn(
+                      "cursor-pointer transition-all duration-150",
                       page === currentPage
-                        ? "bg-acr-red-600 text-white hover:bg-acr-red-700 hover:text-white border-acr-red-600"
-                        : ""
-                    }`}
+                        ? "bg-acr-red-600 text-white hover:bg-acr-red-700 hover:text-white border-acr-red-600 shadow-sm scale-105"
+                        : "hover:scale-105 hover:border-acr-gray-300"
+                    )}
                   >
                     {page}
                   </PaginationLink>
@@ -217,7 +216,9 @@ export const AcrPagination = React.forwardRef<HTMLDivElement, AcrPaginationProps
 
               {totalPages > 5 && currentPage < totalPages - 2 && (
                 <PaginationItem>
-                  <PaginationEllipsis />
+                  <span className="flex h-9 w-9 items-center justify-center text-acr-gray-400 tracking-widest">
+                    •••
+                  </span>
                 </PaginationItem>
               )}
 
@@ -241,7 +242,7 @@ export const AcrPagination = React.forwardRef<HTMLDivElement, AcrPaginationProps
           </Pagination>
 
           {showInfo && (
-            <div className="acr-body-small text-acr-gray-500 text-center mt-3">
+            <div className="acr-body-small text-acr-gray-500 text-center mt-3 acr-animate-fade-in">
               {paginationText}
             </div>
           )}

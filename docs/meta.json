@@ -1,0 +1,23 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "PLANNING",
+    "TASKS",
+    "TESTING",
+    "---Architecture---",
+    "architecture",
+    "---Features---",
+    "features",
+    "---Database---",
+    "database",
+    "---Testing---",
+    "testing",
+    "---Technical Plans---",
+    "technical-plans",
+    "---Decisions---",
+    "decisions",
+    "---Runbooks---",
+    "runbooks"
+  ]
+}
