@@ -94,7 +94,7 @@ export function BannerCarousel({
       >
         {activeBanners.map((banner) => (
           <SwiperSlide key={banner.id}>
-            <div className="relative w-full h-56 md:h-64 lg:h-80 xl:h-[480px] bg-white">
+            <div className="relative w-full h-56 md:h-40 lg:h-48 xl:h-72 bg-white">
               {banner.cta_link ? (
                 <Link
                   href={banner.cta_link as Route}
