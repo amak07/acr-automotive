@@ -37,7 +37,8 @@
     "db:pull-schema": "npx supabase db diff --linked -f schema_update",
     "//     ": "",
     "optimize-images": "tsx scripts/optimize-images.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "fumadocs-mdx"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
