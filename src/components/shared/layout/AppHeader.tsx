@@ -48,10 +48,10 @@ export function AppHeader({ variant = "public" }: AppHeaderProps) {
   const companyName = settings?.branding?.company_name || "ACR Automotive";
 
   // Determine title based on variant
+  // Public: show tagline "Professional Parts Catalog"
+  // Admin: show "Admin" indicator so users know they're in admin mode
   const title =
-    variant === "admin"
-      ? `${companyName} - ${t("admin.header.admin")}`
-      : companyName;
+    variant === "admin" ? t("admin.header.admin") : t("public.header.title");
 
   // Determine actions based on variant and auth state
   const actions: AcrHeaderAction[] =

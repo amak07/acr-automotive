@@ -1,3 +1,7 @@
+---
+title: "API Design Patterns"
+---
+
 # API Design Patterns
 
 > **Purpose**: RESTful API conventions, error handling, and response formats
@@ -47,6 +51,7 @@
 ```
 
 **Separation Rationale**:
+
 - **Public**: No auth required, read-only, aggressive caching
 - **Admin**: Auth required, full CRUD, cache invalidation
 
@@ -56,17 +61,18 @@
 
 ### HTTP Methods
 
-| Method | Purpose | Idempotent | Safe |
-|--------|---------|-----------|------|
-| **GET** | Retrieve resource(s) | Yes | Yes |
-| **POST** | Create new resource | No | No |
-| **PUT** | Update entire resource | Yes | No |
-| **PATCH** | Update partial resource | No | No |
-| **DELETE** | Delete resource | Yes | No |
+| Method     | Purpose                 | Idempotent | Safe |
+| ---------- | ----------------------- | ---------- | ---- |
+| **GET**    | Retrieve resource(s)    | Yes        | Yes  |
+| **POST**   | Create new resource     | No         | No   |
+| **PUT**    | Update entire resource  | Yes        | No   |
+| **PATCH**  | Update partial resource | No         | No   |
+| **DELETE** | Delete resource         | Yes        | No   |
 
 **Pattern Used**: GET + POST + PATCH + DELETE
 
 **Why PATCH over PUT**:
+
 - Partial updates (only send changed fields)
 - Smaller payloads
 - Clearer intent
@@ -78,6 +84,7 @@
 **Pattern**: `/api/{scope}/{resource}/{sub-resource?}/{action?}`
 
 **Examples**:
+
 ```
 GET  /api/admin/parts                    # List parts
 GET  /api/admin/parts?id={uuid}          # Get single part (with relations)
@@ -93,6 +100,7 @@ POST /api/admin/export/excel             # Export to Excel
 ```
 
 **Conventions**:
+
 - Plural nouns for resources (`parts`, not `part`)
 - Query parameters for single resource lookup (`?id=...`)
 - Nested paths for sub-resources (`/bulk/parts/create`)
@@ -102,14 +110,15 @@ POST /api/admin/export/excel             # Export to Excel
 
 ### Resource Naming
 
-| Resource | Endpoint | Notes |
-|----------|----------|-------|
-| Parts | `/api/admin/parts` | Main catalog entity |
-| Vehicle Applications | `/api/admin/vehicles` | Short name (not `/vehicle-applications`) |
-| Cross References | `/api/admin/cross-references` | Hyphenated for readability |
-| Bulk Operations | `/api/admin/bulk/{resource}/{action}` | Explicit action suffix |
+| Resource             | Endpoint                              | Notes                                    |
+| -------------------- | ------------------------------------- | ---------------------------------------- |
+| Parts                | `/api/admin/parts`                    | Main catalog entity                      |
+| Vehicle Applications | `/api/admin/vehicles`                 | Short name (not `/vehicle-applications`) |
+| Cross References     | `/api/admin/cross-references`         | Hyphenated for readability               |
+| Bulk Operations      | `/api/admin/bulk/{resource}/{action}` | Explicit action suffix                   |
 
 **Why Short Names**:
+
 - Easier to type
 - Consistent with database table names
 - Common in REST APIs (`users`, `posts`, `comments`)
@@ -143,7 +152,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: result.data,
       count: result.count,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     // 4. Handle validation errors
@@ -175,6 +184,7 @@ export async function GET(request: NextRequest) {
 **File**: [src/app/api/admin/parts/route.ts](../../src/app/api/admin/parts/route.ts)
 
 **Benefits**:
+
 - **Security**: Invalid data rejected before reaching database
 - **Type safety**: `params` has inferred TypeScript type
 - **Clear errors**: Zod provides field-level error messages
@@ -189,6 +199,7 @@ export async function GET(request: NextRequest) {
 **All schemas live in**: [src/lib/schemas/admin.ts](../../src/lib/schemas/admin.ts)
 
 **Pattern**:
+
 ```typescript
 // Schema definition
 export const createPartSchema = z.object({
@@ -203,10 +214,11 @@ export type CreatePartParams = z.infer<typeof createPartSchema>;
 
 // Re-export from route schemas file
 // src/app/api/admin/parts/schemas.ts
-export { createPartSchema, type CreatePartParams } from '@/lib/schemas/admin';
+export { createPartSchema, type CreatePartParams } from "@/lib/schemas/admin";
 ```
 
 **Why Centralized**:
+
 - Single source of truth
 - Reuse across routes
 - Easier to maintain
@@ -221,6 +233,7 @@ export { createPartSchema, type CreatePartParams } from '@/lib/schemas/admin';
 **Pattern**: `{ success: true, data: T, ...metadata }`
 
 **Example**:
+
 ```typescript
 // Single resource
 {
@@ -254,6 +267,7 @@ export { createPartSchema, type CreatePartParams } from '@/lib/schemas/admin';
 ```
 
 **Fields**:
+
 - `success`: Always `true` for successful responses
 - `data`: Resource or array of resources
 - `count`: Total count (for paginated lists)
@@ -267,6 +281,7 @@ export { createPartSchema, type CreatePartParams } from '@/lib/schemas/admin';
 **Pattern**: `{ success: false, errors: [...] }`
 
 **Example**:
+
 ```typescript
 // Validation error (400)
 {
@@ -298,6 +313,7 @@ export { createPartSchema, type CreatePartParams } from '@/lib/schemas/admin';
 ```
 
 **Fields**:
+
 - `success`: Always `false` for errors
 - `errors`: Array of error objects
   - `field`: Optional, for validation errors
@@ -307,16 +323,17 @@ export { createPartSchema, type CreatePartParams } from '@/lib/schemas/admin';
 
 ### HTTP Status Codes
 
-| Code | Meaning | When to Use |
-|------|---------|-------------|
-| **200** | OK | Successful GET, PATCH, DELETE |
-| **201** | Created | Successful POST |
-| **400** | Bad Request | Validation error, malformed request |
-| **401** | Unauthorized | Missing or invalid auth token |
-| **404** | Not Found | Resource doesn't exist |
+| Code    | Meaning      | When to Use                          |
+| ------- | ------------ | ------------------------------------ |
+| **200** | OK           | Successful GET, PATCH, DELETE        |
+| **201** | Created      | Successful POST                      |
+| **400** | Bad Request  | Validation error, malformed request  |
+| **401** | Unauthorized | Missing or invalid auth token        |
+| **404** | Not Found    | Resource doesn't exist               |
 | **500** | Server Error | Database error, unexpected exception |
 
 **Pattern**:
+
 ```typescript
 // Success
 return NextResponse.json(successData, { status: 200 }); // or 201
@@ -335,6 +352,7 @@ return NextResponse.json(errorData, { status: 500 });
 ### Layered Error Handling
 
 **Layer 1: Zod Validation**
+
 ```typescript
 try {
   const validated = schema.parse(rawInput);
@@ -343,7 +361,7 @@ try {
     return NextResponse.json(
       {
         success: false,
-        errors: error.issues.map(issue => ({
+        errors: error.issues.map((issue) => ({
           field: issue.path.join("."),
           message: issue.message,
         })),
@@ -355,6 +373,7 @@ try {
 ```
 
 **Layer 2: Supabase Errors**
+
 ```typescript
 const { data, error } = await supabase.from("parts").select("*");
 
@@ -379,6 +398,7 @@ if (error) {
 ```
 
 **Layer 3: Unexpected Errors**
+
 ```typescript
 catch (error) {
   console.error("Unexpected error:", error);
@@ -405,19 +425,22 @@ catch (error) {
 **Principle**: Clear, actionable error messages
 
 **Good**:
+
 - "String must contain at least 1 character(s)" (Zod default)
 - "PartID is required" (Custom Zod message)
 - "Failed to create part: Duplicate SKU 'ACR-001'"
 
 **Bad**:
+
 - "Invalid input" (too vague)
 - "Error 500" (not actionable)
 - "Something went wrong" (useless)
 
 **Custom Zod Messages**:
+
 ```typescript
-z.uuid("PartID is required")  // Better than default "Invalid uuid"
-z.string().min(1, "SKU cannot be empty")
+z.uuid("PartID is required"); // Better than default "Invalid uuid"
+z.string().min(1, "SKU cannot be empty");
 ```
 
 ---
@@ -452,6 +475,7 @@ if (params.id) {
 ```
 
 **Why Query Param (not `/parts/{id}`)**:
+
 - Reuse same route handler
 - Easier to add optional relations
 - Consistent with list queries
@@ -481,6 +505,7 @@ let query = supabase
 ```
 
 **Defaults** (from Zod schema):
+
 - `offset`: 0
 - `limit`: 50
 - `sort_by`: "acr_sku"
@@ -515,6 +540,7 @@ if (params.search) {
 ```
 
 **Available Filters** (from schema):
+
 ```typescript
 export const queryPartsSchema = z.object({
   // Pagination
@@ -568,6 +594,7 @@ if (params.part_id) {
 ```
 
 **Pattern Used For**:
+
 - Vehicle applications by part: `?part_id=...`
 - Cross references by part: `?acr_part_id=...`
 
@@ -604,6 +631,7 @@ src/app/api/
 ```
 
 **Convention**:
+
 - One `route.ts` per endpoint
 - Optional `schemas.ts` for route-specific schemas (usually re-exports)
 - Bulk operations use POST (not PATCH/DELETE) for clarity
@@ -642,6 +670,7 @@ export const bulkCreatePartsSchema = z.object({
 ```
 
 **Pattern**:
+
 1. Define Zod schema
 2. Infer TypeScript type
 3. Export both
@@ -785,6 +814,7 @@ export async function POST(request: NextRequest) {
 ```
 
 **Request**:
+
 ```json
 POST /api/admin/bulk/parts/create
 {
@@ -804,6 +834,7 @@ POST /api/admin/bulk/parts/create
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -839,12 +870,11 @@ export async function GET(request: NextRequest) {
     const params = publicPartsQuerySchema.parse(rawParams);
 
     // Multi-stage fuzzy search
-    const { data: parts, error } = await supabase
-      .rpc("search_parts_fuzzy", {
-        search_query: params.search || "",
-        part_type_filter: params.part_type,
-        // ...
-      });
+    const { data: parts, error } = await supabase.rpc("search_parts_fuzzy", {
+      search_query: params.search || "",
+      part_type_filter: params.part_type,
+      // ...
+    });
 
     if (error) throw error;
 
@@ -863,7 +893,7 @@ export async function GET(request: NextRequest) {
 
 // Helper to avoid N+1 queries
 async function enrichWithPrimaryImages(parts: DatabasePartRow[]) {
-  const partIds = parts.map(p => p.id);
+  const partIds = parts.map((p) => p.id);
 
   // Single query for all images
   const { data: images } = await supabase
@@ -874,7 +904,7 @@ async function enrichWithPrimaryImages(parts: DatabasePartRow[]) {
 
   const imagesByPartId = groupBy(images, "part_id");
 
-  return parts.map(part => ({
+  return parts.map((part) => ({
     ...part,
     primary_image_url: imagesByPartId[part.id]?.[0]?.image_url || null,
   }));

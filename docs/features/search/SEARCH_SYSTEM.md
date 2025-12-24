@@ -1,3 +1,7 @@
+---
+title: "Search System"
+---
+
 # Search System
 
 > **Purpose**: Core search functionality for ACR Automotive - dual-mode search (vehicle-based and SKU-based) with intelligent fallback and fuzzy matching
@@ -23,6 +27,7 @@
 ## Overview
 
 **Business Problem**: Parts counter staff need to quickly find ACR parts when customers provide either:
+
 1. Competitor part numbers (SKU-based search)
 2. Vehicle information (Make, Model, Year)
 
@@ -53,11 +58,13 @@
 **Use Case**: "I need brake parts for a 2018 Honda Civic"
 
 **Flow**:
+
 ```
 User selects Make → Models filtered → User selects Model → Years filtered → User selects Year → Search executes
 ```
 
 **Example**:
+
 ```
 Make: HONDA
 Model: CIVIC
@@ -123,6 +130,7 @@ Year: 2018
 ```
 
 **Example Searches**:
+
 ```typescript
 // Exact ACR SKU (various formats - all work!)
 "ACR-BR-001"  → Finds "ACR-BR-001" (match_type: "exact_normalized_acr")
@@ -158,33 +166,36 @@ Year: 2018
 #### Normalization Function: `normalize_sku(input TEXT)`
 
 **Algorithm**:
+
 ```sql
 UPPER(REGEXP_REPLACE(input_sku, '[^A-Za-z0-9]', '', 'g'))
 ```
 
 **Rules**:
+
 1. **Remove all non-alphanumeric characters**: Strips spaces, hyphens, underscores, special chars
 2. **Convert to uppercase**: Case-insensitive matching
 3. **Return NULL for NULL input**: Graceful handling
 
 #### Normalization Examples
 
-| Input Format | Normalized Output | Notes |
-|--------------|-------------------|-------|
-| `ACR-15002` | `ACR15002` | Removes hyphen |
-| `acr-15002` | `ACR15002` | Uppercase + remove hyphen |
-| `acr 15002` | `ACR15002` | Removes spaces |
-| `ACR 15002` | `ACR15002` | Mixed case + spaces |
-| `15002` | `15002` | No prefix (Strategy 2 adds ACR) |
-| `ACR#15002!` | `ACR15002` | Removes special characters |
-| `ACR-BR-001` | `ACRBR001` | Removes multiple hyphens |
-| `TM-512348` | `TM512348` | Competitor SKU normalization |
-| `tm 512348` | `TM512348` | Lowercase competitor SKU |
-| `Timken-512348` | `TIMKEN512348` | Brand name normalization |
+| Input Format    | Normalized Output | Notes                           |
+| --------------- | ----------------- | ------------------------------- |
+| `ACR-15002`     | `ACR15002`        | Removes hyphen                  |
+| `acr-15002`     | `ACR15002`        | Uppercase + remove hyphen       |
+| `acr 15002`     | `ACR15002`        | Removes spaces                  |
+| `ACR 15002`     | `ACR15002`        | Mixed case + spaces             |
+| `15002`         | `15002`           | No prefix (Strategy 2 adds ACR) |
+| `ACR#15002!`    | `ACR15002`        | Removes special characters      |
+| `ACR-BR-001`    | `ACRBR001`        | Removes multiple hyphens        |
+| `TM-512348`     | `TM512348`        | Competitor SKU normalization    |
+| `tm 512348`     | `TM512348`        | Lowercase competitor SKU        |
+| `Timken-512348` | `TIMKEN512348`    | Brand name normalization        |
 
 #### Database Schema Changes
 
 **New Columns** (auto-populated via triggers):
+
 ```sql
 -- parts table
 ALTER TABLE parts ADD COLUMN acr_sku_normalized VARCHAR(50);
@@ -194,6 +205,7 @@ ALTER TABLE cross_references ADD COLUMN competitor_sku_normalized VARCHAR(50);
 ```
 
 **Triggers** (auto-maintain normalized values):
+
 ```sql
 CREATE TRIGGER trigger_normalize_part_sku
 BEFORE INSERT OR UPDATE ON parts
@@ -207,6 +219,7 @@ EXECUTE FUNCTION update_normalized_competitor_sku();
 ```
 
 **Indexes** (fast normalized lookups):
+
 ```sql
 -- Exact normalized ACR SKU lookups
 CREATE INDEX idx_parts_acr_sku_normalized ON parts(acr_sku_normalized)
@@ -228,11 +241,13 @@ WHERE competitor_sku_normalized IS NOT NULL;
 **Design Decision**: Fuzzy matching (Strategy 6) uses **original** SKU values, not normalized
 
 **Rationale**:
+
 - Normalization removes context (hyphens, spacing) useful for similarity matching
 - Trigram similarity works better on formatted strings
 - Example: "ACR-BR-001" vs "ACR-BR-01" has higher similarity than "ACRBR001" vs "ACRBR01"
 
 **Performance Characteristics**:
+
 - **Normalized exact matches**: 50-100ms (index lookup)
 - **Partial matches**: 100-150ms (LIKE with index)
 - **Fuzzy fallback**: 150-180ms (trigram index scan)
@@ -240,11 +255,13 @@ WHERE competitor_sku_normalized IS NOT NULL;
 #### Constraint Validation
 
 **ACR Prefix Enforcement**:
+
 ```sql
 ALTER TABLE parts
 ADD CONSTRAINT check_acr_sku_prefix
 CHECK (acr_sku ~* '^ACR');
 ```
+
 - All ACR SKUs must start with "ACR" (case-insensitive)
 - Migration 009 automatically fixed SKUs without prefix by prepending "ACR"
 
@@ -253,17 +270,20 @@ CHECK (acr_sku ~* '^ACR');
 **Layered Validation Approach**:
 
 **API Layer** (Primary Protection):
+
 - Location: `src/lib/schemas/public.ts`
 - Validates empty/whitespace searches via Zod schema
 - Trims input and enforces minimum 1 character
 - All production traffic flows through this layer
 
 **Database Layer** (Permissive by Design):
+
 - RPC functions allow empty strings (flexible for direct access)
 - No crashes on edge cases
 - Optimized for performance, not validation
 
 **Why This Design?**
+
 - Single source of truth for validation (API layer)
 - Database remains flexible for power users/internal tools
 - Better separation of concerns
@@ -367,6 +387,7 @@ CHECK (acr_sku ~* '^ACR');
 **✨ Enhanced**: Migration 009 (November 2025) - Added normalization layer
 
 **Signature**:
+
 ```sql
 CREATE OR REPLACE FUNCTION search_by_sku(search_sku TEXT)
 RETURNS TABLE (
@@ -387,6 +408,7 @@ RETURNS TABLE (
 ```
 
 **Algorithm (6-Stage with Normalization)**:
+
 ```sql
 -- Normalize user input once
 normalized_input := normalize_sku(search_sku);
@@ -432,6 +454,7 @@ ORDER BY similarity_score DESC LIMIT 10
 ```
 
 **Performance**:
+
 - Uses normalized column indexes for Steps 1-5 (50-150ms)
 - Uses GIN trigram indexes for Step 6 fallback (150-180ms)
 - Average: ~100ms for normalized matches, ~180ms for fuzzy fallback
@@ -445,6 +468,7 @@ ORDER BY similarity_score DESC LIMIT 10
 **Purpose**: Find all parts compatible with specific vehicle
 
 **Signature**:
+
 ```sql
 CREATE OR REPLACE FUNCTION search_by_vehicle(
     make TEXT,
@@ -466,6 +490,7 @@ RETURNS TABLE (
 ```
 
 **Algorithm**:
+
 ```sql
 SELECT p.*
 FROM parts p
@@ -479,6 +504,7 @@ WHERE va.make = 'HONDA'
 **Year Range Handling**: Uses `BETWEEN start_year AND end_year` for flexibility
 
 **Example**:
+
 ```sql
 -- Vehicle application: Honda Civic 2016-2020
 -- User searches: 2018
@@ -499,6 +525,7 @@ WHERE va.make = 'HONDA'
 **Purpose**: Main search endpoint with dual-mode support
 
 **Query Parameters**:
+
 ```typescript
 {
   // Vehicle Search
@@ -519,6 +546,7 @@ WHERE va.make = 'HONDA'
 ```
 
 **Response Format**:
+
 ```typescript
 {
   data: PartSearchResult[];  // Parts with primary_image_url
@@ -542,6 +570,7 @@ type PartSearchResult = DatabasePartRow & {
 **Purpose**: Populate cascading dropdown filters
 
 **Response Format**:
+
 ```typescript
 {
   success: true,
@@ -555,6 +584,7 @@ type PartSearchResult = DatabasePartRow & {
 ```
 
 **Algorithm**:
+
 ```typescript
 // 1. Fetch all vehicle_applications (paginated batches of 1000)
 const vehicles = await getAllVehicles();
@@ -587,6 +617,7 @@ years["HONDA-CIVIC"] = [2023, 2022, 2021, ...];
 **Purpose**: Dual-mode search interface with cascading dropdowns
 
 **UI Structure**:
+
 ```
 ┌─────────────────────────────────────────────────┐
 │  🔍 Search by Vehicle                           │
@@ -604,6 +635,7 @@ years["HONDA-CIVIC"] = [2023, 2022, 2021, ...];
 ```
 
 **Cascading Logic**:
+
 ```typescript
 // Make selected → Enable model dropdown → Filter models by make
 const filteredModels = vehicleOptions?.models[selectedMake] || [];
@@ -614,6 +646,7 @@ const filteredYears = vehicleOptions?.years[makeModelKey] || [];
 ```
 
 **Search Trigger**:
+
 ```typescript
 // Vehicle search: All three fields required
 if (make && model && year) {
@@ -635,30 +668,34 @@ if (sku_term.length > 0) {
 **Purpose**: TanStack Query hook for search with caching
 
 **Usage**:
+
 ```typescript
 const { data, isLoading, error } = usePublicParts({
   make: "HONDA",
   model: "CIVIC",
   year: "2018",
   limit: 15,
-  offset: 0
+  offset: 0,
 });
 
 // Or SKU search
 const { data, isLoading, error } = usePublicParts({
   sku_term: "TM512342",
   limit: 15,
-  offset: 0
+  offset: 0,
 });
 ```
 
 **Caching Strategy**:
+
 ```typescript
 useQuery({
   queryKey: ["public", "parts", "list", { filters: searchTerms }],
-  queryFn: async () => { /* fetch */ },
-  staleTime: 5 * 60 * 1000,  // 5 minutes (search results stay fresh)
-  gcTime: 10 * 60 * 1000,    // 10 minutes (keep in memory)
+  queryFn: async () => {
+    /* fetch */
+  },
+  staleTime: 5 * 60 * 1000, // 5 minutes (search results stay fresh)
+  gcTime: 10 * 60 * 1000, // 10 minutes (keep in memory)
 });
 ```
 
@@ -671,6 +708,7 @@ useQuery({
 **Purpose**: Enable sub-300ms fuzzy search on 9,600+ parts
 
 **Implementation**:
+
 ```sql
 -- Enable pg_trgm extension
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
@@ -682,6 +720,7 @@ CREATE INDEX idx_cross_references_competitor_sku_trgm
 ```
 
 **Performance Impact**:
+
 - Without index: ~2000ms (full table scan)
 - With trigram index: ~150ms (index scan)
 
@@ -696,9 +735,10 @@ CREATE INDEX idx_cross_references_competitor_sku_trgm
 **Solution**: Single batch query with grouping
 
 **Implementation**:
+
 ```typescript
 async function enrichWithPrimaryImages(parts: DatabasePartRow[]) {
-  const partIds = parts.map(p => p.id);
+  const partIds = parts.map((p) => p.id);
 
   // Single query for ALL images (not 15 queries!)
   const { data: images } = await supabase
@@ -715,14 +755,15 @@ async function enrichWithPrimaryImages(parts: DatabasePartRow[]) {
   }, {});
 
   // Attach primary image to each part
-  return parts.map(part => ({
+  return parts.map((part) => ({
     ...part,
-    primary_image_url: imagesByPartId[part.id]?.[0]?.image_url || null
+    primary_image_url: imagesByPartId[part.id]?.[0]?.image_url || null,
   }));
 }
 ```
 
 **Performance Impact**:
+
 - 15 parts with N+1: 15 queries × 50ms = 750ms
 - Batch query: 1 query × 50ms = 50ms (15x faster!)
 
@@ -733,6 +774,7 @@ async function enrichWithPrimaryImages(parts: DatabasePartRow[]) {
 **Why RPC**: Reduces round trips, executes multi-stage logic in database
 
 **Comparison**:
+
 ```typescript
 // ❌ Multiple round trips (slow)
 // 1. Check exact ACR SKU
@@ -753,6 +795,7 @@ const result = await supabase.rpc("search_by_sku", { search_sku: sku });
 ```
 
 **Performance Impact**:
+
 - Multi-query approach: 150ms + 150ms + 150ms = 450ms
 - RPC function: 150ms (3x faster!)
 
@@ -765,6 +808,7 @@ const result = await supabase.rpc("search_by_sku", { search_sku: sku });
 **Solution**: Server-side pagination with limit/offset
 
 **Implementation**:
+
 ```typescript
 // Client requests page 1 (parts 0-14)
 const { data } = usePublicParts({ sku_term: "brake", limit: 15, offset: 0 });
@@ -777,6 +821,7 @@ return { data: paginatedData, count: allData.length };
 ```
 
 **Performance Impact**:
+
 - All results (500 parts): 2MB payload, 5s to render
 - Paginated (15 parts): 50KB payload, <1s to render (50x faster!)
 
@@ -787,6 +832,7 @@ return { data: paginatedData, count: allData.length };
 ### Example 1: Vehicle Search
 
 **User Flow**:
+
 ```
 1. User selects Make: "HONDA"
 2. Dropdown populates with Honda models: ["ACCORD", "CIVIC", "CR-V", ...]
@@ -797,11 +843,13 @@ return { data: paginatedData, count: allData.length };
 ```
 
 **API Request**:
+
 ```http
 GET /api/public/parts?make=HONDA&model=CIVIC&year=2018&limit=15&offset=0
 ```
 
 **Database Query**:
+
 ```sql
 SELECT p.*
 FROM parts p
@@ -813,6 +861,7 @@ LIMIT 15 OFFSET 0;
 ```
 
 **Response**:
+
 ```json
 {
   "data": [
@@ -822,7 +871,7 @@ LIMIT 15 OFFSET 0;
       "part_type": "MAZA",
       "position_type": "TRASERA",
       "primary_image_url": "https://supabase.co/storage/.../image.jpg"
-    },
+    }
     // ... 14 more parts
   ],
   "count": 42,
@@ -839,11 +888,13 @@ LIMIT 15 OFFSET 0;
 **User Input**: "ACR-BR-001"
 
 **API Request**:
+
 ```http
 GET /api/public/parts?sku_term=ACR-BR-001&limit=15&offset=0
 ```
 
 **Database Query Flow**:
+
 ```sql
 -- Step 1: Exact ACR SKU
 SELECT * FROM parts WHERE acr_sku = 'ACR-BR-001';
@@ -851,6 +902,7 @@ SELECT * FROM parts WHERE acr_sku = 'ACR-BR-001';
 ```
 
 **Response**:
+
 ```json
 {
   "data": [
@@ -877,11 +929,13 @@ SELECT * FROM parts WHERE acr_sku = 'ACR-BR-001';
 **User Input**: "TM512342" (competitor SKU)
 
 **API Request**:
+
 ```http
 GET /api/public/parts?sku_term=TM512342&limit=15&offset=0
 ```
 
 **Database Query Flow**:
+
 ```sql
 -- Step 1: Exact ACR SKU
 SELECT * FROM parts WHERE acr_sku = 'TM512342';
@@ -895,6 +949,7 @@ WHERE cr.competitor_sku = 'TM512342';
 ```
 
 **Response**:
+
 ```json
 {
   "data": [
@@ -921,11 +976,13 @@ WHERE cr.competitor_sku = 'TM512342';
 **User Input**: "ACR-BR-01" (typo - missing last digit)
 
 **API Request**:
+
 ```http
 GET /api/public/parts?sku_term=ACR-BR-01&limit=15&offset=0
 ```
 
 **Database Query Flow**:
+
 ```sql
 -- Step 1: Exact ACR SKU
 SELECT * FROM parts WHERE acr_sku = 'ACR-BR-01';
@@ -944,6 +1001,7 @@ ORDER BY score DESC;
 ```
 
 **Response**:
+
 ```json
 {
   "data": [
@@ -968,16 +1026,19 @@ ORDER BY score DESC;
 ## Related Documentation
 
 ### Architecture Documentation
+
 - **[Architecture Overview](../../architecture/OVERVIEW.md)** - Search system in overall architecture
 - **[Data Flow](../../architecture/DATA_FLOW.md)** - Complete search request lifecycle
 - **[API Design](../../architecture/API_DESIGN.md)** - RESTful patterns used in search API
 - **[State Management](../../architecture/STATE_MANAGEMENT.md)** - TanStack Query caching for search results
 
 ### Database Documentation
+
 - **[Database Schema](../../database/DATABASE.md)** - Parts, vehicle_applications, cross_references tables
 - **[Database Schema](../../database/DATABASE.md#indexes)** - Trigram indexes for fuzzy search
 
 ### Project Documentation
+
 - **[PLANNING.md](../../PLANNING.md)** - Tech stack rationale (PostgreSQL, pg_trgm, etc.)
 
 ---

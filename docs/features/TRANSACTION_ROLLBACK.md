@@ -1,3 +1,7 @@
+---
+title: "Transaction Rollback System"
+---
+
 # Transaction Rollback System
 
 **Status**: ✅ Implemented (Phase 8.2)
@@ -26,6 +30,7 @@ ACR implements **three distinct recovery mechanisms** for different scenarios:
 **Implementation**: PostgreSQL transaction function
 
 **Example Scenario**:
+
 ```
 Importing 100 parts + 500 vehicles + 200 cross-refs
 
@@ -36,6 +41,7 @@ User sees error, can fix and retry
 ```
 
 **Key Benefits**:
+
 - No partial data corruption
 - No manual cleanup needed
 - Happens in microseconds
@@ -49,6 +55,7 @@ User sees error, can fix and retry
 **Implementation**: Snapshot restoration via RollbackService
 
 **Example Scenario**:
+
 ```
 Import #1: Added 50 parts (SUCCESS) →
 Manual edit: Updated 2 parts via UI →
@@ -59,6 +66,7 @@ Manual edits are lost (expected behavior)
 ```
 
 **Key Benefits**:
+
 - Undo business logic errors
 - Restore known-good states
 - Sequential enforcement (must undo newest first)
@@ -72,6 +80,7 @@ Manual edits are lost (expected behavior)
 **Implementation**: Supabase automated backups
 
 **Example Scenario**:
+
 ```
 Someone accidentally runs DELETE FROM parts WHERE 1=1 →
 Restore from last night's backup →
@@ -79,6 +88,7 @@ Lose today's work, but database functional
 ```
 
 **Key Benefits**:
+
 - Protects against catastrophic failures
 - Handled by Supabase infrastructure
 - Daily backups (7-day retention on free tier)
@@ -93,6 +103,7 @@ Lose today's work, but database functional
 **Location**: [src/lib/supabase/migrations/008_add_atomic_import_transaction.sql](../../src/lib/supabase/migrations/008_add_atomic_import_transaction.sql)
 
 **Function Signature**:
+
 ```sql
 CREATE OR REPLACE FUNCTION execute_atomic_import(
   parts_to_add JSONB DEFAULT '[]'::jsonb,
@@ -116,6 +127,7 @@ RETURNS TABLE(
 **How It Works**:
 
 1. **All operations wrapped in single transaction**
+
    ```sql
    BEGIN
      INSERT INTO parts (...)      -- Step 1
@@ -152,7 +164,7 @@ await bulkService.createCrossRefs(crossRefs);
 // If step 3 fails, steps 1-2 remain committed (BAD!)
 
 // After: Single atomic transaction (cross-table atomic)
-const { data, error } = await supabase.rpc('execute_atomic_import', {
+const { data, error } = await supabase.rpc("execute_atomic_import", {
   parts_to_add: partsToAdd,
   parts_to_update: partsToUpdate,
   vehicles_to_add: vehiclesToAdd,
@@ -165,12 +177,13 @@ const { data, error } = await supabase.rpc('execute_atomic_import', {
 ```
 
 **Retry Logic**:
+
 ```typescript
 // Exponential backoff for transient failures
 const maxRetries = 3;
 for (let attempt = 1; attempt <= maxRetries; attempt++) {
   try {
-    return await supabase.rpc('execute_atomic_import', params);
+    return await supabase.rpc("execute_atomic_import", params);
   } catch (error) {
     if (!isRetryableError(error) || attempt === maxRetries) {
       throw error;
@@ -181,12 +194,14 @@ for (let attempt = 1; attempt <= maxRetries; attempt++) {
 ```
 
 **Retryable Errors**:
+
 - Network timeouts
 - Connection failures
 - Deadlocks
 - Temporary unavailability
 
 **Non-Retryable Errors**:
+
 - Constraint violations (duplicate SKU, invalid FK)
 - Permission errors
 - Invalid data types
@@ -233,6 +248,7 @@ for (let attempt = 1; attempt <= maxRetries; attempt++) {
 ### Failure Scenarios
 
 **Scenario 1: Constraint Violation**
+
 ```
 Row 50: Duplicate ACR_SKU (unique constraint)
 → PostgreSQL detects violation
@@ -244,6 +260,7 @@ Row 50: Duplicate ACR_SKU (unique constraint)
 ```
 
 **Scenario 2: Foreign Key Violation**
+
 ```
 Vehicle row references non-existent part_id
 → PostgreSQL detects invalid FK
@@ -255,6 +272,7 @@ Vehicle row references non-existent part_id
 ```
 
 **Scenario 3: Network Timeout (Retryable)**
+
 ```
 Import starts, network drops mid-transaction
 → Attempt 1 fails (timeout)
@@ -264,6 +282,7 @@ Import starts, network drops mid-transaction
 ```
 
 **Scenario 4: Permission Error (Non-Retryable)**
+
 ```
 User lacks INSERT permission
 → PostgreSQL rejects operation
@@ -280,6 +299,7 @@ User lacks INSERT permission
 **Location**: [tests/unit/excel/import-service-atomic.test.ts](../../tests/unit/excel/import-service-atomic.test.ts)
 
 Tests verify:
+
 - ✅ ImportService calls execute_atomic_import()
 - ✅ Retry logic for transient failures
 - ✅ Data formatting for PostgreSQL function
@@ -322,11 +342,13 @@ Tests verify:
 ### Transaction Overhead
 
 **Before (Individual Operations)**:
+
 - 6 separate database round-trips
 - 6 separate transactions
 - Total time: ~500ms for 100 rows
 
 **After (Single Transaction)**:
+
 - 1 database round-trip
 - 1 transaction
 - Total time: ~200ms for 100 rows
@@ -334,14 +356,15 @@ Tests verify:
 
 ### Scalability
 
-| Rows | Time (est) | Notes |
-|------|-----------|-------|
-| 100 | <1s | Typical small import |
-| 1,000 | <5s | Medium import |
-| 10,000 | <30s | Large import (meets requirement) |
-| 50,000 | <2min | Very large (rare, but supported) |
+| Rows   | Time (est) | Notes                            |
+| ------ | ---------- | -------------------------------- |
+| 100    | <1s        | Typical small import             |
+| 1,000  | <5s        | Medium import                    |
+| 10,000 | <30s       | Large import (meets requirement) |
+| 50,000 | <2min      | Very large (rare, but supported) |
 
 **Limits**:
+
 - JSONB max size: ~1GB (PostgreSQL limit)
 - Practical limit: ~100,000 rows per import
 - Can handle ACR's catalog (1,000 parts) easily
@@ -353,22 +376,23 @@ Tests verify:
 ### Current Implementation (Single-Tenant)
 
 ```typescript
-await supabase.rpc('execute_atomic_import', {
+await supabase.rpc("execute_atomic_import", {
   // ...data...
-  tenant_id_filter: null,  // No filtering (single tenant)
+  tenant_id_filter: null, // No filtering (single tenant)
 });
 ```
 
 ### Future Multi-Tenant Implementation
 
 ```typescript
-await supabase.rpc('execute_atomic_import', {
+await supabase.rpc("execute_atomic_import", {
   // ...data...
-  tenant_id_filter: currentUser.tenantId,  // Filter by tenant
+  tenant_id_filter: currentUser.tenantId, // Filter by tenant
 });
 ```
 
 **How It Works**:
+
 - PostgreSQL function checks `tenant_id` on all UPDATE operations
 - Only updates rows matching `tenant_id_filter`
 - Prevents cross-tenant data corruption
@@ -381,12 +405,14 @@ await supabase.rpc('execute_atomic_import', {
 ### How Other Systems Handle Transactions
 
 **Inventory/ERP Systems** (NetSuite, SAP, Fishbowl):
+
 - ✅ All use database transactions for imports
 - ✅ All support rollback on failure
 - ✅ Most support manual undo (like our 3-snapshot system)
 - ✅ Backup systems for disaster recovery
 
 **ACR's Approach**:
+
 - ✅ Matches industry best practices
 - ✅ Three-layer recovery strategy
 - ✅ Atomic transactions (production-grade)
@@ -400,6 +426,7 @@ await supabase.rpc('execute_atomic_import', {
 ### Applying Migration 008
 
 **Option 1: Supabase Dashboard (Recommended)**
+
 1. Go to Supabase Dashboard → SQL Editor
 2. Open `migrations/008_add_atomic_import_transaction.sql`
 3. Copy entire file contents
@@ -408,6 +435,7 @@ await supabase.rpc('execute_atomic_import', {
 6. Verify success: "Migration 008 completed successfully"
 
 **Option 2: Local Supabase CLI**
+
 ```bash
 supabase migration up
 ```
@@ -428,6 +456,7 @@ DROP FUNCTION IF EXISTS execute_atomic_import;
 ### Logging
 
 **ImportService logs**:
+
 ```
 [ImportService] Executing atomic import transaction...
 [ImportService] Transaction payload: {
@@ -446,6 +475,7 @@ DROP FUNCTION IF EXISTS execute_atomic_import;
 ```
 
 **Error logs**:
+
 ```
 [ImportService] Attempt 1 failed: duplicate key value violates unique constraint "parts_acr_sku_key"
 [ImportService] Transaction failed after 1 attempt(s): duplicate key value...
@@ -453,12 +483,12 @@ DROP FUNCTION IF EXISTS execute_atomic_import;
 
 ### Common Errors
 
-| Error Message | Cause | Solution |
-|--------------|-------|----------|
-| "duplicate key value violates unique constraint" | Duplicate ACR_SKU | Fix Excel file, remove duplicate |
-| "violates foreign key constraint" | Invalid part_id reference | Fix Excel, ensure part exists |
-| "Network timeout" | Slow connection | Automatic retry, no action needed |
-| "Function execute_atomic_import does not exist" | Migration not applied | Apply migration 008 |
+| Error Message                                    | Cause                     | Solution                          |
+| ------------------------------------------------ | ------------------------- | --------------------------------- |
+| "duplicate key value violates unique constraint" | Duplicate ACR_SKU         | Fix Excel file, remove duplicate  |
+| "violates foreign key constraint"                | Invalid part_id reference | Fix Excel, ensure part exists     |
+| "Network timeout"                                | Slow connection           | Automatic retry, no action needed |
+| "Function execute_atomic_import does not exist"  | Migration not applied     | Apply migration 008               |
 
 ---
 
@@ -502,6 +532,7 @@ DROP FUNCTION IF EXISTS execute_atomic_import;
 ### Key Takeaway
 
 **ACR now has production-grade import reliability**:
+
 - Transaction rollback prevents partial imports (NEW!)
 - 3-snapshot system for manual undo (EXISTING)
 - Supabase backups for disaster recovery (EXISTING)

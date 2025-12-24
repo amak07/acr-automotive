@@ -33,6 +33,12 @@ export function BrandingSettings() {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
+  const bannerDesktopInputRefs = useRef<
+    Record<string, HTMLInputElement | null>
+  >({});
+  const bannerMobileInputRefs = useRef<Record<string, HTMLInputElement | null>>(
+    {}
+  );
 
   // Fetch current settings
   const { data: settings, isLoading } = useQuery({
@@ -593,16 +599,32 @@ export function BrandingSettings() {
                             </div>
                           )}
                         </div>
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/jpg,image/webp"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file)
-                              uploadBannerImage(banner.id, file, "desktop");
-                          }}
-                          className="mt-2 text-xs w-full"
-                        />
+                        <div className="mt-2">
+                          <AcrButton
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() =>
+                              bannerDesktopInputRefs.current[banner.id]?.click()
+                            }
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            {t("admin.settings.branding.uploadImage")}
+                          </AcrButton>
+                          <input
+                            ref={(el) => {
+                              bannerDesktopInputRefs.current[banner.id] = el;
+                            }}
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file)
+                                uploadBannerImage(banner.id, file, "desktop");
+                            }}
+                            className="hidden"
+                          />
+                        </div>
                         <p className="text-xs text-acr-gray-500 mt-1">
                           {t("admin.settings.branding.recommendedSize")}:
                           1560x480px (WebP recommended)
@@ -633,16 +655,32 @@ export function BrandingSettings() {
                             </div>
                           )}
                         </div>
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/jpg,image/webp"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file)
-                              uploadBannerImage(banner.id, file, "mobile");
-                          }}
-                          className="mt-2 text-xs w-full"
-                        />
+                        <div className="mt-2">
+                          <AcrButton
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() =>
+                              bannerMobileInputRefs.current[banner.id]?.click()
+                            }
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            {t("admin.settings.branding.uploadImage")}
+                          </AcrButton>
+                          <input
+                            ref={(el) => {
+                              bannerMobileInputRefs.current[banner.id] = el;
+                            }}
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file)
+                                uploadBannerImage(banner.id, file, "mobile");
+                            }}
+                            className="hidden"
+                          />
+                        </div>
                         <p className="text-xs text-acr-gray-500 mt-1">
                           {t("admin.settings.branding.recommendedSize")}:
                           800x300px (WebP recommended)

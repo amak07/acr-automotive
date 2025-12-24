@@ -15,8 +15,11 @@ import { usePublicParts } from "@/hooks";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { CardError } from "@/components/ui/error-states";
-import { SkeletonBannerCarousel } from "@/components/ui/skeleton";
+import { Preloader } from "@/components/ui/Preloader";
 import { DEFAULT_PUBLIC_SEARCH_TERMS } from "./constants";
+
+// Path to dotLottie animation in public folder
+const GEAR_ANIMATION_SRC = "/animations/gear-loader.lottie";
 
 function HomePageContent() {
   const router = useRouter();
@@ -38,11 +41,15 @@ function HomePageContent() {
     [searchParams]
   );
 
-  const { data, isLoading, error } = usePublicParts(searchTerms);
+  const { data, isLoading: partsLoading, error } = usePublicParts(searchTerms);
 
   // Pagination calculations
   const currentPage = Math.floor(searchTerms.offset / searchTerms.limit) + 1;
   const totalPages = Math.ceil((data?.count || 0) / searchTerms.limit);
+
+  // Combined loading state for initial page load
+  // Only show preloader on initial load (no data yet)
+  const isInitialLoad = settingsLoading || (partsLoading && !data);
 
   // Update URL when filters or page changes
   const updateURL = (updates: Partial<PublicSearchTerms>) => {
@@ -73,56 +80,61 @@ function HomePageContent() {
 
   const handlePageChange = (page: number) => {
     const newOffset = (page - 1) * searchTerms.limit;
+    // Scroll to top first (instant), then update URL
+    // This prevents the janky double-scroll effect
+    window.scrollTo({ top: 0, behavior: "instant" });
     updateURL({ offset: newOffset });
   };
 
   return (
-    <main className="mx-auto">
-      {/* Banner Carousel - Full width with lazy loading */}
-      {settingsLoading ? (
-        <SkeletonBannerCarousel />
-      ) : (
-        settings?.branding?.banners && settings.branding.banners.length > 0 && (
-          <BannerCarousel banners={settings.branding.banners} />
-        )
-      )}
+    <>
+      {/* Full-page preloader - shows during initial load */}
+      <Preloader isLoading={isInitialLoad} animationSrc={GEAR_ANIMATION_SRC} />
 
-      {/* Search and Parts List - Contained width */}
-      <div className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
-        <PublicSearchFilters setSearchTerms={setSearchTerms} />
+      <main className="mx-auto mt-1">
+        {/* Banner Carousel - Full width */}
+        {settings?.branding?.banners &&
+          settings.branding.banners.length > 0 && (
+            <BannerCarousel banners={settings.branding.banners} />
+          )}
 
-        {/* Error State for Parts Search */}
-        {error && (
-          <div className="mt-8">
-            <CardError
-              title={t("public.parts.errorTitle")}
-              message={t("public.parts.errorMessage")}
-            />
-          </div>
-        )}
+        {/* Search and Parts List - Contained width */}
+        <div className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
+          <PublicSearchFilters setSearchTerms={setSearchTerms} />
 
-        <div className="mt-8">
-          <PublicPartsList
-            partsData={data?.data || []}
-            partsCount={data?.count || 0}
-            isDataLoading={isLoading}
-            currentPage={currentPage}
-            limit={searchTerms.limit}
-          />
-          {data && data.count > searchTerms.limit && (
+          {/* Error State for Parts Search */}
+          {error && (
             <div className="mt-8">
-              <AcrPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                total={data.count}
-                limit={searchTerms.limit}
-                onPageChange={handlePageChange}
+              <CardError
+                title={t("public.parts.errorTitle")}
+                message={t("public.parts.errorMessage")}
               />
             </div>
           )}
+
+          <div className="mt-8">
+            <PublicPartsList
+              partsData={data?.data || []}
+              partsCount={data?.count || 0}
+              isDataLoading={partsLoading}
+              currentPage={currentPage}
+              limit={searchTerms.limit}
+            />
+            {data && data.count > searchTerms.limit && (
+              <div className="mt-8">
+                <AcrPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  total={data.count}
+                  limit={searchTerms.limit}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }
 
@@ -130,18 +142,10 @@ export default function HomePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-acr-gray-100">
-          <AppHeader variant="public" />
-          <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
-            <div className="animate-pulse">
-              <div className="h-32 bg-gray-200 rounded-lg mb-6"></div>
-              <div className="h-96 bg-gray-200 rounded-lg"></div>
-            </div>
-          </main>
-        </div>
+        <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />
       }
     >
-      <div className="min-h-screen bg-acr-gray-100">
+      <div className="min-h-screen acr-page-bg-pattern">
         <AppHeader variant="public" />
         <HomePageContent />
       </div>

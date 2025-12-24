@@ -1,3 +1,7 @@
+---
+title: "Site Settings System"
+---
+
 # Site Settings System
 
 > **Complete guide** to ACR Automotive's centralized configuration management: contact info, branding, and homepage banners
@@ -52,6 +56,7 @@ INSERT INTO site_settings (key, value) VALUES
 Located in [src/lib/types/settings.ts](../../../src/lib/types/settings.ts)
 
 #### Contact Information
+
 ```typescript
 export interface ContactInfo {
   email: string;
@@ -62,21 +67,23 @@ export interface ContactInfo {
 ```
 
 #### Banner Configuration
+
 ```typescript
 export interface Banner {
-  id: string;                    // Client-generated UUID
-  image_url: string;             // Desktop banner image (required)
-  mobile_image_url?: string;     // Mobile banner image (optional)
-  title?: string;                // Banner heading
-  subtitle?: string;             // Banner subheading
-  cta_text?: string;             // Call-to-action button text
-  cta_link?: string;             // CTA button link
-  display_order: number;         // Sort order (0 = first)
-  is_active: boolean;            // Visibility toggle
+  id: string; // Client-generated UUID
+  image_url: string; // Desktop banner image (required)
+  mobile_image_url?: string; // Mobile banner image (optional)
+  title?: string; // Banner heading
+  subtitle?: string; // Banner subheading
+  cta_text?: string; // Call-to-action button text
+  cta_link?: string; // CTA button link
+  display_order: number; // Sort order (0 = first)
+  is_active: boolean; // Visibility toggle
 }
 ```
 
 #### Branding Settings
+
 ```typescript
 export interface Branding {
   company_name: string;
@@ -87,13 +94,14 @@ export interface Branding {
 ```
 
 #### Combined Settings
+
 ```typescript
 export interface SiteSettings {
   contact_info: ContactInfo;
   branding: Branding;
 }
 
-export type SettingKey = 'contact_info' | 'branding';
+export type SettingKey = "contact_info" | "branding";
 ```
 
 ---
@@ -107,6 +115,7 @@ export type SettingKey = 'contact_info' | 'branding';
 Fetch all site settings for admin editing.
 
 **Response**:
+
 ```typescript
 {
   settings: {
@@ -117,15 +126,17 @@ Fetch all site settings for admin editing.
 ```
 
 **Example**:
+
 ```typescript
 const response = await fetch("/api/admin/settings");
 const { settings } = await response.json();
 
-console.log(settings.contact_info.email);  // "info@acr-automotive.com"
+console.log(settings.contact_info.email); // "info@acr-automotive.com"
 console.log(settings.branding.banners.length); // 3
 ```
 
 **Data Transformation**:
+
 ```typescript
 // Database: Array of {key, value} records
 const dbRecords = [
@@ -147,17 +158,19 @@ const settings = {
 Update a specific setting by key.
 
 **Request Body**:
+
 ```typescript
 {
-  key: SettingKey;        // "contact_info" | "branding"
+  key: SettingKey; // "contact_info" | "branding"
   value: ContactInfo | Branding;
 }
 ```
 
 **Response**:
+
 ```typescript
 {
-  message: string;       // "Successfully updated {key}"
+  message: string; // "Successfully updated {key}"
   setting: {
     key: string;
     value: any;
@@ -167,6 +180,7 @@ Update a specific setting by key.
 ```
 
 **Example**:
+
 ```typescript
 // Update contact information
 await fetch("/api/admin/settings", {
@@ -178,9 +192,9 @@ await fetch("/api/admin/settings", {
       email: "new-email@acr-automotive.com",
       phone: "+52 33 1111 2222",
       whatsapp: "+52 33 3333 4444",
-      address: "New Address, Guadalajara, México"
-    }
-  })
+      address: "New Address, Guadalajara, México",
+    },
+  }),
 });
 
 // Database automatically updates:
@@ -197,14 +211,17 @@ await fetch("/api/admin/settings", {
 Upload branding assets (logo, favicon, banner images) to Supabase Storage.
 
 **Request**: `multipart/form-data`
+
 - `file`: File - The image file to upload
 - `type`: string - Asset type: `"logo"` | `"favicon"` | `"banner"`
 
 **Validation Rules**:
+
 - **Allowed types**: PNG, JPEG, JPG, WebP, SVG, ICO
 - **Max file size**: 5MB
 
 **Response**:
+
 ```typescript
 {
   message: "Asset uploaded successfully",
@@ -214,11 +231,13 @@ Upload branding assets (logo, favicon, banner images) to Supabase Storage.
 ```
 
 **Storage Path Pattern**:
+
 ```
 {assetType}-{timestamp}.{extension}
 ```
 
 **Examples**:
+
 ```
 logo-1698765432000.png
 favicon-1698765500000.ico
@@ -226,6 +245,7 @@ banner-1698765600000.webp
 ```
 
 **Example Upload**:
+
 ```typescript
 const formData = new FormData();
 formData.append("file", logoFile);
@@ -244,8 +264,8 @@ await fetch("/api/admin/settings", {
   method: "PUT",
   body: JSON.stringify({
     key: "branding",
-    value: { ...existingBranding, logo_url: url }
-  })
+    value: { ...existingBranding, logo_url: url },
+  }),
 });
 ```
 
@@ -260,6 +280,7 @@ await fetch("/api/admin/settings", {
 Fetch all site settings for public consumption (footer, header, banners).
 
 **Response**:
+
 ```typescript
 {
   settings: {
@@ -272,6 +293,7 @@ Fetch all site settings for public consumption (footer, header, banners).
 **Caching Headers**: Includes cache-control for CDN caching
 
 **Example Usage**:
+
 ```typescript
 // Public homepage fetches settings
 const { settings } = await fetch("/api/public/settings").then(r => r.json());
@@ -299,12 +321,14 @@ const activeBanners = settings.branding.banners
 Located at [/admin/settings](../../../src/app/admin/settings/page.tsx)
 
 **Features**:
+
 - Two-section layout: Contact Info + Branding
 - Language toggle (English/Spanish)
 - Logout button
 - Back navigation
 
 **Component Structure**:
+
 ```tsx
 <SettingsPageContent>
   {/* Contact Information Section */}
@@ -324,12 +348,14 @@ Located at [/admin/settings](../../../src/app/admin/settings/page.tsx)
 #### `ContactInfoSettings.tsx` - Contact Form
 
 **Features**:
+
 - Email, phone, WhatsApp, address fields
 - Real-time validation with Zod + React Hook Form
 - Auto-save with dirty state detection
 - TanStack Query optimistic updates
 
 **Form Flow**:
+
 ```typescript
 // 1. Load current settings
 const { data: settings } = useQuery({
@@ -344,7 +370,7 @@ const { data: settings } = useQuery({
 // 2. Auto-populate form
 const form = useForm<ContactInfo>({
   resolver: zodResolver(contactInfoSchema),
-  values: settings,  // Auto-populate when data loads
+  values: settings, // Auto-populate when data loads
 });
 
 // 3. Save changes
@@ -364,6 +390,7 @@ const updateMutation = useMutation({
 ```
 
 **Validation Schema** ([src/lib/schemas/admin.ts](../../../src/lib/schemas/admin.ts)):
+
 ```typescript
 export const contactInfoSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -378,62 +405,75 @@ export const contactInfoSchema = z.object({
 #### `BrandingSettings.tsx` - Branding Management
 
 **Features**:
+
 - **Company Name** - Text input
 - **Logo Upload** - File upload with preview (recommended size: varies)
 - **Favicon Upload** - ICO/PNG upload with 16x16 preview
 - **Banner Carousel** - Full CRUD management
 
 **Banner Management UI**:
+
 ```tsx
-{banners.map((banner, index) => (
-  <div key={banner.id}>
-    {/* Header with Active Toggle */}
-    <div className="flex justify-between">
-      <span>Banner {index + 1}</span>
-      <input
-        type="checkbox"
-        checked={banner.is_active}
-        onChange={(e) => updateBanner(banner.id, { is_active: e.target.checked })}
-      />
-    </div>
-
-    {/* Reorder Buttons */}
-    <button onClick={() => moveBanner(banner.id, "up")} disabled={index === 0}>
-      <ChevronUp />
-    </button>
-    <button onClick={() => moveBanner(banner.id, "down")} disabled={index === banners.length - 1}>
-      <ChevronDown />
-    </button>
-
-    {/* Edit/Delete */}
-    <button onClick={() => setEditingBannerId(banner.id)}>
-      <Edit />
-    </button>
-    <button onClick={() => deleteBanner(banner.id)}>
-      <Trash2 />
-    </button>
-
-    {/* Expanded Edit Form */}
-    {editingBannerId === banner.id && (
-      <div>
-        <input type="file" /* Desktop image upload */ />
-        <input type="file" /* Mobile image upload */ />
-        <input value={banner.title} /* Title */ />
-        <input value={banner.subtitle} /* Subtitle */ />
-        <input value={banner.cta_text} /* CTA text */ />
-        <input value={banner.cta_link} /* CTA link */ />
+{
+  banners.map((banner, index) => (
+    <div key={banner.id}>
+      {/* Header with Active Toggle */}
+      <div className="flex justify-between">
+        <span>Banner {index + 1}</span>
+        <input
+          type="checkbox"
+          checked={banner.is_active}
+          onChange={(e) =>
+            updateBanner(banner.id, { is_active: e.target.checked })
+          }
+        />
       </div>
-    )}
-  </div>
-))}
+
+      {/* Reorder Buttons */}
+      <button
+        onClick={() => moveBanner(banner.id, "up")}
+        disabled={index === 0}
+      >
+        <ChevronUp />
+      </button>
+      <button
+        onClick={() => moveBanner(banner.id, "down")}
+        disabled={index === banners.length - 1}
+      >
+        <ChevronDown />
+      </button>
+
+      {/* Edit/Delete */}
+      <button onClick={() => setEditingBannerId(banner.id)}>
+        <Edit />
+      </button>
+      <button onClick={() => deleteBanner(banner.id)}>
+        <Trash2 />
+      </button>
+
+      {/* Expanded Edit Form */}
+      {editingBannerId === banner.id && (
+        <div>
+          <input type="file" /* Desktop image upload */ />
+          <input type="file" /* Mobile image upload */ />
+          <input value={banner.title} /* Title */ />
+          <input value={banner.subtitle} /* Subtitle */ />
+          <input value={banner.cta_text} /* CTA text */ />
+          <input value={banner.cta_link} /* CTA link */ />
+        </div>
+      )}
+    </div>
+  ));
+}
 ```
 
 **Banner CRUD Operations**:
+
 ```typescript
 // Add new banner
 const addBanner = () => {
   const newBanner: Banner = {
-    id: `banner-${Date.now()}`,  // Client-generated ID
+    id: `banner-${Date.now()}`, // Client-generated ID
     image_url: "",
     mobile_image_url: "",
     title: "",
@@ -452,21 +492,23 @@ const deleteBanner = (bannerId: string) => {
   if (!confirm("Delete this banner?")) return;
 
   const updatedBanners = banners
-    .filter(b => b.id !== bannerId)
-    .map((b, index) => ({ ...b, display_order: index }));  // Reindex
+    .filter((b) => b.id !== bannerId)
+    .map((b, index) => ({ ...b, display_order: index })); // Reindex
 
   setValue("banners", updatedBanners, { shouldDirty: true });
 };
 
 // Move banner up/down
 const moveBanner = (bannerId: string, direction: "up" | "down") => {
-  const currentIndex = banners.findIndex(b => b.id === bannerId);
+  const currentIndex = banners.findIndex((b) => b.id === bannerId);
   const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
 
   // Swap positions
   const updatedBanners = [...banners];
-  [updatedBanners[currentIndex], updatedBanners[newIndex]] =
-    [updatedBanners[newIndex], updatedBanners[currentIndex]];
+  [updatedBanners[currentIndex], updatedBanners[newIndex]] = [
+    updatedBanners[newIndex],
+    updatedBanners[currentIndex],
+  ];
 
   // Update display_order
   updatedBanners.forEach((banner, index) => {
@@ -478,7 +520,7 @@ const moveBanner = (bannerId: string, direction: "up" | "down") => {
 
 // Update banner field
 const updateBanner = (bannerId: string, updates: Partial<Banner>) => {
-  const updatedBanners = banners.map(b =>
+  const updatedBanners = banners.map((b) =>
     b.id === bannerId ? { ...b, ...updates } : b
   );
   setValue("banners", updatedBanners, { shouldDirty: true });
@@ -486,6 +528,7 @@ const updateBanner = (bannerId: string, updates: Partial<Banner>) => {
 ```
 
 **Image Upload Flow**:
+
 ```typescript
 const uploadBannerImage = async (
   bannerId: string,
@@ -529,14 +572,15 @@ const uploadBannerImage = async (
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 10 * 60 * 1000,  // 10 minutes (settings rarely change)
-      gcTime: 60 * 60 * 1000,     // 1 hour (keep in memory)
+      staleTime: 10 * 60 * 1000, // 10 minutes (settings rarely change)
+      gcTime: 60 * 60 * 1000, // 1 hour (keep in memory)
     },
   },
 });
 ```
 
 **Benefits**:
+
 - Settings fetched once per page load
 - Shared across components (contact footer + header logo use same cache)
 - 10-minute stale time reduces API calls
@@ -550,7 +594,10 @@ const queryClient = new QueryClient({
 ```typescript
 const updateMutation = useMutation({
   mutationFn: async (data) => {
-    await fetch("/api/admin/settings", { method: "PUT", body: JSON.stringify(data) });
+    await fetch("/api/admin/settings", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
   },
   onSuccess: () => {
     // Invalidate cache (triggers background refetch)
@@ -564,6 +611,7 @@ const updateMutation = useMutation({
 ```
 
 **User Experience**:
+
 - Form saves → Success toast appears instantly
 - Background revalidation confirms data persistence
 - If revalidation fails, cache reverts to previous state
@@ -586,6 +634,7 @@ const {
 ```
 
 **Benefits**:
+
 - Prevents accidental re-saves
 - Visual feedback (disabled button = no changes)
 - Resets after successful save
@@ -595,6 +644,7 @@ const {
 ### 4. JSONB Indexing
 
 **Database Optimization**:
+
 ```sql
 -- GIN index for JSONB queries
 create index idx_site_settings_value on site_settings using gin(value);
@@ -617,7 +667,7 @@ const form = {
   email: "updated@acr-automotive.com",
   phone: "+52 33 5555 6666",
   whatsapp: "+52 33 7777 8888",
-  address: "Updated Address, Guadalajara, México"
+  address: "Updated Address, Guadalajara, México",
 };
 
 // Save to database
@@ -626,8 +676,8 @@ await fetch("/api/admin/settings", {
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     key: "contact_info",
-    value: form
-  })
+    value: form,
+  }),
 });
 
 // Database updates:
@@ -693,14 +743,14 @@ await fetch("/api/admin/settings", {
 ```typescript
 // Step 1: Admin clicks "Add Banner"
 const newBanner: Banner = {
-  id: `banner-${Date.now()}`,           // "banner-1698765432000"
-  image_url: "",                        // Will upload image next
+  id: `banner-${Date.now()}`, // "banner-1698765432000"
+  image_url: "", // Will upload image next
   mobile_image_url: "",
   title: "Summer Sale",
   subtitle: "20% off all brake rotors",
   cta_text: "Shop Now",
   cta_link: "/search?category=rotors",
-  display_order: 0,                     // First banner
+  display_order: 0, // First banner
   is_active: true,
 };
 
@@ -713,7 +763,7 @@ formData.append("type", "banner");
 const { url: desktopUrl } = await fetch("/api/admin/settings/upload-asset", {
   method: "POST",
   body: formData,
-}).then(r => r.json());
+}).then((r) => r.json());
 
 newBanner.image_url = desktopUrl;
 
@@ -726,12 +776,14 @@ mobileFormData.append("type", "banner");
 const { url: mobileUrl } = await fetch("/api/admin/settings/upload-asset", {
   method: "POST",
   body: mobileFormData,
-}).then(r => r.json());
+}).then((r) => r.json());
 
 newBanner.mobile_image_url = mobileUrl;
 
 // Step 4: Add banner to branding.banners array
-const existingBranding = { /* ... */ };
+const existingBranding = {
+  /* ... */
+};
 existingBranding.banners.push(newBanner);
 
 // Step 5: Save to database
@@ -739,8 +791,8 @@ await fetch("/api/admin/settings", {
   method: "PUT",
   body: JSON.stringify({
     key: "branding",
-    value: existingBranding
-  })
+    value: existingBranding,
+  }),
 });
 
 // Step 6: Homepage carousel shows new banner immediately (after cache invalidation)
@@ -762,9 +814,9 @@ const banners = [
 // Swap banner-1 and banner-2
 
 const updatedBanners = [
-  { id: "banner-2", title: "New Arrivals", display_order: 0 },  // Moved up
-  { id: "banner-1", title: "Summer Sale", display_order: 1 },   // Moved down
-  { id: "banner-3", title: "Clearance", display_order: 2 },     // Unchanged
+  { id: "banner-2", title: "New Arrivals", display_order: 0 }, // Moved up
+  { id: "banner-1", title: "Summer Sale", display_order: 1 }, // Moved down
+  { id: "banner-3", title: "Clearance", display_order: 2 }, // Unchanged
 ];
 
 // Save to database
@@ -772,8 +824,8 @@ await fetch("/api/admin/settings", {
   method: "PUT",
   body: JSON.stringify({
     key: "branding",
-    value: { ...existingBranding, banners: updatedBanners }
-  })
+    value: { ...existingBranding, banners: updatedBanners },
+  }),
 });
 
 // Homepage carousel order updates immediately
@@ -840,6 +892,7 @@ await fetch("/api/admin/settings", {
 ### Manual Testing Checklist
 
 #### Contact Information
+
 - [ ] Update email (valid format)
 - [ ] Update phone number
 - [ ] Add/remove WhatsApp number
@@ -847,12 +900,14 @@ await fetch("/api/admin/settings", {
 - [ ] Verify public footer shows updated info
 
 #### Branding
+
 - [ ] Upload company logo (PNG, SVG)
 - [ ] Upload favicon (ICO, PNG)
 - [ ] Verify logo appears in header
 - [ ] Verify favicon appears in browser tab
 
 #### Banners
+
 - [ ] Create new banner with desktop image
 - [ ] Add mobile image (optional)
 - [ ] Add title, subtitle, CTA
@@ -871,7 +926,7 @@ describe("PUT /api/admin/settings", () => {
       email: "test@example.com",
       phone: "+52 33 1234 5678",
       whatsapp: "+52 33 9876 5432",
-      address: "Test Address"
+      address: "Test Address",
     };
 
     const response = await fetch("/api/admin/settings", {
@@ -879,8 +934,8 @@ describe("PUT /api/admin/settings", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         key: "contact_info",
-        value: newContactInfo
-      })
+        value: newContactInfo,
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -894,8 +949,8 @@ describe("PUT /api/admin/settings", () => {
       method: "PUT",
       body: JSON.stringify({
         key: "contact_info",
-        value: { email: "invalid-email" }  // Missing @ symbol
-      })
+        value: { email: "invalid-email" }, // Missing @ symbol
+      }),
     });
 
     expect(response.status).toBe(400);
@@ -908,10 +963,12 @@ describe("PUT /api/admin/settings", () => {
 ## Related Documentation
 
 ### Architecture
+
 - **[Architecture Overview](../../architecture/OVERVIEW.md)** - Settings layer in system architecture
 - **[State Management](../../architecture/STATE_MANAGEMENT.md)** - TanStack Query caching patterns
 
 ### Database
+
 - **[Database Schema](../../database/DATABASE.md)** - Complete schema for `site_settings` table
 
 ---

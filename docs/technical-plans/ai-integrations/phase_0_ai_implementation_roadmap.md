@@ -1,4 +1,9 @@
+---
+title: "AI Integration Implementation Roadmap"
+---
+
 # AI Integration Implementation Roadmap
+
 ## ACR Automotive - Complete Build Order
 
 ---
@@ -13,23 +18,28 @@ This roadmap outlines the complete implementation order for ACR Automotive's AI-
 ---
 
 ## 📋 **Phase 1: Intent Classification System**
+
 **Document**: "Phase 1: Intent Classification System for ACR Automotive"  
 **Duration**: Planning & Design (no code yet)  
 **Purpose**: Understand how AI will interpret user queries
 
 ### **What This Phase Covers**
+
 - Understanding the 6 valid intent types
 - Spanish terminology mapping for MAZA parts
 - Prompt engineering strategy
 - API response structures
 
 ### **Why Start Here**
+
 This is the **conceptual foundation**. You need to understand:
+
 - What intents exist (vehicle_search, sku_lookup, etc.)
 - How AI classifies Spanish queries
 - What response formats to expect
 
 ### **Deliverable**
+
 ✅ Clear understanding of intent system  
 ✅ No code written yet - just learning the architecture
 
@@ -38,11 +48,13 @@ This is the **conceptual foundation**. You need to understand:
 ---
 
 ## 📋 **Phase 2: AI Response Generation System**
+
 **Document**: "Phase 2: AI Response Generation System for ACR Automotive"  
 **Duration**: Planning & Design (no code yet)  
 **Purpose**: Understand how AI formats responses to users
 
 ### **What This Phase Covers**
+
 - Response types (success, clarification, redirect, etc.)
 - Progressive disclosure pattern (filter chips, not conversation)
 - Tone variants for A/B testing
@@ -50,12 +62,15 @@ This is the **conceptual foundation**. You need to understand:
 - Rate limiting approach
 
 ### **Why Second**
+
 You need to know:
+
 - How AI responses flow to users
 - What data structures responses contain
 - How pagination works with AI
 
 ### **Deliverable**
+
 ✅ Clear understanding of response generation  
 ✅ Know what frontend will receive from backend  
 ✅ Still no code - just architecture understanding
@@ -65,6 +80,7 @@ You need to know:
 ---
 
 ## 🔧 **Phase 3: Technical Foundation (Backend)**
+
 **Document**: "Phase 3: Technical Foundation (Backend)"  
 **Duration**: 1-2 weeks  
 **Purpose**: Build the backend infrastructure
@@ -72,6 +88,7 @@ You need to know:
 ### **Implementation Order**
 
 #### **Week 1: Database Setup**
+
 ```bash
 # Day 1-2: Database Migration
 ☐ Enable pgvector extension in Supabase
@@ -94,6 +111,7 @@ You need to know:
 ```
 
 #### **Week 2: Backend API Development**
+
 ```bash
 # Day 1-2: Core API Endpoint
 ☐ Create /api/ai/search route
@@ -119,6 +137,7 @@ You need to know:
 ```
 
 ### **Deliverable**
+
 ✅ Working `/api/ai/search` endpoint  
 ✅ Embeddings generated for all parts  
 ✅ Hybrid search routing functional  
@@ -129,6 +148,7 @@ You need to know:
 ---
 
 ## 🎨 **Phase 4: Frontend Integration (UI)**
+
 **Document**: "Phase 4: Frontend Integration (UI)"  
 **Duration**: 1-2 weeks  
 **Purpose**: Build the user interface
@@ -136,6 +156,7 @@ You need to know:
 ### **Implementation Order**
 
 #### **Week 1: Core Components**
+
 ```bash
 # Day 1-2: Universal Search Input
 ☐ Create UniversalSearchInterface component
@@ -162,6 +183,7 @@ You need to know:
 ```
 
 #### **Week 2: Progressive Disclosure & Filters**
+
 ```bash
 # Day 1-2: Filter Chips
 ☐ Create FilterChips component
@@ -183,6 +205,7 @@ You need to know:
 ```
 
 ### **Deliverable**
+
 ✅ Complete universal search interface  
 ✅ Voice search functional  
 ✅ Filter chips working  
@@ -194,6 +217,7 @@ You need to know:
 ---
 
 ## 🧪 **Phase 5: Testing & Quality Assurance**
+
 **Duration**: 1 week  
 **Purpose**: Ensure everything works reliably
 
@@ -231,6 +255,7 @@ You need to know:
 ```
 
 ### **Deliverable**
+
 ✅ All tests passing  
 ✅ Performance targets met  
 ✅ Error handling verified  
@@ -241,10 +266,12 @@ You need to know:
 ---
 
 ## 🚀 **Phase 6: Deployment & Rollout**
+
 **Duration**: 2 weeks  
 **Purpose**: Safe production launch
 
 ### **Week 1: Staging Deployment**
+
 ```bash
 # Day 1: Deploy to Staging
 ☐ Deploy backend to Vercel staging
@@ -265,6 +292,7 @@ You need to know:
 ```
 
 ### **Week 2: Production Rollout**
+
 ```bash
 # Day 1: Beta (10% of users)
 ☐ Enable for 10% of traffic
@@ -285,6 +313,7 @@ You need to know:
 ```
 
 ### **Deliverable**
+
 ✅ AI search live for all users  
 ✅ Monitoring dashboards active  
 ✅ Rollback procedure tested  
@@ -325,18 +354,21 @@ Total: 6-8 weeks
 ## 🎯 **Success Criteria**
 
 ### **Technical**
+
 - ✅ Search response time <800ms
 - ✅ Intent classification accuracy >85%
 - ✅ Error rate <5%
 - ✅ Cost <$10/month
 
 ### **User Experience**
+
 - ✅ Search success rate >90%
 - ✅ Voice search works on tablets
 - ✅ Filter chips apply instantly
 - ✅ No confusion about AI vs traditional
 
 ### **Business**
+
 - ✅ Counter staff adopt new search
 - ✅ Reduced "no results" scenarios
 - ✅ Faster search workflow
@@ -347,18 +379,21 @@ Total: 6-8 weeks
 ## 🔄 **After Launch: Continuous Improvement**
 
 ### **Month 1 Post-Launch**
+
 - Monitor search analytics
 - Collect user feedback
 - Adjust similarity thresholds if needed
 - Fine-tune intent classification
 
 ### **Month 2-3**
+
 - A/B test tone variants
 - Optimize performance further
 - Add analytics dashboard
 - Document learnings
 
 ### **Month 4+**
+
 - Consider admin AI features (from ENHANCEMENTS.md)
 - Explore advanced semantic search
 - Scale to more part types (if expanding beyond MAZA)
@@ -392,17 +427,20 @@ Total: 6-8 weeks
 ## 💡 **Pro Tips**
 
 ### **For Learning**
+
 - Read Phases 1-2 completely before writing code
 - Understand "why" decisions were made
 - Each phase builds on previous understanding
 
 ### **For Implementation**
+
 - Don't skip database setup (Phase 3 Week 1)
 - Test each component individually
 - Use feature flags from day 1
 - Monitor costs from first API call
 
 ### **For Interviews**
+
 - You can explain entire architecture
 - Show working production application
 - Discuss UX decisions backed by research

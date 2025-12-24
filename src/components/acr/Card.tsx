@@ -12,8 +12,19 @@ const acrCardVariants = cva(
       variant: {
         default: "border-acr-gray-200 shadow-sm hover:shadow-md",
         elevated: "border-acr-gray-200 shadow-lg hover:shadow-xl",
-        outlined: "border-acr-gray-300 shadow-none hover:shadow-sm hover:border-acr-gray-400",
-        featured: "border-acr-red-200 bg-gradient-to-br from-white to-acr-red-50/30 shadow-md hover:shadow-lg",
+        outlined:
+          "border-acr-gray-300 shadow-none hover:shadow-sm hover:border-acr-gray-400",
+        featured:
+          "border-acr-red-200 bg-gradient-to-br from-white to-acr-red-50/30 shadow-md hover:shadow-lg",
+        // Interactive variant for clickable cards (part cards, etc.)
+        // Red hover hints with warm glow shadow
+        interactive: [
+          "border-acr-gray-300 shadow-md cursor-pointer",
+          "hover:border-acr-red-300 hover:shadow-lg",
+          "hover:shadow-[0_8px_30px_-12px_rgba(237,28,36,0.15)]",
+          "active:scale-[0.99]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acr-red-500 focus-visible:ring-offset-2",
+        ].join(" "),
       },
       padding: {
         none: "",
@@ -68,11 +79,7 @@ export const AcrCardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("mb-7", className)}
-    {...props}
-  />
+  <div ref={ref} className={cn("mb-7", className)} {...props} />
 ));
 
 AcrCardHeader.displayName = "AcrCardHeader";
@@ -84,11 +91,7 @@ export const AcrCardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("", className)}
-    {...props}
-  />
+  <div ref={ref} className={cn("", className)} {...props} />
 ));
 
 AcrCardContent.displayName = "AcrCardContent";

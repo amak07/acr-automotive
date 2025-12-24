@@ -31,9 +31,11 @@ dist/
 # IDE and Editor files
 .vscode/
 .idea/
-.claude/
+# Claude Code local files (ignore contents, allow specific files/folders)
+.claude/*
 !.claude/session-tracker.sh
 !.claude/README.md
+!.claude/skills/
 *.swp
 *.swo
 *~
@@ -109,7 +111,13 @@ uploads/
 # Generated types
 /generated/
 
+# Fumadocs generated files
+.source/
+
 # Bulk upload test photos (keep CTK512016 as reference)
 public/ACR*/
 public/IMAGENES*/
 public/CTK*/
+
+# Product images (served locally, not tracked in git)
+public/product-images/

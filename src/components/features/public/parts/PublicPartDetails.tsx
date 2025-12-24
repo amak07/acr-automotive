@@ -12,7 +12,6 @@ import {
 import { Tables } from "@/lib/supabase/types";
 import { AcrCard, AcrCardContent } from "@/components/acr/Card";
 import { Badge } from "@/components/ui/badge";
-import { SkeletonPublicPartDetails } from "@/components/ui/skeleton";
 import { PageError } from "@/components/ui/error-states";
 import { useHomeLink } from "@/hooks";
 import { PartImageGallery } from "./PartImageGallery";
@@ -79,7 +78,11 @@ export function PublicPartDetails({
   };
 
   if (isLoading) {
-    return <SkeletonPublicPartDetails />;
+    return (
+      <div className="max-w-4xl mx-auto flex items-center justify-center py-24">
+        <div className="w-10 h-10 border-3 border-acr-gray-200 border-t-acr-red-500 rounded-full animate-spin" />
+      </div>
+    );
   }
 
   if (error) {
@@ -108,8 +111,8 @@ export function PublicPartDetails({
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
-      {/* Breadcrumb */}
-      <div className="flex items-center text-sm text-acr-gray-600">
+      {/* Breadcrumb - with entrance animation */}
+      <div className="flex items-center text-sm text-acr-gray-600 acr-animate-fade-in">
         <Link
           href={(backLink || "/") as any}
           onClick={handleBackClick}
@@ -120,12 +123,14 @@ export function PublicPartDetails({
         </Link>
       </div>
 
-      {/* SKU Header - Baleros-Bisa Style */}
-      <div>
-        <h1 className="text-3xl md:text-4xl font-bold text-acr-gray-900">
+      {/* SKU Hero Section - Enhanced with red accent */}
+      <div className="acr-animate-fade-up acr-stagger-1">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-acr-gray-900 tracking-tight">
           {t("public.partDetails.sku")}:{" "}
-          <span className="font-mono">{part.acr_sku}</span>
+          <span className="font-mono text-acr-gray-800">{part.acr_sku}</span>
         </h1>
+        {/* Red accent underline - brand signature */}
+        <div className="mt-2 h-1 w-24 bg-acr-red-500 rounded-full" />
       </div>
 
       {/* Main Content - Image Emphasized Layout */}
@@ -134,7 +139,7 @@ export function PublicPartDetails({
         <AcrCard
           variant="elevated"
           padding="none"
-          className="md:col-span-2 overflow-hidden"
+          className="md:col-span-2 overflow-hidden acr-animate-fade-up acr-stagger-2"
         >
           <PartImageGallery
             images={images}
@@ -147,7 +152,11 @@ export function PublicPartDetails({
         </AcrCard>
 
         {/* Part Details - Baleros-Bisa Style - 1/3 width */}
-        <AcrCard variant="featured" padding="default" className="md:col-span-1">
+        <AcrCard
+          variant="featured"
+          padding="default"
+          className="md:col-span-1 acr-animate-fade-up acr-stagger-3"
+        >
           <AcrCardContent>
             {/* Specifications Table */}
             <div className="border border-acr-gray-200 rounded">
@@ -234,7 +243,10 @@ export function PublicPartDetails({
 
       {/* Applications and References - Baleros-Bisa Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <AcrCard variant="default">
+        <AcrCard
+          variant="default"
+          className="acr-animate-fade-up acr-stagger-4"
+        >
           <AcrCardContent>
             <div className="border border-acr-gray-200 rounded">
               <div className="bg-acr-gray-50 border-b border-acr-gray-200 px-3 py-2">
@@ -263,7 +275,10 @@ export function PublicPartDetails({
           </AcrCardContent>
         </AcrCard>
 
-        <AcrCard variant="default">
+        <AcrCard
+          variant="default"
+          className="acr-animate-fade-up acr-stagger-5"
+        >
           <AcrCardContent>
             <div className="border border-acr-gray-200 rounded">
               <div className="bg-acr-gray-50 border-b border-acr-gray-200 px-3 py-2">

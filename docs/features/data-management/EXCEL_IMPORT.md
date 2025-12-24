@@ -1,3 +1,7 @@
+---
+title: "Excel Import Service - Technical Documentation"
+---
+
 # Excel Import Service - Technical Documentation
 
 **Phase**: 8.2 - Excel Import + Rollback System
@@ -77,6 +81,7 @@ src/services/excel/
 **Purpose**: Parse uploaded Excel files with ExcelJS
 
 **Key Features**:
+
 - Reads all 3 sheets (Parts, Vehicle Applications, Cross References)
 - Parses hidden ID columns (`_id`, `_part_id`, `_acr_part_id`)
 - Detects if file is an exported file (has hidden IDs) or invalid upload
@@ -84,6 +89,7 @@ src/services/excel/
 - File validation (extension, size, MIME type)
 
 **Methods**:
+
 - `parseFile(file: File): Promise<ParsedExcelFile>` - Main entry point
 - `validateFileFormat(file: File): void` - Pre-parse validation
 - `parseSheet<T>(worksheet, sheetName): ParsedSheet<T>` - Generic sheet parser
@@ -98,6 +104,7 @@ src/services/excel/
 **Purpose**: Validate parsed data against database schema and business rules
 
 **Error Rules** (19 total - block import):
+
 - E1: Missing required hidden columns
 - E2: Missing required field (ACR_SKU, Part_Type, Make, Model, etc.)
 - E3: Empty ACR_SKU
@@ -108,8 +115,8 @@ src/services/excel/
 - E8: Year out of valid range (1900 to current+2)
 - E9: Invalid number format
 - E10: Required sheet missing
-- E11: Orphaned vehicle application (_part_id not found)
-- E12: Orphaned cross reference (_acr_part_id not found)
+- E11: Orphaned vehicle application (\_part_id not found)
+- E12: Orphaned cross reference (\_acr_part_id not found)
 - E13: Part_Type required for parts
 - E14: Competitor_Brand required for cross-refs
 - E15: Competitor_SKU required for cross-refs
@@ -119,6 +126,7 @@ src/services/excel/
 - E19: PENDING part referenced by vehicle applications or cross-references
 
 **Warning Rules** (10 total - user confirms):
+
 - W1: ACR_SKU changed (can break existing references)
 - W2: Year range narrowed (data loss)
 - W3: Part_Type changed (affects categorization)
@@ -131,6 +139,7 @@ src/services/excel/
 - W10: Competitor brand changed
 
 **Methods**:
+
 - `validate(parsed, existingData): Promise<ValidationResult>` - Main validator
 - `normalizeOptional(value): string | null` - Treats null/undefined/empty as equivalent
 
@@ -144,17 +153,20 @@ src/services/excel/
 **Purpose**: Generate change preview by comparing file to database
 
 **Diff Operations**:
+
 - **ADD**: Row has no `_id` or `_id` is empty → INSERT new record
 - **UPDATE**: Row has `_id` that exists in DB and data changed → UPDATE record
 - **DELETE**: Record exists in DB but not in file → DELETE record
 - **UNCHANGED**: Row has `_id` and data matches DB → No operation
 
 **Change Detection**:
+
 - ID-based matching only (no field-based fallback)
 - Field-level change tracking (knows exactly which fields changed)
 - Properly handles null/undefined/empty string equivalence for optional fields
 
 **Methods**:
+
 - `generateDiff(parsed, existingData): DiffResult` - Main diff generator
 - `normalizeOptional(value): string | null` - Same normalization as validator
 
@@ -165,16 +177,19 @@ src/services/excel/
 ## Critical Fixes Applied
 
 ### 1. Export Service Bug
+
 **Problem**: Hidden ID columns were empty in exported files
 **Cause**: Export service used property names `id`, `part_id` instead of Excel column keys `_id`, `_part_id`
 **Fix**: Updated ExcelExportService to map database fields to correct column keys
 
 ### 2. Header Parsing Bug
+
 **Problem**: Headers like `ACR_SKU` became `a_c_r__s_k_u`
 **Cause**: Over-complicated conversion logic treating each capital as needing underscore
 **Fix**: Simplified `headerToPropertyName()` to just lowercase and normalize underscores
 
 ### 3. Null/Undefined False Positives
+
 **Problem**: 132 false warnings + 209 false updates detected
 **Cause**: Database stores `null`, parser leaves fields `undefined`
 **Fix**: Added `normalizeOptional()` helper in both ValidationEngine and DiffEngine
@@ -186,16 +201,18 @@ src/services/excel/
 **File**: `src/services/excel/shared/constants.ts`
 
 ### Why Shared?
+
 - Single source of truth prevents drift between export and import
 - Ensures column headers, property names, and widths stay synchronized
 - Changes to format only need to be made in one place
 
 ### What's Shared?
+
 - `SHEET_NAMES` - Sheet names ('Parts', 'Vehicle Applications', 'Cross References')
 - `COLUMN_HEADERS` - Excel column headers (e.g., 'ACR_SKU', 'Part_Type')
 - `PROPERTY_NAMES` - JavaScript property names (e.g., 'acr_sku', 'part_type')
 - `COLUMN_WIDTHS` - Excel column widths in characters
-- `HIDDEN_ID_COLUMNS` - List of hidden ID columns ('_id', '_part_id', '_acr_part_id')
+- `HIDDEN_ID_COLUMNS` - List of hidden ID columns ('\_id', '\_part_id', '\_acr_part_id')
 - `FILE_VALIDATION` - Valid extensions (.xlsx, .xls), MIME types, max size (50MB)
 - `PARTS_COLUMNS` - Full column definitions for Parts sheet
 - `VEHICLE_APPLICATIONS_COLUMNS` - Full column definitions for Vehicle Apps sheet
@@ -243,6 +260,7 @@ src/services/excel/
 ## TODO: Remaining Components
 
 ### 1. ImportService (Phase 8.2)
+
 - Create snapshot before import
 - Apply changes in transaction (ADD/UPDATE/DELETE)
 - Handle foreign key relationships (parts → vehicles → cross-refs)
@@ -250,6 +268,7 @@ src/services/excel/
 - Rollback on error
 
 ### 2. RollbackService (Phase 8.2)
+
 - List available snapshots
 - Restore to specific snapshot
 - Enforce sequential rollback (can't skip snapshots)
@@ -257,6 +276,7 @@ src/services/excel/
 - Clean up old snapshots (configurable retention)
 
 ### 3. Import Wizard UI (Phase 8.2)
+
 - Step 1: Upload file
 - Step 2: Validation results (show errors/warnings)
 - Step 3: Change preview (diff results with counts)
@@ -265,6 +285,7 @@ src/services/excel/
 - Success/error feedback
 
 ### 4. Rollback Manager UI (Phase 8.2)
+
 - List snapshots with metadata (timestamp, user, changes)
 - Preview snapshot contents
 - Restore to snapshot (with confirmation)
@@ -276,23 +297,27 @@ src/services/excel/
 ## Design Decisions
 
 ### Why ID-Based Matching?
+
 - **Reliability**: Field-based matching is error-prone (user might change ACR_SKU)
 - **Performance**: Direct ID lookup is O(1) vs fuzzy matching
 - **Clarity**: User sees exactly which records will be updated vs added
 - **Foreign Keys**: IDs required for vehicle apps and cross-refs anyway
 
 ### Why Export-Only Workflow?
+
 - **Safety**: Users can't accidentally create duplicates
 - **Tracking**: Every imported record has history via export file
 - **UUIDs**: Hidden IDs ensure referential integrity across related records
 
 ### Why Snapshots Instead of Change Log?
+
 - **Simplicity**: Single snapshot restore vs replaying many change operations
 - **Speed**: Fast restore (just copy snapshot data back)
 - **Reliability**: No chance of corrupted change log
 - **Storage**: PostgreSQL handles snapshot storage efficiently
 
 ### Why Normalize Null/Undefined/Empty?
+
 - **Database Reality**: NULL is database standard for "no value"
 - **Excel Reality**: Empty cells become undefined in JavaScript
 - **User Experience**: Don't warn about meaningless differences
@@ -303,16 +328,19 @@ src/services/excel/
 ## Performance Characteristics
 
 ### Current Performance (9,593 records)
+
 - **Parse**: ~300ms (31 records/ms)
 - **Validate**: ~75ms (127 records/ms)
 - **Diff**: ~7ms (1,370 records/ms)
 - **Total**: ~1,100ms
 
 ### Expected Performance at Scale
+
 - **50,000 records**: ~5 seconds (acceptable)
 - **100,000 records**: ~10 seconds (still acceptable for bulk import)
 
 ### Optimization Opportunities (if needed)
+
 1. Streaming parser (process rows as they're read)
 2. Web Workers for validation/diff (parallel processing)
 3. Database batch operations (bulk INSERT/UPDATE)
@@ -332,6 +360,7 @@ src/services/excel/
 ## Development Log
 
 ### 2025-10-24 - Session 2 (2.5 hours)
+
 - ✅ Built shared constants module (single source of truth)
 - ✅ Built ExcelImportService with hidden column support
 - ✅ Built ValidationEngine (19 errors, 10 warnings)

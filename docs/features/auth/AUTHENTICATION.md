@@ -1,3 +1,7 @@
+---
+title: "Authentication System"
+---
+
 # Authentication System
 
 > **MVP authentication** for admin access with password-based protection
@@ -105,6 +109,7 @@ src/
 Verify admin password against environment variable.
 
 **Request Body**:
+
 ```typescript
 {
   password: string;
@@ -112,13 +117,15 @@ Verify admin password against environment variable.
 ```
 
 **Response (Success - 200)**:
+
 ```typescript
 {
-  success: true
+  success: true;
 }
 ```
 
 **Response (Invalid Password - 401)**:
+
 ```typescript
 {
   success: false,
@@ -127,6 +134,7 @@ Verify admin password against environment variable.
 ```
 
 **Response (Server Error - 500)**:
+
 ```typescript
 {
   success: false,
@@ -135,6 +143,7 @@ Verify admin password against environment variable.
 ```
 
 **Implementation**:
+
 ```typescript
 export async function POST(request: NextRequest) {
   const { password } = await request.json();
@@ -154,6 +163,7 @@ export async function POST(request: NextRequest) {
 ```
 
 **Security Considerations**:
+
 - Password is **plain text comparison** (not hashed)
 - No rate limiting (vulnerable to brute force)
 - No audit logging
@@ -168,6 +178,7 @@ export async function POST(request: NextRequest) {
 Higher-Order Component (HOC) for protecting admin routes.
 
 **Usage**:
+
 ```typescript
 // src/app/admin/parts/page.tsx
 import { withAdminAuth } from "@/components/admin/auth/withAdminAuth";
@@ -180,6 +191,7 @@ export default withAdminAuth(PartsPage);
 ```
 
 **How It Works**:
+
 ```typescript
 export function withAdminAuth<P extends object>(
   WrappedComponent: React.ComponentType<P>
@@ -223,6 +235,7 @@ export function withAdminAuth<P extends object>(
 ```
 
 **States**:
+
 1. **`null`** - Checking authentication (show loading spinner)
 2. **`false`** - Not authenticated (show password modal)
 3. **`true`** - Authenticated (render protected component)
@@ -234,14 +247,16 @@ export function withAdminAuth<P extends object>(
 Modal UI for password entry.
 
 **Props**:
+
 ```typescript
 interface AdminPasswordModalProps {
-  onSuccess: () => void;  // Called after successful authentication
-  onCancel: () => void;   // Called when user clicks Cancel
+  onSuccess: () => void; // Called after successful authentication
+  onCancel: () => void; // Called when user clicks Cancel
 }
 ```
 
 **Features**:
+
 - **Password visibility toggle** (Eye/EyeOff icon)
 - **Auto-focus** on password input
 - **Error display** for invalid password
@@ -249,6 +264,7 @@ interface AdminPasswordModalProps {
 - **Cancel button** redirects to homepage
 
 **Example Flow**:
+
 ```typescript
 <AdminPasswordModal
   onSuccess={() => {
@@ -262,14 +278,16 @@ interface AdminPasswordModalProps {
 ```
 
 **Internal State**:
+
 ```typescript
 const [password, setPassword] = useState("");
-const [showPassword, setShowPassword] = useState(false);  // Toggle visibility
-const [isVerifying, setIsVerifying] = useState(false);    // Loading state
-const [error, setError] = useState("");                   // Error message
+const [showPassword, setShowPassword] = useState(false); // Toggle visibility
+const [isVerifying, setIsVerifying] = useState(false); // Loading state
+const [error, setError] = useState(""); // Error message
 ```
 
 **Submit Handler**:
+
 ```typescript
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -289,7 +307,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       onSuccess();
     } else {
       setError("Invalid password. Please try again.");
-      setPassword("");  // Clear password on error
+      setPassword(""); // Clear password on error
     }
   } catch (error) {
     setError("Authentication failed. Please try again.");
@@ -318,12 +336,14 @@ ADMIN_PASSWORD=your-production-password
 **Default Value**: `"admin123"` (development only)
 
 **Security Best Practices**:
+
 - Use a strong password (16+ characters, mixed case, numbers, symbols)
 - Never commit `.env.local` to version control
 - Rotate password periodically
 - Use different passwords for development and production
 
 **Vercel Deployment**:
+
 ```bash
 # Set environment variable in Vercel dashboard
 # Settings > Environment Variables
@@ -348,19 +368,22 @@ ADMIN_PASSWORD=your-production-password
 sessionStorage.setItem("admin-authenticated", "true");
 
 // Check session (on page load)
-const isAuthenticated = sessionStorage.getItem("admin-authenticated") === "true";
+const isAuthenticated =
+  sessionStorage.getItem("admin-authenticated") === "true";
 
 // Clear session (on logout)
 sessionStorage.removeItem("admin-authenticated");
 ```
 
 **Why Session Storage?**
+
 - **Tab-scoped**: Each browser tab has independent auth state
 - **Temporary**: Cleared when tab closes (no lingering sessions)
 - **Client-side only**: Never sent to server
 - **Simple**: No cookies, no JWT, no refresh tokens
 
 **Logout Implementation**:
+
 ```typescript
 // src/components/admin/settings/SettingsPageContent.tsx
 const handleLogout = () => {
@@ -557,6 +580,7 @@ export async function POST(request: NextRequest) {
 ### Manual Testing Checklist
 
 #### Authentication Flow
+
 - [ ] Navigate to `/admin/parts` (or any admin route)
 - [ ] Verify password modal appears
 - [ ] Enter incorrect password → Verify error message
@@ -566,6 +590,7 @@ export async function POST(request: NextRequest) {
 - [ ] Click "Cancel" on modal → Verify redirect to homepage
 
 #### Logout
+
 - [ ] Login to admin panel
 - [ ] Navigate to Settings page
 - [ ] Click "Logout" button
@@ -573,6 +598,7 @@ export async function POST(request: NextRequest) {
 - [ ] Attempt to navigate back to admin page → Verify password modal appears again
 
 #### Protected Routes
+
 - [ ] Verify all admin routes protected:
   - [ ] `/admin/parts`
   - [ ] `/admin/parts/[id]`
@@ -634,6 +660,7 @@ describe("POST /api/admin/auth", () => {
 ### Phase 1: Immediate Improvements (Low Effort)
 
 1. **Rate Limiting**
+
    ```typescript
    // Add to /api/admin/auth
    import rateLimit from "express-rate-limit";
@@ -646,17 +673,23 @@ describe("POST /api/admin/auth", () => {
    ```
 
 2. **Password Hashing**
+
    ```typescript
    // Store bcrypt hash in environment variable
    import bcrypt from "bcrypt";
 
-   const isValid = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH);
+   const isValid = await bcrypt.compare(
+     password,
+     process.env.ADMIN_PASSWORD_HASH
+   );
    ```
 
 3. **Audit Logging**
    ```typescript
    // Log all authentication attempts
-   console.log(`[AUTH] Login attempt from ${request.ip} at ${new Date().toISOString()}`);
+   console.log(
+     `[AUTH] Login attempt from ${request.ip} at ${new Date().toISOString()}`
+   );
    ```
 
 ---
@@ -675,7 +708,9 @@ const { data, error } = await supabase.auth.signInWithPassword({
 });
 
 // Check auth state
-const { data: { user } } = await supabase.auth.getUser();
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 
 if (user?.role === "admin") {
   // Authorized
@@ -683,6 +718,7 @@ if (user?.role === "admin") {
 ```
 
 **Benefits**:
+
 - User registration/login flows
 - Password reset via email
 - Role-based access control (RBAC)
@@ -721,6 +757,7 @@ export default NextAuth(authOptions);
 ```
 
 **Benefits**:
+
 - OAuth login (Google, GitHub, etc.)
 - SSO (Single Sign-On)
 - Email verification
@@ -734,12 +771,14 @@ export default NextAuth(authOptions);
 ### From MVP to Supabase Auth
 
 1. **Create auth schema**
+
    ```sql
    -- Supabase auto-generates this
    -- Just enable auth in Supabase dashboard
    ```
 
 2. **Replace sessionStorage with Supabase session**
+
    ```typescript
    // Before (MVP)
    sessionStorage.setItem("admin-authenticated", "true");
@@ -752,6 +791,7 @@ export default NextAuth(authOptions);
    ```
 
 3. **Replace withAdminAuth HOC**
+
    ```typescript
    export function withAdminAuth(WrappedComponent) {
      return function AdminProtectedComponent(props) {
@@ -776,9 +816,11 @@ export default NextAuth(authOptions);
 ## Related Documentation
 
 ### Architecture
+
 - **[Architecture Overview](../../architecture/OVERVIEW.md)** - Auth layer in system architecture
 
 ### Other Features
+
 - **[Site Settings](../site-settings/SITE_SETTINGS.md)** - Settings page uses withAdminAuth protection
 
 ---

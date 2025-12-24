@@ -1,3 +1,7 @@
+---
+title: "Component Architecture"
+---
+
 # Component Architecture
 
 > **Purpose**: ACR Design System patterns, component structure, and usage guidelines
@@ -24,6 +28,7 @@
 **Built On**: shadcn/ui principles (copy, don't import)
 
 **Purpose**:
+
 - Consistent UI across admin and public interfaces
 - Mexican B2B market focus (Spanish-first)
 - Tablet-optimized for parts counter workstations
@@ -38,17 +43,20 @@
 **Pattern**: Own all component code in codebase.
 
 **Why**:
+
 - **Full control**: Maximum customization for business needs
 - **No breaking changes**: No dependencies on external library updates
 - **Business alignment**: Components tailored for auto parts workflows
 - **Maintenance freedom**: Modify without upstream constraints
 
 **How It Works**:
+
 ```
 shadcn/ui (inspiration) → Copy pattern → Customize for ACR → Own component
 ```
 
 **Example**:
+
 ```typescript
 // ❌ Don't import external component library
 import { Button } from "@radix-ui/react-button";
@@ -66,12 +74,14 @@ import { AcrButton } from "@/components/acr/Button";
 **Primary Use Case**: Tablet interfaces at parts counter workstations.
 
 **Design Priorities**:
+
 1. **Touch targets**: Minimum 44px for reliable finger interaction
 2. **Responsive**: Mobile-optimized with desktop enhancements
 3. **Performance**: Fast loading for business-critical operations
 4. **Scannable**: Easy to quickly find relevant information
 
 **Breakpoint Strategy**:
+
 ```typescript
 // Mobile-first approach
 className="
@@ -81,6 +91,7 @@ className="
 ```
 
 **Touch Target Sizes**:
+
 ```typescript
 size: {
   sm: "h-9 px-4",      // 36px (for tight spaces)
@@ -96,11 +107,13 @@ size: {
 **Language**: Spanish-first with English development support.
 
 **Cultural Considerations**:
+
 - Professional styling for Mexican business culture
 - Auto parts industry terminology
 - Distributor/parts counter staff as primary users
 
 **Implementation**:
+
 ```typescript
 // All UI text uses translation keys
 <AcrButton>{t("common.actions.save")}</AcrButton>
@@ -225,6 +238,7 @@ export interface AcrButtonProps
 ```
 
 **Usage**:
+
 ```typescript
 <AcrButton variant="primary" size="lg">Save</AcrButton>
 <AcrButton variant="secondary">Cancel</AcrButton>
@@ -242,6 +256,7 @@ export interface AcrButtonProps
 **Purpose**: Primary interaction element with brand-specific styling.
 
 **Variants**:
+
 - `primary`: ACR red gradient (Coca-Cola inspired)
 - `secondary`: Outlined black border
 - `destructive`: Red gradient for dangerous actions
@@ -250,12 +265,14 @@ export interface AcrButtonProps
 - `success`: Green gradient for positive actions
 
 **Sizes**:
+
 - `sm`: 36px height (tight spaces)
 - `default`: 44px height (primary touch target)
 - `lg`: 52px height (important actions)
 - `icon`: 44x44px square (icon buttons)
 
 **Example**:
+
 ```typescript
 import { AcrButton } from "@/components/acr/Button";
 
@@ -273,6 +290,7 @@ import { AcrButton } from "@/components/acr/Button";
 ```
 
 **Design Notes**:
+
 - Gradient backgrounds for depth (Coca-Cola inspired)
 - 2px border on secondary for strong visual contrast
 - Focus ring for accessibility
@@ -287,6 +305,7 @@ import { AcrButton } from "@/components/acr/Button";
 **Purpose**: Consistent form field wrapper with label, error, and dirty indicator.
 
 **Props**:
+
 - `label`: Field label text
 - `required`: Show red asterisk
 - `isDirty`: Show dirty indicator (unsaved changes)
@@ -295,6 +314,7 @@ import { AcrButton } from "@/components/acr/Button";
 - `labelSuffix`: Additional content next to label (e.g., tooltip)
 
 **Example**:
+
 ```typescript
 import { AcrFormField } from "@/components/acr/FormField";
 import { AcrInput } from "@/components/acr/Input";
@@ -314,6 +334,7 @@ import { AcrInput } from "@/components/acr/Input";
 ```
 
 **Visual Elements**:
+
 ```
 ┌─────────────────────────────────────┐
 │ SKU * 🔴                            │ ← Label + Required + Dirty indicator
@@ -333,16 +354,19 @@ import { AcrInput } from "@/components/acr/Input";
 **Purpose**: Text input with validation states.
 
 **Variants**:
+
 - `default`: Standard input
 - `error`: Red border for validation errors
 
 **States**:
+
 - Focus: Blue border
 - Error: Red border
 - Disabled: Gray background, no interaction
 - Readonly: White background, no interaction
 
 **Example**:
+
 ```typescript
 import { AcrInput } from "@/components/acr/Input";
 
@@ -372,6 +396,7 @@ import { AcrInput } from "@/components/acr/Input";
 **Purpose**: Content container with consistent spacing and hierarchy.
 
 **Sub-components**:
+
 - `AcrCard`: Container
 - `AcrCardHeader`: Header section
 - `AcrCardTitle`: Title text
@@ -380,6 +405,7 @@ import { AcrInput } from "@/components/acr/Input";
 - `AcrCardFooter`: Footer section (actions)
 
 **Example**:
+
 ```typescript
 import {
   AcrCard,
@@ -418,6 +444,7 @@ import {
 **Purpose**: Data table with responsive design.
 
 **Sub-components**:
+
 - `AcrTable`: Container
 - `AcrTableHeader`: Header row group
 - `AcrTableBody`: Body rows
@@ -426,6 +453,7 @@ import {
 - `AcrTableCell`: Data cell
 
 **Example**:
+
 ```typescript
 import {
   AcrTable,
@@ -468,12 +496,14 @@ import {
 **Purpose**: Autocomplete selection with "add new value" support.
 
 **Features**:
+
 - Search/filter items
 - Keyboard navigation
 - Add custom values (when `allowCustom={true}`)
 - i18n support for "no results" message
 
 **Example**:
+
 ```typescript
 import { AcrComboBox } from "@/components/acr/ComboBox";
 
@@ -490,6 +520,7 @@ const [partType, setPartType] = useState("");
 ```
 
 **Use Cases**:
+
 - Part type selection (with ability to add new types)
 - Vehicle make/model selection
 - Any field with predefined options + custom input
@@ -503,12 +534,14 @@ const [partType, setPartType] = useState("");
 **Purpose**: Pagination controls for large lists.
 
 **Props**:
+
 - `offset`: Current offset
 - `limit`: Items per page
 - `total`: Total item count
 - `onPageChange`: Callback when page changes
 
 **Example**:
+
 ```typescript
 import { AcrPagination } from "@/components/acr/Pagination";
 
@@ -531,10 +564,12 @@ import { AcrPagination } from "@/components/acr/Pagination";
 **Purpose**: Visual indicator for unsaved form changes.
 
 **Variants**:
+
 - `dot`: Small red dot (🔴)
 - `badge`: "Unsaved" badge
 
 **Example**:
+
 ```typescript
 import { AcrDirtyIndicator } from "@/components/acr/DirtyIndicator";
 
@@ -555,6 +590,7 @@ import { AcrDirtyIndicator } from "@/components/acr/DirtyIndicator";
 **Purpose**: Confirmation dialog for destructive actions.
 
 **Props**:
+
 - `open`: Dialog open state
 - `onOpenChange`: Open state change callback
 - `title`: Dialog title
@@ -565,6 +601,7 @@ import { AcrDirtyIndicator } from "@/components/acr/DirtyIndicator";
 - `variant`: "destructive" or "default"
 
 **Example**:
+
 ```typescript
 import { AcrConfirmDialog } from "@/components/acr/ConfirmDialog";
 
@@ -591,12 +628,14 @@ const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 **Philosophy**: Utility-first styling with Tailwind CSS.
 
 **Benefits**:
+
 - Fast development
 - Consistent spacing/sizing
 - No CSS file maintenance
 - Tree-shaking (unused styles removed)
 
 **Example**:
+
 ```typescript
 <div className="flex items-center gap-4 p-6 bg-white rounded-lg shadow-md">
   {/* content */}
@@ -610,6 +649,7 @@ const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 **Pattern**: Custom classes for typography and brand colors.
 
 **Typography Classes** (in `globals.css`):
+
 ```css
 .acr-action-text {
   @apply text-sm font-semibold tracking-wide;
@@ -621,6 +661,7 @@ const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 ```
 
 **Usage**:
+
 ```typescript
 <p className="acr-action-text">Button Text</p>
 <p className="acr-caption">Helper text</p>
@@ -631,6 +672,7 @@ const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 ### Brand Colors
 
 **Tailwind Config** (extended colors):
+
 ```javascript
 theme: {
   extend: {
@@ -652,6 +694,7 @@ theme: {
 ```
 
 **Usage**:
+
 ```typescript
 <button className="bg-acr-red-500 hover:bg-acr-red-600">
   Save
@@ -665,6 +708,7 @@ theme: {
 **Purpose**: Merge Tailwind classes safely (handles conflicts).
 
 **Implementation**:
+
 ```typescript
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -675,6 +719,7 @@ export function cn(...inputs: ClassValue[]) {
 ```
 
 **Usage**:
+
 ```typescript
 <div className={cn(
   "base-class",
@@ -686,6 +731,7 @@ export function cn(...inputs: ClassValue[]) {
 ```
 
 **Why**:
+
 - Resolves conflicts: `cn("p-4", "p-6")` → `"p-6"` (not both)
 - Conditional classes: `cn("base", isActive && "active")`
 - User overrides: `className` prop takes precedence
@@ -697,6 +743,7 @@ export function cn(...inputs: ClassValue[]) {
 ### Keyboard Navigation
 
 **Focus Management**:
+
 ```typescript
 <button
   className="focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
@@ -708,6 +755,7 @@ export function cn(...inputs: ClassValue[]) {
 **Tab Order**: Logical flow through interactive elements.
 
 **Keyboard Shortcuts**:
+
 - Enter/Space: Activate buttons
 - Escape: Close modals/dialogs
 - Arrow keys: Navigate combobox/select options
@@ -717,12 +765,14 @@ export function cn(...inputs: ClassValue[]) {
 ### Screen Reader Support
 
 **Label Association**:
+
 ```typescript
 <AcrLabel htmlFor="sku">SKU</AcrLabel>
 <AcrInput id="sku" {...register("sku_number")} />
 ```
 
 **ARIA Attributes**:
+
 ```typescript
 <button aria-label={t("common.actions.delete")}>
   <TrashIcon />
@@ -738,11 +788,13 @@ export function cn(...inputs: ClassValue[]) {
 ### Color Contrast
 
 **WCAG AA Compliance**:
+
 - Text on background: 4.5:1 contrast ratio
 - Large text (18px+): 3:1 contrast ratio
 - UI components: 3:1 contrast ratio
 
 **Example**:
+
 ```typescript
 // ✅ Good contrast
 <p className="text-black bg-white">High contrast</p>

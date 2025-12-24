@@ -1,7 +1,8 @@
-import type { NextConfig } from "next";
+import { createMDX } from 'fumadocs-mdx/next';
 
-const nextConfig: NextConfig = {
-  typedRoutes: true,
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
   images: {
     // Allow local IPs in development (Next.js 16 blocks private IPs by default)
     dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
@@ -34,4 +35,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withMDX = createMDX();
+
+export default withMDX(nextConfig);
