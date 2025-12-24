@@ -24,8 +24,8 @@ export function ContactFabs() {
   const { t } = useLocale();
   const pathname = usePathname();
 
-  // Don't render on admin pages
-  if (pathname?.startsWith('/admin')) {
+  // Don't render on admin or docs pages
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/docs")) {
     return null;
   }
 
