@@ -21,7 +21,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <RootProvider>
+      <RootProvider
+        theme={{
+          enabled: false, // Disable dark mode completely
+        }}
+      >
         <SettingsProvider>
           <LocaleProvider>{children}</LocaleProvider>
         </SettingsProvider>
