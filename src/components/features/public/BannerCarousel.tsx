@@ -94,50 +94,49 @@ export function BannerCarousel({
       >
         {activeBanners.map((banner) => (
           <SwiperSlide key={banner.id}>
-            <div className="relative w-full h-56 md:h-40 lg:h-48 xl:h-72 bg-white">
+            <div className="w-full bg-white">
               {banner.cta_link ? (
-                <Link
-                  href={banner.cta_link as Route}
-                  className="block w-full h-full"
-                >
-                  <div className="relative w-full h-full">
-                    {/* Mobile Image */}
-                    <Image
-                      src={banner.mobile_image_url || banner.image_url}
-                      alt={banner.title || "Banner"}
-                      fill
-                      className="object-cover md:hidden"
-                      priority={currentIndex === 0}
-                    />
-                    {/* Desktop Image */}
-                    <Image
-                      src={banner.image_url}
-                      alt={banner.title || "Banner"}
-                      fill
-                      className="object-cover hidden md:block"
-                      priority={currentIndex === 0}
-                    />
-                  </div>
-                </Link>
-              ) : (
-                <div className="relative w-full h-full">
+                <Link href={banner.cta_link as Route} className="block w-full">
                   {/* Mobile Image */}
                   <Image
                     src={banner.mobile_image_url || banner.image_url}
                     alt={banner.title || "Banner"}
-                    fill
-                    className="object-cover md:hidden"
+                    width={800}
+                    height={300}
+                    className="w-full h-auto md:hidden"
                     priority={currentIndex === 0}
                   />
                   {/* Desktop Image */}
                   <Image
                     src={banner.image_url}
                     alt={banner.title || "Banner"}
-                    fill
-                    className="object-cover hidden md:block"
+                    width={1560}
+                    height={480}
+                    className="w-full h-auto hidden md:block"
                     priority={currentIndex === 0}
                   />
-                </div>
+                </Link>
+              ) : (
+                <>
+                  {/* Mobile Image */}
+                  <Image
+                    src={banner.mobile_image_url || banner.image_url}
+                    alt={banner.title || "Banner"}
+                    width={800}
+                    height={300}
+                    className="w-full h-auto md:hidden"
+                    priority={currentIndex === 0}
+                  />
+                  {/* Desktop Image */}
+                  <Image
+                    src={banner.image_url}
+                    alt={banner.title || "Banner"}
+                    width={1560}
+                    height={480}
+                    className="w-full h-auto hidden md:block"
+                    priority={currentIndex === 0}
+                  />
+                </>
               )}
             </div>
           </SwiperSlide>
