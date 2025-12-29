@@ -1,0 +1,174 @@
+---
+title: Managing Parts
+description: How to view, search, add, and edit parts in the catalog
+---
+
+## Overview
+
+The Admin Dashboard lets you manage your entire parts catalog. You can:
+- View all parts with key statistics
+- Search and filter to find specific parts
+- Add new parts to the catalog
+- Edit part details, applications, and cross-references
+
+---
+
+## Accessing the Dashboard
+
+1. Go to `/admin` in your browser
+2. Enter the admin password when prompted
+3. You'll see the main dashboard with parts statistics
+
+**What you'll see:**
+
+| Section | Description |
+|---------|-------------|
+| **Dashboard Cards** | Total parts, vehicle applications, and cross-references |
+| **Search & Filters** | Find parts by SKU, type, position, etc. |
+| **Parts List** | Paginated table of all parts |
+
+---
+
+## Finding Parts
+
+### Quick Search
+
+Type in the search box to find parts by ACR SKU (e.g., `12345` or `ACR-12345`).
+
+### Using Filters
+
+Use the dropdown filters to narrow results:
+
+| Filter | What it does |
+|--------|--------------|
+| **Part Type** | Hub Assembly, Wheel Bearing, etc. |
+| **Position** | Front, Rear, Front/Rear |
+| **ABS Type** | With ABS, Without ABS |
+| **Drive Type** | FWD, RWD, AWD, 4WD |
+| **Bolt Pattern** | 4-bolt, 5-bolt, 6-bolt |
+
+Select "All" in any dropdown to clear that filter.
+
+---
+
+## Viewing Part Details
+
+1. Find the part in the list
+2. Click on the part row to open the detail page
+
+**What you'll see on the detail page:**
+
+- **Header**: SKU, part type, and quick stats
+- **Basic Info**: Part type, position, ABS, drive type, bolt pattern
+- **Specifications**: Technical notes and details
+- **Images**: Product photos and 360° views
+- **Vehicle Applications**: Which vehicles this part fits
+- **Cross-References**: OEM and competitor part numbers
+
+---
+
+## Adding a New Part
+
+1. Click the **"+ Add Part"** button (top right of dashboard)
+2. Fill in the required information:
+   - **SKU Number** (required) - The numeric part of the ACR SKU
+   - **Part Type** - Select from dropdown
+   - **Position Type** - Front, Rear, or both
+   - **Other attributes** - As applicable
+3. Click **Save** to create the part
+
+After saving, you'll be taken to the part detail page where you can:
+- Add vehicle applications
+- Add cross-references
+- Upload images
+
+---
+
+## Editing a Part
+
+1. Click on any part in the list to open it
+2. Make your changes in the form fields
+3. The **Save** button activates when you make changes
+4. Click **Save** to update the part
+
+**Editable fields:**
+- Part Type
+- Position Type
+- ABS Type
+- Drive Type
+- Bolt Pattern
+- Specifications (text notes)
+
+---
+
+## Managing Vehicle Applications
+
+Vehicle applications tell customers which vehicles a part fits.
+
+### Viewing Applications
+
+On the part detail page, scroll to the **Vehicle Applications** section to see:
+- Year range (e.g., 2015-2020)
+- Make (e.g., Toyota)
+- Model (e.g., Camry)
+- Submodel details
+
+### Adding an Application
+
+1. Click **"+ Add Application"** in the Vehicle Applications section
+2. Fill in the vehicle details:
+   - Year From / Year To
+   - Make
+   - Model
+   - Submodel (optional)
+3. Click **Save**
+
+### Removing an Application
+
+1. Find the application in the list
+2. Click the **trash icon** to remove it
+3. Confirm the deletion
+
+---
+
+## Managing Cross-References
+
+Cross-references link your ACR part number to OEM and competitor part numbers.
+
+### Viewing Cross-References
+
+On the part detail page, scroll to the **Cross-References** section to see:
+- Brand (OEM, competitor name)
+- Part number
+- Type (OEM, Aftermarket)
+
+### Adding a Cross-Reference
+
+1. Click **"+ Add Cross-Reference"**
+2. Enter:
+   - **Brand** - The manufacturer (e.g., "Toyota", "Timken", "SKF")
+   - **Part Number** - Their part number
+   - **Type** - OEM or Aftermarket
+3. Click **Save**
+
+### Removing a Cross-Reference
+
+1. Find the cross-reference in the list
+2. Click the **trash icon** to remove it
+3. Confirm the deletion
+
+---
+
+## Tips for Accurate Data
+
+- **Double-check SKUs** before saving - they cannot be changed after creation
+- **Use consistent naming** for brands in cross-references
+- **Verify year ranges** match manufacturer specifications
+- **Add multiple cross-references** to help customers find parts by any number they have
+
+---
+
+## Next Steps
+
+- [Importing Data](/docs/admin-guide/importing-data) - Bulk import parts from Excel
+- [Managing Images](/docs/admin-guide/managing-images) - Add product photos and 360° views

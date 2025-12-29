@@ -1,0 +1,205 @@
+---
+title: Importing Data
+description: How to bulk import parts, vehicle applications, and cross-references from Excel
+---
+
+## Overview
+
+The Import Wizard lets you make bulk changes to your catalog using Excel. This is useful when you need to:
+- Add many new parts at once
+- Update vehicle applications for multiple parts
+- Add cross-references in bulk
+- Make mass corrections to part attributes
+
+**Important**: You must export your data first before importing. The system uses hidden ID columns in the export file to track which records to update.
+
+---
+
+## The Import Workflow
+
+```
+Export → Edit in Excel → Import → Review Changes → Confirm
+```
+
+1. **Export** your current data (see [Exporting Data](/docs/admin-guide/exporting-data))
+2. **Edit** the Excel file with your changes
+3. **Upload** the file using the Import Wizard
+4. **Review** the validation results and change preview
+5. **Confirm** to apply the changes
+
+---
+
+## Step 1: Export First
+
+Before making bulk changes, always export your current data:
+
+1. Go to `/admin`
+2. Click **Export** in the header
+3. Download the Excel file
+
+This export contains hidden ID columns that the import process needs to track records. **Never delete or modify the hidden columns.**
+
+---
+
+## Step 2: Edit in Excel
+
+Open the exported file in Excel. You'll see three sheets:
+
+| Sheet | Contains |
+|-------|----------|
+| **Parts** | All ACR parts with attributes |
+| **Vehicle Applications** | Which vehicles each part fits |
+| **Cross References** | OEM and competitor part numbers |
+
+### Making Changes
+
+| To do this... | Do this in Excel |
+|---------------|------------------|
+| **Add a new part** | Add a row with ACR_SKU and details (leave _id blank) |
+| **Update a part** | Find the row, change the values you need |
+| **Delete a part** | Delete the entire row |
+| **Add vehicle application** | Add a row with part's ACR_SKU in the link column |
+| **Add cross-reference** | Add a row with part's ACR_SKU in the link column |
+
+### Required Fields
+
+**Parts sheet:**
+- `ACR_SKU` - The part number (e.g., `ACR-12345`)
+- `Part_Type` - Must be a valid type (Hub Assembly, Wheel Bearing, etc.)
+
+**Vehicle Applications sheet:**
+- `Start_Year` and `End_Year` - Year range
+- `Make` and `Model` - Vehicle make/model
+
+**Cross References sheet:**
+- `Competitor_Brand` - The brand name
+- `Competitor_SKU` - Their part number
+
+---
+
+## Step 3: Upload Your File
+
+1. Go to `/admin/import`
+2. Click **Upload** or drag your Excel file
+3. Wait for validation to complete
+
+**Supported formats:** `.xlsx` (Excel 2007+)
+**Maximum file size:** 50 MB
+
+---
+
+## Step 4: Review Changes
+
+After upload, you'll see a change preview:
+
+### Validation Results
+
+The system checks your file for errors and warnings.
+
+**Errors (must fix before importing):**
+- Missing required fields
+- Invalid data formats
+- Duplicate part numbers
+- Orphaned records (vehicle apps or cross-refs without matching parts)
+
+**Warnings (can proceed but please review):**
+- Part type changed
+- Year range narrowed
+- Records being deleted
+
+### Change Preview
+
+You'll see a summary of what will happen:
+
+| Change Type | Description |
+|-------------|-------------|
+| **Add** | New records to be created |
+| **Update** | Existing records that will change |
+| **Delete** | Records to be removed |
+| **Unchanged** | Records with no changes (won't be touched) |
+
+Review the changes carefully before proceeding.
+
+---
+
+## Step 5: Confirm Import
+
+If everything looks correct:
+
+1. If there are warnings, check the "I acknowledge these warnings" box
+2. Click **Import** to apply the changes
+3. Wait for the import to complete
+
+**What you'll see:**
+- Progress indicator during import
+- Success message with summary of changes
+- Option to rollback if needed
+
+---
+
+## Rolling Back Changes
+
+Made a mistake? You can undo the import:
+
+1. After import completes, you'll see a **Rollback** button
+2. Click it to restore your data to before the import
+3. Confirm the rollback
+
+The system keeps a snapshot of your data before each import, so you can always go back.
+
+---
+
+## Common Errors and Solutions
+
+### "Missing required hidden columns"
+
+**Cause:** You uploaded a file that wasn't exported from the system.
+
+**Solution:** Export your data first, then make changes to that file.
+
+### "Duplicate ACR_SKU found"
+
+**Cause:** Two rows in the Parts sheet have the same SKU.
+
+**Solution:** Remove the duplicate row or give each part a unique SKU.
+
+### "Orphaned vehicle application"
+
+**Cause:** A vehicle application references a part that doesn't exist.
+
+**Solution:** Make sure the part exists in the Parts sheet, or remove the vehicle application row.
+
+### "Invalid year range"
+
+**Cause:** Start year is greater than end year.
+
+**Solution:** Swap the years so Start_Year ≤ End_Year.
+
+---
+
+## Tips for Successful Imports
+
+- **Always export first** - The hidden ID columns are essential
+- **Make incremental changes** - Don't change everything at once
+- **Review the preview carefully** - Check the counts match your expectations
+- **Keep backup copies** - Save your Excel file before uploading
+- **Use the rollback** - If something goes wrong, you can always undo
+
+---
+
+## Performance
+
+The import wizard handles large files efficiently:
+
+| Records | Typical Time |
+|---------|--------------|
+| 1,000 | ~2 seconds |
+| 10,000 | ~10 seconds |
+| 50,000 | ~30 seconds |
+
+---
+
+## Next Steps
+
+- [Exporting Data](/docs/admin-guide/exporting-data) - How to export your catalog
+- [Managing Parts](/docs/admin-guide/managing-parts) - Edit individual parts
