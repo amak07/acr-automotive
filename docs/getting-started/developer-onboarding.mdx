@@ -1,0 +1,285 @@
+---
+title: Developer Onboarding
+description: Complete guide for new team members joining ACR Automotive
+---
+
+# Developer Onboarding
+
+Welcome to the ACR Automotive team! This guide will help you get fully oriented with the codebase, tools, and workflows.
+
+## Before You Start
+
+Complete the [Quick Start](/docs/getting-started/quick-start) guide first. You should have:
+
+- [ ] Local development environment running
+- [ ] Access to the GitHub repository
+- [ ] Docker Desktop installed and working
+
+---
+
+## Week 1: Foundation
+
+### Day 1: Environment & Architecture
+
+#### Morning: Setup Verification
+
+1. **Verify your environment works**:
+   ```bash
+   npm run dev          # Should start on localhost:3000
+   npm test             # Should pass all tests
+   npm run build        # Should complete without errors
+   ```
+
+2. **Explore the running app**:
+   - Visit the public search at `localhost:3000`
+   - Log into admin at `localhost:3000/admin`
+   - Open Supabase Studio at `localhost:54323`
+
+#### Afternoon: Read Core Documentation
+
+| Document | Purpose | Time |
+|----------|---------|------|
+| [CLAUDE.md](/CLAUDE.md) | Development standards | 10 min |
+| [Architecture Overview](/docs/architecture/OVERVIEW) | System design | 20 min |
+| [Database Schema](/docs/database/DATABASE) | Data model | 15 min |
+
+### Day 2: Codebase Tour
+
+#### Project Structure
+
+```
+src/
+├── app/                # Next.js App Router (pages & API)
+│   ├── admin/         # Admin dashboard pages
+│   ├── api/           # Backend API routes
+│   └── parts/         # Public part detail pages
+├── components/        # React components
+│   ├── ui/           # shadcn/ui base components
+│   ├── acr/          # Custom ACR design system
+│   ├── admin/        # Admin-specific components
+│   └── public/       # Public interface components
+├── lib/              # Core utilities
+│   ├── supabase/     # Database client
+│   ├── schemas/      # Zod validation
+│   └── i18n/         # Translations
+├── hooks/            # Custom React hooks
+└── types/            # TypeScript definitions
+```
+
+#### Key Files to Read
+
+| File | What You'll Learn |
+|------|-------------------|
+| `src/app/layout.tsx` | Root layout, providers setup |
+| `src/app/providers.tsx` | React Query, context providers |
+| `src/lib/supabase/client.ts` | Database connection |
+| `src/components/acr/README.md` | Design system patterns |
+
+### Day 3-5: Feature Deep Dives
+
+Spend time understanding one feature area per day:
+
+| Day | Feature | Documentation |
+|-----|---------|---------------|
+| 3 | Search System | [Search System](/docs/features/search/SEARCH_SYSTEM) |
+| 4 | Data Management | [Excel Import](/docs/features/data-management/EXCEL_IMPORT), [Bulk Operations](/docs/features/data-management/BULK_OPERATIONS) |
+| 5 | Admin Interface | [Authentication](/docs/features/auth/AUTHENTICATION), explore `/admin` routes |
+
+---
+
+## Week 2: Hands-On
+
+### First Code Change
+
+Pick a small task to get comfortable with the workflow:
+
+1. **Find an issue** labeled `good first issue` in GitHub
+2. **Create a branch**: `git checkout -b feature/your-feature`
+3. **Make your change**
+4. **Run checks**: `npm test && npm run build`
+5. **Submit a PR**
+
+### Database Workflow
+
+Understand how schema changes work:
+
+```bash
+# See current database state
+npm run supabase:status
+
+# Reset to clean state (applies migrations)
+npm run supabase:reset
+
+# Load seed data
+npm run db:import-seed
+
+# Save your current data (before experiments)
+npm run db:save-snapshot
+
+# Restore from snapshot
+npm run db:restore-snapshot
+```
+
+<Callout type="warn">
+Schema changes use a pull-based workflow. Changes are made to the remote TEST database first, then pulled down as migrations. See [Database Workflow](/docs/developer-guide/database-workflow) for details.
+</Callout>
+
+---
+
+## Tech Stack Reference
+
+### Frontend
+
+| Technology | Purpose | Docs |
+|------------|---------|------|
+| Next.js 15 | Framework | [nextjs.org](https://nextjs.org/docs) |
+| React 19 | UI library | [react.dev](https://react.dev) |
+| TypeScript 5 | Type safety | [typescriptlang.org](https://www.typescriptlang.org/docs/) |
+| Tailwind CSS | Styling | [tailwindcss.com](https://tailwindcss.com/docs) |
+| TanStack Query | Data fetching | [tanstack.com/query](https://tanstack.com/query/latest) |
+| React Hook Form | Forms | [react-hook-form.com](https://react-hook-form.com/) |
+| Zod | Validation | [zod.dev](https://zod.dev/) |
+
+### Backend
+
+| Technology | Purpose | Docs |
+|------------|---------|------|
+| Next.js API Routes | Backend APIs | [Next.js Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers) |
+| Supabase | Database + Auth | [supabase.com/docs](https://supabase.com/docs) |
+| PostgreSQL | Database | [postgresql.org](https://www.postgresql.org/docs/) |
+
+### Development Tools
+
+| Tool | Purpose |
+|------|---------|
+| ESLint | Code linting |
+| Prettier | Code formatting |
+| Jest | Testing |
+| Docker | Local Supabase |
+
+---
+
+## Coding Standards
+
+### File Size Limit
+
+Files should be **under 500 lines**. If a file grows larger, split it into modules.
+
+### TypeScript Rules
+
+- **No `any` types** - use proper type definitions
+- **Strict mode** - all strict checks enabled
+- **Zod for runtime validation** - don't trust external data
+
+### Component Patterns
+
+```typescript
+// Good: Typed props with interface
+interface PartCardProps {
+  part: Part;
+  onSelect: (id: string) => void;
+}
+
+export function PartCard({ part, onSelect }: PartCardProps) {
+  // ...
+}
+```
+
+### API Patterns
+
+```typescript
+// Good: Zod validation at API boundary
+import { partSchema } from '@/lib/schemas/part';
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const result = partSchema.safeParse(body);
+
+  if (!result.success) {
+    return Response.json({ error: result.error }, { status: 400 });
+  }
+
+  // result.data is now typed and validated
+}
+```
+
+---
+
+## Session Workflow
+
+When working with Claude Code:
+
+```bash
+# Start of session
+"session start"
+
+# During work - Claude tracks automatically
+
+# Taking a break
+"session pause"
+
+# Back from break
+"session continue"
+
+# End of session
+"session end"
+```
+
+This generates automatic session logs in `docs/TASKS.md`.
+
+---
+
+## Getting Help
+
+### Documentation
+
+| Topic | Where to Look |
+|-------|---------------|
+| How do I...? | [Developer Guide](/docs/developer-guide) |
+| What does X do? | [Reference](/docs/reference) |
+| Why is it built this way? | [Architecture](/docs/architecture) |
+| What's the plan? | [PLANNING.md](/docs/PLANNING) |
+
+### Code Questions
+
+1. Search the codebase - there may be similar examples
+2. Check the relevant documentation
+3. Ask in the team chat
+4. Create a GitHub issue for complex questions
+
+---
+
+## Checklist
+
+### Week 1
+
+- [ ] Environment running locally
+- [ ] Read CLAUDE.md
+- [ ] Read Architecture Overview
+- [ ] Read Database Schema
+- [ ] Explored all major app sections
+- [ ] Understand project structure
+
+### Week 2
+
+- [ ] Submitted first PR
+- [ ] Understand database workflow
+- [ ] Familiar with testing approach
+- [ ] Know where to find documentation
+
+### Ongoing
+
+- [ ] Update docs when you learn something not documented
+- [ ] Ask questions when stuck
+- [ ] Follow coding standards
+- [ ] Write tests for new features
+
+---
+
+## Next Steps
+
+Once you're oriented:
+
+- [Developer Guide](/docs/developer-guide) - Task-focused how-to guides
+- [API Reference](/docs/reference) - Detailed endpoint documentation
+- [Current Tasks](/docs/TASKS) - See what's being worked on
