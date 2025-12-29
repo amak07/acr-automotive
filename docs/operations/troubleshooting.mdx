@@ -1,0 +1,284 @@
+---
+title: Troubleshooting
+description: Common issues and how to fix them
+---
+
+# Troubleshooting
+
+Quick solutions to common problems in ACR Automotive.
+
+---
+
+## Development Environment
+
+### Docker won't start
+
+**Error**: `Cannot connect to Docker daemon`
+
+**Solution**:
+1. Open Docker Desktop
+2. Wait for it to fully start (whale icon stops animating)
+3. Try again
+
+---
+
+### Supabase won't start
+
+**Error**: Various Docker errors when running `npm run supabase:start`
+
+**Solution**:
+
+```bash
+# Stop any existing containers
+npm run supabase:stop
+
+# Try starting again
+npm run supabase:start
+```
+
+If still failing:
+
+```bash
+# Full reset
+docker system prune -f
+npm run supabase:start
+```
+
+---
+
+### Port already in use
+
+**Error**: `Port 3000 is already in use`
+
+**Solutions**:
+
+Option 1: Use a different port
+```bash
+npm run dev -- -p 3001
+```
+
+Option 2: Find and kill the process using the port
+```bash
+# On Mac/Linux
+lsof -i :3000
+kill -9 <PID>
+
+# On Windows
+netstat -ano | findstr :3000
+taskkill /PID <PID> /F
+```
+
+---
+
+### Missing environment variables
+
+**Error**: `Missing Supabase environment variables`
+
+**Solution**:
+
+1. Check if `.env.local` exists
+2. If not, create it:
+   ```bash
+   cp .env.example .env.local
+   ```
+3. Fill in the values (see [Environment Variables](/docs/reference/environment-variables))
+
+---
+
+### TypeScript errors after git pull
+
+**Error**: Type errors in database-related code
+
+**Solution**:
+
+The database schema may have changed. Regenerate types:
+
+```bash
+npx supabase gen types typescript --local > src/types/database.ts
+```
+
+---
+
+## Database Issues
+
+### "relation does not exist"
+
+**Error**: `error: relation "parts" does not exist`
+
+**Cause**: Migrations haven't been applied
+
+**Solution**:
+
+```bash
+npm run supabase:reset
+npm run db:import-seed
+```
+
+---
+
+### Database is empty
+
+**Cause**: Reset was run but seed data wasn't loaded
+
+**Solution**:
+
+```bash
+npm run db:import-seed
+```
+
+---
+
+### Can't connect to database
+
+**Error**: Connection refused to `localhost:54322`
+
+**Solutions**:
+
+1. Check if Supabase is running:
+   ```bash
+   npm run supabase:status
+   ```
+
+2. If not running, start it:
+   ```bash
+   npm run supabase:start
+   ```
+
+3. If still failing, check Docker:
+   ```bash
+   docker ps
+   # Should show supabase containers
+   ```
+
+---
+
+### Lost my test data
+
+**Solution** (if you saved a snapshot):
+
+```bash
+npm run db:restore-snapshot
+```
+
+**Solution** (if no snapshot):
+
+```bash
+npm run db:import-seed
+```
+
+---
+
+## Build & Deploy Issues
+
+### Build fails locally
+
+**Error**: `npm run build` fails
+
+**Common causes**:
+
+1. **TypeScript errors**: Run `npm run type-check` to see errors
+2. **Lint errors**: Run `npm run lint` to see errors
+3. **Missing dependencies**: Run `npm install`
+
+---
+
+### Vercel deployment fails
+
+**Error**: Build failed on Vercel
+
+**Solutions**:
+
+1. Check Vercel build logs for the specific error
+2. Common issues:
+   - Missing environment variables → Add in Vercel settings
+   - TypeScript errors → Fix locally first
+   - Memory issues → Contact Vercel support
+
+---
+
+### Site shows old version after deploy
+
+**Cause**: CDN cache
+
+**Solutions**:
+
+1. Wait 1-2 minutes for cache to update
+2. Hard refresh: `Ctrl+Shift+R` (Windows) or `Cmd+Shift+R` (Mac)
+3. Clear browser cache
+
+---
+
+## Admin Interface Issues
+
+### Can't log into admin
+
+**Error**: Password incorrect
+
+**Solutions**:
+
+1. Check your `.env.local` for `ADMIN_PASSWORD`
+2. For production, check Vercel environment variables
+3. Password is case-sensitive
+
+---
+
+### Admin pages show 404
+
+**Cause**: Routing issue or deployment problem
+
+**Solutions**:
+
+1. Check the URL is correct: `/admin` not `/Admin`
+2. If deployed, verify the deployment completed
+3. Check browser console for JavaScript errors
+
+---
+
+## Search Issues
+
+### Search returns no results
+
+**Possible causes**:
+
+1. **Database is empty**: Run `npm run db:import-seed`
+2. **Search term has no matches**: Try a known SKU like "ACR-001"
+3. **API error**: Check browser console and server logs
+
+---
+
+### Search is slow
+
+**Possible causes**:
+
+1. **Cold start**: First request after idle may be slow
+2. **Large result set**: Try more specific search terms
+3. **Database issue**: Check Supabase dashboard for issues
+
+---
+
+## Quick Fixes Reference
+
+| Problem | Quick Fix |
+|---------|-----------|
+| Everything broken | `npm run supabase:reset && npm run db:import-seed` |
+| Type errors | `npx supabase gen types typescript --local > src/types/database.ts` |
+| Missing deps | `npm install` |
+| Port in use | `npm run dev -- -p 3001` |
+| Lost data | `npm run db:restore-snapshot` or `npm run db:import-seed` |
+| Docker issues | Restart Docker Desktop |
+
+---
+
+## Still Stuck?
+
+1. Check the [GitHub Issues](https://github.com/amak07/acr-automotive/issues) for similar problems
+2. Search the codebase for error messages
+3. Ask in the team chat
+4. Create a new GitHub issue with:
+   - Error message
+   - Steps to reproduce
+   - What you've tried
+
+---
+
+*Last updated: 2025-12-29*

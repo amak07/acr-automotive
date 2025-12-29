@@ -5,90 +5,36 @@ description: Create MADR-format Architecture Decision Record. Use when recording
 
 # ADR Creation Skill
 
+## Purpose
+
+Create Architecture Decision Records (ADRs) using the **MADR** (Markdown Any Decision Records) format. ADRs capture important architectural decisions and their context for future reference.
+
+## Smart Interaction
+
+### ASK the User When:
+
+- **Creating new ADR**: Confirm ADR number (auto-suggest next available)
+- **Deleting ADR**: Always confirm, suggest "Deprecated" status instead
+- **Superseding ADR**: Confirm which ADR is being replaced
+
+### PROCEED Autonomously When:
+
+- **Updating existing ADR**: Add consequences discovered during implementation
+- **Linking ADRs**: Add related ADR links
+- **Fixing typos**: Non-destructive corrections
+- **Updating status**: Proposed → Accepted after team approval
+
 ## Instructions
 
 When creating an ADR:
 
 1. **Find the next ADR number** by checking `/docs/decisions/`
-2. **Follow MADR template** exactly
+2. **Use the MADR template** at `templates/madr.md`
 3. **Output to** `/docs/decisions/NNNN-[kebab-case-title].md`
 
-## MADR Template
+## Template
 
-```markdown
----
-title: [Short Title]
-description: [Brief description of the decision]
----
-
-# [ADR Number]. [Title]
-
-Date: [YYYY-MM-DD]
-
-## Status
-
-[Proposed | Accepted | Deprecated | Superseded by ADR-NNNN]
-
-## Context
-
-What is the issue that we're seeing that is motivating this decision or change?
-
-## Decision
-
-What is the change that we're proposing and/or doing?
-
-## Consequences
-
-What becomes easier or more difficult to do because of this change?
-
-### Positive
-
-- Benefit 1
-- Benefit 2
-
-### Negative
-
-- Drawback 1
-- Trade-off accepted
-
-### Neutral
-
-- Neither good nor bad, but notable
-
-## Options Considered
-
-### Option 1: [Name]
-
-Description of the option.
-
-**Pros:**
-
-- Pro 1
-- Pro 2
-
-**Cons:**
-
-- Con 1
-- Con 2
-
-### Option 2: [Name]
-
-Description of the option.
-
-**Pros:**
-
-- Pro 1
-
-**Cons:**
-
-- Con 1
-
-## Related
-
-- [Link to related ADR]
-- [Link to relevant documentation]
-- [Link to GitHub issue/discussion]
-```
+Use the template at: `.claude/skills/create-adr/templates/madr.md`
 
 ## ADR Naming Convention
 
@@ -119,6 +65,10 @@ Create an ADR when:
 - Making decisions that are hard to reverse
 - Team needs to understand "why" something was done
 
+## Output Location
+
+All ADRs go to: `/docs/decisions/NNNN-title.md`
+
 ## Quality Checklist
 
 Before completing:
@@ -134,6 +84,18 @@ Before completing:
 
 ## Examples
 
-- "Create an ADR for choosing Supabase" -> Creates `/docs/decisions/0001-use-supabase-for-database.md`
-- "Record the decision to use TanStack Query" -> Creates `/docs/decisions/0002-use-tanstack-query-for-state-management.md`
-- "Document why we chose Fumadocs" -> Creates `/docs/decisions/0003-use-fumadocs-for-documentation.md`
+### Creating New ADRs (Will Ask User)
+
+- "Create an ADR for choosing Supabase" → Ask: Confirm number 0001?
+- "Record the decision to use TanStack Query" → Suggest next number
+
+### Updating Existing ADRs (Autonomous)
+
+- "Mark ADR-001 as accepted" → Updates status
+- "Add implementation notes to ADR-003" → Adds to Notes section
+- "Link ADR-002 to ADR-005" → Adds to Related section
+
+### Status Changes
+
+- "Deprecate ADR-002" → Updates status, adds deprecation note
+- "ADR-003 supersedes ADR-001" → Updates both ADRs with cross-references

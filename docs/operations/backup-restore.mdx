@@ -1,0 +1,202 @@
+---
+title: Backup & Restore
+description: How to backup and restore database data
+---
+
+# Backup & Restore
+
+| Property | Value |
+|----------|-------|
+| **Purpose** | Save and restore database data |
+| **When to use** | Before risky operations, to preserve test data |
+| **Estimated time** | 1-5 minutes |
+| **Risk level** | Low (backup) / Medium (restore) |
+
+---
+
+## Local Development Snapshots
+
+### Save a Snapshot
+
+Before making risky changes or running migrations:
+
+```bash
+npm run db:save-snapshot
+```
+
+**What this does**:
+- Exports current data from all tables
+- Saves to `tests/fixtures/snapshots/` directory
+- Timestamped for easy identification
+
+**Expected output**:
+
+```
+Saving database snapshot...
+Snapshot saved to tests/fixtures/snapshots/2025-01-29_120000.sql
+```
+
+---
+
+### Restore from Snapshot
+
+If you need to recover your data:
+
+```bash
+npm run db:restore-snapshot
+```
+
+**What this does**:
+- Restores from the most recent snapshot
+- Replaces current data (non-destructive to schema)
+
+<Callout type="warn">
+This replaces your current data with the snapshot data. Any changes since the snapshot will be lost.
+</Callout>
+
+---
+
+### Load Seed Data
+
+To reset to the standard test dataset:
+
+```bash
+npm run db:import-seed
+```
+
+**What this does**:
+- Loads data from `tests/fixtures/seed-data.sql`
+- Standard dataset for development and testing
+
+---
+
+## Production Backups
+
+### Automatic Backups (Supabase)
+
+Supabase automatically creates daily backups for paid plans:
+
+1. Go to [Supabase Dashboard](https://app.supabase.com)
+2. Select your project
+3. Go to **Settings** → **Database**
+4. View backup schedule and history
+
+### Manual Backup
+
+For a manual backup of production data:
+
+1. Go to Supabase Dashboard
+2. Select **Database** → **Backups**
+3. Click **Create backup**
+
+---
+
+### Point-in-Time Recovery
+
+For paid Supabase plans, you can restore to any point in time:
+
+1. Go to Supabase Dashboard
+2. Go to **Database** → **Backups**
+3. Select a time to restore to
+4. Follow the restore wizard
+
+<Callout type="warn">
+Point-in-Time Recovery creates a NEW project with the restored data. You'll need to update your environment variables to point to the new project.
+</Callout>
+
+---
+
+## Staging Data Management
+
+### Export from Staging
+
+To get fresh data from the TEST database:
+
+```bash
+npm run staging:export
+```
+
+**What this does**:
+- Connects to remote TEST database
+- Exports data to seed files
+- Useful for refreshing local test data
+
+### Import to Staging
+
+<Callout type="warn">
+Be careful when modifying staging data. It's shared by the team.
+</Callout>
+
+Usually done through:
+1. Supabase Dashboard SQL editor
+2. Admin interface at staging URL
+
+---
+
+## Backup Best Practices
+
+### When to Backup
+
+| Situation | Action |
+|-----------|--------|
+| Before running migrations | `npm run db:save-snapshot` |
+| Before bulk data changes | `npm run db:save-snapshot` |
+| Before experimental code | `npm run db:save-snapshot` |
+| End of work session | Optional, but recommended |
+
+### Snapshot Cleanup
+
+Snapshots accumulate over time. Periodically clean up old ones:
+
+```bash
+# List snapshots
+ls tests/fixtures/snapshots/
+
+# Delete old ones manually
+rm tests/fixtures/snapshots/old-snapshot.sql
+```
+
+---
+
+## Recovery Scenarios
+
+### "I broke my local database"
+
+```bash
+# Option 1: Restore from snapshot
+npm run db:restore-snapshot
+
+# Option 2: Full reset with seed data
+npm run supabase:reset
+npm run db:import-seed
+```
+
+### "I need production-like data locally"
+
+```bash
+# Get data from staging
+npm run staging:export
+
+# This updates your seed files, then:
+npm run supabase:reset
+npm run db:import-seed
+```
+
+### "Production has bad data"
+
+1. **Stop** - Don't make it worse
+2. **Assess** - What's the scope of the damage?
+3. **Contact** the team lead
+4. **Use Supabase backups** to restore if needed
+
+---
+
+## Related Documentation
+
+- [Database Migrations](/docs/operations/database-migrations)
+- [Database Schema](/docs/database/DATABASE)
+- [Troubleshooting](/docs/operations/troubleshooting)
+
+---
+
+*Last updated: 2025-12-29*

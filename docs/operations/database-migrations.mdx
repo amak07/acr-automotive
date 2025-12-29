@@ -1,0 +1,226 @@
+---
+title: Database Migrations
+description: How to apply schema changes to the database
+---
+
+# Database Migrations
+
+| Property | Value |
+|----------|-------|
+| **Purpose** | Apply schema changes to the database |
+| **When to use** | After pulling new migration files from git |
+| **Estimated time** | 5-15 minutes |
+| **Risk level** | Medium |
+
+## Overview
+
+ACR Automotive uses a **pull-based schema workflow**:
+
+```
+Remote TEST Database (Source of Truth)
+        ↓
+Apply schema changes here FIRST
+        ↓
+Pull schema diff → generates migration file
+        ↓
+Commit migration file to git
+        ↓
+Team pulls and applies locally
+```
+
+<Callout type="info">
+Schema changes are made to the remote TEST database first, then pulled down as migration files. This ensures Supabase-specific features work before the team sees them.
+</Callout>
+
+---
+
+## Pre-flight Checklist
+
+Before applying migrations:
+
+- [ ] Docker Desktop is running
+- [ ] Local Supabase is started (`npm run supabase:start`)
+- [ ] You've pulled latest code from git
+- [ ] You have a snapshot of your current data (optional but recommended)
+
+---
+
+## Applying Migrations (As a Team Member)
+
+When someone else has created a migration and you need to apply it:
+
+### Step 1: Pull Latest Code
+
+```bash
+git pull origin dev
+```
+
+### Step 2: Save Current Data (Optional)
+
+```bash
+npm run db:save-snapshot
+```
+
+**Why**: If the migration breaks something, you can restore your data.
+
+### Step 3: Apply Migrations
+
+```bash
+npm run supabase:reset
+```
+
+**What this does**:
+- Drops all local tables
+- Re-applies all migrations from scratch
+- Your local data is wiped!
+
+**Expected output**:
+
+```
+Resetting local database...
+Applying migration 001_initial_schema...
+Applying migration 002_cross_references...
+...
+Database reset complete.
+```
+
+### Step 4: Reload Seed Data
+
+```bash
+npm run db:import-seed
+```
+
+### Step 5: Verify
+
+```bash
+npm run dev
+# Visit localhost:3000 and test the app
+```
+
+---
+
+## Creating a Migration (Schema Changes)
+
+When YOU need to change the database schema:
+
+### Step 1: Apply Change to Remote TEST First
+
+1. Log into [Supabase Dashboard](https://app.supabase.com)
+2. Select the **TEST** project
+3. Go to **SQL Editor**
+4. Write and execute your schema change:
+
+```sql
+-- Example: Add a new column
+ALTER TABLE parts ADD COLUMN inventory_count INTEGER DEFAULT 0;
+```
+
+5. Test thoroughly in the remote TEST environment
+
+### Step 2: Pull the Schema Diff
+
+```bash
+npx supabase db diff --linked -f add_inventory_tracking
+```
+
+**What this does**:
+- Compares remote TEST schema to local migrations
+- Generates a new migration file in `supabase/migrations/`
+- Names it with timestamp + your description
+
+**Expected output**:
+
+```
+Creating migration file: supabase/migrations/20250129120000_add_inventory_tracking.sql
+```
+
+### Step 3: Review the Migration
+
+Open the generated file and verify:
+- SQL looks correct
+- No unintended changes
+- Comments explain the change
+
+### Step 4: Test Locally
+
+```bash
+npm run supabase:reset
+npm run db:import-seed
+npm run dev
+# Test the app works with the new schema
+```
+
+### Step 5: Commit and Push
+
+```bash
+git add supabase/migrations/
+git commit -m "feat: add inventory_count column to parts table"
+git push origin dev
+```
+
+---
+
+## Verification
+
+After applying migrations:
+
+| Check | How |
+|-------|-----|
+| Tables exist | Open Supabase Studio (`localhost:54323`) |
+| App loads | `npm run dev` and visit `localhost:3000` |
+| No TypeScript errors | `npm run type-check` |
+| Tests pass | `npm test` |
+
+---
+
+## Rollback
+
+### If Migration Hasn't Been Pushed
+
+Simply restore from your snapshot:
+
+```bash
+npm run db:restore-snapshot
+```
+
+### If Migration Has Been Pushed
+
+Migrations are append-only. Create a NEW migration that undoes the change:
+
+```sql
+-- In remote TEST first
+ALTER TABLE parts DROP COLUMN inventory_count;
+```
+
+Then pull the diff and commit.
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely Cause | Solution |
+|---------|--------------|----------|
+| Migration fails with syntax error | Invalid SQL | Fix in remote TEST, pull new diff |
+| Type errors after migration | TypeScript types outdated | Regenerate types (see below) |
+| App crashes after migration | Missing data | Re-run seed: `npm run db:import-seed` |
+| "relation does not exist" | Migration not applied | Run `npm run supabase:reset` |
+
+### Regenerate TypeScript Types
+
+If you've added columns and TypeScript doesn't see them:
+
+```bash
+npx supabase gen types typescript --local > src/types/database.ts
+```
+
+---
+
+## Related Documentation
+
+- [Database Schema](/docs/database/DATABASE) - Full schema reference
+- [Database Workflow](/docs/database/DATABASE#database-development-workflows) - Detailed workflow docs
+- [Backup & Restore](/docs/operations/backup-restore)
+
+---
+
+*Last updated: 2025-12-29*

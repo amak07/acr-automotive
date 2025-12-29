@@ -5,161 +5,53 @@ description: Generate Arc42-based architecture documentation with C4 diagrams. U
 
 # Architecture Documentation Skill
 
+## Purpose
+
+Generate comprehensive architecture documentation using the **Arc42** template structure with **C4 model** diagrams. This produces "Explanation" type documentation in the Diátaxis framework.
+
+## Smart Interaction
+
+### ASK the User When:
+
+- **Creating new architecture doc**: Confirm scope (full system vs specific subsystem)
+- **Deleting architecture doc**: Always confirm before deletion
+- **Major restructure**: Changing architecture doc organization
+
+### PROCEED Autonomously When:
+
+- **Updating existing doc**: Add new components, update diagrams
+- **Adding diagrams**: Enhance existing documentation
+- **Syncing with code**: Update to reflect architectural changes
+- **Fixing outdated info**: Correct inaccuracies
+
 ## Instructions
 
 When documenting system architecture:
 
 1. **Explore the entire codebase** to understand the system
-2. **Follow Arc42 template** structure (12 sections)
+2. **Use the Arc42 template** at `templates/arc42.md`
 3. **Generate C4 diagrams** in Mermaid at all 4 levels
 4. **Document all architectural decisions** or link to ADRs
 5. **Output to** `/docs/architecture/[system].md`
 
-## Arc42 Template Structure
+## Template
 
-All architecture docs MUST include these sections:
+Use the template at: `.claude/skills/document-architecture/templates/arc42.md`
 
-```markdown
-# [System Name] Architecture
+The template includes all 12 Arc42 sections:
 
-## 1. Introduction and Goals
-
-### Requirements Overview
-
-Brief description of functional requirements
-
-### Quality Goals
-
-| Priority | Goal        | Scenario                  |
-| -------- | ----------- | ------------------------- |
-| 1        | Performance | Sub-300ms search response |
-| 2        | Usability   | Mobile-first design       |
-
-### Stakeholders
-
-| Role                | Expectations     |
-| ------------------- | ---------------- |
-| Parts counter staff | Fast part lookup |
-
-## 2. Constraints
-
-### Technical Constraints
-
-- Next.js App Router
-- Supabase backend
-- TypeScript strict mode
-
-### Organizational Constraints
-
-- Open source only
-- Single developer maintenance
-
-## 3. Context and Scope
-
-### Business Context
-
-[Mermaid C4 Context diagram]
-
-### Technical Context
-
-[Mermaid diagram showing external interfaces]
-
-## 4. Solution Strategy
-
-Key technology decisions and their rationale
-
-## 5. Building Block View
-
-### Level 1: System Context
-
-[C4 Context diagram]
-
-### Level 2: Containers
-
-[C4 Container diagram]
-
-### Level 3: Components
-
-[C4 Component diagram for key containers]
-
-## 6. Runtime View
-
-### Primary Use Case: [Name]
-
-[Sequence diagram showing runtime behavior]
-
-## 7. Deployment View
-
-[Deployment diagram showing infrastructure]
-
-- Production: Vercel
-- Database: Supabase
-- Storage: Supabase Storage
-
-## 8. Crosscutting Concepts
-
-### Security
-
-Authentication and authorization approach
-
-### Logging
-
-Error tracking and monitoring
-
-### Error Handling
-
-Global error handling patterns
-
-### Internationalization
-
-i18n implementation
-
-## 9. Architecture Decisions
-
-Link to ADRs in `/docs/decisions/`
-
-| ADR | Title        | Status   |
-| --- | ------------ | -------- |
-| 001 | Use Supabase | Accepted |
-
-## 10. Quality Requirements
-
-### Quality Tree
-```
-
-Quality
-├── Performance
-│ └── Search < 300ms
-├── Usability
-│ └── Mobile-first
-└── Maintainability
-└── Type-safe
-
-```
-
-### Quality Scenarios
-| Scenario | Metric | Target |
-|----------|--------|--------|
-| Part search | Response time | < 300ms |
-
-## 11. Risks and Technical Debt
-
-### Known Risks
-| Risk | Mitigation |
-|------|------------|
-| ... | ... |
-
-### Technical Debt
-| Item | Priority | Plan |
-|------|----------|------|
-| ... | ... | ... |
-
-## 12. Glossary
-| Term | Definition |
-|------|------------|
-| SKU | Stock Keeping Unit |
-| OEM | Original Equipment Manufacturer |
-```
+1. Introduction and Goals
+2. Constraints
+3. Context and Scope
+4. Solution Strategy
+5. Building Block View
+6. Runtime View
+7. Deployment View
+8. Crosscutting Concepts
+9. Architecture Decisions
+10. Quality Requirements
+11. Risks and Technical Debt
+12. Glossary
 
 ## C4 Diagram Standards
 
@@ -176,6 +68,22 @@ graph TB
     System --> External
 ```
 
+### C4 Levels
+
+| Level        | Purpose                    | When to Use              |
+| ------------ | -------------------------- | ------------------------ |
+| 1. Context   | System in environment      | Always                   |
+| 2. Container | High-level tech components | Always                   |
+| 3. Component | Internal structure         | For complex containers   |
+| 4. Code      | Class/function level       | Rarely, only when needed |
+
+## Output Location
+
+| Scope       | Output Path                         |
+| ----------- | ----------------------------------- |
+| Full system | `/docs/architecture/OVERVIEW.md`    |
+| Subsystem   | `/docs/architecture/[SUBSYSTEM].md` |
+
 ## Quality Checklist
 
 Before completing:
@@ -185,8 +93,22 @@ Before completing:
 - [ ] At least one runtime sequence diagram
 - [ ] Links to existing ADRs
 - [ ] Glossary with domain terms
+- [ ] Quality scenarios defined with metrics
 
 ## Examples
 
-- "Document the system architecture" -> Creates `/docs/architecture/OVERVIEW.md`
-- "Create architecture docs for the search system" -> Creates `/docs/architecture/SEARCH_ARCHITECTURE.md`
+### Creating New Docs (Will Ask User)
+
+- "Document the system architecture" → Ask: Full system or specific subsystem?
+- "Create architecture docs" → Creates `/docs/architecture/OVERVIEW.md`
+
+### Updating Existing Docs (Autonomous)
+
+- "Update architecture with new search service" → Updates existing OVERVIEW.md
+- "Add deployment diagram" → Adds to existing doc
+- "Document the new caching layer" → Adds to existing architecture doc
+
+### Subsystem Documentation
+
+- "Document the search system architecture" → Creates `/docs/architecture/SEARCH.md`
+- "Create architecture docs for data import" → Creates `/docs/architecture/DATA_IMPORT.md`

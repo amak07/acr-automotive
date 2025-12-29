@@ -1,0 +1,90 @@
+# Docbot Feedback Handler
+#
+# This workflow responds to @claude mentions in PR comments.
+# When you comment "@claude please fix X" on a Docbot PR,
+# Claude will read your feedback and push updates.
+#
+# This creates an interactive feedback loop similar to
+# code review, but for documentation.
+
+name: Docbot - Handle Feedback
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  handle-feedback:
+    # Only run on PR comments that mention @claude
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@claude')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            return {
+              branch: pr.data.head.ref,
+              title: pr.data.title
+            };
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJson(steps.pr.outputs.result).branch }}
+          fetch-depth: 0
+
+      - name: Process Feedback
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You're handling feedback on a documentation PR.
+
+            ## Context
+            PR: #${{ github.event.issue.number }}
+            Title: ${{ fromJson(steps.pr.outputs.result).title }}
+            Comment by: @${{ github.event.comment.user.login }}
+
+            ## Feedback
+            ${{ github.event.comment.body }}
+
+            ## Instructions
+
+            1. Read the feedback carefully
+            2. Make the requested documentation changes
+            3. Commit and push to this branch
+            4. Reply to the comment confirming what was changed
+
+            ## Documentation Skills Available
+
+            Templates in `.claude/skills/`:
+            - `document-feature/templates/` - Tutorial, How-To, Reference
+            - `document-architecture/templates/arc42.md` - Architecture
+            - `create-adr/templates/madr.md` - ADRs
+            - `document-runbook/templates/runbook.md` - Runbooks
+            - `document-admin-guide/templates/admin-how-to.md` - Admin guides
+
+            ## Quality Standards
+
+            - Follow existing doc structure and style
+            - Use Diátaxis framework placement
+            - Include Mermaid diagrams where helpful
+            - Use real code examples from codebase
+            - Keep language accessible for the target audience
+
+            After making changes, reply to the comment with:
+            - What you changed
+            - Any questions or clarifications needed

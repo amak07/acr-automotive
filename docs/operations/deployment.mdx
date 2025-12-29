@@ -1,0 +1,173 @@
+---
+title: Deploy to Production
+description: Step-by-step guide for deploying ACR Automotive to production
+---
+
+# Deploy to Production
+
+| Property | Value |
+|----------|-------|
+| **Purpose** | Deploy code changes to production |
+| **When to use** | After merging PRs to main branch |
+| **Estimated time** | 5-10 minutes |
+| **Risk level** | Medium |
+
+## Overview
+
+ACR Automotive uses **automatic deployments** via Vercel. When you merge to `main`, Vercel automatically builds and deploys.
+
+This runbook covers:
+- Verifying automatic deployments
+- Manual deployment if needed
+- Monitoring deployment health
+
+---
+
+## Pre-flight Checklist
+
+Before deploying, verify:
+
+- [ ] All tests pass on the PR
+- [ ] PR has been reviewed and approved
+- [ ] No breaking changes to database schema (or migrations are ready)
+- [ ] Environment variables are set in Vercel (if adding new ones)
+
+---
+
+## Automatic Deployment (Normal Flow)
+
+### Step 1: Merge PR to Main
+
+Merge your approved PR to `main` via GitHub.
+
+**What happens automatically**:
+1. GitHub webhook triggers Vercel
+2. Vercel builds the Next.js app
+3. Vercel deploys to production edge network
+4. Old deployment is replaced
+
+### Step 2: Monitor Build
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Select the ACR Automotive project
+3. Watch the deployment progress
+
+**Expected output**: Build completes in 2-4 minutes with "Ready" status.
+
+### Step 3: Verify Deployment
+
+After "Ready" status:
+
+```bash
+# Check the production site
+curl -I https://your-production-url.vercel.app
+
+# Should return HTTP 200
+```
+
+**Manual verification**:
+1. Visit production URL
+2. Test search functionality
+3. Log into admin and verify it works
+4. Check a few part detail pages
+
+---
+
+## Manual Deployment (If Needed)
+
+If automatic deployment fails or you need to redeploy:
+
+### Via Vercel Dashboard
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Select the ACR Automotive project
+3. Click **Deployments** tab
+4. Click **...** on the latest deployment
+5. Click **Redeploy**
+
+### Via Vercel CLI
+
+```bash
+# Install Vercel CLI if needed
+npm i -g vercel
+
+# Deploy from main branch
+vercel --prod
+```
+
+---
+
+## Verification
+
+After deployment completes:
+
+| Check | How |
+|-------|-----|
+| Site loads | Visit production URL |
+| Search works | Search for a known part |
+| Admin works | Log in and view dashboard |
+| API responds | `curl https://your-url/api/public/health` |
+
+---
+
+## Rollback
+
+If the deployment has issues:
+
+### Instant Rollback (Vercel)
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Click **Deployments**
+3. Find the previous working deployment
+4. Click **...** → **Promote to Production**
+
+This instantly reverts to the previous deployment.
+
+### Full Rollback (Git Revert)
+
+If the code change itself was bad:
+
+```bash
+# Revert the merge commit
+git revert -m 1 <merge-commit-hash>
+git push origin main
+```
+
+This creates a new commit that undoes the changes, triggering a new deployment.
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely Cause | Solution |
+|---------|--------------|----------|
+| Build fails | TypeScript/lint errors | Fix errors locally, push again |
+| Build fails | Missing env vars | Add to Vercel project settings |
+| Site shows old version | CDN cache | Wait 1-2 minutes, hard refresh |
+| 500 errors after deploy | Runtime error | Check Vercel logs, rollback if needed |
+| Database errors | Missing migration | Apply migration, see [Database Migrations](/docs/operations/database-migrations) |
+
+---
+
+## Environment Variables
+
+Ensure these are set in Vercel (Settings → Environment Variables):
+
+| Variable | Required | Environment |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Production |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Production |
+| `ADMIN_PASSWORD` | Yes | Production |
+| `NEXT_PUBLIC_ENABLE_POST_MVP` | No | Production |
+
+---
+
+## Related Documentation
+
+- [Rollback Deployment](/docs/operations/rollback)
+- [Database Migrations](/docs/operations/database-migrations)
+- [Troubleshooting](/docs/operations/troubleshooting)
+
+---
+
+*Last updated: 2025-12-29*
