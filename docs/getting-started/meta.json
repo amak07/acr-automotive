@@ -1,4 +1,1 @@
-{
-  "title": "Getting Started",
-  "pages": ["index", "quick-start", "developer-onboarding"]
-}
+{ "title": "Getting Started", "pages": ["quick-start", "developer-onboarding"] }

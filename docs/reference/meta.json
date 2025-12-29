@@ -1,4 +1,4 @@
 {
   "title": "Reference",
-  "pages": ["index", "environment-variables", "error-codes", "api"]
+  "pages": ["environment-variables", "error-codes", "api"]
 }
