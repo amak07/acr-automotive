@@ -1,17 +1,4 @@
 {
   "title": "Documentation",
-  "pages": [
-    "getting-started",
-    "admin-guide",
-    "developer-guide",
-    "reference",
-    "database",
-    "architecture",
-    "operations",
-    "decisions",
-    "---Project---",
-    "PLANNING",
-    "TASKS",
-    "ENHANCEMENTS"
-  ]
+  "pages": ["getting-started", "admin-guide"]
 }
