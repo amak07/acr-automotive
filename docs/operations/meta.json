@@ -1,0 +1,12 @@
+{
+  "title": "Operations",
+  "pages": [
+    "index",
+    "deployment",
+    "rollback",
+    "database-migrations",
+    "backup-restore",
+    "seed-data",
+    "troubleshooting"
+  ]
+}

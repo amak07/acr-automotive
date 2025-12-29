@@ -1,0 +1,10 @@
+{
+  "title": "Developer Guide",
+  "pages": [
+    "index",
+    "adding-features",
+    "testing",
+    "database-workflow",
+    "api-development"
+  ]
+}

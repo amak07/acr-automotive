@@ -1,0 +1,157 @@
+---
+title: Rollback Deployment
+description: How to revert a bad deployment
+---
+
+# Rollback Deployment
+
+| Property | Value |
+|----------|-------|
+| **Purpose** | Revert to a previous working deployment |
+| **When to use** | Production is broken after a deployment |
+| **Estimated time** | 1-5 minutes |
+| **Risk level** | Low |
+
+---
+
+## When to Rollback
+
+Rollback immediately if you see:
+
+- 500 errors on the production site
+- Critical features not working (search, admin login)
+- JavaScript errors preventing page load
+- Data corruption or incorrect display
+
+---
+
+## Instant Rollback (Vercel)
+
+The fastest way to recover - reverts to the previous deployment.
+
+### Step 1: Open Vercel Dashboard
+
+Go to [Vercel Dashboard](https://vercel.com/dashboard) and select the ACR Automotive project.
+
+### Step 2: Find Previous Deployment
+
+1. Click **Deployments** tab
+2. Find the last working deployment (usually the one before the latest)
+3. Look for the green checkmark and "Ready" status
+
+### Step 3: Promote to Production
+
+1. Click **...** (three dots) on the working deployment
+2. Click **Promote to Production**
+3. Confirm the action
+
+**Expected result**: Site reverts to the previous version within 30 seconds.
+
+### Step 4: Verify
+
+Visit the production URL and confirm:
+- Site loads correctly
+- Search works
+- Admin login works
+
+---
+
+## Git Revert (Undo the Code Change)
+
+Use this when you need to permanently undo a bad merge.
+
+### Step 1: Find the Bad Commit
+
+```bash
+git log --oneline -10
+# Find the merge commit that broke things
+```
+
+### Step 2: Revert the Merge
+
+```bash
+# For a merge commit, use -m 1 to specify parent
+git revert -m 1 <merge-commit-hash>
+```
+
+### Step 3: Push the Revert
+
+```bash
+git push origin main
+```
+
+This creates a new commit that undoes the changes and triggers a new deployment.
+
+---
+
+## Database Rollback
+
+If the issue is database-related (bad migration, data corruption):
+
+### Local Database
+
+```bash
+# Restore from snapshot
+npm run db:restore-snapshot
+
+# Or reset completely
+npm run supabase:reset
+npm run db:import-seed
+```
+
+### Production Database
+
+<Callout type="warn">
+Production database changes require careful handling. Contact the team lead before making changes.
+</Callout>
+
+For Supabase production:
+1. Log into [Supabase Dashboard](https://app.supabase.com)
+2. Select the production project
+3. Use Point-in-Time Recovery if available
+4. Or restore from a backup
+
+---
+
+## Verification After Rollback
+
+| Check | How |
+|-------|-----|
+| Site loads | Visit production URL |
+| No errors | Check browser console |
+| Search works | Search for a known part |
+| Admin works | Log in and view dashboard |
+| Data intact | Spot-check a few parts |
+
+---
+
+## Post-Rollback Actions
+
+1. **Notify the team** that a rollback occurred
+2. **Create an issue** documenting what went wrong
+3. **Investigate** the root cause
+4. **Fix the issue** in a new PR with proper testing
+5. **Re-deploy** when ready
+
+---
+
+## Prevention
+
+To avoid needing rollbacks:
+
+- [ ] Always test locally before merging
+- [ ] Ensure CI passes on PRs
+- [ ] Review changes carefully
+- [ ] Test in staging if available
+- [ ] Deploy during low-traffic times for risky changes
+
+---
+
+## Related Documentation
+
+- [Deploy to Production](/docs/operations/deployment)
+- [Troubleshooting](/docs/operations/troubleshooting)
+
+---
+
+*Last updated: 2025-12-29*

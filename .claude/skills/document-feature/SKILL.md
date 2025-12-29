@@ -5,79 +5,62 @@ description: Generate standardized feature documentation using Good Docs templat
 
 # Feature Documentation Skill
 
+## Diátaxis Framework
+
+This skill supports three documentation types. **When creating a NEW document**, ask the user which type they need:
+
+| Type          | Template                 | Purpose                               | Audience   |
+| ------------- | ------------------------ | ------------------------------------- | ---------- |
+| **Tutorial**  | `templates/tutorial.md`  | Learning-focused, step-by-step guide  | Beginners  |
+| **How-To**    | `templates/how-to.md`    | Task-focused, solve specific problems | Developers |
+| **Reference** | `templates/reference.md` | Technical specs, API docs             | Developers |
+
+> **Note**: For admin/non-technical users, use the `document-admin-guide` skill instead.
+
+## Smart Interaction
+
+### ASK the User When:
+
+- **Creating new doc**: Confirm doc type (Tutorial/How-To/Reference), audience, and output location
+- **Deleting a doc**: Always confirm before deletion
+- **Major restructure**: Moving multiple docs or changing navigation
+- **Ambiguous request**: Can't determine intent from context
+
+### PROCEED Autonomously When:
+
+- **Updating existing doc**: Use best judgment, preserve existing structure
+- **Adding content**: Follow existing template/format
+- **Fixing errors/typos**: Non-destructive improvements
+- **Adding diagrams**: Enhancement to existing doc
+- **Updating code examples**: Keep docs in sync with codebase
+
 ## Instructions
 
 When documenting a feature:
 
-1. **Explore the codebase** to find all related files for this feature
-2. **Read the template** at `/docs/templates/FEATURE.md`
-3. **Generate Mermaid diagrams** for architecture (C4 style)
-4. **Include real code examples** from the codebase (not hypothetical)
-5. **Check for existing ADRs** in `/docs/decisions/` related to this feature
-6. **Output to** `/docs/features/[feature-name].md`
+1. **Determine doc type** - Ask user if creating new doc; infer from existing if updating
+2. **Explore the codebase** to find all related files for this feature
+3. **Use the appropriate template** from `templates/` folder
+4. **Generate Mermaid diagrams** for architecture (C4 style)
+5. **Include real code examples** from the codebase (not hypothetical)
+6. **Check for existing ADRs** in `/docs/decisions/` related to this feature
+7. **Output to** appropriate location based on doc type
 
-## Template Structure (Good Docs Project - Concept + How-to + Reference)
+## Output Locations
 
-The feature doc MUST include these sections in order:
+| Doc Type  | Output Path                               |
+| --------- | ----------------------------------------- |
+| Tutorial  | `/docs/getting-started/[feature-name].md` |
+| How-To    | `/docs/developer-guide/[task-name].md`    |
+| Reference | `/docs/reference/[component-name].md`     |
 
-```markdown
-# Feature: [Feature Name]
+## Templates
 
-## Overview
+All templates are located in `.claude/skills/document-feature/templates/`:
 
-- **Purpose**: One-sentence description
-- **User Story**: As a [user], I want to [action] so that [benefit]
-- **Status**: Complete | In Progress | Planned
-- **Location**: `/path/to/feature`
-
-## Architecture
-
-### System Context (C4 Level 1)
-
-[Mermaid diagram showing feature in system context]
-
-### Components (C4 Level 3)
-
-[Mermaid diagram showing internal components]
-
-### Data Flow
-
-[Sequence diagram of primary use case]
-
-## API Reference
-
-| Endpoint   | Method | Purpose |
-| ---------- | ------ | ------- |
-| `/api/...` | GET    | ...     |
-
-### Request/Response Examples
-
-[Code blocks with real examples]
-
-## How-To Guides
-
-### How to [common task 1]
-
-### How to [common task 2]
-
-## Technical Decisions (ADRs)
-
-### Decision: [Title]
-
-- **Context**: Why this decision was needed
-- **Decision**: What was chosen
-- **Consequences**: Trade-offs accepted
-
-## Testing
-
-- Unit tests: `path/to/tests`
-- How to run: `npm test -- feature-name`
-
-## Related Documentation
-
-- [Link to related feature]
-- [Link to architecture doc]
-```
+- **tutorial.md** - For learning-focused beginner guides
+- **how-to.md** - For task-focused developer guides
+- **reference.md** - For API/component technical reference
 
 ## Diagram Standards
 
@@ -90,13 +73,28 @@ The feature doc MUST include these sections in order:
 
 Before completing:
 
-- [ ] All template sections included
-- [ ] At least one architecture diagram
+- [ ] Correct template used for doc type
+- [ ] At least one architecture diagram (if applicable)
 - [ ] Real code examples from codebase
 - [ ] File paths verified to exist
-- [ ] Links to related docs work
+- [ ] Links to related docs included
+- [ ] Prerequisites section included (for tutorials/how-tos)
 
 ## Examples
 
-- "Document the public search feature" -> Creates `/docs/features/search/PUBLIC_SEARCH.md`
-- "Create feature documentation for Excel import" -> Creates `/docs/features/data-management/EXCEL_IMPORT.md`
+### Creating New Docs (Will Ask User)
+
+- "Document the search feature" → Ask: Tutorial, How-To, or Reference?
+- "Create docs for Excel import" → Ask: What type and audience?
+
+### Updating Existing Docs (Autonomous)
+
+- "Update the search docs with new API endpoint" → Updates existing doc
+- "Add error handling examples to API reference" → Adds to existing doc
+- "Fix outdated code example in tutorial" → Fixes without asking
+
+### Routing by Request Type
+
+- "Help new devs understand search" → Tutorial
+- "How to implement search filtering" → How-To
+- "Document the search API" → Reference
