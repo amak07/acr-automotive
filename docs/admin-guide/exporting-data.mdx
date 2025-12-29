@@ -1,0 +1,123 @@
+---
+title: Exporting Data
+description: How to download your entire catalog as an Excel file
+---
+
+## Overview
+
+The Export feature downloads your complete parts catalog as an Excel file. Use this to:
+- Back up your data
+- Make bulk changes in Excel
+- Share data with team members
+- Analyze your catalog in spreadsheet tools
+
+---
+
+## How to Export
+
+1. Go to `/admin`
+2. Click the **Export** button in the header
+3. Wait for the download to start (usually a few seconds)
+4. Save the file to your computer
+
+The file will be named `acr-catalog-export-YYYY-MM-DD.xlsx` with today's date.
+
+---
+
+## What's in the Export File
+
+The Excel file has three sheets:
+
+### 1. Parts Sheet
+
+Contains all your ACR parts with:
+
+| Column | Description |
+|--------|-------------|
+| ACR_SKU | The ACR part number |
+| Part_Type | Hub Assembly, Wheel Bearing, etc. |
+| Position_Type | Front, Rear, or Front/Rear |
+| ABS_Type | With ABS, Without ABS |
+| Drive_Type | FWD, RWD, AWD, 4WD |
+| Bolt_Pattern | 4-bolt, 5-bolt, 6-bolt |
+| Specifications | Technical notes |
+
+### 2. Vehicle Applications Sheet
+
+Shows which vehicles each part fits:
+
+| Column | Description |
+|--------|-------------|
+| ACR_SKU | Links to the part |
+| Start_Year | First year of fitment |
+| End_Year | Last year of fitment |
+| Make | Vehicle manufacturer |
+| Model | Vehicle model |
+| Submodel | Trim level or variant |
+
+### 3. Cross References Sheet
+
+Lists OEM and competitor part numbers:
+
+| Column | Description |
+|--------|-------------|
+| ACR_SKU | Links to the part |
+| Competitor_Brand | Brand name (Toyota, Timken, etc.) |
+| Competitor_SKU | Their part number |
+| Is_OEM | Whether this is the OEM number |
+
+---
+
+## Hidden ID Columns
+
+Each sheet has hidden columns that store internal database IDs:
+- `_id` - The record's unique ID
+- `_part_id` - Links vehicle apps to parts
+- `_acr_part_id` - Links cross-refs to parts
+
+**Do not delete or modify these hidden columns.** They're essential for the import process to know which records to update.
+
+To see hidden columns in Excel:
+1. Right-click any column header
+2. Select **Unhide**
+3. The hidden columns will appear (Column A in each sheet)
+
+---
+
+## File Size and Performance
+
+| Catalog Size | Export Time | File Size |
+|--------------|-------------|-----------|
+| 1,000 parts | ~2 seconds | ~500 KB |
+| 10,000 parts | ~10 seconds | ~5 MB |
+| 50,000 parts | ~30 seconds | ~25 MB |
+
+Large exports may take longer. Don't navigate away while the export is generating.
+
+---
+
+## Using the Export for Bulk Changes
+
+1. **Export** your current data
+2. **Open** the Excel file
+3. **Make your changes** (add rows, edit values, delete rows)
+4. **Save** the file
+5. **Import** the modified file (see [Importing Data](/docs/admin-guide/importing-data))
+
+This workflow lets you use Excel's powerful features (filters, find/replace, formulas) to make bulk changes efficiently.
+
+---
+
+## Tips
+
+- **Export before importing** - Always work from a fresh export
+- **Keep the original** - Save a backup copy before making changes
+- **Don't rename sheets** - The import process expects exact sheet names
+- **Don't move columns** - Column order matters for the import
+
+---
+
+## Next Steps
+
+- [Importing Data](/docs/admin-guide/importing-data) - Upload your modified Excel file
+- [Managing Parts](/docs/admin-guide/managing-parts) - Edit individual parts

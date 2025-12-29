@@ -1,0 +1,179 @@
+---
+title: Managing Images
+description: How to upload product photos and 360° viewer images
+---
+
+## Overview
+
+You can add two types of images to parts:
+- **Product Photos** - Standard images showing the part
+- **360° Viewer** - Multiple frames that create an interactive spinning view
+
+**Which upload method should I use?**
+
+| Situation | Method | Why |
+|-----------|--------|-----|
+| Adding images to **one part** | Single-part upload | Visual preview, drag-to-reorder, no filename requirements |
+| Adding images to **many parts** | Bulk upload | Automatic SKU matching from filenames |
+
+---
+
+## Adding Images to a Single Part
+
+Use this when you're editing a specific part and want to add or manage its images.
+
+1. Go to `/admin` and find the part
+2. Click on the part to open its detail page
+3. Scroll to the **Images** section
+
+### Product Photos
+
+**To upload:**
+1. Click **Upload Images** button
+2. Select one or more image files
+3. Images appear in the gallery
+
+**Managing photos:**
+- **Reorder**: Drag and drop images to change display order
+- **Set primary**: The first image becomes the primary (shown in search results)
+- **Delete**: Click the trash icon on any image
+
+| Limit | Value |
+|-------|-------|
+| Max images per part | 10 |
+| Max file size | 5 MB |
+| Formats | JPG, PNG, WebP |
+
+### 360° Viewer
+
+The 360° viewer creates an interactive spinning view from multiple photos taken at different angles.
+
+**To upload:**
+1. Click **Upload 360° Frames** button
+2. Select all frame images at once
+3. Preview grid appears showing frames in order (left-to-right, top-to-bottom)
+4. **Verify the order** - frames play in this sequence during rotation
+5. Drag frames to reorder if needed, or uncheck frames to exclude them
+6. Click **Confirm Upload** when the sequence looks correct
+
+**Frame ordering:**
+- Files initially appear in alphabetical order by filename
+- **Tip**: Name files sequentially (e.g., `01.jpg`, `02.jpg`... or `frame_001.jpg`, `frame_002.jpg`) so they sort correctly
+- Use drag-and-drop to fix any out-of-order frames before uploading
+
+**Managing the viewer:**
+- **Replace**: Upload new frames to replace the existing viewer
+- **Delete**: Remove the entire 360° viewer (all-or-nothing)
+
+| Limit | Value |
+|-------|-------|
+| Minimum frames | 12 |
+| Recommended frames | 24 |
+| Maximum frames | 48 |
+| Max file size | 10 MB per frame |
+| Formats | JPG, PNG, WebP |
+
+---
+
+## Bulk Image Upload
+
+Use this when you have images for many parts and filenames contain SKU numbers. The system automatically matches images to parts based on filenames.
+
+### Accessing Bulk Upload
+
+1. Go to `/admin/bulk-image-upload`
+2. You'll see a list of all parts with their image status
+
+### Filtering Parts
+
+Use the filters to find parts that need images:
+
+| Filter | Options |
+|--------|---------|
+| **Search** | Find by SKU or description |
+| **Has Images** | All, Has Images, No Images |
+| **Has 360°** | All, Has 360°, No 360° |
+
+### Uploading Product Images in Bulk
+
+1. Click **Upload Product Images** button
+2. Select multiple image files
+3. The system automatically extracts SKU numbers from filenames and matches to parts
+
+**How matching works:**
+
+The system extracts numeric SKU portions from filenames using multiple strategies:
+
+| Filename | Extracted SKU | Matches Part |
+|----------|---------------|--------------|
+| `CTK512016_fro.jpg` | `512016` | `ACR512016` |
+| `512016_front.jpg` | `512016` | `ACR512016` |
+| `ACR512016.jpg` | `512016` | `ACR512016` |
+| `BRAND123456_view.jpg` | `123456` | `ACR123456` |
+
+- The system looks for 5-8 digit numbers in filenames
+- Letter prefixes (like `CTK`, `ACR`, `BRAND`) are automatically stripped
+- Fuzzy matching finds the closest part (85% similarity threshold)
+- Multiple images per part are supported
+
+### Uploading 360° Images in Bulk
+
+Upload 360° frame sets for many parts at once. The system automatically detects multiple 360° viewer sets from a single folder of images.
+
+1. Click **Upload 360° Images** button
+2. Select all frame images (can include frames for multiple parts)
+3. Review the detected parts and frame counts
+4. Click **Upload** to process all valid sets
+
+**How detection works:**
+
+The system groups images by SKU and frame number from filenames:
+
+| Filename | Extracted SKU | Frame # |
+|----------|---------------|---------|
+| `ACR2302007_1.jpg` | `ACR2302007` | 1 |
+| `ACR2302007_24.jpg` | `ACR2302007` | 24 |
+| `CTK512016_12.jpg` | `CTK512016` | 12 |
+
+**Requirements for each 360° set:**
+- Minimum **12 frames** per part
+- SKU must exist in the database
+- Filename must end with `_N.jpg` where N is the frame number (1-99)
+
+**Example:** Upload a folder containing:
+```
+ACR2302007_1.jpg through ACR2302007_24.jpg  → 24 frames for ACR2302007
+ACR2302008_1.jpg through ACR2302008_24.jpg  → 24 frames for ACR2302008
+CTK512016_1.jpg through CTK512016_36.jpg    → 36 frames for CTK512016
+```
+
+The system will detect 3 separate 360° viewers and upload them to the matching parts.
+
+---
+
+## Viewing Image Status
+
+On the Bulk Upload page, each part shows:
+
+| Icon | Meaning |
+|------|---------|
+| **Image count** | Number of product photos |
+| **360° badge** | Has 360° viewer (green checkmark) |
+| **No images** | Needs images (red indicator) |
+
+---
+
+## Tips for Good Images
+
+- **Use consistent lighting** - Avoid shadows and reflections
+- **Center the part** - Leave some margin around edges
+- **Show key details** - Include angles that show fitment points
+- **Use white background** - Makes the part stand out
+- **High resolution** - At least 800×800 pixels
+
+---
+
+## Next Steps
+
+- [Managing Parts](/docs/admin-guide/managing-parts) - Edit part details
+- [Site Settings](/docs/admin-guide/site-settings) - Configure site options

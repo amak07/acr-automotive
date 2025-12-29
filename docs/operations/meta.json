@@ -1,7 +1,6 @@
 {
   "title": "Operations",
   "pages": [
-    "index",
     "deployment",
     "rollback",
     "database-migrations",
