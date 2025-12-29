@@ -1,7 +1,6 @@
 {
   "title": "Admin Guide",
   "pages": [
-    "index",
     "managing-parts",
     "importing-data",
     "exporting-data",
