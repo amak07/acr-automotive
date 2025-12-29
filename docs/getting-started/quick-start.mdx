@@ -1,0 +1,194 @@
+---
+title: Quick Start
+description: Get your development environment running in 5 minutes
+---
+
+# Quick Start
+
+Get ACR Automotive running locally in 5 minutes.
+
+## Prerequisites
+
+Before you begin, make sure you have:
+
+- [ ] **Node.js 18+** - [Download](https://nodejs.org/)
+- [ ] **Docker Desktop** - [Download](https://www.docker.com/products/docker-desktop/) (for local Supabase)
+- [ ] **Git** - [Download](https://git-scm.com/)
+
+<Callout type="info">
+Docker Desktop must be running before you start. Open it and wait for it to fully load.
+</Callout>
+
+---
+
+## Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/amak07/acr-automotive.git
+cd acr-automotive
+```
+
+**What you should see**: A new `acr-automotive` folder with the project files.
+
+---
+
+## Step 2: Install Dependencies
+
+```bash
+npm install
+```
+
+**What you should see**: Progress bars as packages download. This takes 1-2 minutes.
+
+<Callout type="warn">
+If you see permission errors, try running your terminal as administrator.
+</Callout>
+
+---
+
+## Step 3: Set Up Environment
+
+```bash
+cp .env.example .env.local
+```
+
+Now edit `.env.local` with these values for local development:
+
+```bash
+# .env.local
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+ADMIN_PASSWORD=localdev
+NEXT_PUBLIC_ENABLE_POST_MVP=true
+```
+
+<Callout type="info">
+The anon key above is the default local Supabase demo key. It only works with your local Docker instance.
+</Callout>
+
+---
+
+## Step 4: Start Local Supabase
+
+```bash
+npm run supabase:start
+```
+
+**What you should see**: Docker images downloading (first time only), then services starting.
+
+```
+Started supabase local development setup.
+
+         API URL: http://localhost:54321
+     GraphQL URL: http://localhost:54321/graphql/v1
+          DB URL: postgresql://postgres:postgres@localhost:54322/postgres
+      Studio URL: http://localhost:54323
+    Inbucket URL: http://localhost:54324
+```
+
+<Callout type="warn">
+First-time setup downloads ~500MB of Docker images. This takes 2-5 minutes depending on your internet.
+</Callout>
+
+---
+
+## Step 5: Start Development Server
+
+```bash
+npm run dev
+```
+
+**What you should see**:
+
+```
+▲ Next.js 15.x.x
+- Local:        http://localhost:3000
+- Ready in 2.5s
+```
+
+---
+
+## Step 6: Open the App
+
+Open your browser to:
+
+| Page | URL |
+|------|-----|
+| **Public Search** | [http://localhost:3000](http://localhost:3000) |
+| **Admin Dashboard** | [http://localhost:3000/admin](http://localhost:3000/admin) |
+| **Supabase Studio** | [http://localhost:54323](http://localhost:54323) |
+
+**Admin password**: Use whatever you set in `ADMIN_PASSWORD` (e.g., `localdev`)
+
+---
+
+## Success!
+
+You now have:
+- Next.js app running at `localhost:3000`
+- Local PostgreSQL database via Supabase
+- Supabase Studio for database management
+
+## Load Sample Data (Optional)
+
+To populate the database with test data:
+
+```bash
+npm run db:import-seed
+```
+
+---
+
+## Common Issues
+
+### Docker not running
+
+**Error**: `Cannot connect to Docker daemon`
+
+**Fix**: Open Docker Desktop and wait for it to fully start before running `npm run supabase:start`.
+
+---
+
+### Port already in use
+
+**Error**: `Port 3000 is already in use`
+
+**Fix**: Either close the other application using port 3000, or run:
+
+```bash
+npm run dev -- -p 3001
+```
+
+---
+
+### Supabase won't start
+
+**Error**: Various Docker errors
+
+**Fix**: Try resetting:
+
+```bash
+npm run supabase:stop
+npm run supabase:start
+```
+
+---
+
+## Next Steps
+
+- [Developer Onboarding](/docs/getting-started/developer-onboarding) - Full orientation for new team members
+- [Architecture Overview](/docs/architecture/OVERVIEW) - Understand the system design
+- [Database Schema](/docs/database/DATABASE) - Explore the data model
+
+---
+
+## Quick Reference
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Start development server |
+| `npm run supabase:start` | Start local database |
+| `npm run supabase:stop` | Stop local database |
+| `npm run supabase:reset` | Reset database (wipes data) |
+| `npm test` | Run test suite |
+| `npm run build` | Build for production |

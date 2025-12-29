@@ -1,0 +1,95 @@
+# Docbot - Automated Documentation Sync
+#
+# This workflow analyzes merged PRs and creates documentation update PRs
+# when code changes affect documented features.
+#
+# How it works:
+# 1. Triggered when a PR is merged to main or dev
+# 2. Claude analyzes what code changed
+# 3. Creates a new PR with doc updates (like Dependabot)
+# 4. You review and can comment @claude for refinements
+# 5. Merge when satisfied
+#
+# Setup required:
+# 1. Run `/install-github-app` in Claude Code CLI
+# 2. Add ANTHROPIC_API_KEY to repository secrets
+
+name: Docbot - Documentation Sync
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main, dev]
+
+jobs:
+  update-docs:
+    # Only run when PR is merged, not just closed
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze and Update Docs
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            A PR was just merged: #${{ github.event.pull_request.number }}
+            Title: ${{ github.event.pull_request.title }}
+
+            Analyze the changes and determine if any documentation needs updating.
+
+            ## Documentation Skills Available
+
+            You have access to documentation templates in `.claude/skills/`:
+            - `document-feature/templates/` - Tutorial, How-To, Reference templates
+            - `document-architecture/templates/arc42.md` - Architecture docs
+            - `create-adr/templates/madr.md` - Decision records
+            - `document-runbook/templates/runbook.md` - Operational runbooks
+            - `document-admin-guide/templates/admin-how-to.md` - Non-technical guides
+
+            ## Rules
+
+            1. **Auto-update existing docs** when:
+               - Code in `src/app/api/` changed → Update `docs/reference/api/`
+               - Code in `src/components/` changed → Update related feature docs
+               - Database schema changed → Update `docs/database/DATABASE.md`
+               - Environment variables changed → Update `docs/reference/environment-variables.md`
+
+            2. **Flag for review** (don't auto-create) when:
+               - New files created that might need documentation
+               - Files deleted that have related docs
+               - Major architectural changes detected
+
+            3. **Skip docs update** when:
+               - Only test files changed
+               - Only config files changed (unless env vars)
+               - Only styling/CSS changes
+               - Documentation-only PR
+
+            ## Diátaxis Framework
+
+            Place docs in the correct location:
+            - **Tutorials**: `docs/getting-started/` - Learning-focused
+            - **How-To**: `docs/developer-guide/`, `docs/admin-guide/` - Task-focused
+            - **Reference**: `docs/reference/` - Technical specs
+            - **Explanation**: `docs/architecture/` - Understanding
+
+            ## Output
+
+            If documentation updates are needed:
+            1. Create branch `docs/update-from-pr-${{ github.event.pull_request.number }}`
+            2. Make the documentation changes
+            3. Open a PR with:
+               - Title: "docs: update documentation from PR #${{ github.event.pull_request.number }}"
+               - Summary of what was updated and why
+               - Link to the original PR
+
+            If no updates needed, comment on the original PR explaining why.

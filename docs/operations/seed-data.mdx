@@ -1,0 +1,148 @@
+---
+title: Seed Data
+description: How to manage test and demo data
+---
+
+# Seed Data
+
+| Property | Value |
+|----------|-------|
+| **Purpose** | Load test/demo data into the database |
+| **When to use** | After reset, for testing, demo purposes |
+| **Estimated time** | 1 minute |
+| **Risk level** | Low |
+
+---
+
+## Loading Seed Data
+
+### Standard Seed Data
+
+Load the default test dataset:
+
+```bash
+npm run db:import-seed
+```
+
+**What this includes**:
+- Sample parts with various categories
+- Vehicle applications for testing search
+- Cross-references to test SKU lookup
+- Sample images (if configured)
+
+**Expected output**:
+
+```
+Importing seed data...
+Inserted 50 parts
+Inserted 200 vehicle applications
+Inserted 150 cross references
+Seed data imported successfully.
+```
+
+---
+
+## Seed Data Location
+
+Seed files are located in:
+
+```
+tests/fixtures/
+├── seed-data.sql       # Main seed file
+├── parts.json          # Parts data (JSON format)
+├── vehicles.json       # Vehicle applications
+└── cross-refs.json     # Cross-references
+```
+
+---
+
+## Refreshing Seed Data
+
+To get updated seed data from staging:
+
+```bash
+npm run staging:export
+```
+
+This exports current TEST database data to your local seed files.
+
+---
+
+## Creating Custom Seed Data
+
+### Via SQL
+
+Create a custom SQL file:
+
+```sql
+-- tests/fixtures/custom-seed.sql
+INSERT INTO parts (acr_sku, part_type, position)
+VALUES
+  ('TEST-001', 'Brake Pad', 'Front'),
+  ('TEST-002', 'Brake Pad', 'Rear');
+```
+
+Run it:
+
+```bash
+psql postgresql://postgres:postgres@localhost:54322/postgres < tests/fixtures/custom-seed.sql
+```
+
+### Via Admin Interface
+
+1. Start the app: `npm run dev`
+2. Go to `localhost:3000/admin`
+3. Add parts manually through the UI
+
+---
+
+## Seed Data for Tests
+
+Tests use isolated seed data to ensure reproducibility:
+
+```bash
+# Run tests (uses test fixtures automatically)
+npm test
+```
+
+Test fixtures are in `tests/fixtures/` and are loaded by the test setup.
+
+---
+
+## Troubleshooting
+
+### Seed import fails
+
+**Error**: Foreign key constraint violation
+
+**Cause**: Trying to import data that references non-existent records
+
+**Solution**: Reset the database first:
+
+```bash
+npm run supabase:reset
+npm run db:import-seed
+```
+
+---
+
+### Data doesn't appear
+
+**Cause**: App might be caching or querying wrong
+
+**Solutions**:
+1. Hard refresh the browser
+2. Check Supabase Studio (`localhost:54323`) to verify data exists
+3. Check browser Network tab for API errors
+
+---
+
+## Related Documentation
+
+- [Backup & Restore](/docs/operations/backup-restore)
+- [Database Migrations](/docs/operations/database-migrations)
+- [Testing Guide](/docs/developer-guide/testing)
+
+---
+
+*Last updated: 2025-12-29*
