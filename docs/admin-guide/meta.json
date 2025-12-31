@@ -1,5 +1,6 @@
 {
   "title": "Admin Guide",
+  "defaultOpen": true,
   "pages": [
     "managing-parts",
     "importing-data",

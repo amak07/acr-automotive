@@ -11,7 +11,7 @@ import { withAdminAuth } from "@/components/shared/auth/withAdminAuth";
 
 function SettingsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-acr-gray-50 to-acr-gray-100">
+    <div className="min-h-screen bg-acr-gray-50">
       <AppHeader variant="admin" />
       <SettingsPageContent />
     </div>

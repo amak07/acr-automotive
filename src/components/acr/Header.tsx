@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, LucideIcon } from "lucide-react";
+import { Menu, X, LucideIcon, MoreVertical, Globe, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AcrLogo } from "@/components/ui/AcrLogo";
 import { AcrLanguageToggle } from "./LanguageToggle";
@@ -93,6 +93,13 @@ export interface AcrHeaderProps {
   actions?: AcrHeaderAction[];
 
   /**
+   * Utility menu actions (3-dot menu) - shown in dropdown on desktop
+   * Typically includes: language switcher, logout, etc.
+   * @optional - if not provided, utility menu will not be shown
+   */
+  utilityActions?: AcrHeaderAction[];
+
+  /**
    * Custom className for the header
    */
   className?: string;
@@ -122,40 +129,41 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
       onLocaleChange,
       languageToggleLabel,
       actions = [],
+      utilityActions = [],
       className,
       borderVariant = "gray-200",
       ...props
     },
     ref
   ) => {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const homeLink = useHomeLink();
 
-    const closeMobileMenu = () => setIsMobileMenuOpen(false);
+    const closeMenu = () => setIsMenuOpen(false);
 
-    const renderAction = (action: AcrHeaderAction, isMobile = false) => {
-      const baseClasses = cn(
-        "flex items-center gap-2 px-3 py-2 acr-body-small rounded-md transition-all duration-200",
-        actionVariantClasses[action.variant || "default"],
-        isMobile && "py-3",
-        action.className
-      );
-
+    // Render menu item (for dropdown menu)
+    const renderMenuItem = (action: AcrHeaderAction) => {
       const content = (
         <>
           {action.icon && <action.icon className="w-4 h-4" />}
-          {action.label}
+          <span>{action.label}</span>
         </>
       );
 
-      if (action.asButton) {
+      const baseClasses = cn(
+        "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+        action.variant === "danger"
+          ? "text-red-600 hover:bg-red-50"
+          : "text-acr-gray-700 hover:bg-acr-gray-50 hover:text-acr-red-600"
+      );
+
+      if (action.asButton || action.onClick) {
         return (
           <button
             key={action.id}
-            type="button"
             onClick={() => {
               action.onClick?.();
-              if (isMobile) closeMobileMenu();
+              closeMenu();
             }}
             className={baseClasses}
             title={action.title}
@@ -170,7 +178,7 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
           <Link
             key={action.id}
             href={action.href as any}
-            onClick={isMobile ? closeMobileMenu : undefined}
+            onClick={closeMenu}
             className={baseClasses}
             title={action.title}
           >
@@ -189,8 +197,7 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
           // Red accent line at top - brand signature (thicker 2px)
           "relative before:absolute before:top-0 before:left-0 before:right-0 before:h-0.5 before:bg-acr-red-500",
           // Base styling with shadow instead of hard border
-          "transition-colors shadow-md",
-          isMobileMenuOpen ? "bg-acr-gray-50" : "bg-white",
+          "transition-colors shadow-md bg-white",
           className
         )}
         {...props}
@@ -212,67 +219,84 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
               )}
             </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-2 lg:gap-4 flex-shrink-0">
-              {/* Actions */}
-              {actions.map((action) => renderAction(action))}
+            {/* Unified Menu Button (hamburger menu) - Always visible when utilityActions provided */}
+            {utilityActions.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="flex items-center justify-center p-2 rounded-lg text-acr-gray-600 hover:text-acr-red-600 hover:bg-acr-gray-50 transition-colors"
+                  aria-label="Menu"
+                  title="Menu"
+                >
+                  {isMenuOpen ? (
+                    <X className="w-6 h-6" />
+                  ) : (
+                    <Menu className="w-6 h-6" />
+                  )}
+                </button>
 
-              {/* Language Toggle (only if locale props provided) */}
-              {locale && onLocaleChange && (
-                <AcrLanguageToggle
-                  locale={locale}
-                  onLocaleChange={onLocaleChange}
-                />
-              )}
-            </div>
+                {isMenuOpen && (
+                  <>
+                    {/* Backdrop */}
+                    <div className="fixed inset-0 z-10" onClick={closeMenu} />
 
-            {/* Mobile Menu Button - Only show if there are actions to display */}
-            {actions.length > 0 && (
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-md text-acr-gray-600 hover:text-acr-gray-800 hover:bg-acr-gray-100 transition-colors"
-                aria-label="Toggle mobile menu"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
-              </button>
-            )}
-          </div>
+                    {/* Dropdown Menu */}
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-acr-gray-200 py-1 z-20">
+                      {/* Menu Items */}
+                      {utilityActions.map((action) => renderMenuItem(action))}
 
-          {/* Mobile Navigation Menu */}
-          {isMobileMenuOpen && (
-            <div className="md:hidden mt-4 pt-4 border-t border-acr-gray-200">
-              <div className="space-y-3">
-                {/* Mobile Actions */}
-                {actions.map((action) => renderAction(action, true))}
+                      {/* Divider before language switcher */}
+                      {locale && onLocaleChange && languageToggleLabel && (
+                        <div className="border-t border-acr-gray-200 my-1" />
+                      )}
 
-                {/* Language Selection - Footer (only if locale props provided) */}
-                {locale && onLocaleChange && languageToggleLabel && (
-                  <div className="pt-3 mt-3 border-t border-acr-gray-200">
-                    <div className="px-3 py-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="acr-body-small text-acr-gray-700">
-                          {languageToggleLabel}
-                        </span>
-                      </div>
-                      <AcrLanguageToggle
-                        locale={locale}
-                        onLocaleChange={(newLocale) => {
-                          onLocaleChange(newLocale);
-                          closeMobileMenu();
-                        }}
-                        size="sm"
-                        className="w-fit"
-                      />
+                      {/* Language Switcher (if provided) */}
+                      {locale && onLocaleChange && languageToggleLabel && (
+                        <div className="px-4 py-2">
+                          <div className="flex items-center gap-2 text-xs font-semibold text-acr-gray-500 mb-2">
+                            <Globe className="w-3.5 h-3.5" />
+                            <span>{languageToggleLabel}</span>
+                          </div>
+                          <div className="space-y-1">
+                            <button
+                              onClick={() => {
+                                onLocaleChange("en");
+                                closeMenu();
+                              }}
+                              className={cn(
+                                "w-full flex items-center justify-between px-3 py-1.5 text-sm rounded transition-colors",
+                                locale === "en"
+                                  ? "bg-acr-red-50 text-acr-red-600 font-medium"
+                                  : "text-acr-gray-700 hover:bg-acr-gray-50"
+                              )}
+                            >
+                              <span>English</span>
+                              {locale === "en" && <Check className="w-4 h-4" />}
+                            </button>
+                            <button
+                              onClick={() => {
+                                onLocaleChange("es");
+                                closeMenu();
+                              }}
+                              className={cn(
+                                "w-full flex items-center justify-between px-3 py-1.5 text-sm rounded transition-colors",
+                                locale === "es"
+                                  ? "bg-acr-red-50 text-acr-red-600 font-medium"
+                                  : "text-acr-gray-700 hover:bg-acr-gray-50"
+                              )}
+                            >
+                              <span>Español</span>
+                              {locale === "es" && <Check className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </header>
     );

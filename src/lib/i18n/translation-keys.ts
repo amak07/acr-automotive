@@ -8,7 +8,8 @@ export interface TranslationKeys {
   "admin.header.title": string;
   "admin.header.admin": string;
   "admin.header.languageToggle": string;
-  "admin.header.viewPublic": string;
+  "admin.header.publicSearch": string;
+  "admin.header.documentation": string;
   "admin.header.settings": string;
 
   // Admin Dashboard
@@ -522,7 +523,11 @@ export interface TranslationKeys {
   "admin.settings.back": string;
   "admin.settings.backToAdmin": string;
   "admin.settings.backToSearch": string;
+  "admin.settings.tabs.contact": string;
+  "admin.settings.tabs.branding": string;
+  "admin.settings.tabs.history": string;
   "admin.settings.contactInfo.title": string;
+  "admin.settings.contactInfo.sectionTitle": string;
   "admin.settings.contactInfo.email": string;
   "admin.settings.contactInfo.emailPlaceholder": string;
   "admin.settings.contactInfo.phone": string;
@@ -534,6 +539,8 @@ export interface TranslationKeys {
   "admin.settings.contactInfo.updated": string;
   "admin.settings.contactInfo.success": string;
   "admin.settings.contactInfo.error": string;
+  "admin.settings.branding.identity": string;
+  "admin.settings.branding.bannersSection": string;
   "admin.settings.branding.companyName": string;
   "admin.settings.branding.companyNamePlaceholder": string;
   "admin.settings.branding.logo": string;
@@ -572,6 +579,7 @@ export interface TranslationKeys {
   "admin.settings.branding.ctaLinkPlaceholder": string;
   "admin.settings.branding.collapse": string;
   "admin.settings.branding.deleteBannerConfirm": string;
+  "admin.settings.importHistory.sectionTitle": string;
   "admin.settings.actions.save": string;
   "admin.settings.actions.saving": string;
 

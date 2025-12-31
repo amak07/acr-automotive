@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Save } from "lucide-react";
-import { AcrButton } from "@/components/acr";
+import { AcrButton, AcrCard } from "@/components/acr";
 import { useToast } from "@/hooks/common/use-toast";
 import { useLocale } from "@/contexts/LocaleContext";
 import { contactInfoSchema, type ContactInfoParams } from "@/lib/schemas/admin";
@@ -91,7 +91,10 @@ export function ContactInfoSettings() {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-acr-gray-300 shadow-md p-6">
+    <AcrCard variant="outlined" padding="default">
+      <h2 className="acr-heading-5 text-acr-gray-900 mb-6">
+        {t("admin.settings.contactInfo.sectionTitle")}
+      </h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Email */}
         <div>
@@ -153,7 +156,7 @@ export function ContactInfoSettings() {
           <AcrButton
             type="submit"
             disabled={!isDirty || updateMutation.isPending}
-            className="min-w-[120px]"
+            className="min-w-30"
           >
             {updateMutation.isPending ? (
               <>
@@ -169,6 +172,6 @@ export function ContactInfoSettings() {
           </AcrButton>
         </div>
       </form>
-    </div>
+    </AcrCard>
   );
 }

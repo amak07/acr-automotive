@@ -1,11 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { RotateCcw, Clock, FileText, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import {
+  RotateCcw,
+  Clock,
+  FileText,
+  AlertTriangle,
+  CheckCircle,
+  Loader2,
+} from "lucide-react";
 import { AcrCard, AcrButton } from "@/components/acr";
 import { useToast } from "@/hooks/common/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/hooks/common/queryKeys";
+import { useLocale } from "@/contexts/LocaleContext";
 
 interface ImportSnapshot {
   id: string;
@@ -22,16 +30,12 @@ interface ImportSnapshot {
 
 export function ImportHistorySettings() {
   const { toast } = useToast();
+  const { t } = useLocale();
   const queryClient = useQueryClient();
   const [snapshots, setSnapshots] = useState<ImportSnapshot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRollingBack, setIsRollingBack] = useState<string | null>(null);
   const [confirmRollback, setConfirmRollback] = useState<string | null>(null);
-
-  // Fetch snapshots on mount
-  useEffect(() => {
-    fetchSnapshots();
-  }, []);
 
   const fetchSnapshots = async () => {
     setIsLoading(true);
@@ -53,6 +57,12 @@ export function ImportHistorySettings() {
     }
   };
 
+  // Fetch snapshots on mount
+  useEffect(() => {
+    fetchSnapshots();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleRollback = async (importId: string) => {
     setIsRollingBack(importId);
     setConfirmRollback(null);
@@ -71,7 +81,8 @@ export function ImportHistorySettings() {
         if (result.error === "SequentialRollbackError") {
           toast({
             title: "Sequential Rollback Required",
-            description: "You must rollback the newest import first. Please rollback more recent imports before this one.",
+            description:
+              "You must rollback the newest import first. Please rollback more recent imports before this one.",
             variant: "destructive",
           });
         } else if (result.error === "RollbackConflictError") {
@@ -100,7 +111,8 @@ export function ImportHistorySettings() {
     } catch (error) {
       toast({
         title: "Rollback Failed",
-        description: error instanceof Error ? error.message : "Failed to rollback import",
+        description:
+          error instanceof Error ? error.message : "Failed to rollback import",
         variant: "destructive",
       });
     } finally {
@@ -142,6 +154,10 @@ export function ImportHistorySettings() {
 
   return (
     <div className="space-y-4">
+      <h2 className="acr-heading-5 text-acr-gray-900 mb-6">
+        {t("admin.settings.importHistory.sectionTitle")}
+      </h2>
+
       {/* Info Banner */}
       <AcrCard variant="outlined" className="border-blue-300 bg-blue-50">
         <div className="flex items-start gap-3 p-4">
@@ -149,7 +165,8 @@ export function ImportHistorySettings() {
           <div className="flex-1 text-sm text-blue-900">
             <p className="font-medium mb-1">Sequential Rollback Required</p>
             <p className="text-blue-800">
-              You must rollback imports in reverse order (newest first). The most recent import is marked below.
+              You must rollback imports in reverse order (newest first). The
+              most recent import is marked below.
             </p>
           </div>
         </div>
@@ -191,31 +208,47 @@ export function ImportHistorySettings() {
                     <div className="flex flex-col gap-2 text-sm text-acr-gray-600 pl-8 sm:pl-0">
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 flex-shrink-0" />
-                        <span className="break-words">{formatDate(snapshot.created_at)}</span>
+                        <span className="break-words">
+                          {formatDate(snapshot.created_at)}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-acr-gray-500 font-mono text-xs">Import #{snapshot.id.slice(0, 8)}</span>
+                        <span className="text-acr-gray-500 font-mono text-xs">
+                          Import #{snapshot.id.slice(0, 8)}
+                        </span>
                       </div>
                     </div>
 
                     {/* Summary Stats - Grid on Mobile, Row on Desktop */}
                     <div className="grid grid-cols-1 sm:flex sm:flex-row gap-3 sm:gap-4 text-sm">
                       <div className="flex items-center justify-between sm:justify-start gap-3 px-4 py-3 bg-green-50 border-2 border-green-300 rounded-lg sm:px-0 sm:py-0 sm:bg-transparent sm:border-0">
-                        <span className="text-green-700 font-medium">Added</span>
+                        <span className="text-green-700 font-medium">
+                          Added
+                        </span>
                         <span className="text-green-700">
-                          <strong className="text-lg sm:text-sm font-bold">+{snapshot.import_summary.adds}</strong>
+                          <strong className="text-lg sm:text-sm font-bold">
+                            +{snapshot.import_summary.adds}
+                          </strong>
                         </span>
                       </div>
                       <div className="flex items-center justify-between sm:justify-start gap-3 px-4 py-3 bg-blue-50 border-2 border-blue-300 rounded-lg sm:px-0 sm:py-0 sm:bg-transparent sm:border-0">
-                        <span className="text-blue-700 font-medium">Updated</span>
+                        <span className="text-blue-700 font-medium">
+                          Updated
+                        </span>
                         <span className="text-blue-700">
-                          <strong className="text-lg sm:text-sm font-bold">~{snapshot.import_summary.updates}</strong>
+                          <strong className="text-lg sm:text-sm font-bold">
+                            ~{snapshot.import_summary.updates}
+                          </strong>
                         </span>
                       </div>
                       <div className="flex items-center justify-between sm:justify-start gap-3 px-4 py-3 bg-red-50 border-2 border-red-300 rounded-lg sm:px-0 sm:py-0 sm:bg-transparent sm:border-0">
-                        <span className="text-red-700 font-medium">Deleted</span>
+                        <span className="text-red-700 font-medium">
+                          Deleted
+                        </span>
                         <span className="text-red-700">
-                          <strong className="text-lg sm:text-sm font-bold">-{snapshot.import_summary.deletes}</strong>
+                          <strong className="text-lg sm:text-sm font-bold">
+                            -{snapshot.import_summary.deletes}
+                          </strong>
                         </span>
                       </div>
                     </div>
@@ -229,20 +262,35 @@ export function ImportHistorySettings() {
                         <ul className="text-sm text-amber-800 space-y-2 mb-4">
                           {snapshot.import_summary.adds > 0 && (
                             <li className="flex items-start gap-2">
-                              <span className="text-amber-600 flex-shrink-0">•</span>
-                              <span>{snapshot.import_summary.adds} added records will be removed</span>
+                              <span className="text-amber-600 flex-shrink-0">
+                                •
+                              </span>
+                              <span>
+                                {snapshot.import_summary.adds} added records
+                                will be removed
+                              </span>
                             </li>
                           )}
                           {snapshot.import_summary.updates > 0 && (
                             <li className="flex items-start gap-2">
-                              <span className="text-amber-600 flex-shrink-0">•</span>
-                              <span>{snapshot.import_summary.updates} updated records will revert</span>
+                              <span className="text-amber-600 flex-shrink-0">
+                                •
+                              </span>
+                              <span>
+                                {snapshot.import_summary.updates} updated
+                                records will revert
+                              </span>
                             </li>
                           )}
                           {snapshot.import_summary.deletes > 0 && (
                             <li className="flex items-start gap-2">
-                              <span className="text-amber-600 flex-shrink-0">•</span>
-                              <span>{snapshot.import_summary.deletes} deleted records will be restored</span>
+                              <span className="text-amber-600 flex-shrink-0">
+                                •
+                              </span>
+                              <span>
+                                {snapshot.import_summary.deletes} deleted
+                                records will be restored
+                              </span>
                             </li>
                           )}
                         </ul>
