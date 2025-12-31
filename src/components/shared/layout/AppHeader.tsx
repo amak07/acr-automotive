@@ -1,9 +1,10 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useSettings } from "@/contexts/SettingsContext";
-import { Shield, Settings, ExternalLink } from "lucide-react";
+import { Shield, Settings, LogOut, Search, BookOpen } from "lucide-react";
 import { AcrHeader, type AcrHeaderAction } from "@/components/acr";
 
 interface AppHeaderProps {
@@ -34,8 +35,9 @@ function subscribeToStorage(callback: () => void): () => void {
  * - Admin variant: Shows company name + " - Admin", view public and settings links
  */
 export function AppHeader({ variant = "public" }: AppHeaderProps) {
-  const { t } = useLocale();
+  const { t, locale, setLocale } = useLocale();
   const { settings } = useSettings();
+  const router = useRouter();
 
   // Use useSyncExternalStore for reading sessionStorage (avoids setState in effect)
   const isAuthenticated = useSyncExternalStore(
@@ -53,48 +55,71 @@ export function AppHeader({ variant = "public" }: AppHeaderProps) {
   const title =
     variant === "admin" ? t("admin.header.admin") : t("public.header.title");
 
-  // Determine actions based on variant and auth state
-  const actions: AcrHeaderAction[] =
-    variant === "admin"
-      ? [
-          {
-            id: "view-public",
-            label: t("admin.header.viewPublic"),
-            icon: ExternalLink,
-            href: "/",
-            variant: "default",
-          },
-          {
-            id: "settings",
-            label: t("admin.header.settings"),
-            icon: Settings,
-            href: "/admin/settings?from=admin",
-            variant: "default",
-          },
-        ]
-      : isAuthenticated
-        ? [
-            {
-              id: "admin",
-              label: t("public.header.admin"),
-              icon: Shield,
-              href: "/admin",
-              variant: "default",
-            },
-            {
-              id: "settings",
-              label: t("admin.header.settings"),
-              icon: Settings,
-              href: "/admin/settings?from=public",
-              variant: "default",
-            },
-          ]
-        : [];
+  // Logout handler
+  const handleLogout = () => {
+    sessionStorage.removeItem("admin-authenticated");
+    router.push("/");
+  };
+
+  // Build unified menu (3-dot menu) containing all navigation
+  const menuActions: AcrHeaderAction[] = [
+    // Public Search - always visible (not admin-protected)
+    {
+      id: "public-search",
+      label: t("admin.header.publicSearch"),
+      icon: Search,
+      href: "/",
+      variant: "default",
+    },
+  ];
+
+  // Add admin-protected items if authenticated
+  if (isAuthenticated) {
+    menuActions.push(
+      {
+        id: "admin",
+        label: t("admin.header.admin"),
+        icon: Shield,
+        href: "/admin",
+        variant: "default",
+      },
+      {
+        id: "settings",
+        label: t("admin.header.settings"),
+        icon: Settings,
+        href: "/admin/settings",
+        variant: "default",
+      },
+      {
+        id: "documentation",
+        label: t("admin.header.documentation"),
+        icon: BookOpen,
+        href: "/docs",
+        variant: "default",
+      },
+      {
+        id: "logout",
+        label: t("admin.settings.logout"),
+        icon: LogOut,
+        onClick: handleLogout,
+        variant: "danger",
+        asButton: true,
+      }
+    );
+  }
 
   // Border color based on variant
   const borderVariant = variant === "admin" ? "gray-200" : "gray-300";
 
   return (
-    <AcrHeader title={title} actions={actions} borderVariant={borderVariant} />
+    <AcrHeader
+      title={title}
+      actions={[]} // No quick-access actions - everything goes in the menu
+      utilityActions={menuActions}
+      locale={locale}
+      onLocaleChange={setLocale}
+      languageToggleLabel={t("admin.settings.language")}
+      borderVariant={borderVariant}
+    />
   );
 }
