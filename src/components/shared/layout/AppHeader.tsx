@@ -62,20 +62,20 @@ export function AppHeader({ variant = "public" }: AppHeaderProps) {
   };
 
   // Build unified menu (3-dot menu) containing all navigation
-  const menuActions: AcrHeaderAction[] = [
-    // Public Search - always visible (not admin-protected)
-    {
-      id: "public-search",
-      label: t("admin.header.publicSearch"),
-      icon: Search,
-      href: "/",
-      variant: "default",
-    },
-  ];
+  // Only show menu when authenticated
+  const menuActions: AcrHeaderAction[] = [];
 
-  // Add admin-protected items if authenticated
+  // Add all menu items if authenticated
   if (isAuthenticated) {
     menuActions.push(
+      // Public Search
+      {
+        id: "public-search",
+        label: t("admin.header.publicSearch"),
+        icon: Search,
+        href: "/",
+        variant: "default",
+      },
       {
         id: "admin",
         label: t("admin.header.admin"),
