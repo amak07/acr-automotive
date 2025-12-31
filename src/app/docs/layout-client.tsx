@@ -7,19 +7,21 @@ import { AdminPasswordModal } from "@/components/shared/auth/AdminPasswordModal"
 import type { ReactNode } from "react";
 
 export function DocsLayoutClient({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
-    // Initialize state from sessionStorage
-    if (typeof window === "undefined") return null;
-    const adminAuth = sessionStorage.getItem("admin-authenticated");
-    return adminAuth === "true";
-  });
-  const [showPasswordModal, setShowPasswordModal] = useState(() => {
-    // Show modal if not authenticated
-    if (typeof window === "undefined") return false;
-    const adminAuth = sessionStorage.getItem("admin-authenticated");
-    return adminAuth !== "true";
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    // Check authentication after component mounts (client-side only)
+    const adminAuth = sessionStorage.getItem("admin-authenticated");
+    const isAuthed = adminAuth === "true";
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsAuthenticated(isAuthed);
+    if (!isAuthed) {
+      setShowPasswordModal(true);
+    }
+  }, []);
 
   const handleAuthSuccess = () => {
     setIsAuthenticated(true);
