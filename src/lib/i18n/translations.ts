@@ -25,9 +25,13 @@ export const translations: Record<
     en: "Language",
     es: "Idioma",
   },
-  "admin.header.viewPublic": {
-    en: "View Public Site",
-    es: "Ver Sitio Público",
+  "admin.header.publicSearch": {
+    en: "Public Search",
+    es: "Búsqueda Pública",
+  },
+  "admin.header.documentation": {
+    en: "Documentation",
+    es: "Documentación",
   },
   "admin.header.settings": {
     en: "Settings",
@@ -1896,7 +1900,23 @@ export const translations: Record<
     en: "Back to Search",
     es: "Volver a Búsqueda",
   },
+  "admin.settings.tabs.contact": {
+    en: "Contact Info",
+    es: "Información de Contacto",
+  },
+  "admin.settings.tabs.branding": {
+    en: "Branding",
+    es: "Marca",
+  },
+  "admin.settings.tabs.history": {
+    en: "Import History",
+    es: "Historial de Importación",
+  },
   "admin.settings.contactInfo.title": {
+    en: "Contact Information",
+    es: "Información de Contacto",
+  },
+  "admin.settings.contactInfo.sectionTitle": {
     en: "Contact Information",
     es: "Información de Contacto",
   },
@@ -1943,6 +1963,14 @@ export const translations: Record<
   "admin.settings.contactInfo.error": {
     en: "Update failed",
     es: "Error al actualizar",
+  },
+  "admin.settings.branding.identity": {
+    en: "Company Identity",
+    es: "Identidad Corporativa",
+  },
+  "admin.settings.branding.bannersSection": {
+    en: "Banner Carousel",
+    es: "Carrusel de Banners",
   },
   "admin.settings.branding.companyName": {
     en: "Company Name",
@@ -2095,6 +2123,10 @@ export const translations: Record<
   "admin.settings.branding.deleteBannerConfirm": {
     en: "Are you sure you want to delete this banner? This action cannot be undone.",
     es: "¿Está seguro de que desea eliminar este banner? Esta acción no se puede deshacer.",
+  },
+  "admin.settings.importHistory.sectionTitle": {
+    en: "Import History & Rollback",
+    es: "Historial de Importación y Reversión",
   },
   "admin.settings.actions.save": {
     en: "Save",

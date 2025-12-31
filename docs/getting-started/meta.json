@@ -1,1 +1,5 @@
-{ "title": "Getting Started", "pages": ["quick-start", "developer-onboarding"] }
+{
+  "title": "Getting Started",
+  "defaultOpen": true,
+  "pages": ["quick-start", "developer-onboarding"]
+}
