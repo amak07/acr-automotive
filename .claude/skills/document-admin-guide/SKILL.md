@@ -41,6 +41,21 @@ When documenting admin features:
 - Fixing typos or improving wording
 - Adding troubleshooting tips
 
+## Documentation Principles (CRITICAL)
+
+**Before writing ANY documentation**, review `../DOCUMENTATION_PRINCIPLES.md` for:
+
+1. **Ground Truth Only** - Document what exists in code, no speculation
+2. **Writing Tone** - Clear and educational without audience labels
+3. **Code Examples** - Real files with paths and line numbers
+4. **Performance Docs** - Techniques + measurement methods, NOT estimated timings
+5. **What NOT to include** - No troubleshooting, future work, or meta-commentary
+6. **Diagrams** - Use when they clarify technicals, not for decoration
+
+These principles override any template suggestions that conflict with them.
+
+**Note**: Admin guides target non-technical users, so adapt principles accordingly (e.g., avoid file paths, use plain language).
+
 ## Writing Guidelines
 
 ### DO:

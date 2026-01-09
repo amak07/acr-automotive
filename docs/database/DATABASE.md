@@ -4,8 +4,8 @@ title: "ACR Automotive Database Reference"
 
 # ACR Automotive Database Reference
 
-**Last Updated**: November 8, 2025
-**Current Schema Version**: Migration 009 (SKU Normalization for Flexible Search)
+**Last Updated**: January 4, 2026
+**Current Schema Version**: Migration 013 (Site Assets Storage Bucket)
 **Platform**: Supabase (PostgreSQL 15+)
 **Production Status**: ✅ Live with 865+ parts, 7,530+ cross-references, 2,304+ vehicle applications
 
@@ -36,12 +36,12 @@ title: "ACR Automotive Database Reference"
 
 **Performance Target**: Sub-300ms search response times
 
-**Core Tables** (8 total after Migration 009):
+**Core Tables** (8 total after Migration 013):
 
-- **parts** (14 cols) - Main parts catalog with ACR SKUs + normalized SKUs + tenant_id
+- **parts** (15 cols) - Main parts catalog with ACR SKUs + normalized SKUs + product image flag + tenant_id
 - **vehicle_applications** (8 cols) - Vehicle compatibility + tenant_id
 - **cross_references** (8 cols) - Competitor SKU mappings + normalized SKUs + tenant_id
-- **part_images** (9 cols) - Photo gallery per part + tenant_id
+- **part_images** (10 cols) - Photo gallery per part + view_type + tenant_id
 - **part_360_frames** (11 cols) - 360° interactive viewer frames + tenant_id
 - **site_settings** (10 cols) - Dynamic site configuration (singleton)
 - **tenants** (6 cols) - Multi-tenant support (future)
@@ -151,16 +151,20 @@ part_id UUID NOT NULL REFERENCES parts(id) ON DELETE CASCADE
 
 ## Current Schema
 
-### Table Summary (Migration 004)
+### Table Summary (Migration 013)
 
-| Table                | Rows     | Columns | Foreign Keys    | Indexes | Purpose               |
-| -------------------- | -------- | ------- | --------------- | ------- | --------------------- |
-| parts                | 865+     | 12      | -               | 3       | Main catalog          |
-| vehicle_applications | 2,304+   | 7       | 1 (part_id)     | 5       | Vehicle compatibility |
-| cross_references     | 7,530+   | 6       | 1 (acr_part_id) | 3       | Competitor SKUs       |
-| part_images          | Variable | 8       | 1 (part_id)     | 3       | Photo gallery         |
-| part_360_frames      | Variable | 10      | 1 (part_id)     | 2       | 360° viewer           |
-| site_settings        | 1        | 10      | -               | 1       | Site config           |
+**Core Tables** (8 total after Migration 013):
+
+| Table                | Rows     | Columns | Foreign Keys    | Indexes | Purpose                                                  |
+| -------------------- | -------- | ------- | --------------- | ------- | -------------------------------------------------------- |
+| parts                | 865+     | 15      | -               | 5       | Main catalog + normalized SKUs + image flags + tenant_id |
+| vehicle_applications | 2,304+   | 8       | 1 (part_id)     | 6       | Vehicle compatibility + tenant_id                        |
+| cross_references     | 7,530+   | 8       | 1 (acr_part_id) | 5       | Competitor SKUs + normalized SKUs + tenant_id            |
+| part_images          | Variable | 10      | 1 (part_id)     | 3       | Photo gallery + view_type + tenant_id                    |
+| part_360_frames      | Variable | 11      | 1 (part_id)     | 2       | 360° viewer + tenant_id                                  |
+| site_settings        | 1        | 10      | -               | 1       | Site config                                              |
+| tenants              | 1+       | 6       | -               | 2       | Multi-tenant isolation (Migration 005)                   |
+| import_history       | Variable | 4       | 1 (tenant_id)   | 2       | Rollback snapshots (Migration 006)                       |
 
 ---
 
@@ -181,7 +185,10 @@ CREATE TABLE parts (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     has_360_viewer BOOLEAN DEFAULT false,          -- Has 360° viewer configured
-    viewer_360_frame_count INTEGER DEFAULT 0       -- Number of frames (0-100)
+    viewer_360_frame_count INTEGER DEFAULT 0,      -- Number of frames (0-100)
+    acr_sku_normalized VARCHAR(50),                -- Normalized SKU for search (Migration 009)
+    has_product_images BOOLEAN DEFAULT false,      -- Auto-maintained flag (Migration 011)
+    tenant_id UUID                                 -- Multi-tenancy support (future use)
 );
 ```
 
@@ -210,7 +217,8 @@ CREATE TABLE vehicle_applications (
     start_year INT NOT NULL,                       -- e.g., 2015
     end_year INT NOT NULL,                         -- e.g., 2020
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    tenant_id UUID                                 -- Multi-tenancy support (Migration 005)
 );
 ```
 
@@ -242,7 +250,9 @@ CREATE TABLE cross_references (
     competitor_sku VARCHAR(50) NOT NULL,           -- e.g., "MOOG-512411", "TIMKEN-HA590071"
     competitor_brand VARCHAR(50),                  -- e.g., "Moog", "Timken" (optional)
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    competitor_sku_normalized VARCHAR(50),         -- Normalized SKU for search (Migration 009)
+    tenant_id UUID                                 -- Multi-tenancy support (Migration 005)
 );
 ```
 
@@ -278,7 +288,9 @@ CREATE TABLE part_images (
     is_primary BOOLEAN DEFAULT false,              -- Primary image (shown first)
     caption TEXT,                                  -- Optional image description
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    view_type TEXT,                                -- 'front', 'top', 'bottom', 'other', 'generic' (Migration 012)
+    tenant_id UUID                                 -- Multi-tenancy support (future use)
 );
 ```
 
@@ -315,6 +327,7 @@ CREATE TABLE part_360_frames (
     width INTEGER,                                 -- Standardized to 1200px
     height INTEGER,                                -- Standardized to 1200px
     created_at TIMESTAMPTZ DEFAULT NOW(),
+    tenant_id UUID,                                -- Multi-tenancy support (Migration 005)
 
     CONSTRAINT unique_part_frame UNIQUE(part_id, frame_number),
     CONSTRAINT valid_frame_number CHECK(frame_number >= 0),
@@ -362,6 +375,8 @@ CREATE TABLE site_settings (
 ---
 
 ## Database Functions
+
+> **💡 For Developers**: See **[Search System Developer Guide](../developer-guide/search-system.mdx)** for implementation patterns, performance optimization, and debugging playbook.
 
 ### `search_by_sku(search_sku TEXT)` - Intelligent SKU Search
 
@@ -883,6 +898,288 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 - ✅ Zero breaking changes (backward compatible)
 
 **Related Documentation**: See [SEARCH_SYSTEM.md](../features/search/SEARCH_SYSTEM.md#2a-sku-normalization-rules-migration-009) for detailed search behavior
+
+---
+
+### Migration 010: Create Storage Bucket (SQL-Based)
+
+**File**: `20251115182620_create_storage_bucket.sql`
+**Applied**: November 15, 2025
+**Status**: ✅ Complete
+**Feature**: Storage bucket creation via SQL migration
+
+**Purpose**: Create the `acr-part-images` storage bucket using SQL instead of config.toml due to Supabase CLI limitations in v2.58.5.
+
+**Changes**:
+
+1. **Created `acr-part-images` storage bucket**:
+
+   ```sql
+   INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+   VALUES (
+     'acr-part-images',
+     'acr-part-images',
+     true,
+     10485760,  -- 10MB file size limit
+     ARRAY['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif']
+   )
+   ON CONFLICT (id) DO NOTHING;
+   ```
+
+   - Public bucket for part images and 360° frames
+   - 10MB file size limit
+   - Accepts PNG, JPEG, JPG, WebP, GIF formats
+   - Idempotent (ON CONFLICT DO NOTHING)
+
+2. **Created RLS policies for storage objects**:
+
+   ```sql
+   -- Public read access
+   CREATE POLICY "Public read access for acr-part-images"
+   ON storage.objects FOR SELECT
+   TO public
+   USING (bucket_id = 'acr-part-images');
+
+   -- Anon upload access (app uses password protection, not Supabase auth)
+   CREATE POLICY "Allow anon upload to acr-part-images"
+   ON storage.objects FOR INSERT
+   TO anon
+   WITH CHECK (bucket_id = 'acr-part-images');
+
+   -- Anon update and delete access
+   CREATE POLICY "Allow anon update to acr-part-images"
+   ON storage.objects FOR UPDATE
+   TO anon
+   USING (bucket_id = 'acr-part-images');
+
+   CREATE POLICY "Allow anon delete from acr-part-images"
+   ON storage.objects FOR DELETE
+   TO anon
+   USING (bucket_id = 'acr-part-images');
+   ```
+
+**Storage Path Structure**:
+
+- Regular images: `{part_id}_{timestamp}_{random}.{ext}`
+- 360° frames: `360-viewer/{acr_sku}/frame-000.jpg`
+
+**Why SQL Instead of Config**:
+
+- Supabase CLI v2.58.5 doesn't support `allowed_mime_types` in config.toml
+- SQL migrations are more reliable for storage bucket creation
+- Ensures bucket exists regardless of CLI version
+
+**Business Impact**:
+
+- ✅ Part images and 360° frames can be uploaded via Supabase Storage
+- ✅ Public CDN access for image delivery
+- ✅ 10MB size limit prevents large file uploads
+- ✅ MIME type validation ensures only images are accepted
+
+---
+
+### Migration 011: Add has_product_images Flag
+
+**File**: `20251216163858_add_has_product_images.sql`
+**Applied**: December 16, 2025
+**Status**: ✅ Complete
+**Feature**: Denormalized flag for efficient image filtering
+
+**Purpose**: Add `has_product_images` boolean column to parts table for efficient sorting and filtering of parts with uploaded images.
+
+**Changes**:
+
+1. **Added `has_product_images` column**:
+
+   ```sql
+   ALTER TABLE "public"."parts"
+   ADD COLUMN IF NOT EXISTS "has_product_images" boolean DEFAULT false;
+
+   COMMENT ON COLUMN "public"."parts"."has_product_images"
+   IS 'True if part has at least one product image uploaded';
+   ```
+
+2. **Created index for efficient sorting**:
+
+   ```sql
+   CREATE INDEX IF NOT EXISTS "idx_parts_has_product_images"
+   ON "public"."parts" ("has_product_images");
+   ```
+
+3. **Backfilled existing data**:
+
+   ```sql
+   UPDATE "public"."parts" p
+   SET "has_product_images" = true
+   WHERE EXISTS (
+       SELECT 1 FROM "public"."part_images" pi WHERE pi.part_id = p.id
+   );
+   ```
+
+4. **Created trigger function to maintain flag**:
+
+   ```sql
+   CREATE OR REPLACE FUNCTION "public"."update_has_product_images"()
+   RETURNS TRIGGER
+   LANGUAGE plpgsql
+   SECURITY DEFINER
+   AS $$
+   BEGIN
+       IF TG_OP = 'INSERT' THEN
+           -- Set flag to true when first image is added
+           UPDATE parts SET has_product_images = true WHERE id = NEW.part_id;
+           RETURN NEW;
+       ELSIF TG_OP = 'DELETE' THEN
+           -- Check if any images remain, if not set flag to false
+           UPDATE parts
+           SET has_product_images = EXISTS (
+               SELECT 1 FROM part_images WHERE part_id = OLD.part_id
+           )
+           WHERE id = OLD.part_id;
+           RETURN OLD;
+       END IF;
+       RETURN NULL;
+   END;
+   $$;
+   ```
+
+5. **Created triggers on part_images table**:
+
+   ```sql
+   CREATE TRIGGER "trigger_update_has_product_images_insert"
+       AFTER INSERT ON "public"."part_images"
+       FOR EACH ROW
+       EXECUTE FUNCTION "public"."update_has_product_images"();
+
+   CREATE TRIGGER "trigger_update_has_product_images_delete"
+       AFTER DELETE ON "public"."part_images"
+       FOR EACH ROW
+       EXECUTE FUNCTION "public"."update_has_product_images"();
+   ```
+
+**Performance Impact**:
+
+- Parts with images can be sorted first without expensive JOIN
+- Index allows fast filtering: `WHERE has_product_images = true`
+- Triggers maintain flag automatically (no manual updates needed)
+
+**Business Impact**:
+
+- ✅ Efficient "Show parts with images first" sorting in UI
+- ✅ Fast filtering for parts without images (missing photo reports)
+- ✅ Auto-maintained flag (zero manual intervention)
+
+---
+
+### Migration 012: Add view_type to part_images
+
+**File**: `20251217111259_add_view_type_to_part_images.sql`
+**Applied**: December 17, 2025
+**Status**: ✅ Complete
+**Feature**: Image categorization by view angle
+
+**Purpose**: Add `view_type` column to categorize images by angle/perspective for bulk upload replace-by-viewType logic.
+
+**Changes**:
+
+1. **Added `view_type` column**:
+
+   ```sql
+   ALTER TABLE part_images ADD COLUMN view_type TEXT;
+
+   COMMENT ON COLUMN part_images.view_type
+   IS 'Image view type: front, top, bottom, other, generic. Used for bulk upload replace-by-viewType logic.';
+   ```
+
+**Valid Values**:
+
+- `front` - Front view of the part
+- `top` - Top/overhead view
+- `bottom` - Bottom/underside view
+- `other` - Side, angle, or specific detail view
+- `generic` - Default/unspecified view
+- `NULL` - View type not set (legacy images)
+
+**Use Cases**:
+
+1. **Bulk Upload Replace Logic**: When uploading new front view, replace existing front view only
+2. **Image Gallery Organization**: Group images by view type in UI
+3. **Missing View Detection**: Identify parts missing key views (front, top, bottom)
+
+**Business Impact**:
+
+- ✅ Bulk upload can replace specific views without deleting all images
+- ✅ Image gallery can be organized by view type
+- ✅ Quality control can identify parts missing essential views
+
+---
+
+### Migration 013: Ensure Site Assets Storage Bucket
+
+**File**: `20251219000000_ensure_site_assets_bucket.sql`
+**Applied**: December 19, 2025
+**Status**: ✅ Complete
+**Feature**: Idempotent site assets bucket creation
+
+**Purpose**: Ensure `acr-site-assets` bucket exists for banner/logo uploads, regardless of how the database was initialized.
+
+**Background**:
+
+- Bucket originally created in Migration 003 (site settings)
+- Databases seeded from remote snapshots may be missing it
+- This migration ensures consistency across all environments
+
+**Changes**:
+
+1. **Created `acr-site-assets` storage bucket (idempotent)**:
+
+   ```sql
+   INSERT INTO storage.buckets (id, name, public)
+   VALUES ('acr-site-assets', 'acr-site-assets', true)
+   ON CONFLICT (id) DO NOTHING;
+   ```
+
+2. **Created RLS policies**:
+
+   ```sql
+   -- Public read access for site assets (logos, banners, favicons)
+   CREATE POLICY "Public Access Site Assets"
+   ON storage.objects FOR SELECT
+   USING (bucket_id = 'acr-site-assets');
+
+   -- Allow uploads via anon key (admin authenticated via password in app)
+   CREATE POLICY "Admin Upload Site Assets"
+   ON storage.objects FOR INSERT
+   WITH CHECK (bucket_id = 'acr-site-assets');
+
+   -- Allow updates and deletions
+   CREATE POLICY "Admin Update Site Assets"
+   ON storage.objects FOR UPDATE
+   USING (bucket_id = 'acr-site-assets');
+
+   CREATE POLICY "Admin Delete Site Assets"
+   ON storage.objects FOR DELETE
+   USING (bucket_id = 'acr-site-assets');
+   ```
+
+**Storage Contents**:
+
+- Company logo
+- Site banner images
+- Favicon files
+- Marketing assets
+
+**Idempotency**:
+
+- `ON CONFLICT DO NOTHING` prevents errors on re-run
+- Policies are dropped and recreated (safe for repeated execution)
+- Safe to run on any environment
+
+**Business Impact**:
+
+- ✅ Site settings page can upload logo/banner reliably
+- ✅ No manual bucket creation needed for new environments
+- ✅ Consistent behavior across dev/test/production
 
 ---
 

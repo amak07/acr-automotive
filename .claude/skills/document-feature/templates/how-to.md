@@ -1,6 +1,6 @@
 # How to [Accomplish Specific Task]
 
-> **Doc Type**: How-To Guide | **Audience**: [Developers/Admin] | **Time**: ~X minutes
+> **Task**: [One-line description of what you'll accomplish]
 
 ## Overview
 

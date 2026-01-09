@@ -1,0 +1,480 @@
+---
+title: "Overview"
+description: "Understanding the search system architecture and implementation"
+---
+
+## What You'll Learn
+
+How the dual-mode search system (vehicle + SKU) works with normalization, fuzzy matching, and sub-300ms performance.
+
+**When to use this guide**:
+
+- Building similar search features with multi-stage fallback algorithms
+- Understanding the architecture before making changes
+- Learning RPC functions vs client-side queries
+
+## Quick Start
+
+### Try a Search
+
+**SKU Search**:
+
+```bash
+# Exact ACR SKU match
+curl "http://localhost:3000/api/public/parts?sku_term=ACR2303004"
+
+# Normalized search (works with any format - removes hyphens/spaces)
+curl "http://localhost:3000/api/public/parts?sku_term=acr%202303%20004"
+
+# Competitor SKU (returns matching ACR part)
+curl "http://localhost:3000/api/public/parts?sku_term=TM515072"
+```
+
+**Vehicle Search**:
+
+```bash
+curl "http://localhost:3000/api/public/parts?make=CHEVROLET,%20GMC&model=IMPALA&year=2005"
+```
+
+### What Makes a "Good" Search Result?
+
+1. **Fast**: Sub-second response time with indexed queries
+2. **Flexible**: Works with typos, formatting variations
+3. **Ranked**: Most relevant results first (exact → partial → fuzzy)
+4. **Complete**: Includes primary images without N+1 queries
+
+---
+
+## Architecture Deep-Dive
+
+### Request Flow End-to-End
+
+<Mermaid chart={`sequenceDiagram
+    participant User
+    participant Frontend as Frontend Hook<br/>(usePublicParts)
+    participant API as API Route<br/>(/api/public/parts)
+    participant DB as Database<br/>(search_by_sku RPC)
+    participant Storage as Supabase Storage
+
+    User->>Frontend: Search "acr-seed-001"
+    Frontend->>Frontend: Zod validation
+    Frontend->>API: GET /api/public/parts?sku_term=acr-seed-001
+    API->>API: Parse & validate params
+    API->>DB: supabase.rpc('search_by_sku', {...})
+    DB->>DB: 6-stage algorithm
+    DB-->>API: Return parts (50-180ms)
+    API->>Storage: Batch fetch images (.in(partIds))
+    Storage-->>API: Return image URLs (30ms)
+    API-->>Frontend: JSON response
+    Frontend->>Frontend: TanStack Query cache (5min)
+    Frontend-->>User: Display results
+
+`} />
+
+### 6-Stage Search Algorithm
+
+<Mermaid chart={`graph TD
+    Start[User Input:<br/>ACR-15002] --> Normalize[Normalize Input<br/>ACRSEED001]
+
+    Normalize --> Stage1{Stage 1:<br/>Exact Normalized<br/>ACR SKU?}
+    Stage1 -->|Match| Return1[Return with<br/>match_type: exact_normalized_acr<br/>score: 1.0]
+    Stage1 -->|No Match| Stage2{Stage 2:<br/>With ACR Prefix?<br/>ACR + input}
+
+    Stage2 -->|Match| Return2[Return with<br/>match_type: with_acr_prefix<br/>score: 0.95]
+    Stage2 -->|No Match| Stage3{Stage 3:<br/>Partial ACR?<br/>LIKE %input%}
+
+    Stage3 -->|Match| Return3[Return with<br/>match_type: partial_acr<br/>score: 0.9]
+    Stage3 -->|No Match| Stage4{Stage 4:<br/>Exact Competitor<br/>SKU?}
+
+    Stage4 -->|Match| Return4[Return with<br/>match_type: exact_competitor<br/>score: 1.0]
+    Stage4 -->|No Match| Stage5{Stage 5:<br/>Partial Competitor?<br/>LIKE %input%}
+
+    Stage5 -->|Match| Return5[Return with<br/>match_type: partial_competitor<br/>score: 0.85]
+    Stage5 -->|No Match| Stage6[Stage 6:<br/>Fuzzy Match<br/>similarity > 0.6]
+
+    Stage6 --> Return6[Return with<br/>match_type: fuzzy<br/>score: 0.6-1.0]
+
+    Return1 --> End[Results to API]
+    Return2 --> End
+    Return3 --> End
+    Return4 --> End
+    Return5 --> End
+    Return6 --> End
+
+    style Stage1 fill:#e1f5e1
+    style Stage2 fill:#e1f5e1
+    style Stage3 fill:#fff4e1
+    style Stage4 fill:#e1f5e1
+    style Stage5 fill:#fff4e1
+    style Stage6 fill:#ffe1e1
+
+`} />
+
+### Why This Design?
+
+The search algorithm evolved through real-world testing with parts counter staff at ACR Automotive. Here's the reasoning behind key decisions:
+
+#### Decision 1 - Six-stage cascade instead of single query
+
+Without stages, you'd need to choose: exact match only (misses typos) OR fuzzy only (returns false positives). The cascade gives precision when possible, tolerance when needed.
+
+- **Stage 1-3**: ACR SKU variants (exact → with-prefix → partial) catch the majority of searches using indexed lookups
+- **Stage 4-5**: Competitor SKU lookups handle cross-reference scenarios (TM515072 → ACR2306010)
+- **Stage 6**: Fuzzy fallback rescues typos without polluting earlier stages
+
+**Real example**: User types "ACR 2303 004" (with spaces)
+
+- Stage 1 normalizes to "ACR2303004" → exact match via indexed column
+- Without normalization: requires fuzzy match → slower + potential false positives
+
+#### Decision 2 - Early termination (return on first match)
+
+Each stage is a progressively weaker match. Once we find an exact normalized match, checking for fuzzy matches would only add noise.
+
+- **Performance**: Most ACR SKU searches exit at Stage 1 using the indexed column
+- **Ranking**: Results are naturally sorted by match quality (exact → fuzzy)
+- **Cost**: Without early termination, every search runs all 6 queries regardless of match quality
+
+#### Decision 3 - Pre-computed `acr_sku_normalized` column
+
+Alternative considered: Normalize at query time with `UPPER(REPLACE(REPLACE(acr_sku, '-', ''), ' ', ''))`
+
+**Why pre-compute?**
+
+- **Index compatibility**: Can't index a function result efficiently
+- **Speed**: Indexed column lookup is significantly faster than applying function to every row
+- **Cost**: 50 extra bytes per part (865 parts = 42KB) → negligible
+
+#### Decision 4 - Fuzzy matching on original SKUs (not normalized)
+
+PostgreSQL's `pg_trgm` similarity works by comparing character trigrams. Normalization removes important signals.
+
+**Example**:
+
+```
+Original:  "ACR-BR-01" vs "ACR-BR-10" → similarity = 0.85 (clear difference)
+Normalized: "ACRBR01" vs "ACRBR10" → similarity = 0.95 (looks too similar)
+```
+
+**Trade-off**: Fuzzy matching is slower than indexed lookups but more accurate. Acceptable because few searches reach this stage.
+
+#### Decision 5 - RPC functions instead of client-side queries
+
+Alternative: Frontend makes 6 separate Supabase queries, handles fallback logic.
+
+**Why RPC?**
+
+- **Network overhead**: 1 round-trip vs 6 sequential round-trips (significant latency reduction)
+- **Atomic logic**: Stage transitions happen in database, no race conditions
+- **Reduced data transfer**: Only returns final results, not intermediate queries
+
+**Trade-off**: Database coupling (harder to mock in tests) vs major performance improvement.
+
+### Key Components
+
+The search system has four layers working together:
+
+#### Component One - Database Function `search_by_sku()`
+
+Location: [supabase/migrations/20251109000000_add_sku_normalization.sql](../../../supabase/migrations/20251109000000_add_sku_normalization.sql#L209-L304)
+
+This PostgreSQL function implements the 6-stage cascade algorithm. It takes any SKU format and returns ranked results.
+
+```sql
+CREATE OR REPLACE FUNCTION search_by_sku(search_sku TEXT)
+RETURNS TABLE (
+    id UUID,
+    acr_sku VARCHAR(50),
+    part_type VARCHAR(100),
+    description TEXT,
+    acr_sku_normalized TEXT,
+    match_type TEXT,
+    similarity_score REAL
+) AS $$
+DECLARE
+  normalized_input TEXT;
+BEGIN
+    normalized_input := normalize_sku(search_sku);  -- "ACR-2303-004" → "ACR2303004"
+
+    -- Stage 1: Exact normalized ACR SKU (99% of searches match here)
+    RETURN QUERY
+    SELECT
+        p.*,
+        'exact_normalized_acr'::TEXT AS match_type,
+        1.0::REAL AS similarity_score
+    FROM parts p
+    WHERE p.acr_sku_normalized = normalized_input;
+
+    IF FOUND THEN RETURN; END IF;  -- Exit early if exact match found
+
+    -- Stage 2: Try adding "ACR" prefix (handles "2303004" → "ACR2303004")
+    RETURN QUERY
+    SELECT
+        p.*,
+        'with_acr_prefix'::TEXT AS match_type,
+        0.95::REAL AS similarity_score
+    FROM parts p
+    WHERE p.acr_sku_normalized = 'ACR' || normalized_input;
+
+    IF FOUND THEN RETURN; END IF;
+
+    -- Stage 3: Partial ACR SKU (handles "2303" → finds "ACR2303004")
+    RETURN QUERY
+    SELECT
+        p.*,
+        'partial_acr'::TEXT AS match_type,
+        0.9::REAL AS similarity_score
+    FROM parts p
+    WHERE p.acr_sku_normalized LIKE '%' || normalized_input || '%'
+    LIMIT 10;
+
+    IF FOUND THEN RETURN; END IF;
+
+    -- Stage 4: Exact competitor SKU via cross_references table
+    RETURN QUERY
+    SELECT
+        p.*,
+        'exact_competitor'::TEXT AS match_type,
+        1.0::REAL AS similarity_score
+    FROM parts p
+    INNER JOIN cross_references c ON c.acr_part_id = p.id
+    WHERE c.competitor_sku_normalized = normalized_input;
+
+    IF FOUND THEN RETURN; END IF;
+
+    -- Stage 5: Partial competitor SKU
+    RETURN QUERY
+    SELECT
+        p.*,
+        'partial_competitor'::TEXT AS match_type,
+        0.85::REAL AS similarity_score
+    FROM parts p
+    INNER JOIN cross_references c ON c.acr_part_id = p.id
+    WHERE c.competitor_sku_normalized LIKE '%' || normalized_input || '%'
+    LIMIT 10;
+
+    IF FOUND THEN RETURN; END IF;
+
+    -- Stage 6: Fuzzy fallback using pg_trgm (handles typos like "ACR2303O04")
+    RETURN QUERY
+    SELECT
+        p.*,
+        'fuzzy'::TEXT AS match_type,
+        similarity(p.acr_sku, search_sku) AS similarity_score
+    FROM parts p
+    WHERE similarity(p.acr_sku, search_sku) > 0.6  -- 60% similarity threshold
+    ORDER BY similarity(p.acr_sku, search_sku) DESC
+    LIMIT 10;
+
+    RETURN;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+**Key details**:
+
+- Returns immediately when match found (`IF FOUND THEN RETURN`)
+- Each stage adds `match_type` and `similarity_score` metadata
+- Fuzzy stage uses trigram similarity on original SKU (not normalized)
+- Limited to 10 results per stage (prevent overwhelming UI)
+
+#### Component Two - API Route Handler `/api/public/parts`
+
+Location: [src/app/api/public/parts/route.ts](../../../src/app/api/public/parts/route.ts#L198-L221)
+
+This Next.js API route orchestrates the search and enriches results with images.
+
+```typescript
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+
+    // Parse and validate query parameters with Zod
+    const params = publicSearchSchema.parse({
+      sku_term: searchParams.get("sku_term") || undefined,
+      make: searchParams.get("make") || undefined,
+      model: searchParams.get("model") || undefined,
+      year: searchParams.get("year") || undefined,
+      limit: searchParams.get("limit") || "15",
+      offset: searchParams.get("offset") || "0",
+    });
+
+    const supabase = createClient();
+
+    // SKU Search Path
+    if (params.sku_term) {
+      // Call database RPC function
+      const { data: allData, error: rpcError } = await supabase.rpc(
+        "search_by_sku",
+        { search_sku: params.sku_term }
+      );
+
+      if (rpcError) throw rpcError;
+
+      // Apply pagination AFTER getting full result set
+      // (Needed for accurate similarity_score ranking)
+      const totalCount = allData?.length || 0;
+      const paginatedData =
+        allData?.slice(params.offset, params.offset + params.limit) || [];
+
+      // Batch fetch primary images (prevents N+1 queries)
+      const enrichedData = await enrichWithPrimaryImages(paginatedData);
+
+      return Response.json({
+        data: enrichedData,
+        count: totalCount,
+        search_type: "sku",
+      });
+    }
+
+    // Vehicle Search Path (make/model/year)
+    // ... similar pattern with search_by_vehicle RPC
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return Response.json({ error: "Invalid parameters" }, { status: 400 });
+    }
+    return Response.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+// Helper: Batch fetch images to avoid N+1 queries
+async function enrichWithPrimaryImages(parts: PublicPart[]) {
+  if (parts.length === 0) return [];
+
+  const partIds = parts.map((p) => p.id);
+  const { data: images } = await supabase
+    .from("part_images")
+    .select("*")
+    .in("part_id", partIds) // Single query for all parts
+    .eq("is_primary", true);
+
+  const imageMap = new Map(images?.map((img) => [img.part_id, img]) || []);
+  return parts.map((part) => ({
+    ...part,
+    primary_image: imageMap.get(part.id) || null,
+  }));
+}
+```
+
+**Key details**:
+
+- Validates with Zod before calling database (fail fast on bad input)
+- Paginates after ranking (preserves similarity_score sort order)
+- Batch fetches images (1 query instead of N queries)
+- Returns metadata: `count` (total results), `search_type` (sku or vehicle)
+
+#### Component Three - Frontend Hook `usePublicParts()`
+
+Location: [src/hooks/api/public/parts.ts](../../../src/hooks/api/public/parts.ts)
+
+This React hook wraps the API with TanStack Query for caching and state management.
+
+```typescript
+export function usePublicParts(queryParams: PublicSearchParams) {
+  return useQuery({
+    queryKey: ['public', 'parts', queryParams],
+    queryFn: async () => {
+      // Filter out undefined values (don't send empty params to API)
+      const params = new URLSearchParams(
+        Object.entries(queryParams).filter(([_, v]) => v !== undefined)
+      );
+
+      const response = await fetch(`/api/public/parts?${params}`);
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.statusText}`);
+      }
+
+      return response.json() as Promise<PublicPartsResponse>;
+    },
+    staleTime: 5 * 60 * 1000,  // Data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000,    // Keep in cache for 10 minutes
+    enabled: !!queryParams.sku_term || !!(queryParams.make && queryParams.model),
+  });
+}
+
+// Usage in a component:
+function SearchResults() {
+  const { data, isLoading, error } = usePublicParts({ sku_term: "ACR2303004" });
+
+  if (isLoading) return <div>Searching...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <p>Found {data.count} results</p>
+      {data.data.map(part => (
+        <PartCard key={part.id} part={part} />
+      ))}
+    </div>
+  );
+}
+```
+
+**Key details**:
+
+- Cache key includes all search params (different searches = different cache entries)
+- `enabled` prevents query from running if required params missing
+- `staleTime` = 5 min means repeat searches hit cache (0ms)
+- `gcTime` = 10 min means cached data survives navigation
+
+#### Component Four - Validation Schema `publicSearchSchema`
+
+Location: [src/lib/schemas/public.ts](../../../src/lib/schemas/public.ts#L1-L12)
+
+Zod schema validates and transforms API query parameters.
+
+```typescript
+import { z } from "zod";
+
+export const publicSearchSchema = z.object({
+  // Vehicle search parameters
+  make: z.string().optional(),
+  model: z.string().optional(),
+  year: z.string().optional(),
+
+  // SKU search parameter (handles empty string edge case)
+  sku_term: z
+    .string()
+    .trim()
+    .min(1)
+    .optional()
+    .or(z.literal("").transform(() => undefined)), // "" → undefined
+
+  // Pagination
+  limit: z.coerce.number().int().min(1).max(100).default(15),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+export type PublicSearchParams = z.infer<typeof publicSearchSchema>;
+```
+
+**Key details**:
+
+- `.trim()` removes accidental whitespace from user input
+- `.or(z.literal('').transform(() => undefined))` handles empty string edge case
+  - Without this: `sku_term=""` fails validation (min length 1)
+  - With this: `sku_term=""` becomes `sku_term=undefined` (valid)
+- `.coerce.number()` converts URL string "15" to number 15
+- `.max(100)` prevents abuse (limiting 1000+ results crashes browser)
+
+**Why this pattern?**
+
+Forms send empty strings for unfilled inputs. Without the `.or()` transform:
+
+```typescript
+// User clears SKU field, form sends: sku_term=""
+publicSearchSchema.parse({ sku_term: "" }); // ❌ Error: min length 1
+
+// With .or() transform:
+publicSearchSchema.parse({ sku_term: "" }); // ✅ Returns: { sku_term: undefined }
+```
+
+---
+
+## Related Guides
+
+- **[Performance Tuning](performance)** - Optimization techniques and measurement methods
+
+---
+
+_Last updated: January 4, 2026_
