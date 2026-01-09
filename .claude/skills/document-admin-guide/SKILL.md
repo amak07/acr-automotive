@@ -39,7 +39,6 @@ When documenting admin features:
 - Updating existing admin guides
 - Adding clarifications or examples
 - Fixing typos or improving wording
-- Adding troubleshooting tips
 
 ## Documentation Principles (CRITICAL)
 
@@ -63,7 +62,6 @@ These principles override any template suggestions that conflict with them.
 - Use numbered steps (1, 2, 3...)
 - Start steps with action verbs ("Click", "Select", "Enter")
 - Include "What you'll see" descriptions
-- Add "If something goes wrong" sections
 - Keep sentences short (under 20 words)
 - Use bullet points for lists
 - Define any term that might be unfamiliar
@@ -75,6 +73,7 @@ These principles override any template suggestions that conflict with them.
 - Assume knowledge of developer tools
 - Use acronyms without explanation
 - Include implementation details
+- Add troubleshooting sections (operational knowledge belongs in runbooks, per DOCUMENTATION_PRINCIPLES.md)
 
 ## Language Examples
 
@@ -101,9 +100,10 @@ docs/admin-guide/
 ├── managing-parts.md     # Adding, editing, deleting parts
 ├── importing-data.md     # Excel import guide
 ├── managing-images.md    # Part images and 360° views
-├── site-settings.md      # Configuring site options
-└── troubleshooting.md    # Common problems and solutions
+└── site-settings.md      # Configuring site options
 ```
+
+**Note**: Troubleshooting content should be documented in separate runbooks under `docs/runbooks/` per DOCUMENTATION_PRINCIPLES.md.
 
 ## Quality Checklist
 
@@ -112,9 +112,9 @@ Before completing:
 - [ ] No technical jargon without explanation
 - [ ] All steps numbered and start with action verbs
 - [ ] "What you'll see" included for complex steps
-- [ ] Troubleshooting section included
 - [ ] Screenshots described (or placeholder noted)
 - [ ] Tested by imagining a non-technical user following along
+- [ ] No troubleshooting sections (these belong in runbooks)
 
 ## Examples
 
