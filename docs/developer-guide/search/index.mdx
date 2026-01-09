@@ -5,13 +5,7 @@ description: "Understanding the search system architecture and implementation"
 
 ## What You'll Learn
 
-How the dual-mode search system (vehicle + SKU) works with normalization, fuzzy matching, and sub-300ms performance.
-
-**When to use this guide**:
-
-- Building similar search features with multi-stage fallback algorithms
-- Understanding the architecture before making changes
-- Learning RPC functions vs client-side queries
+How the dual-mode search system (vehicle + SKU) works with normalization, fuzzy matching, and indexed queries for fast results.
 
 ## Quick Start
 
@@ -36,9 +30,9 @@ curl "http://localhost:3000/api/public/parts?sku_term=TM515072"
 curl "http://localhost:3000/api/public/parts?make=CHEVROLET,%20GMC&model=IMPALA&year=2005"
 ```
 
-### What Makes a "Good" Search Result?
+### Search Characteristics
 
-1. **Fast**: Sub-second response time with indexed queries
+1. **Fast**: Indexed queries with early termination
 2. **Flexible**: Works with typos, formatting variations
 3. **Ranked**: Most relevant results first (exact → partial → fuzzy)
 4. **Complete**: Includes primary images without N+1 queries
@@ -62,9 +56,9 @@ curl "http://localhost:3000/api/public/parts?make=CHEVROLET,%20GMC&model=IMPALA&
     API->>API: Parse & validate params
     API->>DB: supabase.rpc('search_by_sku', {...})
     DB->>DB: 6-stage algorithm
-    DB-->>API: Return parts (50-180ms)
+    DB-->>API: Return parts
     API->>Storage: Batch fetch images (.in(partIds))
-    Storage-->>API: Return image URLs (30ms)
+    Storage-->>API: Return image URLs
     API-->>Frontend: JSON response
     Frontend->>Frontend: TanStack Query cache (5min)
     Frontend-->>User: Display results
@@ -176,7 +170,7 @@ The search system has four layers working together:
 
 #### Component One - Database Function `search_by_sku()`
 
-Location: [supabase/migrations/20251109000000_add_sku_normalization.sql](../../../supabase/migrations/20251109000000_add_sku_normalization.sql#L209-L304)
+Location: [supabase/migrations/20251109000000_add_sku_normalization.sql](../../../supabase/migrations/20251109000000_add_sku_normalization.sql)
 
 This PostgreSQL function implements the 6-stage cascade algorithm. It takes any SKU format and returns ranked results.
 
@@ -280,7 +274,7 @@ $$ LANGUAGE plpgsql;
 
 #### Component Two - API Route Handler `/api/public/parts`
 
-Location: [src/app/api/public/parts/route.ts](../../../src/app/api/public/parts/route.ts#L198-L221)
+Location: [src/app/api/public/parts/route.ts](../../../src/app/api/public/parts/route.ts)
 
 This Next.js API route orchestrates the search and enriches results with images.
 
@@ -414,12 +408,12 @@ function SearchResults() {
 
 - Cache key includes all search params (different searches = different cache entries)
 - `enabled` prevents query from running if required params missing
-- `staleTime` = 5 min means repeat searches hit cache (0ms)
+- `staleTime` = 5 min means repeat searches hit cache instantly
 - `gcTime` = 10 min means cached data survives navigation
 
 #### Component Four - Validation Schema `publicSearchSchema`
 
-Location: [src/lib/schemas/public.ts](../../../src/lib/schemas/public.ts#L1-L12)
+Location: [src/lib/schemas/public.ts](../../../src/lib/schemas/public.ts)
 
 Zod schema validates and transforms API query parameters.
 

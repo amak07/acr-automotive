@@ -5,37 +5,35 @@ description: "Five production optimization techniques that make search fast with
 
 ## Performance Strategy Overview
 
-Our search system uses 5 optimization techniques to deliver fast results without requiring Redis, Elasticsearch, or other complex infrastructure. This guide explains each technique, shows the actual implementation, and demonstrates how to measure performance.
-
-**Prerequisites**: Read [Overview](index) to understand the 6-stage cascade architecture.
+Our search system uses 5 optimization techniques to deliver fast results without requiring Redis, Elasticsearch, or other complex infrastructure. This guide explains each technique and shows the actual implementation.
 
 ### The Big Picture
 
-Our search system handles three types of operations, each with different performance characteristics:
+Our search system handles three types of operations:
 
-**1. SKU search** - Find parts by part number (ACR or competitor SKU). This is the most common operation, representing approximately 80% of all searches. Parts counter staff scan barcodes or copy-paste part numbers from customer orders, so these searches need to be instant. Any delay impacts the sale since customers are waiting at the counter.
+**1. SKU search** - Find parts by part number (ACR or competitor SKU). This is the most common operation. Parts counter staff scan barcodes or copy-paste part numbers from customer orders, so these searches need to be instant. Any delay impacts the sale since customers are waiting at the counter.
 
-**2. Vehicle search** - Find parts that fit a specific vehicle (make, model, year). These searches are less frequent but return larger result sets (typically 20-50 matching parts). Users browse through paginated results to find the right part for their vehicle.
+**2. Vehicle search** - Find parts that fit a specific vehicle (make, model, year). These searches return larger result sets. Users browse through paginated results to find the right part for their vehicle.
 
-**3. Image enrichment** - Attach product photos to search results. Every search result needs at least one image (the primary product photo). Without optimization, fetching images for 15 search results would require 16 separate database queries (1 for parts + 15 for images), creating significant latency.
+**3. Image enrichment** - Attach product photos to search results. Every search result needs at least one image (the primary product photo). Without optimization, fetching images for 15 search results would require 16 separate database queries (1 for parts + 15 for images).
 
 ### Core Optimization Philosophy
 
-We optimize for real-world usage patterns observed in production. The majority of searches (~80%) are exact ACR SKU lookups where users scan a barcode or copy-paste a part number. These need to be instant - parts counter staff are helping customers in real-time and any delay impacts the customer experience and sale completion.
+We optimize for the expected usage pattern based on workflow analysis. The primary use case is exact ACR SKU lookups where users scan a barcode or copy-paste a part number from a customer order. These need to be instant - parts counter staff are helping customers in real-time.
 
-The remaining searches fall into two categories: competitor SKU lookups (~15%) where staff receive a part from another manufacturer and need to find the ACR equivalent, and typo-tolerant searches (~5%) where someone manually types a part number and makes a small mistake like "ACR230004" instead of "ACR2303004".
+Secondary use cases include competitor SKU lookups (staff receive a part from another manufacturer and need the ACR equivalent) and typo-tolerant searches (manual entry with small mistakes like "ACR230004" instead of "ACR2303004").
 
-This usage pattern drives our architectural decisions. We optimize the common case (exact matches) to be lightning-fast using indexed lookups that complete in single-digit milliseconds. Less common cases (competitor SKUs) use efficient joins and are still fast. Edge cases (typos) use fuzzy matching which is slower but acceptable since they're rare. The 6-stage cascade pattern implements this through early termination - if Stage 1 finds an exact match, Stages 2-6 never execute.
+This expected workflow drives our architectural decisions. We optimize the primary case (exact matches) using indexed lookups. Secondary cases (competitor SKUs) use efficient joins. Edge cases (typos) use fuzzy matching. The 6-stage cascade pattern implements this through early termination - if Stage 1 finds an exact match, Stages 2-6 never execute.
 
-**Key principle**: Make the common case fast, keep the less common cases acceptable, and ensure edge cases still work.
+**Key principle**: Make the common case fast through indexed lookups and early termination.
 
 ### How We Achieve Fast Searches
 
 We use five complementary techniques that work together:
 
-**1. Database indexes** - Pre-built data structures that let Postgres jump directly to matching rows instead of scanning entire tables. We maintain 12 indexes across 3 tables (parts, cross_references, vehicle_applications) covering both exact matches (B-tree indexes) and fuzzy matching (GIN trigram indexes).
+**1. Database indexes** - Pre-built data structures that let Postgres jump directly to matching rows instead of scanning entire tables. We maintain 13 indexes across 3 tables (parts, cross_references, vehicle_applications) covering both exact matches (B-tree indexes) and fuzzy matching (GIN trigram indexes).
 
-**2. Early termination (cascade pattern)** - The search function checks 6 different strategies in order of likelihood, but stops immediately when it finds a match. For the common case (exact ACR SKU), only Stage 1 executes and Stages 2-6 never run. This means 80% of searches take the fastest possible path.
+**2. Early termination (cascade pattern)** - The search function checks 6 different strategies in order of likelihood, but stops immediately when it finds a match. For the expected common case (exact ACR SKU where users scan a barcode or copy-paste), only Stage 1 executes and Stages 2-6 never run, making this the fastest possible path.
 
 **3. Batch fetching (N+1 prevention)** - Instead of making separate database queries for each item's related data, we collect all IDs and fetch everything in a single batch query. For example, getting images for 15 parts requires 2 queries total (1 for parts + 1 for all images) instead of 16 separate queries.
 
@@ -43,15 +41,11 @@ We use five complementary techniques that work together:
 
 **5. Smart pagination** - We use different pagination strategies based on the operation. SKU searches use application-level pagination (fetch all, paginate in memory) to maintain accurate similarity sorting across pages. Vehicle searches use database-level pagination (.range()) for efficiency since result sets are larger and don't need similarity sorting.
 
-**Result**: Sub-100ms searches for the common case, using only Postgres and smart query patterns. No Redis, no Elasticsearch, no additional infrastructure to maintain.
+**Result**: Fast searches using only Postgres and smart query patterns. No Redis, no Elasticsearch, no additional infrastructure to maintain.
 
 ---
 
 ## Optimization Techniques
-
-**All techniques below are implemented in production code** with accurate file references.
-
----
 
 ### Technique 1: Database Indexes
 
@@ -62,7 +56,7 @@ We use five complementary techniques that work together:
 **What we've implemented**:
 
 ```sql
--- File: supabase/migrations/20250907000000_initial_schema.sql (lines 84-95)
+-- File: supabase/migrations/20250907000000_initial_schema.sql
 
 -- B-tree indexes for exact lookups
 CREATE INDEX idx_parts_acr_sku ON parts(acr_sku);
@@ -78,7 +72,7 @@ CREATE INDEX idx_cross_references_competitor_sku_trgm
 ```
 
 ```sql
--- File: supabase/migrations/20251109000000_add_sku_normalization.sql (lines 178-190)
+-- File: supabase/migrations/20251109000000_add_sku_normalization.sql
 
 -- Additional indexes on normalized SKU columns
 CREATE INDEX idx_parts_acr_sku_normalized ON parts(acr_sku_normalized);
@@ -115,7 +109,7 @@ EXPLAIN ANALYZE SELECT * FROM search_by_sku('ACR2303004');
 **Actual implementation**:
 
 ```sql
--- File: supabase/migrations/20251109000000_add_sku_normalization.sql (lines 209-303)
+-- File: supabase/migrations/20251109000000_add_sku_normalization.sql
 CREATE OR REPLACE FUNCTION search_by_sku(search_sku TEXT)
 RETURNS TABLE (...) AS $$
 DECLARE
@@ -143,12 +137,12 @@ END;
 $$ LANGUAGE plpgsql;
 ```
 
-**Performance impact**:
+**How stages execute**:
 - **Best case** (exact ACR match): Stage 1 only → exits immediately
 - **Common case** (competitor SKU): Stages 1-4 → stops at Stage 4
 - **Worst case** (typo): All 6 stages → fuzzy fallback runs
 
-**Real-world example**:
+**Examples**:
 - User scans barcode "ACR2303004" → Stage 1 matches → stages 2-6 never run
 - User types "TM515072" (competitor) → Stages 1-3 fail, Stage 4 matches → stages 5-6 never run
 
@@ -179,7 +173,7 @@ for (const part of parts) {
 
 ```typescript
 // ✅ GOOD: 2 queries total (1 for parts + 1 for all images)
-// File: src/app/api/public/parts/route.ts (lines 10-78)
+// File: src/app/api/public/parts/route.ts
 
 async function enrichWithPrimaryImages(parts: DatabasePartRow[]) {
   if (!parts || parts.length === 0) return [];
@@ -222,13 +216,13 @@ async function enrichWithPrimaryImages(parts: DatabasePartRow[]) {
 }
 ```
 
-**Performance comparison**:
+**Comparison**:
 
-| Approach | Queries | Approximate Time |
-|----------|---------|------------------|
-| N+1 (bad) | 1 + 15 = **16 queries** | ~800ms (50ms × 16) |
-| Batch (good) | 1 + 1 = **2 queries** | ~100ms (50ms × 2) |
-| **Improvement** | **8x fewer queries** | **8x faster** |
+| Approach | Queries |
+|----------|---------|
+| N+1 (bad) | 1 + 15 = **16 queries** |
+| Batch (good) | 1 + 1 = **2 queries** |
+| **Improvement** | **8x fewer queries** |
 
 **Key technique**: Use `.in(partIds)` instead of `.eq(partId)` in a loop.
 
@@ -238,14 +232,14 @@ async function enrichWithPrimaryImages(parts: DatabasePartRow[]) {
 
 **What it is**: Store search results in memory so repeated searches don't hit the server.
 
-**Why it matters**: Parts counter staff often search the same SKUs repeatedly throughout the day. Caching makes repeat searches instant (0ms, no network request).
+**Why it matters**: Parts counter staff often search the same SKUs repeatedly throughout the day. Caching makes repeat searches instant with no network request.
 
 **How it works**: TanStack Query automatically caches API responses based on unique cache keys.
 
 **Actual implementation**:
 
 ```typescript
-// File: src/hooks/api/public/parts.ts (lines 52-98)
+// File: src/hooks/api/public/parts.ts
 export function usePublicParts(queryParams: UsePublicPartsParams) {
   const { make, model, year, sku_term, limit = 15, offset = 0 } = queryParams;
 
@@ -280,24 +274,24 @@ export function usePublicParts(queryParams: UsePublicPartsParams) {
 }
 ```
 
-**Performance impact**:
+**Cache behavior**:
 
 | Search Type | First Search | Repeat Search (within 5min) |
 |-------------|--------------|----------------------------|
-| ACR SKU | ~100ms (server query) | **0ms** (cached) |
-| Vehicle | ~150ms (server query) | **0ms** (cached) |
-| Different SKU | ~100ms (new query) | ~100ms (different cache key) |
+| ACR SKU | Server query | Instant (cached) |
+| Vehicle | Server query | Instant (cached) |
+| Different SKU | Server query | Server query (different cache key) |
 
 **Cache key strategy**:
 - **Unique per search**: `sku_term: 'ACR2303004'` has different key than `sku_term: 'TM515072'`
 - **Prevents stale data**: Changing any param (make, year, offset) creates new cache key → fresh fetch
 - **Partial prefix matching**: Invalidate all parts queries with `queryClient.invalidateQueries({ queryKey: ['public', 'parts'] })`
 
-**Real-world example**:
-1. User searches "ACR2303004" → 100ms (server)
+**Example flow**:
+1. User searches "ACR2303004" → server query
 2. User clicks part → views details → clicks back
-3. User searches "ACR2303004" again → **0ms (cached)** ✅
-4. User searches "TM515072" → 100ms (different cache key, new query)
+3. User searches "ACR2303004" again → instant (cached)
+4. User searches "TM515072" → server query (different cache key)
 
 ---
 
@@ -310,7 +304,7 @@ export function usePublicParts(queryParams: UsePublicPartsParams) {
 **Actual implementation**:
 
 ```typescript
-// File: src/app/api/public/parts/route.ts (lines 198-220)
+// File: src/app/api/public/parts/route.ts
 
 // SKU search using RPC
 if (params.sku_term) {
@@ -343,7 +337,7 @@ if (params.sku_term) {
 **For browse mode** (no search term):
 
 ```typescript
-// File: src/app/api/public/parts/route.ts (lines 170-194)
+// File: src/app/api/public/parts/route.ts
 
 // Use database-level pagination (.range()) when browsing all parts
 let query = supabase

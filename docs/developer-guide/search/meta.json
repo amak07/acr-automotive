@@ -1,4 +1,5 @@
 {
   "title": "Search",
+  "defaultOpen": true,
   "pages": ["index", "performance"]
 }

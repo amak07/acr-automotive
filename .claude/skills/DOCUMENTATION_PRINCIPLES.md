@@ -226,8 +226,7 @@ Every code example must:
 
 1. **Be real code** - Copy from actual files, don't write hypothetical examples
 2. **Include file path** - Show where in the codebase this code lives
-3. **Include line numbers** - Reference specific lines for traceability
-4. **Show context** - Include enough surrounding code to understand what's happening
+3. **Show context** - Include enough surrounding code to understand what's happening
 
 ### Format
 
@@ -235,7 +234,7 @@ Use this format consistently:
 
 ````markdown
 ```typescript
-// File: src/hooks/api/public/parts.ts (lines 95-96)
+// File: src/hooks/api/public/parts.ts
 staleTime: 5 * 60 * 1000,  // 5 minutes - data considered fresh
 gcTime: 10 * 60 * 1000,    // 10 minutes - keep in memory
 ```
@@ -250,7 +249,7 @@ gcTime: 10 * 60 * 1000,    // 10 minutes - keep in memory
 We use TanStack Query's caching to avoid redundant API calls:
 
 ```typescript
-// File: src/hooks/api/public/parts.ts (lines 66-97)
+// File: src/hooks/api/public/parts.ts
 return useQuery<{ data: PartSearchResult[]; count: number }>({
   queryKey,
   queryFn: async () => {
