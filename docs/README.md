@@ -25,8 +25,20 @@ High-level feature documentation for RAG and developer reference.
 
 ### Coming Soon
 
-- **Search System** - Core search functionality and optimization strategies
 - **Authentication** - Admin auth and security (Phase 9)
+
+## Developer Guides
+
+Architecture-focused guides explaining core technical implementations and design decisions.
+
+- **[Search System](./developer-guide/search/)** - ✅ 6-stage fallback algorithm with normalization and fuzzy matching
+  - [Overview](./developer-guide/search/index.mdx) - Architecture deep-dive, RPC functions, design decisions
+  - [Performance](./developer-guide/search/performance.mdx) - Optimization techniques, N+1 prevention, benchmarks
+
+- **[Excel Data Processing](./developer-guide/excel-processing.mdx)** - ✅ Export-import lifecycle with ID-based change tracking
+  - Multi-stage import workflow (validate → preview → execute)
+  - Atomic transactions and snapshot-based rollback
+  - Export pagination and hidden column implementation
 
 ## Architecture Documentation
 
@@ -63,28 +75,35 @@ Located in: [excel/](./excel/)
 
 ## Documentation Standards
 
-### For RAG-Ready Docs (in `features/` and `architecture/`)
+### Structure (Adapt as Needed)
 
-**Purpose**: Comprehensive reference documentation for completed features
+Not all sections required - use what makes sense for the feature:
 
-**Structure**:
+1. **Overview** - What it does, why it exists, real-world context
+2. **Architecture** - How it works (diagrams, data flow, actual implementation)
+3. **Code Examples** - Real code from codebase with file paths and line numbers
+4. **API Reference** - Endpoints, parameters, responses (if applicable)
+5. **Verification** - How to confirm it works (basic smoke tests)
 
-1. **Overview** - What the feature does and why it exists
-2. **Architecture** - How it works (diagrams, flow charts)
-3. **API Reference** - Endpoints, parameters, responses
-4. **Code Examples** - Real usage examples with context
-5. **Error Handling** - Common issues and solutions
-6. **Performance** - Benchmarks and optimization notes
-7. **Testing** - How to test the feature
-8. **Future Enhancements** - Planned improvements
+### Writing Tone
 
-**Style**:
+- Clear and accessible language
+- Explain concepts using "What it is / Why it matters / How it works" structure
+- Provide real-world context and examples
+- NO audience callouts ("for junior devs") or skill level labels
 
-- Include real code snippets from the codebase
-- Add performance metrics from actual tests
-- Cross-reference related docs
-- Include troubleshooting sections
-- Use clear headings for RAG searchability
+### Critical Rules
+
+1. **Ground truth only** - Document what exists in code. No estimates, projections, or speculation.
+2. **Clarity without meta-commentary** - Write clearly, don't announce audience or purpose.
+3. **Real code only** - All examples reference actual files with paths (e.g., [src/app/api/route.ts:42](src/app/api/route.ts#L42)).
+4. **Measured metrics only** - If metrics don't exist, omit the section. Don't estimate.
+5. **Diagrams when helpful** - Use Mermaid to clarify architecture/flow, not for decoration.
+6. **No operational content** - Troubleshooting → runbooks. Future plans → TASKS.md/ENHANCEMENTS.md.
+
+### Full Principles
+
+See [.claude/skills/DOCUMENTATION_PRINCIPLES.md](.claude/skills/DOCUMENTATION_PRINCIPLES.md) for complete guidance.
 
 ### For Technical Plans (in `technical-plans/`)
 

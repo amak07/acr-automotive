@@ -1,0 +1,459 @@
+---
+title: "Validation & Diff"
+description: "Error rules, warning detection, change tracking, and normalization"
+---
+
+## Validation & Diff Engines
+
+The validation and diff engines work together to ensure data integrity and provide clear change previews before import execution.
+
+### ValidationEngine: Errors vs Warnings
+
+The validation engine implements 19 error rules (block import) and 10 warning rules (require acknowledgment). This distinction is critical: errors indicate data that **cannot** be safely imported, warnings indicate data that **should not** be imported without user confirmation.
+
+**Error examples (E1-E20)**:
+
+```typescript
+// File: src/services/excel/validation/ValidationEngine.ts (lines 85-120)
+
+// E1: Missing hidden ID columns (enforces export-only workflow)
+if (!parsed.parts.hasHiddenIds) {
+  errors.push({
+    code: 'E1',
+    sheet: 'Parts',
+    message: 'Missing required hidden ID columns. File must be exported from ACR system.',
+  });
+}
+
+// E3: Empty required field
+if (!part.acr_sku || part.acr_sku.trim() === '') {
+  errors.push({
+    code: 'E3',
+    sheet: 'Parts',
+    row: rowIndex,
+    column: 'ACR_SKU',
+    message: 'ACR_SKU is required',
+  });
+}
+
+// E5: Orphaned foreign key
+const partExists = existingParts.has(vehicle._part_id);
+if (!partExists) {
+  errors.push({
+    code: 'E5',
+    sheet: 'Vehicle Applications',
+    row: rowIndex,
+    column: '_part_id',
+    message: `Part ID ${vehicle._part_id} not found in Parts sheet`,
+    value: vehicle._part_id,
+  });
+}
+
+// E6: Invalid year range
+if (vehicle.start_year && vehicle.end_year && vehicle.start_year > vehicle.end_year) {
+  errors.push({
+    code: 'E6',
+    sheet: 'Vehicle Applications',
+    row: rowIndex,
+    message: `Start year (${vehicle.start_year}) cannot be after end year (${vehicle.end_year})`,
+  });
+}
+```
+
+**Warning examples (W1-W10)**:
+
+```typescript
+// W1: ACR_SKU changed (breaks existing references)
+if (existing.acr_sku !== part.acr_sku) {
+  warnings.push({
+    code: 'W1',
+    sheet: 'Parts',
+    row: rowIndex,
+    message: `ACR_SKU changed from "${existing.acr_sku}" to "${part.acr_sku}"`,
+    severity: 'high',
+  });
+}
+
+// W2: Year range narrowed (data loss)
+if (existing.start_year < part.start_year || existing.end_year > part.end_year) {
+  warnings.push({
+    code: 'W2',
+    sheet: 'Vehicle Applications',
+    row: rowIndex,
+    message: `Year range narrowed from ${existing.start_year}-${existing.end_year} to ${part.start_year}-${part.end_year}`,
+    severity: 'medium',
+  });
+}
+
+// W5: Cross-reference deleted (missing from file)
+existingCrossRefs.forEach((cr) => {
+  const inFile = fileCrossRefs.find(row => row._id === cr.id);
+  if (!inFile) {
+    warnings.push({
+      code: 'W5',
+      sheet: 'Cross References',
+      message: `Cross-reference "${cr.competitor_brand} ${cr.competitor_sku}" will be deleted`,
+      severity: 'medium',
+    });
+  }
+});
+```
+
+**Design principle**: Errors are objective (violate database constraints or business logic). Warnings are subjective (might be intentional changes). Users know their intent better than the system does.
+
+### Complete Error Codes (E1-E20)
+
+**File-level errors**:
+- **E1**: Missing hidden ID columns (enforces export-only workflow)
+- **E10**: Required sheet missing
+- **E13**: Invalid sheet name
+
+**Field validation errors**:
+- **E2**: Duplicate ACR_SKU within file
+- **E3**: Empty required field
+- **E4**: Invalid UUID format
+- **E7**: String exceeds maximum length
+- **E8**: Year out of range (1900 to current year + 2)
+- **E9**: Invalid number format (years must be integers)
+
+**Relationship errors**:
+- **E5**: Orphaned foreign key (ACR_SKU reference not found)
+- **E6**: Year range invalid (start_year > end_year)
+- **E19**: UUID not in database (UPDATE attempt on deleted record)
+
+**Business rule errors**:
+- **E20**: ACR_SKU must start with "ACR" prefix
+
+### Complete Warning Codes (W1-W10)
+
+**Part changes**:
+- **W1**: ACR_SKU changed (may break external references)
+- **W3**: Part_Type changed (affects categorization)
+- **W4**: Position_Type changed
+- **W7**: Specifications shortened significantly (>50% reduction)
+
+**Vehicle application changes**:
+- **W2**: Year range narrowed (data loss)
+- **W6**: Vehicle application deleted (missing from file)
+- **W8**: Vehicle make changed
+- **W9**: Vehicle model changed
+
+**Cross-reference changes**:
+- **W5**: Cross-reference deleted (missing from file)
+- **W10**: Competitor brand changed
+
+### Normalization: Null vs Undefined vs Empty String
+
+Excel's handling of empty cells created a major bug during development. The database stores `null` for missing values. JavaScript leaves empty object properties `undefined`. Excel sometimes exports empty cells as empty strings `""`. Comparing these directly creates false positives:
+
+```typescript
+// Before normalization (buggy)
+if (existing.position_type !== part.position_type) {
+  changes.push('position_type');
+}
+
+// Example: existing.position_type = null (from DB)
+//          part.position_type = undefined (from Excel parser)
+//          null !== undefined → FALSE POSITIVE: Detected as change
+```
+
+The solution normalizes all three to `null`:
+
+```typescript
+// File: src/services/excel/validation/ValidationEngine.ts (lines 245-252)
+// File: src/services/excel/diff/DiffEngine.ts (lines 215-222)
+
+private normalizeOptional(value: any): string | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  return String(value);
+}
+
+// Usage in comparison
+if (this.normalizeOptional(existing.position_type) !==
+    this.normalizeOptional(part.position_type)) {
+  changes.push('position_type');
+}
+```
+
+This pattern is applied in **both** ValidationEngine (for warning detection) and DiffEngine (for change detection). Consistency across both prevents validation showing "0 warnings" while diff shows "209 updates."
+
+**Why all three?**
+- **null**: PostgreSQL stores `NULL` for "no value"
+- **undefined**: JavaScript objects with missing keys return `undefined`
+- **empty string**: Excel exports empty cells as `""` in some cases (depends on cell formatting)
+
+Treating all three as equivalent matches user intent: "I left this cell blank."
+
+### DiffEngine
+
+Generates change preview by comparing file to database using ID-based matching.
+
+```typescript
+// File: src/services/excel/diff/DiffEngine.ts (lines 35-95)
+
+generateDiff(
+  parsed: ParsedExcelFile,
+  existingData: ExistingData
+): DiffResult {
+  const diffResult: DiffResult = {
+    parts: { adds: [], updates: [], deletes: [], unchanged: [] },
+    vehicleApplications: { adds: [], updates: [], deletes: [], unchanged: [] },
+    crossReferences: { adds: [], updates: [], deletes: [], unchanged: [] },
+    summary: {
+      totalAdds: 0,
+      totalUpdates: 0,
+      totalDeletes: 0,
+      totalChanges: 0,
+      changesBySheet: {},
+    },
+  };
+
+  // Build Maps for O(1) lookup
+  const existingParts = new Map(
+    existingData.parts.map(p => [p.id, p])
+  );
+
+  // Process each row in uploaded file
+  parsed.parts.data.forEach((part) => {
+    if (!part._id || part._id.trim() === '') {
+      // No ID = ADD operation
+      diffResult.parts.adds.push({
+        operation: 'ADD',
+        row: part,
+        after: part,
+      });
+    } else {
+      const existing = existingParts.get(part._id);
+
+      if (!existing) {
+        // ID not in DB = ADD (shouldn't happen after validation)
+        diffResult.parts.adds.push({
+          operation: 'ADD',
+          row: part,
+          after: part,
+        });
+      } else {
+        // Compare fields to detect changes
+        const changes = this.detectPartChanges(existing, part);
+
+        if (changes.length > 0) {
+          // Data changed = UPDATE
+          diffResult.parts.updates.push({
+            operation: 'UPDATE',
+            row: part,
+            before: existing,
+            after: part,
+            changes,  // ['acr_sku', 'part_type']
+          });
+        } else {
+          // Identical = UNCHANGED
+          diffResult.parts.unchanged.push({
+            operation: 'UNCHANGED',
+            row: part,
+          });
+        }
+
+        // Mark as seen (for delete detection)
+        existingParts.delete(part._id);
+      }
+    }
+  });
+
+  // Remaining records in DB but NOT in file = DELETE
+  existingParts.forEach((existing) => {
+    diffResult.parts.deletes.push({
+      operation: 'DELETE',
+      before: existing,
+    });
+  });
+
+  // ... similar logic for vehicles and cross-refs
+
+  // Calculate summary
+  diffResult.summary.totalAdds =
+    diffResult.parts.adds.length +
+    diffResult.vehicleApplications.adds.length +
+    diffResult.crossReferences.adds.length;
+
+  // ... totalUpdates, totalDeletes, totalChanges
+
+  return diffResult;
+}
+```
+
+**Field-level change detection**:
+
+```typescript
+// File: src/services/excel/diff/DiffEngine.ts (lines 215-245)
+
+private detectPartChanges(before: any, after: any): string[] {
+  const changes: string[] = [];
+  const fields = ['acr_sku', 'part_type', 'position_type', 'abs_type', 'bolt_pattern', 'drive_type', 'specifications'];
+
+  fields.forEach(field => {
+    const beforeValue = this.normalizeOptional(before[field]);
+    const afterValue = this.normalizeOptional(after[field]);
+
+    if (beforeValue !== afterValue) {
+      changes.push(field);
+    }
+  });
+
+  return changes;
+}
+
+private normalizeOptional(value: any): string | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  return String(value);
+}
+```
+
+The normalization prevents false positives from null/undefined/empty string equivalence (as explained in Normalization section).
+
+## Data Structures
+
+### ValidationResult
+
+```typescript
+// File: src/services/excel/shared/types.ts (lines 85-105)
+interface ValidationResult {
+  valid: boolean;              // false if any errors exist
+  errors: ValidationIssue[];   // Block import
+  warnings: ValidationIssue[]; // Require acknowledgment
+  summary: {
+    totalErrors: number;
+    totalWarnings: number;
+    errorsBySheet: Record<string, number>;
+    warningsBySheet: Record<string, number>;
+  };
+}
+
+interface ValidationIssue {
+  code: string;           // E1-E20 or W1-W10
+  sheet: string;          // "Parts", "Vehicle Applications", "Cross References"
+  row?: number;           // Excel row number (1-indexed, row 1 = header)
+  column?: string;        // Column name ("ACR_SKU", "_part_id")
+  message: string;        // Human-readable error description
+  severity: 'error' | 'high' | 'medium' | 'low';
+  value?: any;            // Invalid value (for debugging)
+}
+```
+
+### DiffResult
+
+```typescript
+// File: src/services/excel/shared/types.ts (lines 125-155)
+interface DiffResult {
+  parts: SheetDiff;
+  vehicleApplications: SheetDiff;
+  crossReferences: SheetDiff;
+  summary: {
+    totalAdds: number;
+    totalUpdates: number;
+    totalDeletes: number;
+    totalChanges: number;
+    changesBySheet: Record<string, { adds: number; updates: number; deletes: number }>;
+  };
+}
+
+interface SheetDiff {
+  adds: DiffOperation[];
+  updates: DiffOperation[];
+  deletes: DiffOperation[];
+  unchanged: DiffOperation[];
+}
+
+interface DiffOperation {
+  operation: 'ADD' | 'UPDATE' | 'DELETE' | 'UNCHANGED';
+  row?: any;           // Current row from Excel file
+  before?: any;        // Previous state (for UPDATE/DELETE)
+  after?: any;         // New state (for ADD/UPDATE)
+  changes?: string[];  // Field names that changed (for UPDATE)
+}
+```
+
+**Example diff operation**:
+```json
+{
+  "operation": "UPDATE",
+  "row": { "_id": "550e...", "acr_sku": "ACR2303005", "part_type": "Brake Caliper" },
+  "before": { "id": "550e...", "acr_sku": "ACR2303004", "part_type": "Brake Caliper" },
+  "after": { "_id": "550e...", "acr_sku": "ACR2303005", "part_type": "Brake Caliper" },
+  "changes": ["acr_sku"]
+}
+```
+
+### SnapshotData
+
+```typescript
+// File: src/services/excel/rollback/RollbackService.ts (lines 25-35)
+interface SnapshotData {
+  parts: any[];                    // Array of all part records
+  vehicle_applications: any[];     // Array of all vehicle application records
+  cross_references: any[];         // Array of all cross-reference records
+  timestamp: string;               // ISO 8601 timestamp
+}
+
+// Stored in import_history table
+interface ImportHistoryRecord {
+  id: string;                      // UUID
+  tenant_id: string | null;        // Multi-tenant support (null for MVP)
+  imported_by: string;             // User identifier
+  file_name: string;               // Original filename
+  file_size_bytes: number;         // File size
+  rows_imported: number;           // Total records changed
+  snapshot_data: SnapshotData;     // JSONB column
+  import_summary: {
+    adds: number;
+    updates: number;
+    deletes: number;
+  };
+  imported_at: string;             // Timestamp
+}
+```
+
+Snapshots are automatically cleaned up: a database trigger keeps only the last 3 imports per tenant, deleting older snapshots to prevent unbounded growth.
+
+### Excel File Structure
+
+Three sheets with hidden ID columns for round-trip editing:
+
+**Parts Sheet**:
+```
+Column A (hidden): _id              = "550e8400-e29b-41d4-a716-446655440000"
+Column B:          ACR_SKU          = "ACR2303004"
+Column C:          Part_Type        = "Brake Caliper"
+Column D:          Position_Type    = "Front Left"
+Column E:          ABS_Type         = "With ABS"
+Column F:          Bolt_Pattern     = null
+Column G:          Drive_Type       = null
+Column H:          Specifications   = "Remanufactured, includes bracket"
+```
+
+**Vehicle Applications Sheet**:
+```
+Column A (hidden): _id              = "660e8400-e29b-41d4-a716-446655440001"
+Column B (hidden): _part_id         = "550e8400-e29b-41d4-a716-446655440000"
+Column C:          ACR_SKU          = "ACR2303004" (joined from parts)
+Column D:          Make             = "HONDA"
+Column E:          Model            = "CIVIC"
+Column F:          Start_Year       = 2006
+Column G:          End_Year         = 2011
+```
+
+**Cross References Sheet**:
+```
+Column A (hidden): _id              = "770e8400-e29b-41d4-a716-446655440002"
+Column B (hidden): _acr_part_id     = "550e8400-e29b-41d4-a716-446655440000"
+Column C:          ACR_SKU          = "ACR2303004" (joined from parts)
+Column D:          Competitor_Brand = "MOTORCRAFT"
+Column E:          Competitor_SKU   = "BR930625"
+```
+
+---
+
+_Last updated: January 7, 2026_
