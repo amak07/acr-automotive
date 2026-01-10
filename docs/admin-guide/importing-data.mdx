@@ -3,13 +3,11 @@ title: Importing Data
 description: How to bulk import parts, vehicle applications, and cross-references from Excel
 ---
 
-## Overview
+> **For**: Admin staff | **Time**: ~10 minutes
 
-The Import Wizard lets you make bulk changes to your catalog using Excel. This is useful when you need to:
-- Add many new parts at once
-- Update vehicle applications for multiple parts
-- Add cross-references in bulk
-- Make mass corrections to part attributes
+## What This Does
+
+The Import Wizard lets you make bulk changes to your catalog using Excel - adding many parts at once, updating vehicle applications for multiple parts, adding cross-references in bulk, and making mass corrections to part attributes.
 
 **Important**: You must export your data first before importing. The system uses hidden ID columns in the export file to track which records to update.
 
@@ -149,34 +147,6 @@ The system keeps a snapshot of your data before each import, so you can always g
 
 ---
 
-## Common Errors and Solutions
-
-### "Missing required hidden columns"
-
-**Cause:** You uploaded a file that wasn't exported from the system.
-
-**Solution:** Export your data first, then make changes to that file.
-
-### "Duplicate ACR_SKU found"
-
-**Cause:** Two rows in the Parts sheet have the same SKU.
-
-**Solution:** Remove the duplicate row or give each part a unique SKU.
-
-### "Orphaned vehicle application"
-
-**Cause:** A vehicle application references a part that doesn't exist.
-
-**Solution:** Make sure the part exists in the Parts sheet, or remove the vehicle application row.
-
-### "Invalid year range"
-
-**Cause:** Start year is greater than end year.
-
-**Solution:** Swap the years so Start_Year ≤ End_Year.
-
----
-
 ## Tips for Successful Imports
 
 - **Always export first** - The hidden ID columns are essential
@@ -187,19 +157,11 @@ The system keeps a snapshot of your data before each import, so you can always g
 
 ---
 
-## Performance
-
-The import wizard handles large files efficiently:
-
-| Records | Typical Time |
-|---------|--------------|
-| 1,000 | ~2 seconds |
-| 10,000 | ~10 seconds |
-| 50,000 | ~30 seconds |
-
----
-
 ## Next Steps
 
 - [Exporting Data](/docs/admin-guide/exporting-data) - How to export your catalog
 - [Managing Parts](/docs/admin-guide/managing-parts) - Edit individual parts
+
+---
+
+_Last updated: 2026-01-08_

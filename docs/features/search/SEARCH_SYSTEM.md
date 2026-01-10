@@ -22,6 +22,8 @@ title: "Search System"
 - [Performance Optimizations](#performance-optimizations)
 - [Examples](#examples)
 
+> **💡 For Developers**: See **[Search System Developer Guide](../../developer-guide/search-system.mdx)** for implementation patterns, extension recipes, and debugging playbook.
+
 ---
 
 ## Overview
