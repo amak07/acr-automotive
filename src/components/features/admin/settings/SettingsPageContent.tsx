@@ -1,8 +1,7 @@
 "use client";
 
-import { Settings, ArrowLeft } from "lucide-react";
+import { Settings } from "lucide-react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { useRouter } from "next/navigation";
 import {
   AcrTabs,
   AcrTabsList,
@@ -15,24 +14,10 @@ import { ImportHistorySettings } from "./ImportHistorySettings";
 
 export function SettingsPageContent() {
   const { t } = useLocale();
-  const router = useRouter();
-
-  const handleBackClick = () => {
-    router.back();
-  };
 
   return (
     <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
       <div className="mb-8">
-        {/* Back button */}
-        <button
-          onClick={handleBackClick}
-          className="flex items-center text-sm text-acr-gray-600 hover:text-acr-red-600 transition-colors mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          {t("admin.settings.back")}
-        </button>
-
         {/* Header with title */}
         <div className="flex items-center gap-3 mb-4">
           <Settings className="w-7 h-7 md:w-8 md:h-8 text-acr-red-600" />

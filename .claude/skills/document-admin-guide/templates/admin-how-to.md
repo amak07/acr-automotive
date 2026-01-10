@@ -51,30 +51,6 @@ Make sure you have:
 
 ---
 
-## If Something Goes Wrong
-
-### Problem: [Common issue in plain language]
-
-**What you see**: [Description of the error or unexpected behavior]
-
-**How to fix it**:
-
-1. [First thing to try]
-2. [Second thing to try]
-3. If it still doesn't work, [who to contact or what to do]
-
----
-
-### Problem: [Another common issue]
-
-**What you see**: [Description]
-
-**How to fix it**:
-
-1. [Solution steps]
-
----
-
 ## Quick Reference
 
 | Task             | Where to Find It |

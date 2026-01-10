@@ -1,0 +1,486 @@
+---
+title: "Import Architecture"
+description: "Multi-stage workflow, atomic transactions, and snapshot-based rollback"
+---
+
+import { Mermaid } from '@/components/docs/Mermaid';
+
+## Import Architecture
+
+The import system uses a deliberate three-stage progression (validate → preview → execute) with ID-based change detection, atomic PostgreSQL transactions, and snapshot-based rollback for safety.
+
+### Three-Stage Workflow: Validate → Preview → Execute
+
+The import system uses a deliberate three-stage progression instead of direct upload-and-commit. This design emerged from a painful lesson during development: Humberto uploaded a file with 132 false warnings and 209 false updates (due to a null/undefined normalization bug). If the system had auto-committed, he would have overwritten good data with identical data, creating meaningless import history.
+
+The stages provide escalating levels of commitment:
+
+**Stage 1: Validate** - Parse and check for errors
+- User uploads file
+- System parses Excel sheets
+- Validates against business rules (19 error types, 10 warning types)
+- Returns validation result WITHOUT touching database
+- **Blocks if errors exist** (missing required fields, invalid UUIDs, orphaned FKs)
+- **Warns if risky changes detected** (ACR_SKU changed, year range narrowed, deletes)
+
+**Stage 2: Preview** - Show exactly what will change
+- Re-validates (user might upload different file)
+- Generates diff by comparing file to database
+- Returns operation counts: 15 adds, 8 updates, 2 deletes
+- Shows field-level changes: "ACR_SKU changed from ACR2303004 to ACR2303005"
+- **Still no database changes**
+
+**Stage 3: Execute** - Commit changes atomically
+- Creates snapshot (full database dump to JSONB)
+- Executes atomic PostgreSQL transaction
+- Saves import history with snapshot
+- Returns on success OR rolls back entire transaction on error
+
+**Why three stages instead of two (validate + execute)?**
+
+The preview stage serves a critical psychological purpose: **seeing the numbers before committing**. Validation tells you "this is safe," but preview tells you "this will change 500 records" vs "this will change 5 records." A 500-record change on a 15-record diff is a red flag—user probably uploaded the wrong file.
+
+<Mermaid chart={`flowchart TD
+    Start([User uploads Excel file]) --> Parse[Parse with ExcelImportService]
+    Parse --> ValidateFile{File valid?}
+    ValidateFile -->|No| ErrorFile[Return file format error]
+    ValidateFile -->|Yes| FetchDB[Fetch existing database data]
+
+    FetchDB --> Validate[ValidationEngine.validate]
+    Validate --> CheckErrors{Errors found?}
+    CheckErrors -->|Yes| BlockImport[Block import<br/>Display errors to user]
+    CheckErrors -->|No| CheckWarnings{Warnings found?}
+
+    CheckWarnings -->|Yes| ShowWarnings[Show warnings to user<br/>Require acknowledgment]
+    CheckWarnings -->|No| GenerateDiff[DiffEngine.generateDiff]
+    ShowWarnings --> UserAck{User<br/>acknowledges?}
+    UserAck -->|No| Cancel([Cancel import])
+    UserAck -->|Yes| GenerateDiff
+
+    GenerateDiff --> PreviewChanges[Display change preview:<br/>X adds, Y updates, Z deletes]
+    PreviewChanges --> UserConfirm{User confirms<br/>execute?}
+    UserConfirm -->|No| Cancel
+    UserConfirm -->|Yes| CreateSnapshot[Create pre-import snapshot]
+
+    CreateSnapshot --> Transaction[Execute atomic transaction<br/>via PostgreSQL function]
+    Transaction --> TxSuccess{Transaction<br/>successful?}
+    TxSuccess -->|No| Rollback[Automatic rollback<br/>No changes applied]
+    TxSuccess -->|Yes| SaveHistory[Save import history<br/>with snapshot]
+
+    SaveHistory --> Complete([Import complete])
+    Rollback --> DisplayError[Display error to user]
+    DisplayError --> Cancel
+
+    style CheckErrors fill:#ffe1e1
+    style CheckWarnings fill:#fff4e1
+    style UserAck fill:#e1f5e1
+    style UserConfirm fill:#e1f5e1
+    style TxSuccess fill:#e1f5e1
+    style BlockImport fill:#ff6b6b
+    style Complete fill:#51cf66
+`} />
+
+### ID-Based Change Detection: Why UUIDs Matter
+
+The diff engine matches records by UUID (`_id` column), not by field values like `ACR_SKU`. This was a conscious architectural choice with significant implications.
+
+**Alternative considered**: Match by ACR_SKU (field-based)
+```typescript
+// Field-based approach (NOT used)
+const existing = existingParts.find(p => p.acr_sku === row.acr_sku);
+if (existing) {
+  // UPDATE
+} else {
+  // ADD
+}
+```
+
+**Why this fails**: If Humberto changes `ACR2303004` to `ACR2303005` in Excel, field-based matching sees:
+- Row with SKU "ACR2303005" not in database → **ADD**
+- Row with SKU "ACR2303004" not in file → **DELETE**
+
+Result: The system would delete the old part (losing all vehicle applications and cross-references) and create a new part (blank applications/cross-refs). This is data destruction.
+
+**ID-based approach (used)**:
+```typescript
+// File: src/services/excel/diff/DiffEngine.ts (lines 45-75)
+if (!row._id || row._id.trim() === '') {
+  // No ID = new row
+  adds.push({ operation: 'ADD', row: part, after: part });
+} else {
+  const existing = existingParts.get(row._id);  // O(1) Map lookup
+  if (!existing) {
+    // ID not in database = add (shouldn't happen after validation)
+    adds.push({ operation: 'ADD', row: part, after: part });
+  } else {
+    const changes = detectPartChanges(existing, part);
+    if (changes.length > 0) {
+      // Data changed = update
+      updates.push({
+        operation: 'UPDATE',
+        row: part,
+        before: existing,
+        after: part,
+        changes: ['acr_sku']  // Field-level tracking
+      });
+    } else {
+      // Identical data = no-op
+      unchanged.push({ operation: 'UNCHANGED', row: part });
+    }
+  }
+}
+
+// Records in DB but NOT in file = delete
+existingParts.forEach((existing) => {
+  const inFile = fileRows.find(row => row._id === existing.id);
+  if (!inFile) {
+    deletes.push({ operation: 'DELETE', before: existing });
+  }
+});
+```
+
+With IDs, the same scenario becomes:
+- Row with `_id=123` changes SKU from "ACR2303004" to "ACR2303005" → **UPDATE** (preserves relationships)
+
+**Performance benefit**: Map lookup (`existingParts.get(row._id)`) is O(1). Field-based matching with `find()` is O(n). For 6,412 cross-references, that's 6,412 iterations vs 1 hash lookup.
+
+**Foreign key handling**: Vehicle applications and cross-references store `_part_id` and `_acr_part_id` (UUIDs). Field-based matching can't handle "which part does this vehicle application belong to?" without fuzzy matching on `ACR_SKU` (unreliable).
+
+### Atomic Transaction via PostgreSQL Function
+
+Import execution uses a single PostgreSQL function that runs all operations in one transaction. Alternative approaches were considered and rejected:
+
+**Alternative 1**: Client-side transaction with individual queries
+```typescript
+// NOT used - multiple round-trips
+await supabase.from('parts').insert(addedParts);
+await supabase.from('parts').update(updatedParts);
+await supabase.from('vehicle_applications').insert(addedVehicles);
+// ... 6 separate operations
+```
+
+**Problems**:
+- **Network overhead**: 6 round-trips to database (latency adds up)
+- **Atomicity risk**: If operation 4 fails, operations 1-3 already committed (partial import)
+- **Transaction scope**: Supabase client can't wrap multiple queries in single transaction
+
+**Alternative 2**: Batch operations via Supabase batch insert
+```typescript
+// NOT used - still multiple transactions
+await supabase.from('parts').insert(addedParts);  // Transaction 1
+await supabase.from('vehicle_applications').insert(addedVehicles);  // Transaction 2
+```
+
+**Problems**:
+- **No atomicity across tables**: Parts insert succeeds, vehicles insert fails → orphaned parts
+- **Foreign key timing**: Can't insert vehicles before their parent parts exist
+
+**Used approach**: Single PostgreSQL RPC function
+
+```sql
+-- File: supabase/migrations/20251028000000_add_atomic_import_transaction.sql
+CREATE OR REPLACE FUNCTION execute_atomic_import(
+  parts_to_add JSONB,
+  parts_to_update JSONB,
+  vehicles_to_add JSONB,
+  vehicles_to_update JSONB,
+  crossrefs_to_add JSONB,
+  crossrefs_to_update JSONB
+) RETURNS JSONB AS $$
+DECLARE
+  result JSONB;
+  parts_added INT := 0;
+  parts_updated INT := 0;
+  -- ... more counters
+BEGIN
+  -- Operation 1: Add parts (parent table first)
+  IF parts_to_add IS NOT NULL AND jsonb_array_length(parts_to_add) > 0 THEN
+    INSERT INTO parts (id, acr_sku, part_type, ...)
+    SELECT * FROM jsonb_populate_recordset(null::parts, parts_to_add);
+    GET DIAGNOSTICS parts_added = ROW_COUNT;
+  END IF;
+
+  -- Operation 2: Update parts
+  -- ... UPDATE query with WHERE id = ANY(...)
+
+  -- Operation 3: Add vehicle applications (child table after parent)
+  IF vehicles_to_add IS NOT NULL AND jsonb_array_length(vehicles_to_add) > 0 THEN
+    INSERT INTO vehicle_applications (id, part_id, make, model, ...)
+    SELECT * FROM jsonb_populate_recordset(null::vehicle_applications, vehicles_to_add);
+    GET DIAGNOSTICS vehicles_added = ROW_COUNT;
+  END IF;
+
+  -- Operations 4-6: Update vehicles, add/update cross-refs
+
+  -- Return summary
+  result := jsonb_build_object(
+    'parts_added', parts_added,
+    'parts_updated', parts_updated,
+    'vehicles_added', vehicles_added,
+    -- ... more counts
+  );
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+**Benefits**:
+- **One round-trip**: Client sends JSONB payloads, database handles all logic
+- **Automatic rollback**: If ANY operation fails, entire transaction rolls back (no partial imports)
+- **Correct ordering**: Parts added before vehicles (satisfies FK constraints)
+- **Performance**: Database-side processing is faster than client-side loops
+
+**Client-side retry logic** handles transient failures:
+
+```typescript
+// File: src/services/excel/import/ImportService.ts (lines 180-195)
+const maxRetries = 3;
+for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  try {
+    const { data, error } = await supabase.rpc('execute_atomic_import', {
+      parts_to_add: JSON.stringify(diff.parts.adds),
+      parts_to_update: JSON.stringify(diff.parts.updates),
+      // ... more parameters
+    });
+    if (error) throw error;
+    return data; // Success
+  } catch (error) {
+    if (!isRetryableError(error) || attempt === maxRetries) {
+      throw error; // Give up
+    }
+    const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+    await new Promise(resolve => setTimeout(resolve, delay));
+  }
+}
+
+function isRetryableError(error: any): boolean {
+  const retryableMessages = ['timeout', 'network', 'connection', 'deadlock', 'temporary'];
+  const message = error.message?.toLowerCase() || '';
+  return retryableMessages.some(msg => message.includes(msg));
+}
+```
+
+Exponential backoff (1s, 2s, 4s capped at 5s) handles network blips and temporary database locks without failing the import.
+
+### Snapshot-Based Rollback
+
+Before executing any import, the system creates a full snapshot of affected data. This enables atomic rollback to the pre-import state if something goes wrong or if Humberto realizes he imported the wrong file.
+
+**Snapshot structure**:
+
+```typescript
+// File: src/services/excel/rollback/RollbackService.ts (lines 25-35)
+interface SnapshotData {
+  parts: any[];                    // Full part records
+  vehicle_applications: any[];     // Full vehicle app records
+  cross_references: any[];         // Full cross-ref records
+  timestamp: string;               // ISO timestamp
+}
+
+// Snapshot creation (before import)
+const [partsResult, vehicleAppsResult, crossRefsResult] = await Promise.all([
+  supabase.from('parts').select('*'),
+  supabase.from('vehicle_applications').select('*'),
+  supabase.from('cross_references').select('*'),
+]);
+
+const snapshot: SnapshotData = {
+  parts: partsResult.data || [],
+  vehicle_applications: vehicleAppsResult.data || [],
+  cross_references: crossRefsResult.data || [],
+  timestamp: new Date().toISOString(),
+};
+
+// Save to import_history table
+await supabase.from('import_history').insert({
+  tenant_id: null,  // MVP: single tenant
+  imported_by: 'admin',
+  file_name: file.name,
+  file_size_bytes: file.size,
+  rows_imported: diff.summary.totalChanges,
+  snapshot_data: snapshot,  // Stored as JSONB
+  import_summary: {
+    adds: diff.summary.totalAdds,
+    updates: diff.summary.totalUpdates,
+    deletes: diff.summary.totalDeletes,
+  },
+});
+```
+
+**Storage cost**: 9,593 records with full data → ~2MB JSONB. PostgreSQL compresses JSONB efficiently. Keeping 3 snapshots = 6MB total. Acceptable for the safety benefit.
+
+**Alternative considered**: Change log (event sourcing)
+```typescript
+// NOT used
+interface ChangeLogEntry {
+  operation: 'ADD' | 'UPDATE' | 'DELETE';
+  table: string;
+  record_id: string;
+  before: any;
+  after: any;
+}
+```
+
+**Why snapshots won?**
+- **Simplicity**: Restore = delete all + insert snapshot. No replay logic needed.
+- **Speed**: Single bulk insert vs replaying thousands of individual changes
+- **Reliability**: Can't have corrupted replay sequence
+- **Debugging**: Full snapshot shows exact state at import time
+
+**Rollback safety features**:
+
+```typescript
+// File: src/services/excel/rollback/RollbackService.ts (lines 85-125)
+
+// 1. Sequential enforcement (must rollback newest first)
+const newestImport = await supabase
+  .from('import_history')
+  .select('*')
+  .order('imported_at', { ascending: false })
+  .limit(1);
+
+if (importId !== newestImport.data[0].id) {
+  throw new SequentialRollbackError(
+    'Must rollback most recent import first. Cannot skip imports.'
+  );
+}
+
+// 2. Conflict detection (manual edits after import)
+const manualEditsExist = await supabase
+  .from('parts')
+  .select('id')
+  .gt('updated_at', importTimestamp)
+  .eq('updated_by', 'manual')
+  .limit(1);
+
+if (manualEditsExist.data.length > 0) {
+  throw new RollbackConflictError(
+    'Manual edits detected after import. Rollback would lose changes.'
+  );
+}
+
+// 3. Atomic restoration (delete + insert in transaction)
+await supabase.transaction(async (tx) => {
+  // Delete current data (child → parent order for FK constraints)
+  await tx.from('cross_references').delete().eq('tenant_id', tenantId);
+  await tx.from('vehicle_applications').delete().eq('tenant_id', tenantId);
+  await tx.from('parts').delete().eq('tenant_id', tenantId);
+
+  // Restore snapshot (parent → child order)
+  await tx.from('parts').insert(snapshot.parts);
+  await tx.from('vehicle_applications').insert(snapshot.vehicle_applications);
+  await tx.from('cross_references').insert(snapshot.cross_references);
+});
+
+// 4. Delete consumed snapshot (cleanup)
+await supabase.from('import_history').delete().eq('id', importId);
+```
+
+**Why sequential enforcement?** Allowing out-of-order rollback creates timeline paradoxes. If Import A adds part X, Import B updates part X, then you rollback Import A (deleting X), Import B's update is now pointing to a deleted record. Sequential rollback prevents this.
+
+### ExcelImportService
+
+Parses uploaded Excel files using ExcelJS, handling hidden columns and type conversion.
+
+```typescript
+// File: src/services/excel/import/ExcelImportService.ts (lines 96-155)
+
+private parseSheet<T>(worksheet: ExcelJS.Worksheet): T[] {
+  const rows: T[] = [];
+  const headerRow = worksheet.getRow(1);
+  const headerMap = new Map<number, string>();
+
+  // CRITICAL: includeEmpty: true to read hidden columns
+  headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+    const header = cell.value?.toString() || '';
+    const propertyName = headerToPropertyName(header);
+    headerMap.set(colNumber, propertyName);
+  });
+
+  // Parse data rows (skip header row)
+  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    if (rowNumber === 1) return; // Skip header
+
+    const rowData: any = {};
+
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      const propertyName = headerMap.get(colNumber);
+      if (!propertyName) return;
+
+      const value = cell.value;
+
+      // Handle different cell types
+      if (value === null || value === undefined) {
+        // Skip null/undefined (leave property undefined)
+        return;
+      } else if (typeof value === 'object' && 'result' in value) {
+        // ExcelJS formula result
+        rowData[propertyName] = value.result;
+      } else if (value instanceof Date) {
+        // Date → ISO string
+        rowData[propertyName] = value.toISOString();
+      } else if (typeof value === 'number') {
+        // Number (preserve)
+        rowData[propertyName] = value;
+      } else {
+        // String (trim whitespace)
+        rowData[propertyName] = String(value).trim();
+      }
+    });
+
+    // Only include rows with actual data
+    if (Object.keys(rowData).length > 0) {
+      rows.push(rowData as T);
+    }
+  });
+
+  return rows;
+}
+```
+
+**Key detail**: `includeEmpty: true` is critical for reading hidden columns. Without this, ExcelJS skips hidden columns entirely, and the parser never sees `_id`, `_part_id`, `_acr_part_id`. With `includeEmpty: true`, ExcelJS reads all columns regardless of visibility.
+
+**Type handling**: ExcelJS represents cells as various types (string, number, Date, formula). The parser normalizes:
+- Dates → ISO strings (for JSON serialization)
+- Numbers → numbers (preserve type for validation)
+- Formulas → evaluated result
+- Strings → trimmed (remove accidental spaces)
+
+### Performance Characteristics
+
+From measured test runs on 9,593 total records:
+
+**Import timing breakdown**:
+- Parse: ~300ms
+- Validation: ~75ms
+- Diff: ~7ms
+- **Total: ~1,100ms** (excludes database transaction time)
+
+**Transaction time** (measured separately):
+- Database snapshot creation: ~200ms
+- Atomic import execution: ~500-800ms (varies with change count)
+- Import history save: ~50ms
+
+### Verification
+
+```bash
+# Run end-to-end import test
+npm run test:import-pipeline
+```
+
+**What gets verified**:
+1. Parse stage reads all 3 sheets correctly
+2. Hidden ID columns detected (`hasHiddenIds: true`)
+3. Validation produces 0 errors, 0 warnings on clean export
+4. Diff detects changes correctly (adds, updates, deletes, unchanged)
+5. Field-level change tracking works (lists exact fields that changed)
+
+**Test with intentional errors**:
+1. Remove `_id` column → Expect E1 error (missing hidden IDs)
+2. Empty ACR_SKU cell → Expect E3 error (required field)
+3. Change start_year to 2020, end_year to 2010 → Expect E6 error (invalid range)
+4. Change ACR_SKU → Expect W1 warning (SKU changed)
+
+---
+
+_Last updated: January 7, 2026_

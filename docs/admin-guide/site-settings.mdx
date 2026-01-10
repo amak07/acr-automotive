@@ -3,6 +3,8 @@ title: Site Settings
 description: How to configure contact info, branding, banners, and manage data imports
 ---
 
+> **For**: Admin staff | **Time**: ~8 minutes
+
 ## What This Does
 
 The Settings page lets you control how your website looks and what information customers see. You can update contact details, upload your company logo, create promotional banners, and manage data imports.
@@ -227,62 +229,6 @@ If an import caused problems, you can undo it and restore your data to how it wa
 - The import disappears from the list
 
 > **Tip**: Rollback restores your parts catalog to exactly how it was before that import. Any manual changes you made after the import will be lost!
-
----
-
-## If Something Goes Wrong
-
-### Problem: "Cannot rollback - parts have been edited"
-
-**What you see**: An error message when you try to rollback, listing specific part SKUs that were edited.
-
-**What this means**: After the import, someone manually edited some parts in the catalog. Rolling back would erase those manual changes.
-
-**How to fix it**:
-1. Check which parts were edited (shown in the error message)
-2. Decide if you want to lose those manual changes
-3. If yes, you'll need to re-import the original data instead of using rollback
-4. If no, don't rollback - the manual edits will stay
-
----
-
-### Problem: "Must rollback newest import first"
-
-**What you see**: The Rollback button is grayed out (disabled) on older imports.
-
-**What this means**: You can only undo the most recent import. Older imports can't be rolled back individually.
-
-**How to fix it**:
-1. Rollback the newest import first (highlighted in red)
-2. Then the next-newest import becomes rollbackable
-3. Continue in reverse order if needed
-
----
-
-### Problem: Image won't upload
-
-**What you see**: Error message when uploading a logo, favicon, or banner.
-
-**How to fix it**:
-1. Check the file size - must be under 5MB
-2. Check the file format:
-   - Logo: PNG, JPEG, WebP, or SVG
-   - Favicon: ICO, PNG, or WebP
-   - Banner: PNG, JPEG, or WebP
-3. Try a different image file
-4. If it still doesn't work, the file might be corrupted - try exporting it again
-
----
-
-### Problem: Changes don't appear on public site
-
-**What you see**: You saved changes but the public site still shows old information.
-
-**How to fix it**:
-1. Refresh the public site page (press F5 or Ctrl+R)
-2. Clear your browser cache
-3. Wait 30 seconds and try again (sometimes it takes a moment)
-4. Check that you clicked **Save** or **Save Changes** button
 
 ---
 

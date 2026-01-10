@@ -1,0 +1,210 @@
+---
+title: "Overview"
+description: "Understanding the export-import lifecycle and round-trip editing workflow"
+---
+
+import { Mermaid } from '@/components/docs/Mermaid';
+
+## What You'll Learn
+
+How ACR Automotive's Excel data processing system enables bulk catalog management through a safe export-edit-import workflow with ID-based change tracking, atomic transactions, and rollback capabilities.
+
+**When to use this guide**:
+
+- Building bulk data import/export features with validation
+- Understanding the round-trip editing workflow
+- Learning ID-based change detection vs field-based matching
+- Implementing snapshot-based rollback systems
+
+## Quick Start
+
+### Export Catalog Data
+
+```bash
+# Export complete catalog
+curl "http://localhost:3000/api/admin/export" > catalog.xlsx
+
+# Check export statistics from response headers
+curl -I "http://localhost:3000/api/admin/export"
+# X-Export-Parts: 877
+# X-Export-Vehicles: 2304
+# X-Export-CrossRefs: 6412
+```
+
+### Import Modified Data
+
+```bash
+# Step 1: Validate
+curl -X POST "http://localhost:3000/api/admin/import/validate" \
+  -F "file=@modified-catalog.xlsx"
+
+# Step 2: Preview changes
+curl -X POST "http://localhost:3000/api/admin/import/preview" \
+  -F "file=@modified-catalog.xlsx"
+
+# Step 3: Execute import
+curl -X POST "http://localhost:3000/api/admin/import/execute" \
+  -F "file=@modified-catalog.xlsx"
+```
+
+---
+
+## The Round-Trip Workflow
+
+The Excel processing system supports ACR's primary bulk editing workflow: export catalog data, make changes in Excel using power-user tools (formulas, find-replace, vlookup), then import back with full validation and rollback safety.
+
+This workflow emerged from real-world needs. Humberto manages hundreds of parts with complex vehicle applications and cross-references. Web forms are too slow for bulk operations like "add 50 new Honda Civic applications" or "update all brake pad specifications." Excel provides the speed and familiar tools needed for this scale of editing.
+
+The system enforces an **export-only workflow**: you must export first to get the hidden ID columns that enable safe re-import. This prevents users from creating files from scratch (which would lack UUIDs for matching) and ensures every imported record has a traceable history.
+
+### Complete Data Flow
+
+<Mermaid chart={`sequenceDiagram
+    participant User as Humberto
+    participant UI as Admin UI
+    participant Export as Export API
+    participant ExportSvc as ExcelExportService
+    participant Import as Import APIs
+    participant ImportSvc as Import Services
+    participant DB as PostgreSQL
+    participant Storage as Supabase Storage
+
+    Note over User,Storage: EXPORT PHASE
+    User->>UI: Click "Export Catalog"
+    UI->>Export: GET /api/admin/export
+    Export->>ExportSvc: exportAllData()
+    ExportSvc->>DB: Fetch parts (paginated, 1000/page)
+    DB-->>ExportSvc: 877 parts
+    ExportSvc->>DB: Fetch vehicles (paginated)
+    DB-->>ExportSvc: 2,304 vehicle apps
+    ExportSvc->>DB: Fetch cross-refs (paginated)
+    DB-->>ExportSvc: 6,412 cross-refs
+    ExportSvc->>ExportSvc: Generate 3-sheet workbook<br/>with hidden ID columns
+    ExportSvc-->>Export: Excel buffer
+    Export-->>UI: acr-catalog-export-2026-01-07.xlsx
+    UI-->>User: Download file
+
+    Note over User: Edits in Excel<br/>(IDs hidden but present)
+
+    Note over User,Storage: IMPORT PHASE
+    User->>UI: Upload modified file
+    UI->>Import: POST /import/validate
+    Import->>ImportSvc: ExcelImportService.parseFile()
+    ImportSvc-->>Import: Parsed data (3 sheets)
+    Import->>DB: Fetch existing data for comparison
+    DB-->>Import: Current state
+    Import->>ImportSvc: ValidationEngine.validate()
+    ImportSvc-->>Import: 0 errors, 3 warnings
+    Import-->>UI: Validation result
+
+    User->>UI: Click "Preview Changes"
+    UI->>Import: POST /import/preview
+    Import->>ImportSvc: DiffEngine.generateDiff()
+    ImportSvc-->>Import: 15 adds, 8 updates, 2 deletes
+    Import-->>UI: Diff result
+
+    User->>UI: Acknowledge warnings, Execute
+    UI->>Import: POST /import/execute
+    Import->>DB: Create snapshot (JSONB dump)
+    DB-->>Import: Snapshot ID
+    Import->>DB: CALL execute_atomic_import(...)
+    Note over DB: Atomic transaction:<br/>1. Add parts<br/>2. Update parts<br/>3. Add vehicles<br/>4. Update vehicles<br/>5. Add cross-refs<br/>6. Update cross-refs
+    DB-->>Import: Success (25 records changed)
+    Import->>DB: Save import history
+    Import-->>UI: Import complete
+    UI-->>User: Success notification
+`} />
+
+### Why This Design?
+
+The export-import system makes several deliberate architectural choices that differ from typical bulk upload features:
+
+**Export-only workflow** instead of allowing user-created files
+- **Why**: Users can't create files from scratch (which would lack UUIDs)
+- **Benefit**: Every imported record has a traceable history
+- **Trade-off**: Slightly less convenient vs much safer data integrity
+
+**ID-based matching** instead of field-based (e.g., matching by ACR_SKU)
+- **Why**: If user changes ACR_SKU from "ACR2303004" to "ACR2303005", field matching would DELETE the old part and ADD a new one (losing all relationships)
+- **Benefit**: Preserves vehicle applications and cross-references when fields change
+- **Trade-off**: Requires hidden ID columns vs simpler file structure
+
+**Three-stage workflow** (validate → preview → execute) instead of direct upload
+- **Why**: User needs to see exactly what will change before committing
+- **Benefit**: Prevents accidental bulk deletes or updates
+- **Trade-off**: More clicks vs more safety
+
+**Snapshot-based rollback** instead of change log
+- **Why**: Full snapshot restore is simpler than replaying change events
+- **Benefit**: Fast, reliable rollback with no replay bugs
+- **Trade-off**: Higher storage cost (~2MB per snapshot) vs complexity
+
+**Atomic PostgreSQL function** instead of client-side transaction
+- **Why**: One database round-trip vs six separate operations
+- **Benefit**: Guaranteed all-or-nothing atomicity + better performance
+- **Trade-off**: Database coupling vs significant speed improvement
+
+## Excel File Structure
+
+All exported files contain three sheets with a normalized structure matching the database schema:
+
+**Sheet 1: Parts** (877 rows)
+- Hidden columns: `_id` (UUID for update matching)
+- Visible columns: `ACR_SKU`, `Part_Type`, `Position_Type`, `ABS_Type`, `Bolt_Pattern`, `Drive_Type`, `Specifications`
+
+**Sheet 2: Vehicle Applications** (2,304 rows)
+- Hidden columns: `_id`, `_part_id` (foreign key to parts)
+- Visible columns: `ACR_SKU` (joined for readability), `Make`, `Model`, `Start_Year`, `End_Year`
+
+**Sheet 3: Cross References** (6,412 rows)
+- Hidden columns: `_id`, `_acr_part_id` (foreign key to parts)
+- Visible columns: `ACR_SKU` (joined for readability), `Competitor_Brand`, `Competitor_SKU`
+
+Hidden columns are essential for the import process but invisible to users by default. They can be unhidden in Excel via: Right-click column → Unhide.
+
+## System Components
+
+The Excel processing system consists of several interconnected services:
+
+**Export Path**:
+- [ExcelExportService](export#excelexportservice) - Generates 3-sheet workbooks with hidden columns
+- [Shared Constants](export#shared-constants) - Single source of truth for column definitions
+
+**Import Path**:
+- [ExcelImportService](import#excelimportservice) - Parses uploaded files
+- [ValidationEngine](validation#validationengine) - 19 error rules, 10 warning rules
+- [DiffEngine](validation#diffengine) - ID-based change detection
+- [ImportService](import#atomic-transaction) - Executes atomic PostgreSQL transaction
+- [RollbackService](import#snapshot-based-rollback) - Snapshot creation and restoration
+
+**Shared**:
+- Column definitions (headers, widths, property names)
+- Type definitions (TypeScript interfaces)
+- Constants (sheet names, file validation rules)
+
+## Performance Characteristics
+
+From measured test runs on 9,593 total records:
+
+**Export**:
+- Database queries: ~1.5s (11 paginated queries in parallel)
+- ExcelJS generation: ~200-300ms
+- Total: 1.7s - 5.5s
+
+**Import**:
+- Parse: ~300ms
+- Validation: ~75ms
+- Diff: ~7ms
+- Total: ~1,100ms (excludes database transaction time)
+
+These timings scale linearly with record count. The system can handle 50,000 records in under 10 seconds.
+
+## Related Guides
+
+- **[Export Architecture](export)** - Pagination, hidden columns, ExcelJS implementation
+- **[Import Architecture](import)** - 3-stage workflow, atomic transactions, rollback
+- **[Validation & Diff](validation)** - Error rules, change detection, normalization
+
+---
+
+_Last updated: January 7, 2026_

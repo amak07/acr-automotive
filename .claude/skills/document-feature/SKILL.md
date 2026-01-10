@@ -34,6 +34,19 @@ This skill supports three documentation types. **When creating a NEW document**,
 - **Adding diagrams**: Enhancement to existing doc
 - **Updating code examples**: Keep docs in sync with codebase
 
+## Documentation Principles (CRITICAL)
+
+**Before writing ANY documentation**, review `../DOCUMENTATION_PRINCIPLES.md` for:
+
+1. **Ground Truth Only** - Document what exists in code, no speculation
+2. **Writing Tone** - Clear and educational without audience labels
+3. **Code Examples** - Real files with paths and line numbers
+4. **Performance Docs** - Techniques + measurement methods, NOT estimated timings
+5. **What NOT to include** - No troubleshooting, future work, or meta-commentary
+6. **Diagrams** - Use when they clarify technicals, not for decoration
+
+These principles override any template suggestions that conflict with them.
+
 ## Instructions
 
 When documenting a feature:
@@ -41,7 +54,7 @@ When documenting a feature:
 1. **Determine doc type** - Ask user if creating new doc; infer from existing if updating
 2. **Explore the codebase** to find all related files for this feature
 3. **Use the appropriate template** from `templates/` folder
-4. **Generate Mermaid diagrams** for architecture (C4 style)
+4. **Generate Mermaid diagrams** for architecture (when they clarify complex concepts)
 5. **Include real code examples** from the codebase (not hypothetical)
 6. **Check for existing ADRs** in `/docs/decisions/` related to this feature
 7. **Output to** appropriate location based on doc type
