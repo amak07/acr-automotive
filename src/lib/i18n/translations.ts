@@ -119,6 +119,10 @@ export const translations: Record<
     en: "Clear All Filters",
     es: "Limpiar Todos",
   },
+  "admin.filters.activeFilters": {
+    en: "Active filters",
+    es: "Filtros activos",
+  },
 
   // Admin Import
   "admin.import.title": {

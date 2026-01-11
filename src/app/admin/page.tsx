@@ -13,7 +13,7 @@ import { withAdminAuth } from "@/components/shared/auth/withAdminAuth";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useGetParts } from "@/hooks";
 import { useDebounce } from "use-debounce";
-import { useMemo, Suspense } from "react";
+import { useMemo, Suspense, useState, useEffect } from "react";
 
 function AdminPageContent() {
   const router = useRouter();
@@ -34,7 +34,23 @@ function AdminPageContent() {
   );
 
   const currentPage = parseInt(searchParams?.get("page") || "1");
-  const limit = 25;
+
+  // Use 10 items per page on mobile for better UX, 25 on desktop
+  const [limit, setLimit] = useState(25);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setLimit(window.innerWidth < 1024 ? 10 : 25);
+    };
+
+    // Set initial value
+    handleResize();
+
+    // Listen for resize
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const [debouncedSearchTerm] = useDebounce(searchTerms.search, 300);
 
   // Update URL when search terms or page changes
@@ -91,7 +107,7 @@ function AdminPageContent() {
   });
 
   return (
-    <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8 space-y-8">
+    <main className="px-3 py-5 mx-auto lg:max-w-7xl lg:px-8 lg:py-8 space-y-4 lg:space-y-6">
       <QuickActions />
       <DashboardCards />
       <SearchFilters

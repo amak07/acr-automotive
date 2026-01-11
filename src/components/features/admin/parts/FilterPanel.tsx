@@ -4,7 +4,6 @@ import * as React from "react";
 import { AcrButton, AcrSelect } from "@/components/acr";
 import { useLocale } from "@/contexts/LocaleContext";
 import { SearchTerms } from "./SearchFilters";
-import { X } from "lucide-react";
 
 interface FilterPanelProps {
   searchTerms: SearchTerms;
@@ -59,23 +58,7 @@ export function FilterPanel({
   };
 
   return (
-    <div className="bg-white border border-acr-gray-200 rounded-xl p-6 acr-animate-slide-down">
-      {/* Mobile Close Button */}
-      {onClose && (
-        <div className="flex items-center justify-between mb-4 md:hidden">
-          <h3 className="text-lg font-semibold text-acr-gray-900">
-            {t("admin.filters.toggle")}
-          </h3>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-acr-gray-100 rounded-lg transition-colors"
-            aria-label="Close filters"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-      )}
-
+    <div>
       {/* Filter Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {/* Part Type */}
@@ -209,14 +192,14 @@ export function FilterPanel({
         <AcrButton
           variant="secondary"
           onClick={handleClear}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto h-12"
         >
           {t("admin.filters.clearFilters")}
         </AcrButton>
         <AcrButton
           variant="primary"
           onClick={handleApply}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto h-12"
         >
           {t("admin.filters.applyFilters")}
         </AcrButton>
