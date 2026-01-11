@@ -1,0 +1,14 @@
+{
+  "title": "Architecture",
+  "pages": [
+    "overview",
+    "api-design",
+    "data-flow",
+    "state-management",
+    "validation",
+    "service-layer",
+    "component-architecture",
+    "code-organization",
+    "internationalization"
+  ]
+}
