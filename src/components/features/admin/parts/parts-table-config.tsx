@@ -10,6 +10,9 @@ import {
   Settings,
   FileText,
   Link2,
+  Eye,
+  Edit,
+  MoreHorizontal,
 } from "lucide-react";
 import { TranslationKeys } from "@/lib/i18n/translation-keys";
 import { PartSummary } from "@/types";
@@ -42,7 +45,8 @@ export const createAcrPartsTableColumns = (
       const CopyableSKU = () => {
         const [copied, setCopied] = useState(false);
 
-        const handleCopy = async () => {
+        const handleCopy = async (e: React.MouseEvent) => {
+          e.stopPropagation(); // Prevent row click
           try {
             await navigator.clipboard.writeText(value);
             setCopied(true);
@@ -188,26 +192,5 @@ export const createAcrPartsTableColumns = (
         </div>
       </div>
     ),
-  },
-  {
-    key: "actions",
-    label: "",
-    render: (value: any, part?: PartSummary) => {
-      const currentSearch = searchParams?.toString() || "";
-      return (
-        <button
-          onClick={() => {
-            if (router && part?.acr_sku) {
-              router.push(
-                `/admin/parts/${encodeURIComponent(part.acr_sku)}${currentSearch ? `?${currentSearch}` : ""}`
-              );
-            }
-          }}
-          className="text-acr-red-600 hover:text-acr-red-700 text-sm font-medium underline-offset-4 hover:underline transition-colors"
-        >
-          {t("common.actions.view")}
-        </button>
-      );
-    },
   },
 ];

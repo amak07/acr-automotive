@@ -8,7 +8,7 @@ import { cva, type VariantProps } from "class-variance-authority";
  */
 const acrButtonVariants = cva(
   // Base styles that apply to all ACR buttons - Coca-Cola inspired modern styling
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl acr-action-text transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl acr-action-text transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
   {
     variants: {
       variant: {
@@ -25,7 +25,8 @@ const acrButtonVariants = cva(
           "bg-gradient-to-b from-red-500 to-red-600 text-white shadow-lg hover:from-red-600 hover:to-red-700 hover:shadow-xl active:from-red-700 active:to-red-800 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
 
         // Ghost button for subtle actions - softer interactions
-        ghost: "text-acr-gray-700 hover:bg-acr-gray-100/80 hover:text-acr-gray-900 active:bg-acr-gray-200/80 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
+        ghost:
+          "text-acr-gray-700 hover:bg-acr-gray-100/80 hover:text-acr-gray-900 active:bg-acr-gray-200/80 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
 
         // Link-style button - enhanced with better hover states
         link: "text-acr-red-500 underline-offset-4 hover:underline hover:text-acr-red-600 transition-colors focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:rounded-md",
