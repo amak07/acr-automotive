@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Mail, MessageCircle } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -23,14 +24,24 @@ export function ContactFabs() {
   const { settings, isLoading } = useSettings();
   const { t } = useLocale();
   const pathname = usePathname();
+  const [hasMinTimeElapsed, setHasMinTimeElapsed] = useState(false);
+
+  // Ensure minimum delay of 750ms to match Preloader minimum duration
+  // This prevents FABs from flashing on screen during initial page load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setHasMinTimeElapsed(true);
+    }, 750);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Don't render on admin or docs pages
   if (pathname?.startsWith("/admin") || pathname?.startsWith("/docs")) {
     return null;
   }
 
-  // Don't render if settings not loaded or contact info missing
-  if (isLoading || !settings?.contact_info) {
+  // Don't render until settings loaded, contact info exists, AND minimum time elapsed
+  if (isLoading || !settings?.contact_info || !hasMinTimeElapsed) {
     return null;
   }
 
@@ -57,7 +68,7 @@ export function ContactFabs() {
 
   return (
     <div
-      className="fixed left-16 bottom-20 z-50 flex-col gap-3 hidden md:flex"
+      className="fixed left-60 bottom-20 z-50 flex-col gap-3 hidden md:flex"
       role="complementary"
       aria-label={t("contactFabs.ariaLabel")}
     >

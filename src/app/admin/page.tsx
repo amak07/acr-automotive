@@ -14,6 +14,11 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useGetParts } from "@/hooks";
 import { useDebounce } from "use-debounce";
 import { useMemo, Suspense, useState, useEffect } from "react";
+import { Preloader } from "@/components/ui/Preloader";
+import { useSettings } from "@/contexts/SettingsContext";
+
+// Path to dotLottie animation in public folder
+const GEAR_ANIMATION_SRC = "/animations/gear-loader.lottie";
 
 function AdminPageContent() {
   const router = useRouter();
@@ -128,29 +133,48 @@ function AdminPageContent() {
   );
 }
 
+function AdminPageWrapper() {
+  const { isLoading: settingsLoading } = useSettings();
+  const searchParams = useSearchParams();
+
+  // Get initial parts data to determine loading state
+  const { data: initialPartsData, isLoading: initialPartsLoading } =
+    useGetParts({
+      limit: 25,
+      offset: 0,
+      sort_by: "acr_sku",
+      sort_order: "asc",
+      search: searchParams?.get("search") || "",
+      abs_type: searchParams?.get("abs_type") || "",
+      bolt_pattern: searchParams?.get("bolt_pattern") || "",
+      drive_type: searchParams?.get("drive_type") || "",
+      part_type: searchParams?.get("part_type") || "",
+      position_type: searchParams?.get("position_type") || "",
+    });
+
+  // Combined loading state for initial page load
+  const isInitialLoad =
+    settingsLoading || (initialPartsLoading && !initialPartsData);
+
+  return (
+    <>
+      {/* Full-page preloader - shows during initial load, covers everything */}
+      <Preloader isLoading={isInitialLoad} animationSrc={GEAR_ANIMATION_SRC} />
+      <AdminPageContent />
+    </>
+  );
+}
+
 function AdminPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen acr-page-bg-pattern">
-          <AppHeader variant="admin" />
-          <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
-            <div className="animate-pulse space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="h-24 bg-gray-200 rounded-lg"></div>
-                <div className="h-24 bg-gray-200 rounded-lg"></div>
-                <div className="h-24 bg-gray-200 rounded-lg"></div>
-              </div>
-              <div className="h-32 bg-gray-200 rounded-lg"></div>
-              <div className="h-96 bg-gray-200 rounded-lg"></div>
-            </div>
-          </main>
-        </div>
+        <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />
       }
     >
       <div className="min-h-screen acr-page-bg-pattern">
         <AppHeader variant="admin" />
-        <AdminPageContent />
+        <AdminPageWrapper />
       </div>
     </Suspense>
   );

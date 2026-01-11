@@ -98,7 +98,10 @@ export function SearchFilters(props: SearchFiltersProps) {
       };
 
   return (
-    <div className="space-y-3">
+    <div
+      className="space-y-3 acr-animate-fade-up"
+      style={{ animationDelay: "0.85s" }}
+    >
       {/* Search Input with Filter Toggle */}
       <div className="lg:sticky lg:top-4 lg:z-20">
         <div className="bg-white rounded-lg border border-acr-gray-200 p-3 shadow-sm lg:p-4">
