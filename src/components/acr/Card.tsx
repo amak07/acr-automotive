@@ -28,6 +28,7 @@ const acrCardVariants = cva(
       },
       padding: {
         none: "",
+        compact: "p-3 lg:p-4",
         sm: "p-5",
         default: "p-6 lg:p-7",
         lg: "p-8",

@@ -208,6 +208,7 @@ export interface TranslationKeys {
   "admin.filters.hideFilters": string;
   "admin.filters.applyFilters": string;
   "admin.filters.clearFilters": string;
+  "admin.filters.activeFilters": string;
 
   // Admin Search & Filters
   "admin.search.placeholder": string;
