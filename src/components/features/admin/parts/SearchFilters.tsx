@@ -1,9 +1,15 @@
 "use client";
+
+import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { AdminPartsQueryParams } from "@/types";
 import { useFilterOptions } from "@/hooks";
-import { AcrButton, AcrSelect, AcrLabel, AcrSearchInput } from "@/components/acr";
+import { AcrButton, AcrSearchInput, AcrModal } from "@/components/acr";
+import { Filter, ChevronDown, ChevronUp } from "lucide-react";
 import { SearchFiltersSkeleton } from "./SearchFiltersSkeleton";
+import { FilterPanel } from "./FilterPanel";
+import { FilterBadge } from "./FilterBadge";
+import { cn } from "@/lib/utils";
 
 export type SearchTerms = Pick<
   AdminPartsQueryParams,
@@ -24,10 +30,16 @@ export function SearchFilters(props: SearchFiltersProps) {
   const { t } = useLocale();
   const { searchTerms, setSearchTerms } = props;
   const { data: filterOptions, isLoading } = useFilterOptions();
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+
+  // Calculate active filter count (exclude search and __all__)
+  const activeFilterCount = Object.entries(searchTerms).filter(
+    ([key, value]) => key !== "search" && value !== "" && value !== "__all__"
+  ).length;
 
   const clearAllFilters = () => {
     setSearchTerms({
-      search: "",
+      search: searchTerms.search, // Keep search term
       part_type: "__all__",
       position_type: "__all__",
       abs_type: "__all__",
@@ -36,19 +48,51 @@ export function SearchFilters(props: SearchFiltersProps) {
     });
   };
 
-  const hasActiveFilters = Object.values(searchTerms).some(
-    (value) => value !== "" && value !== "__all__"
-  );
+  const handleApplyFilters = (terms: SearchTerms) => {
+    setSearchTerms(terms);
+  };
 
   // Show skeleton when filter options are loading
   if (isLoading) {
     return <SearchFiltersSkeleton />;
   }
 
+  // Prepare filter options for FilterPanel
+  const filterOptionsForPanel = filterOptions
+    ? {
+        partTypes: filterOptions.part_types.map((value) => ({
+          value,
+          label: value,
+        })),
+        positionTypes: filterOptions.position_types.map((value) => ({
+          value,
+          label: value,
+        })),
+        absTypes: filterOptions.abs_types.map((value) => ({
+          value,
+          label: value,
+        })),
+        driveTypes: filterOptions.drive_types.map((value) => ({
+          value,
+          label: value,
+        })),
+        boltPatterns: filterOptions.bolt_patterns.map((value) => ({
+          value,
+          label: value,
+        })),
+      }
+    : {
+        partTypes: [],
+        positionTypes: [],
+        absTypes: [],
+        driveTypes: [],
+        boltPatterns: [],
+      };
+
   return (
-    <div className="bg-white p-4 rounded-lg border border-acr-gray-200 shadow-sm mb-6 lg:p-6">
-      {/* Mobile: Stacked Layout */}
-      <div className="lg:hidden space-y-4">
+    <div className="space-y-4">
+      {/* Collapsed State: Search + Filters Button */}
+      <div className="flex gap-3 items-center">
         {/* Search Input */}
         <AcrSearchInput
           placeholder={t("admin.search.placeholder")}
@@ -57,340 +101,59 @@ export function SearchFilters(props: SearchFiltersProps) {
             setSearchTerms({ ...searchTerms, search: e.target.value })
           }
           size="default"
-          className="text-sm"
+          className="flex-1"
         />
 
-        {/* Filter Dropdowns */}
-        <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-3 md:grid-cols-3">
-          <AcrSelect.Root
-            value={searchTerms.part_type}
-            onValueChange={(value) =>
-              setSearchTerms({ ...searchTerms, part_type: value })
-            }
-            disabled={isLoading}
-          >
-            <AcrSelect.Trigger
-              className="text-sm"
-            >
-              <AcrSelect.Value
-                placeholder={isLoading ? "Loading..." : t("common.actions.all")}
-              />
-            </AcrSelect.Trigger>
-            <AcrSelect.Content>
-              <AcrSelect.Item value="__all__">
-                {t("common.actions.all")}
-              </AcrSelect.Item>
-              {filterOptions?.part_types.map((partType) => (
-                <AcrSelect.Item key={partType} value={partType}>
-                  {partType}
-                </AcrSelect.Item>
-              ))}
-            </AcrSelect.Content>
-          </AcrSelect.Root>
-
-          <AcrSelect.Root
-            value={searchTerms.position_type}
-            onValueChange={(value) =>
-              setSearchTerms({ ...searchTerms, position_type: value })
-            }
-            disabled={isLoading}
-          >
-            <AcrSelect.Trigger
-              className="text-sm"
-            >
-              <AcrSelect.Value
-                placeholder={isLoading ? "Loading..." : t("common.actions.all")}
-              />
-            </AcrSelect.Trigger>
-            <AcrSelect.Content>
-              <AcrSelect.Item value="__all__">
-                {t("common.actions.all")}
-              </AcrSelect.Item>
-              {filterOptions?.position_types.map((position) => (
-                <AcrSelect.Item key={position} value={position}>
-                  {position}
-                </AcrSelect.Item>
-              ))}
-            </AcrSelect.Content>
-          </AcrSelect.Root>
-
-          <AcrSelect.Root
-            value={searchTerms.abs_type}
-            onValueChange={(value) =>
-              setSearchTerms({ ...searchTerms, abs_type: value })
-            }
-            disabled={isLoading}
-          >
-            <AcrSelect.Trigger
-              className="text-sm"
-            >
-              <AcrSelect.Value
-                placeholder={isLoading ? "Loading..." : t("common.actions.all")}
-              />
-            </AcrSelect.Trigger>
-            <AcrSelect.Content>
-              <AcrSelect.Item value="__all__">
-                {t("common.actions.all")}
-              </AcrSelect.Item>
-              {filterOptions?.abs_types.map((abs) => (
-                <AcrSelect.Item key={abs} value={abs}>
-                  {abs}
-                </AcrSelect.Item>
-              ))}
-            </AcrSelect.Content>
-          </AcrSelect.Root>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-3">
-          <AcrSelect.Root
-            value={searchTerms.drive_type}
-            onValueChange={(value) =>
-              setSearchTerms({ ...searchTerms, drive_type: value })
-            }
-            disabled={isLoading}
-          >
-            <AcrSelect.Trigger
-              className="text-sm"
-            >
-              <AcrSelect.Value
-                placeholder={isLoading ? "Loading..." : t("common.actions.all")}
-              />
-            </AcrSelect.Trigger>
-            <AcrSelect.Content>
-              <AcrSelect.Item value="__all__">
-                {t("common.actions.all")}
-              </AcrSelect.Item>
-              {filterOptions?.drive_types.map((drive) => (
-                <AcrSelect.Item key={drive} value={drive}>
-                  {drive}
-                </AcrSelect.Item>
-              ))}
-            </AcrSelect.Content>
-          </AcrSelect.Root>
-
-          <AcrSelect.Root
-            value={searchTerms.bolt_pattern}
-            onValueChange={(value) =>
-              setSearchTerms({ ...searchTerms, bolt_pattern: value })
-            }
-            disabled={isLoading}
-          >
-            <AcrSelect.Trigger
-              className="text-sm"
-            >
-              <AcrSelect.Value
-                placeholder={isLoading ? "Loading..." : t("common.actions.all")}
-              />
-            </AcrSelect.Trigger>
-            <AcrSelect.Content>
-              <AcrSelect.Item value="__all__">
-                {t("common.actions.all")}
-              </AcrSelect.Item>
-              {filterOptions?.bolt_patterns.map((pattern) => (
-                <AcrSelect.Item key={pattern} value={pattern}>
-                  {pattern}
-                </AcrSelect.Item>
-              ))}
-            </AcrSelect.Content>
-          </AcrSelect.Root>
-        </div>
-
-        {/* Clear Filters Button - Mobile */}
-        {hasActiveFilters && (
-          <div className="pt-2">
-            <AcrButton
-              onClick={clearAllFilters}
-              variant="ghost"
-              className="w-full text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100"
-            >
-              {t("common.actions.clearFilters")}
-            </AcrButton>
-          </div>
-        )}
+        {/* Filters Toggle Button */}
+        <AcrButton
+          variant="secondary"
+          onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
+          className={cn(
+            "whitespace-nowrap",
+            isFilterPanelOpen && "bg-acr-gray-100"
+          )}
+        >
+          <Filter className="w-4 h-4 mr-2" />
+          {t("admin.filters.toggle")}
+          {activeFilterCount > 0 && <FilterBadge count={activeFilterCount} />}
+          {isFilterPanelOpen ? (
+            <ChevronUp className="w-4 h-4 ml-2" />
+          ) : (
+            <ChevronDown className="w-4 h-4 ml-2" />
+          )}
+        </AcrButton>
       </div>
 
-      {/* Desktop: Two-row Layout */}
-      <div className="hidden lg:block space-y-4">
-        {/* Top Row: Search (2/3) + Part Type (1/3) */}
-        <div className="flex gap-4 items-end">
-          <div className="flex-1 relative">
-            <AcrLabel>{t("common.actions.search")}</AcrLabel>
-            <AcrSearchInput
-              placeholder={t("admin.search.placeholder")}
-              value={searchTerms.search}
-              onChange={(e) =>
-                setSearchTerms({ ...searchTerms, search: e.target.value })
-              }
-              size="default"
+      {/* Desktop: Inline Collapsible Filter Panel */}
+      {isFilterPanelOpen && (
+        <div className="hidden md:block">
+          <FilterPanel
+            searchTerms={searchTerms}
+            onApply={handleApplyFilters}
+            onClear={clearAllFilters}
+            filterOptions={filterOptionsForPanel}
+          />
+        </div>
+      )}
+
+      {/* Mobile: Bottom Sheet Modal */}
+      {isFilterPanelOpen && (
+        <div className="md:hidden">
+          <AcrModal
+            isOpen={isFilterPanelOpen}
+            onClose={() => setIsFilterPanelOpen(false)}
+            title={t("admin.filters.toggle")}
+          >
+            <FilterPanel
+              searchTerms={searchTerms}
+              onApply={handleApplyFilters}
+              onClear={clearAllFilters}
+              onClose={() => setIsFilterPanelOpen(false)}
+              filterOptions={filterOptionsForPanel}
             />
-          </div>
-
-          <div className="w-1/3">
-            <AcrLabel>{t("admin.search.partType")}</AcrLabel>
-            <AcrSelect.Root
-              value={searchTerms.part_type}
-              onValueChange={(value) =>
-                setSearchTerms({ ...searchTerms, part_type: value })
-              }
-              disabled={isLoading}
-            >
-              <AcrSelect.Trigger >
-                <AcrSelect.Value
-                  placeholder={
-                    isLoading ? "Loading..." : t("common.actions.all")
-                  }
-                />
-              </AcrSelect.Trigger>
-              <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">
-                  {t("common.actions.all")}
-                </AcrSelect.Item>
-                {filterOptions?.part_types.map((partType) => (
-                  <AcrSelect.Item key={partType} value={partType}>
-                    {partType}
-                  </AcrSelect.Item>
-                ))}
-              </AcrSelect.Content>
-            </AcrSelect.Root>
-          </div>
+          </AcrModal>
         </div>
-
-        {/* Bottom Row: 4 remaining filters equally spaced */}
-        <div className="grid grid-cols-4 gap-4">
-          {/* Position Filter */}
-          <div>
-            <AcrLabel>{t("admin.search.position")}</AcrLabel>
-            <AcrSelect.Root
-              value={searchTerms.position_type}
-              onValueChange={(value) =>
-                setSearchTerms({ ...searchTerms, position_type: value })
-              }
-              disabled={isLoading}
-            >
-              <AcrSelect.Trigger >
-                <AcrSelect.Value
-                  placeholder={
-                    isLoading ? "Loading..." : t("common.actions.all")
-                  }
-                />
-              </AcrSelect.Trigger>
-              <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">
-                  {t("common.actions.all")}
-                </AcrSelect.Item>
-                {filterOptions?.position_types.map((position) => (
-                  <AcrSelect.Item key={position} value={position}>
-                    {position}
-                  </AcrSelect.Item>
-                ))}
-              </AcrSelect.Content>
-            </AcrSelect.Root>
-          </div>
-
-          {/* ABS Filter */}
-          <div>
-            <AcrLabel>ABS</AcrLabel>
-            <AcrSelect.Root
-              value={searchTerms.abs_type}
-              onValueChange={(value) =>
-                setSearchTerms({ ...searchTerms, abs_type: value })
-              }
-              disabled={isLoading}
-            >
-              <AcrSelect.Trigger >
-                <AcrSelect.Value
-                  placeholder={
-                    isLoading ? "Loading..." : t("common.actions.all")
-                  }
-                />
-              </AcrSelect.Trigger>
-              <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">
-                  {t("common.actions.all")}
-                </AcrSelect.Item>
-                {filterOptions?.abs_types.map((abs) => (
-                  <AcrSelect.Item key={abs} value={abs}>
-                    {abs}
-                  </AcrSelect.Item>
-                ))}
-              </AcrSelect.Content>
-            </AcrSelect.Root>
-          </div>
-
-          {/* Drive Filter */}
-          <div>
-            <AcrLabel>Drive</AcrLabel>
-            <AcrSelect.Root
-              value={searchTerms.drive_type}
-              onValueChange={(value) =>
-                setSearchTerms({ ...searchTerms, drive_type: value })
-              }
-              disabled={isLoading}
-            >
-              <AcrSelect.Trigger >
-                <AcrSelect.Value
-                  placeholder={
-                    isLoading ? "Loading..." : t("common.actions.all")
-                  }
-                />
-              </AcrSelect.Trigger>
-              <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">
-                  {t("common.actions.all")}
-                </AcrSelect.Item>
-                {filterOptions?.drive_types.map((drive) => (
-                  <AcrSelect.Item key={drive} value={drive}>
-                    {drive}
-                  </AcrSelect.Item>
-                ))}
-              </AcrSelect.Content>
-            </AcrSelect.Root>
-          </div>
-
-          {/* Bolt Pattern Filter */}
-          <div>
-            <AcrLabel>Bolt Pattern</AcrLabel>
-            <AcrSelect.Root
-              value={searchTerms.bolt_pattern}
-              onValueChange={(value) =>
-                setSearchTerms({ ...searchTerms, bolt_pattern: value })
-              }
-              disabled={isLoading}
-            >
-              <AcrSelect.Trigger >
-                <AcrSelect.Value
-                  placeholder={
-                    isLoading ? "Loading..." : t("common.actions.all")
-                  }
-                />
-              </AcrSelect.Trigger>
-              <AcrSelect.Content>
-                <AcrSelect.Item value="__all__">
-                  {t("common.actions.all")}
-                </AcrSelect.Item>
-                {filterOptions?.bolt_patterns.map((pattern) => (
-                  <AcrSelect.Item key={pattern} value={pattern}>
-                    {pattern}
-                  </AcrSelect.Item>
-                ))}
-              </AcrSelect.Content>
-            </AcrSelect.Root>
-          </div>
-        </div>
-
-        {/* Clear Filters Button - Desktop */}
-        {hasActiveFilters && (
-          <div className="flex justify-end pt-2">
-            <AcrButton
-              onClick={clearAllFilters}
-              variant="ghost"
-              className="text-acr-red-600 bg-acr-red-50 border border-acr-red-200 hover:bg-acr-red-100"
-            >
-              {t("common.actions.clearFilters")}
-            </AcrButton>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }

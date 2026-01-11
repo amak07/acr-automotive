@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { Plus, Download, Upload, ImagePlus } from "lucide-react";
+import { Download } from "lucide-react";
 import { createAcrPartsTableColumns } from "./parts-table-config";
 import { AcrPagination } from "@/components/acr";
 import { SearchTerms } from "./SearchFilters";
@@ -39,10 +39,6 @@ export function PartsList(props: PartsListProps) {
   const totalPages = Math.ceil(partsTotal / limit);
   const acrTableColumns = createAcrPartsTableColumns(t, router, searchParams);
 
-  const handleAddNewPartNavigation = () => {
-    router.push("/admin/parts/add-new-part" as any);
-  };
-
   const handleExport = () => {
     // Build query string from current search params
     const params = new URLSearchParams();
@@ -74,38 +70,13 @@ export function PartsList(props: PartsListProps) {
         <h2 className="acr-heading-5 text-acr-gray-800">
           {t("admin.dashboard.catalogTitle")}
         </h2>
-        <div className="flex gap-2">
-          <AcrButton
-            variant="secondary"
-            size="default"
-            onClick={() => router.push("/admin/import")}
-          >
-            <Upload className="w-4 h-4" />
-            {t("admin.import.title")}
-          </AcrButton>
-          <AcrButton variant="secondary" size="default" onClick={handleExport}>
-            <Download className="w-4 h-4" />
-            {hasFilters
-              ? `Export Results (${partsTotal})`
-              : `Export All (${partsTotal})`}
-          </AcrButton>
-          <AcrButton
-            variant="secondary"
-            size="default"
-            onClick={() => router.push("/admin/bulk-image-upload")}
-          >
-            <ImagePlus className="w-4 h-4" />
-            {t("admin.bulkUpload.button")}
-          </AcrButton>
-          <AcrButton
-            variant="primary"
-            size="default"
-            onClick={handleAddNewPartNavigation}
-          >
-            <Plus className="w-4 h-4" />
-            {t("admin.parts.newButton")}
-          </AcrButton>
-        </div>
+        {/* Keep only Export button - other actions are in QuickActions */}
+        <AcrButton variant="secondary" size="default" onClick={handleExport}>
+          <Download className="w-4 h-4" />
+          {hasFilters
+            ? `Export Results (${partsTotal})`
+            : `Export All (${partsTotal})`}
+        </AcrButton>
       </div>
 
       {/* Error State */}
@@ -130,7 +101,7 @@ export function PartsList(props: PartsListProps) {
 
           {/* Mobile Data */}
           {!partsLoading &&
-            partsData?.map((part) => (
+            partsData?.map((part, index) => (
               <div
                 key={part.id}
                 onClick={() => {
@@ -138,7 +109,10 @@ export function PartsList(props: PartsListProps) {
                     `/admin/parts/${encodeURIComponent(part.acr_sku)}${currentSearch ? `?${currentSearch}` : ""}` as any
                   );
                 }}
-                className="bg-white rounded-lg border border-acr-gray-200 overflow-hidden hover:shadow-md hover:border-acr-gray-300 transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                className="bg-white rounded-lg border border-acr-gray-200 overflow-hidden hover:shadow-lg hover:border-acr-red-300 hover:shadow-acr-red-100 transition-all duration-200 cursor-pointer active:scale-[0.98] acr-animate-fade-up"
+                style={{
+                  animationDelay: `${0.7 + (index % 12) * 0.05}s`,
+                }}
               >
                 {/* Card Header */}
                 <div className="p-4 pb-3">
@@ -231,6 +205,7 @@ export function PartsList(props: PartsListProps) {
           data={partsData || []}
           columns={acrTableColumns}
           isLoading={partsLoading}
+          rowClassName="hover:bg-acr-gray-50 hover:border-l-4 hover:border-acr-red-500"
           emptyMessage={
             <div className="text-center py-8">
               <p className="text-acr-gray-500 mb-2">

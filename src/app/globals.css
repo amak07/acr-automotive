@@ -410,4 +410,74 @@
       var(--color-acr-gray-100) 100%
     );
   }
+
+  /* Filter Panel Slide Animation */
+  @keyframes acr-slide-down {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+      max-height: 0;
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 500px;
+    }
+  }
+
+  .acr-animate-slide-down {
+    animation: acr-slide-down 0.3s ease-out forwards;
+  }
+
+  @keyframes acr-slide-up-exit {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 500px;
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+      max-height: 0;
+    }
+  }
+
+  .acr-animate-slide-up-exit {
+    animation: acr-slide-up-exit 0.3s ease-out forwards;
+  }
+
+  /* Tab Fade Transition */
+  .acr-tab-content-enter {
+    animation: acr-fade-in 0.2s ease-out;
+  }
+
+  /* Hover Effects */
+  .acr-hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .acr-hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px -12px rgba(237, 28, 36, 0.15);
+  }
+
+  /* Admin-specific hover effects for cards */
+  .acr-admin-card-hover {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .acr-admin-card-hover:hover {
+    border-color: var(--color-acr-red-300);
+    box-shadow: 0 10px 40px -12px rgba(237, 28, 36, 0.2);
+  }
+
+  /* Table row hover effect */
+  .acr-table-row-hover {
+    transition: background-color 0.2s ease, border-left 0.2s ease;
+  }
+
+  .acr-table-row-hover:hover {
+    background-color: var(--color-acr-gray-50);
+    border-left: 4px solid var(--color-acr-red-500);
+  }
 }
