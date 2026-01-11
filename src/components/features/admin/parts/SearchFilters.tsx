@@ -5,10 +5,11 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { AdminPartsQueryParams } from "@/types";
 import { useFilterOptions } from "@/hooks";
 import { AcrButton, AcrSearchInput, AcrModal } from "@/components/acr";
-import { Filter, ChevronDown, ChevronUp } from "lucide-react";
+import { Filter } from "lucide-react";
 import { SearchFiltersSkeleton } from "./SearchFiltersSkeleton";
 import { FilterPanel } from "./FilterPanel";
 import { FilterBadge } from "./FilterBadge";
+import { FilterChips } from "./FilterChips";
 import { cn } from "@/lib/utils";
 
 export type SearchTerms = Pick<
@@ -52,6 +53,13 @@ export function SearchFilters(props: SearchFiltersProps) {
     setSearchTerms(terms);
   };
 
+  const handleRemoveFilter = (key: keyof SearchTerms) => {
+    setSearchTerms({
+      ...searchTerms,
+      [key]: "__all__",
+    });
+  };
+
   // Show skeleton when filter options are loading
   if (isLoading) {
     return <SearchFiltersSkeleton />;
@@ -90,70 +98,96 @@ export function SearchFilters(props: SearchFiltersProps) {
       };
 
   return (
-    <div className="space-y-4">
-      {/* Collapsed State: Search + Filters Button */}
-      <div className="flex gap-3 items-center">
-        {/* Search Input */}
-        <AcrSearchInput
-          placeholder={t("admin.search.placeholder")}
-          value={searchTerms.search}
-          onChange={(e) =>
-            setSearchTerms({ ...searchTerms, search: e.target.value })
-          }
-          size="default"
-          className="flex-1"
-        />
+    <div className="space-y-3">
+      {/* Search Input with Filter Toggle */}
+      <div className="lg:sticky lg:top-4 lg:z-20">
+        <div className="bg-white rounded-lg border border-acr-gray-200 p-3 shadow-sm lg:p-4">
+          {/* Mobile: Stacked layout with full-width search */}
+          <div className="flex flex-col gap-2 lg:hidden">
+            <AcrSearchInput
+              placeholder={t("admin.search.placeholder")}
+              value={searchTerms.search}
+              onChange={(e) =>
+                setSearchTerms({ ...searchTerms, search: e.target.value })
+              }
+              size="default"
+              className="w-full h-11"
+            />
 
-        {/* Filters Toggle Button */}
-        <AcrButton
-          variant="secondary"
-          onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
-          className={cn(
-            "whitespace-nowrap",
-            isFilterPanelOpen && "bg-acr-gray-100"
+            {/* Filters Toggle Button - Full width on mobile */}
+            <AcrButton
+              variant="secondary"
+              onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
+              className={cn(
+                "w-full justify-center",
+                isFilterPanelOpen && "bg-acr-gray-100"
+              )}
+            >
+              <Filter className="w-4 h-4" />
+              <span className="ml-2">{t("admin.filters.toggle")}</span>
+              {activeFilterCount > 0 && (
+                <FilterBadge count={activeFilterCount} />
+              )}
+            </AcrButton>
+          </div>
+
+          {/* Desktop: Side-by-side layout */}
+          <div className="hidden lg:flex gap-3">
+            <div className="flex-[3]">
+              <AcrSearchInput
+                placeholder={t("admin.search.placeholder")}
+                value={searchTerms.search}
+                onChange={(e) =>
+                  setSearchTerms({ ...searchTerms, search: e.target.value })
+                }
+                size="default"
+                className="w-full h-11"
+              />
+            </div>
+
+            {/* Filters Toggle Button */}
+            <AcrButton
+              variant="secondary"
+              onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
+              className={cn("shrink-0", isFilterPanelOpen && "bg-acr-gray-100")}
+            >
+              <Filter className="w-4 h-4" />
+              <span className="hidden sm:inline ml-2">
+                {t("admin.filters.toggle")}
+              </span>
+              {activeFilterCount > 0 && (
+                <FilterBadge count={activeFilterCount} />
+              )}
+            </AcrButton>
+          </div>
+
+          {/* Filter Chips - Show active filters (both mobile and desktop) */}
+          {activeFilterCount > 0 && (
+            <div className="mt-3">
+              <FilterChips
+                searchTerms={searchTerms}
+                onRemoveFilter={handleRemoveFilter}
+                onClearAll={clearAllFilters}
+              />
+            </div>
           )}
-        >
-          <Filter className="w-4 h-4 mr-2" />
-          {t("admin.filters.toggle")}
-          {activeFilterCount > 0 && <FilterBadge count={activeFilterCount} />}
-          {isFilterPanelOpen ? (
-            <ChevronUp className="w-4 h-4 ml-2" />
-          ) : (
-            <ChevronDown className="w-4 h-4 ml-2" />
-          )}
-        </AcrButton>
+        </div>
       </div>
 
-      {/* Desktop: Inline Collapsible Filter Panel */}
-      {isFilterPanelOpen && (
-        <div className="hidden md:block">
-          <FilterPanel
-            searchTerms={searchTerms}
-            onApply={handleApplyFilters}
-            onClear={clearAllFilters}
-            filterOptions={filterOptionsForPanel}
-          />
-        </div>
-      )}
-
-      {/* Mobile: Bottom Sheet Modal */}
-      {isFilterPanelOpen && (
-        <div className="md:hidden">
-          <AcrModal
-            isOpen={isFilterPanelOpen}
-            onClose={() => setIsFilterPanelOpen(false)}
-            title={t("admin.filters.toggle")}
-          >
-            <FilterPanel
-              searchTerms={searchTerms}
-              onApply={handleApplyFilters}
-              onClear={clearAllFilters}
-              onClose={() => setIsFilterPanelOpen(false)}
-              filterOptions={filterOptionsForPanel}
-            />
-          </AcrModal>
-        </div>
-      )}
+      {/* Filter Modal - All devices */}
+      <AcrModal
+        isOpen={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
+        title={t("admin.filters.toggle")}
+      >
+        <FilterPanel
+          searchTerms={searchTerms}
+          onApply={handleApplyFilters}
+          onClear={clearAllFilters}
+          onClose={() => setIsFilterPanelOpen(false)}
+          filterOptions={filterOptionsForPanel}
+        />
+      </AcrModal>
     </div>
   );
 }

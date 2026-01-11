@@ -39,31 +39,95 @@ export function DashboardCards() {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3 lg:gap-6">
-      {statsCards.map((card, index) => {
-        const Icon = card.icon;
-        const staggerClass = `acr-stagger-${index + 1}`;
-
-        return (
-          <AcrCard
-            key={index}
-            variant="default"
-            padding="default"
-            className="acr-animate-fade-up acr-admin-card-hover"
-            data-stagger={staggerClass}
-            style={{
-              animationDelay: `${0.7 + index * 0.05}s`,
-            }}
-          >
-            <div className="flex items-center gap-3">
-              {isLoading && (
-                <>
-                  <Skeleton className="w-10 h-10 rounded-xl lg:w-12 lg:h-12" />
-                  <div className="flex-1 space-y-2">
-                    <SkeletonText width="16" className="h-6 lg:h-8" />
-                    <SkeletonText width="24" className="h-3 lg:h-4" />
+    <>
+      {/* Mobile: Single combined card */}
+      <div className="lg:hidden">
+        <AcrCard
+          variant="default"
+          padding="compact"
+          className="acr-animate-fade-up"
+        >
+          {isLoading && (
+            <div className="space-y-3">
+              {statsCards.map((_, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <Skeleton className="w-8 h-8 rounded-lg" />
+                  <div className="flex-1 space-y-1">
+                    <SkeletonText width="1/3" className="h-4" />
+                    <SkeletonText width="1/2" className="h-3" />
                   </div>
-                </>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {isError && (
+            <InlineError
+              title={t("common.error.generic")}
+              message={t("common.error.tryAgain")}
+            />
+          )}
+
+          {!isLoading && !isError && (
+            <div className="flex flex-col gap-3">
+              {statsCards.map((card, index) => {
+                const Icon = card.icon;
+                return (
+                  <div key={index} className="flex items-center gap-3">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300 ${
+                        card.isPrimary
+                          ? "bg-acr-red-100 text-acr-red-600"
+                          : "bg-acr-gray-100 text-acr-gray-600"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <div
+                        className={`text-sm font-bold leading-none transition-colors duration-300 ${
+                          card.isPrimary
+                            ? "text-acr-red-600"
+                            : "text-acr-gray-800"
+                        }`}
+                      >
+                        {formatNumber(card.count)}
+                      </div>
+                      <div className="text-xs leading-tight mt-1 text-acr-gray-500 font-medium">
+                        {t(card.cardTitle as any)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </AcrCard>
+      </div>
+
+      {/* Desktop: 3 separate cards */}
+      <div className="hidden lg:grid grid-cols-3 gap-3 md:gap-4">
+        {statsCards.map((card, index) => {
+          const Icon = card.icon;
+          const staggerClass = `acr-stagger-${index + 1}`;
+
+          return (
+            <AcrCard
+              key={index}
+              variant="default"
+              padding="compact"
+              className="acr-animate-fade-up hover:border-acr-red-200 hover:shadow-md transition-all duration-300"
+              data-stagger={staggerClass}
+              style={{
+                animationDelay: `${0.7 + index * 0.05}s`,
+              }}
+            >
+              {isLoading && (
+                <div className="space-y-2">
+                  <Skeleton className="w-8 h-8 rounded-lg lg:w-10 lg:h-10" />
+                  <SkeletonText width="full" className="h-5 lg:h-7" />
+                  <SkeletonText width="3/4" className="h-3" />
+                </div>
               )}
 
               {isError && (
@@ -74,19 +138,19 @@ export function DashboardCards() {
               )}
 
               {!isLoading && !isError && (
-                <>
+                <div className="space-y-2">
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center lg:w-12 lg:h-12 transition-colors duration-300 ${
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center lg:w-8 lg:h-8 transition-colors duration-300 ${
                       card.isPrimary
                         ? "bg-acr-red-100 text-acr-red-600"
                         : "bg-acr-gray-100 text-acr-gray-600"
                     }`}
                   >
-                    <Icon className="w-5 h-5 lg:w-6 lg:h-6" />
+                    <Icon className="w-4 h-4 lg:w-4 lg:h-4" />
                   </div>
-                  <div className="flex-1">
+                  <div>
                     <div
-                      className={`acr-heading-5 transition-colors duration-300 ${
+                      className={`text-xl font-bold leading-none lg:text-2xl transition-colors duration-300 ${
                         card.isPrimary
                           ? "text-acr-red-600"
                           : "text-acr-gray-800"
@@ -94,16 +158,16 @@ export function DashboardCards() {
                     >
                       {formatNumber(card.count)}
                     </div>
-                    <div className="acr-caption text-acr-gray-500">
+                    <div className="text-xs leading-tight mt-1.5 lg:text-xs text-acr-gray-500 font-medium">
                       {t(card.cardTitle as any)}
                     </div>
                   </div>
-                </>
+                </div>
               )}
-            </div>
-          </AcrCard>
-        );
-      })}
-    </div>
+            </AcrCard>
+          );
+        })}
+      </div>
+    </>
   );
 }
