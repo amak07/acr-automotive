@@ -1,12 +1,5 @@
 {
   "title": "Developer Guide",
   "defaultOpen": true,
-  "pages": [
-    "search",
-    "excel-processing",
-    "adding-features",
-    "testing",
-    "database-workflow",
-    "api-development"
-  ]
+  "pages": ["search", "excel-processing"]
 }
