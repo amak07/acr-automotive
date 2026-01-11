@@ -139,23 +139,11 @@ export function DashboardCards() {
 
               {!isLoading && !isError && (
                 <div className="space-y-2">
-                  <div
-                    className={`w-7 h-7 rounded-lg flex items-center justify-center lg:w-8 lg:h-8 transition-colors duration-300 ${
-                      card.isPrimary
-                        ? "bg-acr-red-100 text-acr-red-600"
-                        : "bg-acr-gray-100 text-acr-gray-600"
-                    }`}
-                  >
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center lg:w-8 lg:h-8 bg-acr-gray-100 text-acr-gray-600 transition-colors duration-300">
                     <Icon className="w-4 h-4 lg:w-4 lg:h-4" />
                   </div>
                   <div>
-                    <div
-                      className={`text-xl font-bold leading-none lg:text-2xl transition-colors duration-300 ${
-                        card.isPrimary
-                          ? "text-acr-red-600"
-                          : "text-acr-gray-800"
-                      }`}
-                    >
+                    <div className="text-xl font-bold leading-none lg:text-2xl text-acr-gray-800 transition-colors duration-300">
                       {formatNumber(card.count)}
                     </div>
                     <div className="text-xs leading-tight mt-1.5 lg:text-xs text-acr-gray-500 font-medium">
