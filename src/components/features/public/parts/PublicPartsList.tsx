@@ -8,23 +8,9 @@ import { PartSearchResult } from "@/types";
 import { useLocale } from "@/contexts/LocaleContext";
 import { TranslationKeys } from "@/lib/i18n/translation-keys";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AcrSpinner } from "@/components/acr/Spinner";
+import { getStaggerClass } from "@/lib/animations";
 import { cn } from "@/lib/utils";
-
-// Stagger class lookup for animation delays
-const staggerClasses = [
-  "acr-stagger-1",
-  "acr-stagger-2",
-  "acr-stagger-3",
-  "acr-stagger-4",
-  "acr-stagger-5",
-  "acr-stagger-6",
-  "acr-stagger-7",
-  "acr-stagger-8",
-  "acr-stagger-9",
-  "acr-stagger-10",
-  "acr-stagger-11",
-  "acr-stagger-12",
-] as const;
 
 // Individual part card with image loading state and entrance animation
 function PartCard({
@@ -41,7 +27,7 @@ function PartCard({
   const [imageLoaded, setImageLoaded] = useState(false);
 
   // Get stagger class based on index (wraps after 12)
-  const staggerClass = staggerClasses[index % staggerClasses.length];
+  const staggerClass = getStaggerClass(index);
 
   return (
     <Link
@@ -135,7 +121,7 @@ export function PublicPartsList(props: PublicPartsListProps) {
   if (isDataLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="w-8 h-8 border-3 border-acr-gray-200 border-t-acr-red-500 rounded-full animate-spin" />
+        <AcrSpinner size="md" color="primary" />
       </div>
     );
   }

@@ -8,6 +8,8 @@ import { SearchTerms } from "./SearchFilters";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AcrButton, AcrTable } from "@/components/acr";
 import { SkeletonAdminPartsList } from "@/components/ui/skeleton";
+import { InlineError } from "@/components/ui/error-states";
+import { getStaggerDelay } from "@/lib/animations";
 import { PartSummary } from "@/types";
 
 type PartsListProps = {
@@ -84,16 +86,10 @@ export function PartsList(props: PartsListProps) {
 
       {/* Error State */}
       {partsError && !partsLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <p className="text-sm text-red-600 mb-2">
-              {t("common.error.generic")}
-            </p>
-            <p className="text-xs text-acr-gray-500">
-              {t("common.error.tryAgain")}
-            </p>
-          </div>
-        </div>
+        <InlineError
+          title={t("common.error.generic")}
+          message={t("common.error.tryAgain")}
+        />
       )}
 
       {/* Mobile Cards View (hidden on desktop) */}
@@ -114,7 +110,7 @@ export function PartsList(props: PartsListProps) {
                 }}
                 className="bg-white rounded-lg border border-acr-gray-200 p-4 hover:border-acr-red-300 hover:shadow-[0_8px_30px_-12px_rgba(237,28,36,0.15)] transition-all duration-300 cursor-pointer active:scale-[0.98] acr-animate-fade-up focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:ring-offset-2"
                 style={{
-                  animationDelay: `${0.7 + (index % 12) * 0.05}s`,
+                  animationDelay: getStaggerDelay(index),
                 }}
                 tabIndex={0}
                 role="button"

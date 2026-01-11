@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { AcrCard } from "@/components/acr";
 import { useLocale } from "@/contexts/LocaleContext";
+import { getStaggerClass } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
 interface QuickAction {
@@ -156,7 +157,6 @@ export function QuickActions() {
         <div className="grid grid-cols-4 gap-4">
           {QUICK_ACTIONS.map((action, index) => {
             const Icon = action.icon;
-            const staggerClass = `acr-stagger-${index + 1}`;
 
             return (
               <Link
@@ -165,7 +165,7 @@ export function QuickActions() {
                 className={cn(
                   "block group",
                   "acr-animate-fade-up",
-                  staggerClass
+                  getStaggerClass(index)
                 )}
               >
                 <AcrCard

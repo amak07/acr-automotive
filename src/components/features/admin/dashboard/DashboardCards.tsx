@@ -6,6 +6,7 @@ import { AcrCard } from "@/components/acr";
 import { Bolt, Car, Waypoints } from "lucide-react";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { InlineError } from "@/components/ui/error-states";
+import { getStaggerClass } from "@/lib/animations";
 
 export function DashboardCards() {
   const { t, locale } = useLocale();
@@ -109,18 +110,13 @@ export function DashboardCards() {
       <div className="hidden lg:grid grid-cols-3 gap-3 md:gap-4">
         {statsCards.map((card, index) => {
           const Icon = card.icon;
-          const staggerClass = `acr-stagger-${index + 1}`;
 
           return (
             <AcrCard
               key={index}
               variant="default"
               padding="compact"
-              className="acr-animate-fade-up hover:border-acr-red-200 hover:shadow-md transition-all duration-300"
-              data-stagger={staggerClass}
-              style={{
-                animationDelay: `${0.7 + index * 0.05}s`,
-              }}
+              className={`acr-animate-fade-up hover:border-acr-red-200 hover:shadow-md transition-all duration-300 ${getStaggerClass(index)}`}
             >
               {isLoading && (
                 <div className="space-y-2">
