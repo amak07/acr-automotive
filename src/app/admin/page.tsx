@@ -2,14 +2,23 @@
 
 import type { Route } from "next";
 import { AppHeader } from "@/components/shared/layout/AppHeader";
+import { QuickActions } from "@/components/features/admin/dashboard/QuickActions";
 import { DashboardCards } from "@/components/features/admin/dashboard/DashboardCards";
-import { SearchFilters, SearchTerms } from "@/components/features/admin/parts/SearchFilters";
+import {
+  SearchFilters,
+  SearchTerms,
+} from "@/components/features/admin/parts/SearchFilters";
 import { PartsList } from "@/components/features/admin/parts/PartsList";
 import { withAdminAuth } from "@/components/shared/auth/withAdminAuth";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useGetParts } from "@/hooks";
 import { useDebounce } from "use-debounce";
-import { useMemo, Suspense } from "react";
+import { useMemo, Suspense, useState, useEffect } from "react";
+import { Preloader } from "@/components/ui/Preloader";
+import { useSettings } from "@/contexts/SettingsContext";
+
+// Path to dotLottie animation in public folder
+const GEAR_ANIMATION_SRC = "/animations/gear-loader.lottie";
 
 function AdminPageContent() {
   const router = useRouter();
@@ -17,17 +26,36 @@ function AdminPageContent() {
   const searchParams = useSearchParams();
 
   // Read state from URL
-  const searchTerms = useMemo<SearchTerms>(() => ({
-    search: searchParams?.get('search') || '',
-    part_type: searchParams?.get('part_type') || '__all__',
-    position_type: searchParams?.get('position_type') || '__all__',
-    abs_type: searchParams?.get('abs_type') || '__all__',
-    drive_type: searchParams?.get('drive_type') || '__all__',
-    bolt_pattern: searchParams?.get('bolt_pattern') || '__all__',
-  }), [searchParams]);
+  const searchTerms = useMemo<SearchTerms>(
+    () => ({
+      search: searchParams?.get("search") || "",
+      part_type: searchParams?.get("part_type") || "__all__",
+      position_type: searchParams?.get("position_type") || "__all__",
+      abs_type: searchParams?.get("abs_type") || "__all__",
+      drive_type: searchParams?.get("drive_type") || "__all__",
+      bolt_pattern: searchParams?.get("bolt_pattern") || "__all__",
+    }),
+    [searchParams]
+  );
 
-  const currentPage = parseInt(searchParams?.get('page') || '1');
-  const limit = 25;
+  const currentPage = parseInt(searchParams?.get("page") || "1");
+
+  // Use 10 items per page on mobile for better UX, 25 on desktop
+  const [limit, setLimit] = useState(25);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setLimit(window.innerWidth < 1024 ? 10 : 25);
+    };
+
+    // Set initial value
+    handleResize();
+
+    // Listen for resize
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const [debouncedSearchTerm] = useDebounce(searchTerms.search, 300);
 
   // Update URL when search terms or page changes
@@ -36,7 +64,7 @@ function AdminPageContent() {
 
     // Update or remove each parameter
     Object.entries(updates).forEach(([key, value]) => {
-      if (value && value !== '__all__' && value !== '') {
+      if (value && value !== "__all__" && value !== "") {
         params.set(key, value.toString());
       } else {
         params.delete(key);
@@ -44,8 +72,11 @@ function AdminPageContent() {
     });
 
     // Reset to page 1 if filters changed (not page)
-    if (!('page' in updates) && params.toString() !== searchParams?.toString()) {
-      params.delete('page');
+    if (
+      !("page" in updates) &&
+      params.toString() !== searchParams?.toString()
+    ) {
+      params.delete("page");
     }
 
     router.push(`${pathname}?${params.toString()}` as Route, { scroll: false });
@@ -70,15 +101,19 @@ function AdminPageContent() {
     sort_by: "acr_sku",
     sort_order: "asc",
     abs_type: searchTerms.abs_type === "__all__" ? "" : searchTerms.abs_type,
-    bolt_pattern: searchTerms.bolt_pattern === "__all__" ? "" : searchTerms.bolt_pattern,
-    drive_type: searchTerms.drive_type === "__all__" ? "" : searchTerms.drive_type,
+    bolt_pattern:
+      searchTerms.bolt_pattern === "__all__" ? "" : searchTerms.bolt_pattern,
+    drive_type:
+      searchTerms.drive_type === "__all__" ? "" : searchTerms.drive_type,
     part_type: searchTerms.part_type === "__all__" ? "" : searchTerms.part_type,
-    position_type: searchTerms.position_type === "__all__" ? "" : searchTerms.position_type,
+    position_type:
+      searchTerms.position_type === "__all__" ? "" : searchTerms.position_type,
     search: debouncedSearchTerm,
   });
 
   return (
-    <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8 space-y-8">
+    <main className="px-3 py-5 mx-auto lg:max-w-7xl lg:px-8 lg:py-8 space-y-4 lg:space-y-6">
+      <QuickActions />
       <DashboardCards />
       <SearchFilters
         searchTerms={searchTerms}
@@ -98,27 +133,48 @@ function AdminPageContent() {
   );
 }
 
+function AdminPageWrapper() {
+  const { isLoading: settingsLoading } = useSettings();
+  const searchParams = useSearchParams();
+
+  // Get initial parts data to determine loading state
+  const { data: initialPartsData, isLoading: initialPartsLoading } =
+    useGetParts({
+      limit: 25,
+      offset: 0,
+      sort_by: "acr_sku",
+      sort_order: "asc",
+      search: searchParams?.get("search") || "",
+      abs_type: searchParams?.get("abs_type") || "",
+      bolt_pattern: searchParams?.get("bolt_pattern") || "",
+      drive_type: searchParams?.get("drive_type") || "",
+      part_type: searchParams?.get("part_type") || "",
+      position_type: searchParams?.get("position_type") || "",
+    });
+
+  // Combined loading state for initial page load
+  const isInitialLoad =
+    settingsLoading || (initialPartsLoading && !initialPartsData);
+
+  return (
+    <>
+      {/* Full-page preloader - shows during initial load, covers everything */}
+      <Preloader isLoading={isInitialLoad} animationSrc={GEAR_ANIMATION_SRC} />
+      <AdminPageContent />
+    </>
+  );
+}
+
 function AdminPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-acr-gray-50 to-acr-gray-100">
+    <Suspense
+      fallback={
+        <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />
+      }
+    >
+      <div className="min-h-screen acr-page-bg-pattern">
         <AppHeader variant="admin" />
-        <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
-          <div className="animate-pulse space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="h-24 bg-gray-200 rounded-lg"></div>
-              <div className="h-24 bg-gray-200 rounded-lg"></div>
-              <div className="h-24 bg-gray-200 rounded-lg"></div>
-            </div>
-            <div className="h-32 bg-gray-200 rounded-lg"></div>
-            <div className="h-96 bg-gray-200 rounded-lg"></div>
-          </div>
-        </main>
-      </div>
-    }>
-      <div className="min-h-screen bg-gradient-to-br from-acr-gray-50 to-acr-gray-100">
-        <AppHeader variant="admin" />
-        <AdminPageContent />
+        <AdminPageWrapper />
       </div>
     </Suspense>
   );

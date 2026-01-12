@@ -11,6 +11,7 @@ import {
 } from "@/types";
 import { Tables } from "@/lib/supabase/types";
 import { AcrCard, AcrCardContent } from "@/components/acr/Card";
+import { AcrSpinner } from "@/components/acr/Spinner";
 import { Badge } from "@/components/ui/badge";
 import { PageError } from "@/components/ui/error-states";
 import { useHomeLink } from "@/hooks";
@@ -80,7 +81,7 @@ export function PublicPartDetails({
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto flex items-center justify-center py-24">
-        <div className="w-10 h-10 border-3 border-acr-gray-200 border-t-acr-red-500 rounded-full animate-spin" />
+        <AcrSpinner size="lg" color="primary" />
       </div>
     );
   }

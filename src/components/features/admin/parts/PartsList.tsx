@@ -1,13 +1,15 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { Plus, Download, Upload, ImagePlus } from "lucide-react";
+import { Download } from "lucide-react";
 import { createAcrPartsTableColumns } from "./parts-table-config";
 import { AcrPagination } from "@/components/acr";
 import { SearchTerms } from "./SearchFilters";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AcrButton, AcrTable } from "@/components/acr";
 import { SkeletonAdminPartsList } from "@/components/ui/skeleton";
+import { InlineError } from "@/components/ui/error-states";
+import { getStaggerDelay } from "@/lib/animations";
 import { PartSummary } from "@/types";
 
 type PartsListProps = {
@@ -39,10 +41,6 @@ export function PartsList(props: PartsListProps) {
   const totalPages = Math.ceil(partsTotal / limit);
   const acrTableColumns = createAcrPartsTableColumns(t, router, searchParams);
 
-  const handleAddNewPartNavigation = () => {
-    router.push("/admin/parts/add-new-part" as any);
-  };
-
   const handleExport = () => {
     // Build query string from current search params
     const params = new URLSearchParams();
@@ -69,57 +67,29 @@ export function PartsList(props: PartsListProps) {
   );
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="acr-heading-5 text-acr-gray-800">
+    <div className="acr-animate-fade-up" style={{ animationDelay: "0.9s" }}>
+      <div className="flex items-center justify-between mb-4 lg:mb-4">
+        <h2 className="text-base font-semibold text-acr-gray-800 lg:text-lg">
           {t("admin.dashboard.catalogTitle")}
         </h2>
-        <div className="flex gap-2">
-          <AcrButton
-            variant="secondary"
-            size="default"
-            onClick={() => router.push("/admin/import")}
-          >
-            <Upload className="w-4 h-4" />
-            {t("admin.import.title")}
-          </AcrButton>
-          <AcrButton variant="secondary" size="default" onClick={handleExport}>
-            <Download className="w-4 h-4" />
+        {/* Keep only Export button - other actions are in QuickActions */}
+        <AcrButton variant="secondary" onClick={handleExport}>
+          <Download className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+          <span className="hidden sm:inline">
             {hasFilters
               ? `Export Results (${partsTotal})`
               : `Export All (${partsTotal})`}
-          </AcrButton>
-          <AcrButton
-            variant="secondary"
-            size="default"
-            onClick={() => router.push("/admin/bulk-image-upload")}
-          >
-            <ImagePlus className="w-4 h-4" />
-            {t("admin.bulkUpload.button")}
-          </AcrButton>
-          <AcrButton
-            variant="primary"
-            size="default"
-            onClick={handleAddNewPartNavigation}
-          >
-            <Plus className="w-4 h-4" />
-            {t("admin.parts.newButton")}
-          </AcrButton>
-        </div>
+          </span>
+          <span className="sm:hidden">{partsTotal}</span>
+        </AcrButton>
       </div>
 
       {/* Error State */}
       {partsError && !partsLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <p className="text-sm text-red-600 mb-2">
-              {t("common.error.generic")}
-            </p>
-            <p className="text-xs text-acr-gray-500">
-              {t("common.error.tryAgain")}
-            </p>
-          </div>
-        </div>
+        <InlineError
+          title={t("common.error.generic")}
+          message={t("common.error.tryAgain")}
+        />
       )}
 
       {/* Mobile Cards View (hidden on desktop) */}
@@ -130,7 +100,7 @@ export function PartsList(props: PartsListProps) {
 
           {/* Mobile Data */}
           {!partsLoading &&
-            partsData?.map((part) => (
+            partsData?.map((part, index) => (
               <div
                 key={part.id}
                 onClick={() => {
@@ -138,88 +108,84 @@ export function PartsList(props: PartsListProps) {
                     `/admin/parts/${encodeURIComponent(part.acr_sku)}${currentSearch ? `?${currentSearch}` : ""}` as any
                   );
                 }}
-                className="bg-white rounded-lg border border-acr-gray-200 overflow-hidden hover:shadow-md hover:border-acr-gray-300 transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                className="bg-white rounded-lg border border-acr-gray-200 p-4 hover:border-acr-red-300 hover:shadow-[0_8px_30px_-12px_rgba(237,28,36,0.15)] transition-all duration-300 cursor-pointer active:scale-[0.98] acr-animate-fade-up focus:outline-none focus:ring-2 focus:ring-acr-red-500 focus:ring-offset-2"
+                style={{
+                  animationDelay: getStaggerDelay(index),
+                }}
+                tabIndex={0}
+                role="button"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.push(
+                      `/admin/parts/${encodeURIComponent(part.acr_sku)}${currentSearch ? `?${currentSearch}` : ""}` as any
+                    );
+                  }
+                }}
               >
-                {/* Card Header */}
-                <div className="p-4 pb-3">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-acr-red-50 text-acr-red-700 px-3 py-1.5 rounded-md acr-body-small font-mono font-semibold">
-                        {part.acr_sku}
-                      </span>
-                      <span className="bg-acr-gray-100 text-acr-gray-700 px-2 py-1 rounded acr-caption">
-                        {part.part_type}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Stats Row */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="text-center">
-                        <div className="acr-heading-6 text-acr-gray-900">
-                          {part.vehicle_count || 0}
-                        </div>
-                        <div className="text-xs text-acr-gray-500 uppercase tracking-wider">
-                          {t("admin.parts.vehicles")}
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="acr-heading-6 text-acr-gray-900">
-                          {part.cross_reference_count || 0}
-                        </div>
-                        <div className="text-xs text-acr-gray-500 uppercase tracking-wider">
-                          {t("admin.parts.references")}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Specifications */}
-                    {(part.position_type ||
-                      part.abs_type ||
-                      part.drive_type ||
-                      part.bolt_pattern) && (
-                      <div className="text-right">
-                        <div className="text-xs text-acr-gray-500 leading-relaxed">
-                          {[
-                            part.position_type,
-                            part.abs_type,
-                            part.drive_type,
-                            part.bolt_pattern,
-                          ]
-                            .filter(Boolean)
-                            .map((spec, index) => (
-                              <div key={index}>{spec}</div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                {/* Header - SKU and Part Type */}
+                <div className="flex items-center justify-between mb-3">
+                  <span className="bg-acr-red-50 text-acr-red-700 px-2.5 py-1 rounded-md text-xs font-mono font-bold">
+                    {part.acr_sku}
+                  </span>
+                  <span className="text-xs text-acr-gray-600 font-medium">
+                    {part.part_type}
+                  </span>
                 </div>
 
-                {/* Action Area */}
-                <div className="bg-acr-gray-50 px-4 py-3 border-t border-acr-gray-100">
-                  <div className="flex items-center justify-between">
-                    <span className="acr-body-small font-medium text-acr-gray-700">
-                      {t("common.actions.view")}
+                {/* Stats and Specs */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-xs text-acr-gray-600">
+                    <span className="flex items-center gap-1">
+                      <strong className="text-acr-gray-900 font-semibold">
+                        {part.vehicle_count || 0}
+                      </strong>
+                      <span>{t("admin.parts.vehicles")}</span>
                     </span>
-                    <div className="w-5 h-5 rounded-full bg-acr-red-500 flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </div>
+                    <span className="flex items-center gap-1">
+                      <strong className="text-acr-gray-900 font-semibold">
+                        {part.cross_reference_count || 0}
+                      </strong>
+                      <span>{t("admin.parts.references")}</span>
+                    </span>
+                  </div>
+
+                  {/* Chevron indicator */}
+                  <div className="shrink-0">
+                    <svg
+                      className="w-5 h-5 text-acr-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
                   </div>
                 </div>
+
+                {/* Specifications - if exist */}
+                {(part.position_type ||
+                  part.abs_type ||
+                  part.drive_type ||
+                  part.bolt_pattern) && (
+                  <div className="mt-2 pt-2 border-t border-acr-gray-100">
+                    <div className="text-xs text-acr-gray-500">
+                      {[
+                        part.position_type,
+                        part.abs_type,
+                        part.drive_type,
+                        part.bolt_pattern,
+                      ]
+                        .filter(Boolean)
+                        .join(" • ")}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
         </div>
@@ -231,6 +197,12 @@ export function PartsList(props: PartsListProps) {
           data={partsData || []}
           columns={acrTableColumns}
           isLoading={partsLoading}
+          rowClassName="group hover:bg-gradient-to-r hover:from-acr-red-50/30 hover:to-transparent hover:shadow-sm transition-all duration-200 cursor-pointer"
+          onRowClick={(part: PartSummary) => {
+            router.push(
+              `/admin/parts/${encodeURIComponent(part.acr_sku)}${currentSearch ? `?${currentSearch}` : ""}` as any
+            );
+          }}
           emptyMessage={
             <div className="text-center py-8">
               <p className="text-acr-gray-500 mb-2">
@@ -247,13 +219,15 @@ export function PartsList(props: PartsListProps) {
 
       {/* Pagination */}
       {!partsLoading && !partsError && (
-        <AcrPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          total={partsTotal}
-          limit={limit}
-          onPageChange={onPageChange}
-        />
+        <div className="mt-6">
+          <AcrPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            total={partsTotal}
+            limit={limit}
+            onPageChange={onPageChange}
+          />
+        </div>
       )}
     </div>
   );

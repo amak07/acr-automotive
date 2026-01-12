@@ -1,7 +1,19 @@
 "use client";
 
 import { JSX, useState } from "react";
-import { Copy, Check } from "lucide-react";
+import {
+  Copy,
+  Check,
+  MapPin,
+  Wrench,
+  Car,
+  Settings,
+  FileText,
+  Link2,
+  Eye,
+  Edit,
+  MoreHorizontal,
+} from "lucide-react";
 import { TranslationKeys } from "@/lib/i18n/translation-keys";
 import { PartSummary } from "@/types";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
@@ -33,7 +45,8 @@ export const createAcrPartsTableColumns = (
       const CopyableSKU = () => {
         const [copied, setCopied] = useState(false);
 
-        const handleCopy = async () => {
+        const handleCopy = async (e: React.MouseEvent) => {
+          e.stopPropagation(); // Prevent row click
           try {
             await navigator.clipboard.writeText(value);
             setCopied(true);
@@ -95,8 +108,8 @@ export const createAcrPartsTableColumns = (
       return (
         <div className="text-xs space-y-0.5 min-w-[140px]">
           {part?.position_type && (
-            <div className="flex items-center gap-1">
-              <span className="text-blue-600">📍</span>
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-3 h-3 text-acr-gray-500" />
               <span className="text-acr-gray-600 text-xs uppercase font-medium">
                 {t("parts.labels.position")}:
               </span>
@@ -104,8 +117,8 @@ export const createAcrPartsTableColumns = (
             </div>
           )}
           {part?.abs_type && (
-            <div className="flex items-center gap-1">
-              <span className="text-green-600">🔧</span>
+            <div className="flex items-center gap-1.5">
+              <Wrench className="w-3 h-3 text-acr-gray-500" />
               <span className="text-acr-gray-600 text-xs uppercase font-medium">
                 {t("parts.labels.abs")}:
               </span>
@@ -113,8 +126,8 @@ export const createAcrPartsTableColumns = (
             </div>
           )}
           {part?.drive_type && (
-            <div className="flex items-center gap-1">
-              <span className="text-purple-600">🚗</span>
+            <div className="flex items-center gap-1.5">
+              <Car className="w-3 h-3 text-acr-gray-500" />
               <span className="text-acr-gray-600 text-xs uppercase font-medium">
                 {t("parts.labels.drive")}:
               </span>
@@ -122,8 +135,8 @@ export const createAcrPartsTableColumns = (
             </div>
           )}
           {part?.bolt_pattern && (
-            <div className="flex items-center gap-1">
-              <span className="text-orange-600">⚙️</span>
+            <div className="flex items-center gap-1.5">
+              <Settings className="w-3 h-3 text-acr-gray-500" />
               <span className="text-acr-gray-600 text-xs uppercase font-medium">
                 {t("parts.labels.bolts")}:
               </span>
@@ -134,10 +147,11 @@ export const createAcrPartsTableColumns = (
           )}
           {part?.specifications && (
             <div
-              className="text-acr-gray-500 italic truncate max-w-[120px]"
+              className="flex items-center gap-1.5 text-acr-gray-500 italic truncate max-w-[120px]"
               title={part.specifications}
             >
-              📝 {part.specifications}
+              <FileText className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{part.specifications}</span>
             </div>
           )}
         </div>
@@ -150,8 +164,8 @@ export const createAcrPartsTableColumns = (
     headerClassName: "text-left",
     render: (value: any, part?: PartSummary) => (
       <div className="text-xs space-y-1 min-w-[100px] text-left">
-        <div className="flex items-center justify-start gap-1">
-          <span className="text-blue-600">🚗</span>
+        <div className="flex items-center justify-start gap-1.5">
+          <Car className="w-3 h-3 text-acr-gray-500" />
           <span className="text-acr-gray-900 font-medium">
             {part?.vehicle_count || 0}
           </span>
@@ -163,8 +177,8 @@ export const createAcrPartsTableColumns = (
             )}
           </span>
         </div>
-        <div className="flex items-center justify-start gap-1">
-          <span className="text-green-600">🔗</span>
+        <div className="flex items-center justify-start gap-1.5">
+          <Link2 className="w-3 h-3 text-acr-gray-500" />
           <span className="text-acr-gray-900 font-medium">
             {part?.cross_reference_count || 0}
           </span>
@@ -178,26 +192,5 @@ export const createAcrPartsTableColumns = (
         </div>
       </div>
     ),
-  },
-  {
-    key: "actions",
-    label: "",
-    render: (value: any, part?: PartSummary) => {
-      const currentSearch = searchParams?.toString() || "";
-      return (
-        <button
-          onClick={() => {
-            if (router && part?.acr_sku) {
-              router.push(
-                `/admin/parts/${encodeURIComponent(part.acr_sku)}${currentSearch ? `?${currentSearch}` : ""}`
-              );
-            }
-          }}
-          className="text-acr-red-600 hover:text-acr-red-700 text-sm font-medium underline-offset-4 hover:underline transition-colors"
-        >
-          {t("common.actions.view")}
-        </button>
-      );
-    },
   },
 ];

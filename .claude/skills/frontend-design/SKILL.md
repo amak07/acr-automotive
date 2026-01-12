@@ -59,13 +59,59 @@ Elegance comes from executing the vision well.
 
 ## ACR Automotive Context
 
-When working on this project, also consider:
+**IMPORTANT**: When working on this project, you MUST follow the established UX patterns documented in the pattern guides. This ensures consistency across the entire application.
 
-- **Design System**: Reference existing components in `src/components/acr/`
-- **Styling**: Use Tailwind CSS with the established color palette
-- **Mobile Focus**: Tablet-optimized for parts counter staff
-- **Accessibility**: Ensure keyboard navigation and proper ARIA labels
-- **Performance**: Sub-300ms response times are critical
+### Required Reading
+
+Before designing ANY new features or pages for ACR Automotive, read BOTH pattern documents (located in this skill directory):
+
+**1. `ACR_UX_PATTERNS.md` (Desktop Patterns)**
+
+- **Established Design Language**: Professional, Coca-Cola inspired, red-as-accent
+- **Color System**: Exact hex codes and usage rules for ACR brand colors
+- **Typography Patterns**: Font choices, size scales, and utility classes
+- **Layout Standards**: Page structure, container widths, responsive grids
+- **Component Patterns**: Cards, buttons, search, forms, navigation (with code examples)
+- **Loading States**: Preloader, skeletons, animations, and timing system
+- **Animation System**: Entrance animations, stagger delays, hover effects
+- **Error States**: When to use CardError vs InlineError vs PageError
+- **Accessibility Standards**: Keyboard navigation, focus states, ARIA patterns
+
+**2. `ACR_MOBILE_UX_PATTERNS.md` (Mobile/Tablet Patterns)**
+
+- **Touch-First Design**: 44px minimum touch targets, active states, press feedback
+- **Progressive Disclosure**: Combined vs separate components, stacked layouts
+- **Mobile-Specific Components**: Admin card view, dashboard combined card, search tabs
+- **Spacing & Density**: Tighter spacing on mobile (p-3 vs lg:p-4), responsive gaps
+- **Typography Adaptations**: Smaller headings, truncation patterns, responsive labels
+- **Layout Transformations**: Stack on mobile → horizontal on desktop patterns
+- **Mobile Performance**: Touch feedback timing, lazy loading, optimization strategies
+- **Touch Accessibility**: Keyboard support on tablets, screen reader patterns
+
+### Key Constraints
+
+- **Never invent new patterns**: Use existing ACR components and utilities
+- **Red sparingly**: ACR red (#ED1C24) for CTAs and highlights only, not overwhelming
+- **Professional aesthetic**: Business tool first, visual flair second
+- **Performance critical**: Fast animations (300-450ms), sub-300ms interactions
+- **Consistency over creativity**: Match existing pages rather than innovating
+
+### Common Mistakes to Avoid
+
+- Creating custom loading spinners (use Preloader or skeleton states)
+- Inventing new button styles (use AcrButton variants)
+- Inconsistent card styling (use AcrCard with standard variants)
+- Wrong animation timing (start at 0.7s, use stagger classes for grids)
+- Overusing red (white cards with gray borders, red only for actions)
+- Ignoring mobile patterns (always check responsive behavior)
+
+### Design System Integration
+
+- **Component Library**: `src/components/acr/` - Use existing ACR components
+- **Design Tokens**: `src/app/globals.css` - Color palette, animation classes
+- **Skeleton States**: `src/components/ui/skeleton.tsx` - Loading patterns
+- **Error States**: `src/components/ui/error-states.tsx` - Error handling
+- **Documentation**: `src/components/acr/README.md` - Architecture philosophy
 
 ## Quality Checklist
 
