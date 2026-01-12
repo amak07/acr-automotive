@@ -3,10 +3,18 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminPasswordModal } from "./AdminPasswordModal";
+import { Preloader } from "@/components/ui/Preloader";
 
-export function withAdminAuth<P extends object>(WrappedComponent: React.ComponentType<P>) {
+// Path to dotLottie animation in public folder
+const GEAR_ANIMATION_SRC = "/animations/gear-loader.lottie";
+
+export function withAdminAuth<P extends object>(
+  WrappedComponent: React.ComponentType<P>
+) {
   return function AdminProtectedComponent(props: P) {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(
+      null
+    );
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const router = useRouter();
 
@@ -32,16 +40,9 @@ export function withAdminAuth<P extends object>(WrappedComponent: React.Componen
       router.push("/");
     };
 
-    // Show loading state while checking authentication
+    // Show branded preloader while checking authentication
     if (isAuthenticated === null) {
-      return (
-        <div className="min-h-screen bg-acr-gray-100 flex items-center justify-center">
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-6 border-2 border-acr-red-600 border-t-transparent rounded-full animate-spin" />
-            <span className="text-acr-gray-600">Checking access...</span>
-          </div>
-        </div>
-      );
+      return <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />;
     }
 
     // Show password modal if not authenticated

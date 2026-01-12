@@ -51,6 +51,78 @@ export const translations: Record<
     en: "Parts Catalog",
     es: "Catálogo de Piezas",
   },
+  "admin.dashboard.quickActions": {
+    en: "Quick Actions",
+    es: "Acciones Rápidas",
+  },
+  "admin.dashboard.quickActionsDescription": {
+    en: "Common tasks for managing your catalog",
+    es: "Tareas comunes para gestionar tu catálogo",
+  },
+
+  // Admin Quick Actions
+  "admin.quickActions.import": {
+    en: "Import Parts",
+    es: "Importar Piezas",
+  },
+  "admin.quickActions.importDescription": {
+    en: "Upload Excel file with parts data",
+    es: "Subir archivo Excel con datos de piezas",
+  },
+  "admin.quickActions.addPart": {
+    en: "Add New Part",
+    es: "Agregar Pieza",
+  },
+  "admin.quickActions.addPartDescription": {
+    en: "Create a single part manually",
+    es: "Crear una pieza manualmente",
+  },
+  "admin.quickActions.manageImages": {
+    en: "Manage Images",
+    es: "Gestionar Imágenes",
+  },
+  "admin.quickActions.manageImagesDescription": {
+    en: "Bulk upload product images",
+    es: "Subir imágenes de productos en lote",
+  },
+  "admin.quickActions.settings": {
+    en: "Settings",
+    es: "Configuración",
+  },
+  "admin.quickActions.settingsDescription": {
+    en: "Configure branding and preferences",
+    es: "Configurar marca y preferencias",
+  },
+
+  // Admin Filters
+  "admin.filters.toggle": {
+    en: "Filters",
+    es: "Filtros",
+  },
+  "admin.filters.active": {
+    en: "{{count}} active",
+    es: "{{count}} activos",
+  },
+  "admin.filters.showFilters": {
+    en: "Show Filters",
+    es: "Mostrar Filtros",
+  },
+  "admin.filters.hideFilters": {
+    en: "Hide Filters",
+    es: "Ocultar Filtros",
+  },
+  "admin.filters.applyFilters": {
+    en: "Apply Filters",
+    es: "Aplicar Filtros",
+  },
+  "admin.filters.clearFilters": {
+    en: "Clear All Filters",
+    es: "Limpiar Todos",
+  },
+  "admin.filters.activeFilters": {
+    en: "Active filters",
+    es: "Filtros activos",
+  },
 
   // Admin Import
   "admin.import.title": {
@@ -1044,6 +1116,39 @@ export const translations: Record<
     en: "Active",
     es: "Activo",
   },
+
+  // Part Details Tabs
+  "partDetails.tabs.basicInfo": {
+    en: "Basic Info",
+    es: "Info Básica",
+  },
+  "partDetails.tabs.applications": {
+    en: "Applications",
+    es: "Aplicaciones",
+  },
+  "partDetails.tabs.crossReferences": {
+    en: "Cross-References",
+    es: "Referencias Cruzadas",
+  },
+  "partDetails.tabs.media": {
+    en: "Media",
+    es: "Medios",
+  },
+  "partDetails.tabs.history": {
+    en: "History",
+    es: "Historial",
+  },
+
+  // Part Details Media
+  "partDetails.media.productImages": {
+    en: "Product Images",
+    es: "Imágenes del Producto",
+  },
+  "partDetails.media.viewer360": {
+    en: "360° Viewer",
+    es: "Visor 360°",
+  },
+
   "partDetails.actions.preview": {
     en: "Preview",
     es: "Vista Previa",

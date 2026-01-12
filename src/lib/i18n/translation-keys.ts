@@ -189,6 +189,27 @@ export interface TranslationKeys {
   "admin.import.rollback.records": string;
   "admin.import.processing": string;
 
+  // Admin Dashboard Quick Actions
+  "admin.dashboard.quickActions": string;
+  "admin.dashboard.quickActionsDescription": string;
+  "admin.quickActions.import": string;
+  "admin.quickActions.importDescription": string;
+  "admin.quickActions.addPart": string;
+  "admin.quickActions.addPartDescription": string;
+  "admin.quickActions.manageImages": string;
+  "admin.quickActions.manageImagesDescription": string;
+  "admin.quickActions.settings": string;
+  "admin.quickActions.settingsDescription": string;
+
+  // Admin Filters
+  "admin.filters.toggle": string;
+  "admin.filters.active": string;
+  "admin.filters.showFilters": string;
+  "admin.filters.hideFilters": string;
+  "admin.filters.applyFilters": string;
+  "admin.filters.clearFilters": string;
+  "admin.filters.activeFilters": string;
+
   // Admin Search & Filters
   "admin.search.placeholder": string;
   "admin.search.partType": string;
@@ -284,6 +305,18 @@ export interface TranslationKeys {
   // Part Details Page
   "partDetails.breadcrumb.parts": string;
   "partDetails.status.active": string;
+
+  // Part Details Tabs
+  "partDetails.tabs.basicInfo": string;
+  "partDetails.tabs.applications": string;
+  "partDetails.tabs.crossReferences": string;
+  "partDetails.tabs.media": string;
+  "partDetails.tabs.history": string;
+
+  // Part Details Media
+  "partDetails.media.productImages": string;
+  "partDetails.media.viewer360": string;
+
   "partDetails.actions.preview": string;
   "partDetails.actions.saveChanges": string;
   "partDetails.actions.uploadImage": string;

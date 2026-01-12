@@ -6,6 +6,7 @@ import { AcrCard } from "@/components/acr";
 import { Bolt, Car, Waypoints } from "lucide-react";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { InlineError } from "@/components/ui/error-states";
+import { getStaggerClass } from "@/lib/animations";
 
 export function DashboardCards() {
   const { t, locale } = useLocale();
@@ -21,66 +22,136 @@ export function DashboardCards() {
     {
       cardTitle: "admin.dashboard.totalParts",
       count: data?.totalParts,
-      icon: () => <Bolt className="text-acr-gray-600 w-4 h-4 lg:w-5 lg:h-5" />,
+      icon: Bolt,
+      isPrimary: true, // Primary card gets ACR red accent
     },
     {
       cardTitle: "admin.dashboard.applications",
       count: data?.totalVehicles,
-      icon: () => <Car className="text-acr-gray-600 w-4 h-4 lg:w-5 lg:h-5" />,
+      icon: Car,
+      isPrimary: false,
     },
     {
       cardTitle: "admin.dashboard.crossReferences",
       count: data?.totalCrossReferences,
-      icon: () => (
-        <Waypoints className="text-acr-gray-600 w-4 h-4 lg:w-5 lg:h-5" />
-      ),
+      icon: Waypoints,
+      isPrimary: false,
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3 lg:gap-6">
-      {statsCards.map((card, index) => (
+    <>
+      {/* Mobile: Single combined card */}
+      <div className="lg:hidden">
         <AcrCard
-          key={index}
           variant="default"
-          padding="default"
+          padding="compact"
+          className="acr-animate-fade-up"
         >
-          <div className="flex items-center gap-3">
-            {isLoading && (
-              <>
-                <Skeleton className="w-8 h-8 rounded-md lg:w-10 lg:h-10" />
-                <div className="flex-1 space-y-2">
-                  <SkeletonText width="16" className="h-6 lg:h-8" />
-                  <SkeletonText width="24" className="h-3 lg:h-4" />
-                </div>
-              </>
-            )}
-
-            {isError && (
-              <InlineError
-                title={t("common.error.generic")}
-                message={t("common.error.tryAgain")}
-              />
-            )}
-
-            {!isLoading && !isError && (
-              <>
-                <div className="w-8 h-8 bg-acr-gray-100 rounded-md flex items-center justify-center lg:w-10 lg:h-10">
-                  <card.icon />
-                </div>
-                <div className="flex-1">
-                  <div className="acr-heading-5 text-acr-gray-800">
-                    {formatNumber(card.count)}
-                  </div>
-                  <div className="acr-caption text-acr-gray-500">
-                    {t(card.cardTitle as any)}
+          {isLoading && (
+            <div className="space-y-3">
+              {statsCards.map((_, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <Skeleton className="w-8 h-8 rounded-lg" />
+                  <div className="flex-1 space-y-1">
+                    <SkeletonText width="1/3" className="h-4" />
+                    <SkeletonText width="1/2" className="h-3" />
                   </div>
                 </div>
-              </>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
+
+          {isError && (
+            <InlineError
+              title={t("common.error.generic")}
+              message={t("common.error.tryAgain")}
+            />
+          )}
+
+          {!isLoading && !isError && (
+            <div className="flex flex-col gap-3">
+              {statsCards.map((card, index) => {
+                const Icon = card.icon;
+                return (
+                  <div key={index} className="flex items-center gap-3">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300 ${
+                        card.isPrimary
+                          ? "bg-acr-red-100 text-acr-red-600"
+                          : "bg-acr-gray-100 text-acr-gray-600"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <div
+                        className={`text-sm font-bold leading-none transition-colors duration-300 ${
+                          card.isPrimary
+                            ? "text-acr-red-600"
+                            : "text-acr-gray-800"
+                        }`}
+                      >
+                        {formatNumber(card.count)}
+                      </div>
+                      <div className="text-xs leading-tight mt-1 text-acr-gray-500 font-medium">
+                        {t(card.cardTitle as any)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </AcrCard>
-      ))}
-    </div>
+      </div>
+
+      {/* Desktop: 3 separate cards */}
+      <div className="hidden lg:grid grid-cols-3 gap-3 md:gap-4">
+        {statsCards.map((card, index) => {
+          const Icon = card.icon;
+
+          return (
+            <AcrCard
+              key={index}
+              variant="default"
+              padding="compact"
+              className={`acr-animate-fade-up hover:border-acr-red-200 hover:shadow-md transition-all duration-300 ${getStaggerClass(index)}`}
+            >
+              {isLoading && (
+                <div className="space-y-2">
+                  <Skeleton className="w-8 h-8 rounded-lg lg:w-10 lg:h-10" />
+                  <SkeletonText width="full" className="h-5 lg:h-7" />
+                  <SkeletonText width="3/4" className="h-3" />
+                </div>
+              )}
+
+              {isError && (
+                <InlineError
+                  title={t("common.error.generic")}
+                  message={t("common.error.tryAgain")}
+                />
+              )}
+
+              {!isLoading && !isError && (
+                <div className="space-y-2">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center lg:w-8 lg:h-8 bg-acr-gray-100 text-acr-gray-600 transition-colors duration-300">
+                    <Icon className="w-4 h-4 lg:w-4 lg:h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold leading-none lg:text-2xl text-acr-gray-800 transition-colors duration-300">
+                      {formatNumber(card.count)}
+                    </div>
+                    <div className="text-xs leading-tight mt-1.5 lg:text-xs text-acr-gray-500 font-medium">
+                      {t(card.cardTitle as any)}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </AcrCard>
+          );
+        })}
+      </div>
+    </>
   );
 }
