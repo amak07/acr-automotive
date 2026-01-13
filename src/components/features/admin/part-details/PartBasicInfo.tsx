@@ -86,31 +86,49 @@ export function PartBasicInfo({
     return !!dirtyFields[fieldName];
   };
 
+  // Group fields by category for better organization
+  const primaryFields = selectFieldConfigs(filterOptions, t).slice(0, 1); // part_type
+  const specificationFields = selectFieldConfigs(filterOptions, t).slice(1); // position, abs, drive, bolt
+
   return (
     <AcrCard
       variant="default"
       padding="none"
-      className="mb-6"
+      className="overflow-hidden"
       data-testid="part-basic-info-section"
     >
-      <AcrCardHeader className="px-6 pt-6" data-testid="part-basic-info-header">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-            <Info className="w-4 h-4 text-white" />
-          </div>
-          <h2 className="acr-heading-6 text-acr-gray-900">
-            {t("partDetails.basicInfo.title")}
-          </h2>
-        </div>
-      </AcrCardHeader>
+      {/* Thin red accent line at top - matches public search patterns */}
+      <div className="h-0.5 bg-acr-red-500" />
 
-      <AcrCardContent className="px-4 pb-6 lg:px-6">
-        {/* Main Layout Grid */}
-        <div className="space-y-6">
-          {/* Form Fields */}
-          <div className="space-y-6">
-            {/* Two Column Layout for remaining fields */}
-            <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
+      {/* Header */}
+      <div className="px-4 pt-5 pb-4 lg:px-6">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-acr-gray-100 rounded-lg flex items-center justify-center shrink-0">
+            <Info className="w-4 h-4 text-acr-gray-700" />
+          </div>
+          <div>
+            <h2 className="acr-heading-6 text-acr-gray-900">
+              {t("partDetails.basicInfo.title")}
+            </h2>
+            <p className="acr-caption text-acr-gray-600">
+              {t("partDetails.basicInfo.subtitle")}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <AcrCardContent className="px-4 pb-6 pt-6 lg:px-6">
+        <div className="space-y-8">
+          {/* Primary Information Section */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-1 h-4 bg-blue-600 rounded-full" />
+              <h3 className="text-sm font-semibold text-acr-gray-700 uppercase tracking-wide">
+                {t("partDetails.basicInfo.primaryInfo")}
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
               {/* ACR SKU - Edit Mode (Read-only) */}
               {!isCreateMode && (
                 <AcrFormField
@@ -123,11 +141,17 @@ export function PartBasicInfo({
                     />
                   }
                 >
-                  <AcrInput
-                    id="acr_sku"
-                    value={data.acr_sku || ""}
-                    readOnly
-                  />
+                  <div className="relative">
+                    <AcrInput
+                      id="acr_sku"
+                      value={data.acr_sku || ""}
+                      readOnly
+                      className="font-mono font-bold bg-acr-gray-50"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 bg-acr-gray-200 text-acr-gray-600 text-xs font-medium rounded">
+                      {t("common.readOnly")}
+                    </div>
+                  </div>
                 </AcrFormField>
               )}
 
@@ -154,8 +178,8 @@ export function PartBasicInfo({
                 </AcrFormField>
               )}
 
-              {/* Dynamic Select Fields */}
-              {selectFieldConfigs(filterOptions, t).map((config, index) => (
+              {/* Part Type */}
+              {primaryFields.map((config, index) => (
                 <AcrFormField
                   key={`${config.name}-${index}`}
                   label={config.label}
@@ -170,14 +194,12 @@ export function PartBasicInfo({
                         value={field.value}
                         onValueChange={field.onChange}
                         options={[
-                          // Add "Not Specified" option for null/undefined values
                           {
                             label: isCreateMode
                               ? t("common.actions.select")
                               : t("common.notSpecified"),
                             value: `__unspecified_${config.name}__`,
                           },
-                          // Add all the actual options
                           ...(config.options?.map((option) => ({
                             label: option,
                             value: option,
@@ -194,8 +216,66 @@ export function PartBasicInfo({
                 </AcrFormField>
               ))}
             </div>
+          </div>
 
-            {/* Notes */}
+          {/* Specifications Section */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-1 h-4 bg-purple-600 rounded-full" />
+              <h3 className="text-sm font-semibold text-acr-gray-700 uppercase tracking-wide">
+                {t("partDetails.basicInfo.specifications")}
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+              {specificationFields.map((config, index) => (
+                <AcrFormField
+                  key={`${config.name}-${index}`}
+                  label={config.label}
+                  htmlFor={config.name}
+                  isDirty={isFieldDirty(config.name)}
+                >
+                  <Controller
+                    name={config.name}
+                    control={control}
+                    render={({ field }) => (
+                      <AcrComboBox
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        options={[
+                          {
+                            label: isCreateMode
+                              ? t("common.actions.select")
+                              : t("common.notSpecified"),
+                            value: `__unspecified_${config.name}__`,
+                          },
+                          ...(config.options?.map((option) => ({
+                            label: option,
+                            value: option,
+                          })) || []),
+                        ]}
+                        placeholder={config.placeholder}
+                        allowCustomValue
+                        onCreateValue={async (value: string) => {
+                          field.onChange(value);
+                        }}
+                      />
+                    )}
+                  />
+                </AcrFormField>
+              ))}
+            </div>
+          </div>
+
+          {/* Additional Notes Section */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-1 h-4 bg-orange-600 rounded-full" />
+              <h3 className="text-sm font-semibold text-acr-gray-700 uppercase tracking-wide">
+                {t("partDetails.basicInfo.additionalInfo")}
+              </h3>
+            </div>
+
             <AcrFormField
               label={t("partDetails.basicInfo.additionalSpecs")}
               htmlFor="specifications"
@@ -211,6 +291,7 @@ export function PartBasicInfo({
                     rows={4}
                     placeholder={t("partDetails.basicInfo.notesPlaceholder")}
                     onChange={(e) => field.onChange(e.target.value)}
+                    className="resize-none"
                   />
                 )}
               />
