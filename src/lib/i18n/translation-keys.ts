@@ -269,6 +269,7 @@ export interface TranslationKeys {
   "common.success": string;
   "common.notAvailable": string;
   "common.notSpecified": string;
+  "common.readOnly": string;
 
   // ComboBox Component
   "comboBox.noResults": string;
@@ -305,6 +306,21 @@ export interface TranslationKeys {
   // Part Details Page
   "partDetails.breadcrumb.parts": string;
   "partDetails.status.active": string;
+
+  // Part Completion Status
+  "partDetails.completion.title": string;
+  "partDetails.completion.basicInfo": string;
+  "partDetails.completion.media": string;
+  "partDetails.completion.applications": string;
+  "partDetails.completion.crossReferences": string;
+  "partDetails.completion.nextStep": string;
+
+  // Part Details Sidebar
+  "partDetails.sidebar.identity": string;
+  "partDetails.sidebar.identitySubtitle": string;
+  "partDetails.sidebar.quickStats": string;
+  "partDetails.sidebar.completionSubtitle": string;
+  "partDetails.sidebar.primaryActions": string;
 
   // Part Details Tabs
   "partDetails.tabs.basicInfo": string;
@@ -351,6 +367,10 @@ export interface TranslationKeys {
   "partDetails.crossReferences.emptyTitle": string;
   "partDetails.crossReferences.emptyDescription": string;
   "partDetails.basicInfo.title": string;
+  "partDetails.basicInfo.subtitle": string;
+  "partDetails.basicInfo.primaryInfo": string;
+  "partDetails.basicInfo.specifications": string;
+  "partDetails.basicInfo.additionalInfo": string;
   "partDetails.basicInfo.acrSku": string;
   "partDetails.basicInfo.description": string;
   "partDetails.basicInfo.type": string;
@@ -402,6 +422,8 @@ export interface TranslationKeys {
   "partDetails.images.dragTip": string;
 
   // Part Media Tabs
+  "partDetails.media.title": string;
+  "partDetails.media.subtitle": string;
   "partDetails.media.photosTab": string;
   "partDetails.media.viewer360Tab": string;
 

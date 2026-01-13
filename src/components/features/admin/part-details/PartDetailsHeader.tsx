@@ -2,115 +2,33 @@
 
 import { useLocale } from "@/contexts/LocaleContext";
 import { AcrButton, AcrCard } from "@/components/acr";
-import { Settings, Eye, Save, MapPin, Shield, Zap, Wrench } from "lucide-react";
-import Link from "next/link";
+import { Package, Save } from "lucide-react";
 import { SkeletonPartDetailsHeader } from "@/components/ui/skeleton";
 
 interface PartDetailsHeaderProps {
   acrSku?: string;
   partType?: string;
-  vehicleCount?: number;
-  crossReferenceCount?: number;
-  positionType?: string;
-  absType?: string;
-  driveType?: string;
-  boltPattern?: string;
   isSaving?: boolean;
-  partId?: string;
   isLoading?: boolean;
 }
 
+/**
+ * PartDetailsHeader - Clean, professional header matching public search aesthetic
+ *
+ * Design Philosophy:
+ * - Simple typography (no oversized fonts)
+ * - Subtle shadows instead of borders
+ * - White background (no gradients)
+ * - Red accent only on Save button
+ * - Consistent with public search UX patterns
+ */
 export function PartDetailsHeader({
   acrSku,
   partType,
-  vehicleCount = 0,
-  crossReferenceCount = 0,
-  positionType,
-  absType,
-  driveType,
-  boltPattern,
   isSaving = false,
-  partId,
   isLoading = false,
 }: PartDetailsHeaderProps) {
   const { t } = useLocale();
-
-  // Helper function to get icon for stats with colors
-  const getStatIcon = (index: number) => {
-    const iconConfigs = [
-      { icon: MapPin, bgColor: "bg-green-100", textColor: "text-green-600" }, // Applications
-      { icon: Shield, bgColor: "bg-purple-100", textColor: "text-purple-600" }, // Cross Refs
-      { icon: Zap, bgColor: "bg-blue-100", textColor: "text-blue-600" }, // Position
-      {
-        icon: Settings,
-        bgColor: "bg-orange-100",
-        textColor: "text-orange-600",
-      }, // ABS
-      { icon: Wrench, bgColor: "bg-yellow-100", textColor: "text-yellow-600" }, // Drive
-      { icon: Settings, bgColor: "bg-cyan-100", textColor: "text-cyan-600" }, // Bolt Pattern
-    ];
-    const config = iconConfigs[index % iconConfigs.length];
-    const IconComponent = config.icon;
-    return {
-      icon: <IconComponent className={`w-4 h-4 ${config.textColor}`} />,
-      bgColor: config.bgColor,
-    };
-  };
-
-  // Separate counts from specifications for better layout
-  const countStats = [
-    {
-      label: t("admin.parts.applications"),
-      value: vehicleCount.toString(),
-      icon: 0,
-      type: "count",
-    },
-    {
-      label: t("admin.dashboard.crossReferences"),
-      value: crossReferenceCount.toString(),
-      icon: 1,
-      type: "count",
-    },
-  ];
-
-  // Helper function to display proper value or "Not Specified"
-  const formatSpecValue = (value: string | undefined | null) => {
-    if (!value || value.startsWith("__unspecified_")) {
-      return t("common.notSpecified");
-    }
-    return value;
-  };
-
-  // Part specifications for 4-column layout - show all specs
-  const specStats = [
-    {
-      label: t("partDetails.basicInfo.position"),
-      value: formatSpecValue(positionType),
-      icon: 2,
-      type: "spec",
-    },
-    {
-      label: t("parts.labels.abs"),
-      value: formatSpecValue(absType),
-      icon: 3,
-      type: "spec",
-    },
-    {
-      label: t("parts.labels.drive"),
-      value: formatSpecValue(driveType),
-      icon: 4,
-      type: "spec",
-    },
-    {
-      label: t("parts.labels.boltPattern"),
-      value: formatSpecValue(boltPattern),
-      icon: 5,
-      type: "spec",
-    },
-  ];
-
-  // For mobile, combine all stats in list format
-  const mobileStats = [...countStats, ...specStats];
 
   // Show skeleton while loading
   if (isLoading) {
@@ -119,227 +37,95 @@ export function PartDetailsHeader({
 
   return (
     <AcrCard variant="default" padding="none" className="overflow-hidden">
-      {/* Header Bar */}
-      <div className="bg-white px-4 py-4 border-b border-acr-gray-200 lg:px-6">
+      {/* Thin red accent line at top - matches public header pattern */}
+      <div className="h-0.5 bg-acr-red-500" />
+
+      <div className="bg-white px-4 py-4 lg:px-6">
         {/* Mobile Layout - Stacked */}
-        <div className="block lg:hidden">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-acr-red-100 rounded-lg flex items-center justify-center">
-              <Settings className="w-4 h-4 text-acr-red-600" />
+        <div className="flex flex-col gap-4 lg:hidden">
+          {/* SKU + Part Type */}
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-acr-gray-100 rounded-lg flex items-center justify-center shrink-0">
+              <Package className="w-4 h-4 text-acr-gray-700" />
             </div>
-            <div className="flex-1">
-              <h3 className="acr-heading-6 text-acr-gray-900">{acrSku}</h3>
+            <div className="flex-1 min-w-0">
+              <h1 className="acr-heading-6 text-acr-gray-900 font-mono truncate">
+                {acrSku}
+              </h1>
               {partType && (
-                <p className="text-sm text-acr-gray-600">
-                  <span className="mr-1">
-                    {t("partDetails.header.partLabel")}:
-                  </span>
-                  <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
+                <div className="mt-1">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                     {partType}
                   </span>
-                </p>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Mobile Action Buttons */}
-          <div className="flex gap-2">
-            <Link
-              href={
-                acrSku ? `/parts/${encodeURIComponent(acrSku)}?from=admin` : "#"
-              }
-              className="flex-1"
-            >
-              <AcrButton
-                variant="secondary"
-                size="sm"
-                className="w-full"
-                type="button"
-                disabled={!acrSku}
-              >
-                <Eye className="w-4 h-4" />
-              </AcrButton>
-            </Link>
-            <AcrButton
-              variant="primary"
-              size="sm"
-              disabled={isSaving}
-              className="flex-1 flex items-center justify-center gap-2"
-              type="submit"
-              form="part-form"
-            >
-              {isSaving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span className="hidden sm:inline">
-                    {t("common.actions.saving")}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  <span className="hidden sm:inline">
-                    {t("partDetails.actions.saveChanges")}
-                  </span>
-                </>
-              )}
-            </AcrButton>
-          </div>
+          {/* Save Button - Full Width on Mobile */}
+          <AcrButton
+            variant="primary"
+            size="default"
+            disabled={isSaving}
+            className="w-full"
+            type="submit"
+            form="part-form"
+          >
+            {isSaving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                {t("common.actions.saving")}
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                {t("partDetails.actions.saveChanges")}
+              </>
+            )}
+          </AcrButton>
         </div>
 
-        {/* Desktop Layout - Redesigned */}
+        {/* Desktop Layout - Single Line */}
         <div className="hidden lg:flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="w-10 h-10 bg-acr-red-100 rounded-lg flex items-center justify-center">
-              <Settings className="w-5 h-5 text-acr-red-600" />
+          {/* Left: Icon + SKU + Part Type Badge */}
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-acr-gray-100 rounded-lg flex items-center justify-center">
+              <Package className="w-5 h-5 text-acr-gray-700" />
             </div>
-            <div className="flex items-center gap-6">
-              <div>
-                <h3 className="acr-heading-6 text-acr-gray-900">{acrSku}</h3>
-                {partType && (
-                  <p className="text-sm text-acr-gray-600">
-                    <span className="mr-1">
-                      {t("partDetails.header.partLabel")}:
-                    </span>
-                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
-                      {partType}
-                    </span>
-                  </p>
-                )}
-              </div>
-              {/* Count Stats next to title */}
-              <div className="flex items-center gap-6 pl-6 border-l border-acr-gray-200">
-                {countStats.map((stat, index) => {
-                  const iconConfig = getStatIcon(stat.icon);
-                  return (
-                    <div key={index} className="flex items-center gap-2">
-                      <div
-                        className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}
-                      >
-                        {iconConfig.icon}
-                      </div>
-                      <div>
-                        <div className="acr-heading-5 text-acr-gray-800">
-                          {stat.value}
-                        </div>
-                        <div className="text-xs text-acr-gray-500">
-                          {stat.label}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="flex items-center gap-4">
+              <h1 className="acr-heading-5 text-acr-gray-900 font-mono">
+                {acrSku}
+              </h1>
+              {partType && (
+                <span className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                  {partType}
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Desktop Action Buttons */}
-          <div className="flex items-center gap-3">
-            <Link
-              href={
-                acrSku ? `/parts/${encodeURIComponent(acrSku)}?from=admin` : "#"
-              }
-            >
-              <AcrButton
-                variant="secondary"
-                size="default"
-                type="button"
-                disabled={!acrSku}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                {t("partDetails.actions.preview")}
-              </AcrButton>
-            </Link>
-            <AcrButton
-              variant="primary"
-              size="default"
-              disabled={isSaving}
-              className="flex items-center gap-2"
-              type="submit"
-              form="part-form"
-            >
-              {isSaving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  {t("common.actions.saving")}
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  {t("partDetails.actions.saveChanges")}
-                </>
-              )}
-            </AcrButton>
-          </div>
+          {/* Right: Save Button */}
+          <AcrButton
+            variant="primary"
+            size="default"
+            disabled={isSaving}
+            type="submit"
+            form="part-form"
+          >
+            {isSaving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                {t("common.actions.saving")}
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                {t("partDetails.actions.saveChanges")}
+              </>
+            )}
+          </AcrButton>
         </div>
       </div>
-
-      {/* Specifications Section */}
-      {
-        <div className="px-4 py-4 lg:px-6 border-t border-acr-gray-200">
-          {/* Mobile Layout - Vertical List */}
-          <div className="space-y-3 lg:hidden">
-            {mobileStats.map((stat, index) => {
-              const iconConfig = getStatIcon(stat.icon);
-              return (
-                <div key={index} className="flex items-center gap-3">
-                  <div
-                    className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}
-                  >
-                    {iconConfig.icon}
-                  </div>
-                  <div>
-                    <div
-                      className={
-                        stat.type === "count"
-                          ? "acr-heading-5 text-acr-gray-800"
-                          : "acr-body-small font-medium text-acr-gray-800 truncate"
-                      }
-                    >
-                      {stat.value}
-                    </div>
-                    <div className="text-xs text-acr-gray-500">
-                      {stat.label}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Desktop Layout - 4-Column Grid for Specifications */}
-          <div className="hidden lg:block">
-            <div className="flex items-center gap-2 mb-3">
-              <h3 className="acr-body-small font-medium text-acr-gray-700">
-                {t("partDetails.header.specifications")}
-              </h3>
-              <div className="flex-1 h-px bg-acr-gray-200"></div>
-            </div>
-            <div className="grid grid-cols-4 gap-6">
-              {specStats.map((stat, index) => {
-                const iconConfig = getStatIcon(stat.icon);
-                return (
-                  <div key={index} className="flex items-center gap-3">
-                    <div
-                      className={`w-8 h-8 ${iconConfig.bgColor} rounded-md flex items-center justify-center`}
-                    >
-                      {iconConfig.icon}
-                    </div>
-                    <div>
-                      <div className="acr-body-small font-medium text-acr-gray-800 truncate">
-                        {stat.value}
-                      </div>
-                      <div className="text-xs text-acr-gray-500">
-                        {stat.label}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      }
     </AcrCard>
   );
 }
