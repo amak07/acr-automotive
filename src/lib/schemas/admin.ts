@@ -109,7 +109,12 @@ export const queryCrossRefSchema = z.object({
 });
 
 export const createCrossRefSchema = z.object({
-  acr_part_id: z.uuid(),
+  acr_part_id: z
+    .string()
+    .regex(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      "Invalid UUID format"
+    ),
   competitor_sku: z.string().min(1).max(50),
   competitor_brand: z.string().max(50).optional(),
 });

@@ -89,14 +89,7 @@ function PartDetailsPage() {
       <PartDetailsHeader
         acrSku={data?.acr_sku}
         partType={data?.part_type}
-        vehicleCount={data?.vehicle_count || 0}
-        crossReferenceCount={data?.cross_reference_count || 0}
-        positionType={data?.position_type || undefined}
-        absType={data?.abs_type || undefined}
-        driveType={data?.drive_type || undefined}
-        boltPattern={data?.bolt_pattern || undefined}
         isSaving={updateMutation.isPending}
-        partId={data?.id}
         isLoading={isLoading}
       />
       <PartMetadata
