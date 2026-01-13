@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -41,10 +41,11 @@ export function AddCrossReferenceModal({
     handleSubmit,
     reset,
     setError,
+    trigger,
     formState: { errors, isValid, isDirty },
   } = useForm<CreateCrossReferenceParams>({
     resolver: zodResolver(createCrossRefSchema),
-    mode: "onBlur",
+    mode: "onChange", // Changed from "onBlur" for better UX - validates as you type
     defaultValues: {
       acr_part_id: partId,
       competitor_sku: "",
@@ -53,6 +54,14 @@ export function AddCrossReferenceModal({
   });
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  // Trigger validation when modal opens to ensure isValid updates correctly
+  useEffect(() => {
+    if (isOpen) {
+      // Small delay to ensure form is mounted
+      setTimeout(() => trigger(), 0);
+    }
+  }, [isOpen, trigger]);
 
   const onSubmit = async (data: CreateCrossReferenceParams) => {
     try {

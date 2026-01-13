@@ -1006,6 +1006,10 @@ export const translations: Record<
     en: "Not Specified",
     es: "No Especificado",
   },
+  "common.readOnly": {
+    en: "Read Only",
+    es: "Solo Lectura",
+  },
 
   // ComboBox Component
   "comboBox.noResults": {
@@ -1117,22 +1121,70 @@ export const translations: Record<
     es: "Activo",
   },
 
-  // Part Details Tabs
+  // Part Completion Status
+  "partDetails.completion.title": {
+    en: "Completion Status",
+    es: "Estado de Completado",
+  },
+  "partDetails.completion.basicInfo": {
+    en: "Basic Information",
+    es: "Información Básica",
+  },
+  "partDetails.completion.media": {
+    en: "Media & Photos",
+    es: "Medios y Fotos",
+  },
+  "partDetails.completion.applications": {
+    en: "Vehicle Applications",
+    es: "Aplicaciones Vehiculares",
+  },
+  "partDetails.completion.crossReferences": {
+    en: "Cross References",
+    es: "Referencias Cruzadas",
+  },
+  "partDetails.completion.nextStep": {
+    en: "Next",
+    es: "Siguiente",
+  },
+
+  // Part Details Sidebar
+  "partDetails.sidebar.identity": {
+    en: "Part Identity & Stats",
+    es: "Identidad y Estadísticas",
+  },
+  "partDetails.sidebar.identitySubtitle": {
+    en: "Core part information",
+    es: "Información principal",
+  },
+  "partDetails.sidebar.quickStats": {
+    en: "Quick Stats",
+    es: "Estadísticas Rápidas",
+  },
+  "partDetails.sidebar.completionSubtitle": {
+    en: "Track your progress",
+    es: "Seguimiento de progreso",
+  },
+  "partDetails.sidebar.primaryActions": {
+    en: "Primary Actions",
+    es: "Acciones Principales",
+  },
+
+  // Part Details Tabs (short labels for mobile)
   "partDetails.tabs.basicInfo": {
-    en: "Basic Info",
-    es: "Info Básica",
+    en: "Info",
+    es: "Info",
   },
   "partDetails.tabs.applications": {
-    en: "Applications",
-    es: "Aplicaciones",
+    en: "Apps",
+    es: "Apps",
   },
   "partDetails.tabs.crossReferences": {
-    en: "Cross-References",
-    es: "Referencias Cruzadas",
+    en: "Refs",
+    es: "Refs",
   },
   "partDetails.tabs.media": {
     en: "Media",
-    es: "Medios",
+    es: "Media",
   },
   "partDetails.tabs.history": {
     en: "History",
@@ -1268,6 +1320,22 @@ export const translations: Record<
   "partDetails.basicInfo.title": {
     en: "Basic Information",
     es: "Información Básica",
+  },
+  "partDetails.basicInfo.subtitle": {
+    en: "Core part details and specifications",
+    es: "Detalles y especificaciones de la pieza",
+  },
+  "partDetails.basicInfo.primaryInfo": {
+    en: "Primary Information",
+    es: "Información Principal",
+  },
+  "partDetails.basicInfo.specifications": {
+    en: "Specifications",
+    es: "Especificaciones",
+  },
+  "partDetails.basicInfo.additionalInfo": {
+    en: "Additional Information",
+    es: "Información Adicional",
   },
   "partDetails.basicInfo.acrSku": {
     en: "ACR SKU",
@@ -1461,6 +1529,14 @@ export const translations: Record<
   },
 
   // Part Media Tabs
+  "partDetails.media.title": {
+    en: "Media Management",
+    es: "Gestión de Medios",
+  },
+  "partDetails.media.subtitle": {
+    en: "Product photos and 360° viewer",
+    es: "Fotos de producto y visor 360°",
+  },
   "partDetails.media.photosTab": {
     en: "Product Photos",
     es: "Fotos del Producto",
