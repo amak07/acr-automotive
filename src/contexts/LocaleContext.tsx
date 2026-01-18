@@ -48,7 +48,7 @@ function subscribeToLocale(callback: () => void): () => void {
 function getLocaleSnapshot(isDevMode: boolean): Locale {
   if (typeof window === "undefined") return getDefaultLocale(isDevMode);
   const savedLocale = localStorage.getItem("acr-locale") as Locale;
-  if (isDevMode && (savedLocale === "en" || savedLocale === "es")) {
+  if (savedLocale === "en" || savedLocale === "es") {
     return savedLocale;
   }
   return getDefaultLocale(isDevMode);
@@ -72,17 +72,11 @@ export function LocaleProvider({ children }: LocaleProviderProps) {
   );
 
   // Function to handle locale changes
-  const handleSetLocale = useCallback(
-    (newLocale: Locale) => {
-      // Save preference in development
-      if (isDevMode) {
-        localStorage.setItem("acr-locale", newLocale);
-        // Dispatch custom event to trigger re-render in same tab
-        window.dispatchEvent(new Event("locale-changed"));
-      }
-    },
-    [isDevMode]
-  );
+  const handleSetLocale = useCallback((newLocale: Locale) => {
+    localStorage.setItem("acr-locale", newLocale);
+    // Dispatch custom event to trigger re-render in same tab
+    window.dispatchEvent(new Event("locale-changed"));
+  }, []);
 
   // Translation function that uses current locale
   const t = (key: keyof TranslationKeys) => translateFn(key, locale);
