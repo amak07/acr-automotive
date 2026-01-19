@@ -54,12 +54,16 @@ Now edit `.env.local` with these values for local development:
 # .env.local
 NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
-ADMIN_PASSWORD=localdev
+ADMIN_PASSWORD=<your-secure-password>
 NEXT_PUBLIC_ENABLE_POST_MVP=true
 ```
 
 <Callout type="info">
-The anon key above is the default local Supabase demo key. It only works with your local Docker instance.
+The anon key above is the **default local Supabase demo key** - safe for development only. It only works with your local Docker instance and should never be used in production.
+</Callout>
+
+<Callout type="warn">
+**Security**: Set a strong password for `ADMIN_PASSWORD`. This protects your admin panel and documentation access.
 </Callout>
 
 ---
@@ -114,7 +118,7 @@ Open your browser to:
 | **Admin Dashboard** | [http://localhost:3000/admin](http://localhost:3000/admin) |
 | **Supabase Studio** | [http://localhost:54323](http://localhost:54323) |
 
-**Admin password**: Use the `ADMIN_PASSWORD` value from your `.env.local` file (e.g., `localdev`)
+**Admin password**: Use the `ADMIN_PASSWORD` value from your `.env.local` file
 
 ---
 
