@@ -1189,6 +1189,10 @@ CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
 
 **Status**: Enabled on all tables
 
+> ⚠️ **SECURITY WARNING**: The current RLS policies below are **wide-open for MVP development**.
+>
+> **DO NOT use these policies in a production environment** without implementing proper Row Level Security based on authenticated user roles. These permissive policies are intentional for the development phase but represent a security risk if deployed to production with sensitive data.
+
 **Current Policies** (MVP - Development-Friendly):
 
 ```sql
@@ -1204,7 +1208,7 @@ CREATE POLICY "Admin write" ON parts FOR ALL USING (true);
 -- (same for all tables)
 ```
 
-**Why Simple**: MVP focuses on core functionality. Real authentication comes post-MVP.
+**Why Simple**: MVP focuses on core functionality. Proper authentication and granular RLS policies planned post-MVP.
 
 ---
 
@@ -1533,11 +1537,11 @@ Team stays synchronized
 
 ### Local vs Remote Databases
 
-| Environment      | Type        | Purpose                | URL                                        | Data Persistence          |
-| ---------------- | ----------- | ---------------------- | ------------------------------------------ | ------------------------- |
-| **Local Docker** | Development | Day-to-day coding      | `http://localhost:54321`                   | Ephemeral (reset anytime) |
-| **Remote TEST**  | Staging     | Schema source of truth | `https://fzsdaqpwwbuwkvbzyiax.supabase.co` | Persistent                |
-| **Remote PROD**  | Production  | Live customer data     | `https://bzfnqhghtmsiecvvgmkw.supabase.co` | Persistent                |
+| Environment      | Type        | Purpose                | URL                                     | Data Persistence          |
+| ---------------- | ----------- | ---------------------- | --------------------------------------- | ------------------------- |
+| **Local Docker** | Development | Day-to-day coding      | `http://localhost:54321`                | Ephemeral (reset anytime) |
+| **Remote TEST**  | Staging     | Schema source of truth | `https://your-test-project.supabase.co` | Persistent                |
+| **Remote PROD**  | Production  | Live customer data     | `https://your-prod-project.supabase.co` | Persistent                |
 
 **Local Supabase Access**:
 
