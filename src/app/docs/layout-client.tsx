@@ -1,40 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/shared/layout/AppHeader";
-import { AdminPasswordModal } from "@/components/shared/auth/AdminPasswordModal";
+import { useAuth } from "@/contexts/AuthContext";
 import type { ReactNode } from "react";
 
 export function DocsLayoutClient({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const { user, profile, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    // Check authentication after component mounts (client-side only)
-    const adminAuth = sessionStorage.getItem("admin-authenticated");
-    const isAuthed = adminAuth === "true";
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsAuthenticated(isAuthed);
-    if (!isAuthed) {
-      setShowPasswordModal(true);
+    // Redirect to login if not authenticated after loading
+    if (!isLoading && !user) {
+      router.push(`/login?redirect=${encodeURIComponent("/docs")}`);
     }
-  }, []);
-
-  const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
-    setShowPasswordModal(false);
-  };
-
-  const handleAuthCancel = () => {
-    setShowPasswordModal(false);
-    router.push("/");
-  };
+  }, [isLoading, user, router]);
 
   // Show loading state while checking authentication
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-acr-gray-100 flex items-center justify-center">
         <div className="flex items-center gap-3">
@@ -45,27 +29,16 @@ export function DocsLayoutClient({ children }: { children: ReactNode }) {
     );
   }
 
-  // Show password modal if not authenticated
-  if (!isAuthenticated && showPasswordModal) {
-    return (
-      <AdminPasswordModal
-        onSuccess={handleAuthSuccess}
-        onCancel={handleAuthCancel}
-      />
-    );
+  // Redirect if not authenticated
+  if (!user || !profile?.is_active) {
+    return null;
   }
 
   // Render the docs with header if authenticated
-  if (isAuthenticated) {
-    return (
-      <>
-        <AppHeader variant="admin" />
-        {children}
-      </>
-    );
-  }
-
-  // Fallback - should not reach here but redirect to home if it does
-  router.push("/");
-  return null;
+  return (
+    <>
+      <AppHeader variant="admin" />
+      {children}
+    </>
+  );
 }

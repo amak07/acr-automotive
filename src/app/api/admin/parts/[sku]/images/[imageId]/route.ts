@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import { z } from "zod";
 import { normalizeSku } from "@/lib/utils/sku";
+import { requireAuth } from "@/lib/api/auth-helpers";
 
 const updateCaptionSchema = z.object({
   caption: z.string().optional().nullable(),
@@ -15,6 +16,10 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ sku: string; imageId: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { sku, imageId } = await params;
     const normalizedSku = normalizeSku(sku);
@@ -89,6 +94,10 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ sku: string; imageId: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { sku, imageId } = await params;
     const normalizedSku = normalizeSku(sku);

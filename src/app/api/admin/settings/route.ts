@@ -1,13 +1,14 @@
 /**
  * Admin Settings API
- * GET  /api/admin/settings - Fetch all site settings
- * PUT  /api/admin/settings - Update a specific setting by key
+ * GET  /api/admin/settings - Fetch all site settings (public - needed for branding)
+ * PUT  /api/admin/settings - Update a specific setting by key (admin only)
  */
 
 import { supabase } from "@/lib/supabase/client";
 import { NextRequest, NextResponse } from "next/server";
 import { updateSettingSchema } from "@/lib/schemas/admin";
 import type { SettingKey } from "@/types/domain/settings";
+import { requireAdmin } from "@/lib/api/auth-helpers";
 
 /**
  * GET /api/admin/settings
@@ -49,9 +50,13 @@ export async function GET() {
 
 /**
  * PUT /api/admin/settings
- * Update a specific setting by key
+ * Update a specific setting by key (admin only)
  */
 export async function PUT(request: NextRequest) {
+  // Require admin access
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
 

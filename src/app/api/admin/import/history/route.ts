@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
+import { requireAuth } from '@/lib/api/auth-helpers';
 
 /**
  * GET /api/admin/import/history
@@ -20,6 +21,10 @@ import { supabase } from '@/lib/supabase/client';
  * }
  */
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(

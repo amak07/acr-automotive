@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { RollbackService } from '@/services/excel/rollback';
+import { requireAuth } from '@/lib/api/auth-helpers';
 
 /**
  * POST /api/admin/rollback/execute
@@ -27,6 +28,10 @@ import { RollbackService } from '@/services/excel/rollback';
  * }
  */
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const startTime = Date.now();
 
   try {

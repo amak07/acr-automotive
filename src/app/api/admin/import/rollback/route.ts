@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { RollbackService } from '@/services/excel/rollback/RollbackService';
+import { requireAuth } from '@/lib/api/auth-helpers';
 
 /**
  * POST /api/admin/import/rollback
@@ -45,6 +46,10 @@ import { RollbackService } from '@/services/excel/rollback/RollbackService';
  * }
  */
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const startTime = Date.now();
 
   try {
@@ -139,6 +144,10 @@ export async function POST(request: NextRequest) {
  * }
  */
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     console.log('[Import Rollback] Fetching available snapshots...');
 

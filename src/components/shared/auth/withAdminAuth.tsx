@@ -1,67 +1,62 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { AdminPasswordModal } from "./AdminPasswordModal";
-import { Preloader } from "@/components/ui/Preloader";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { Preloader } from '@/components/ui/Preloader';
 
-// Path to dotLottie animation in public folder
-const GEAR_ANIMATION_SRC = "/animations/gear-loader.lottie";
+const GEAR_ANIMATION_SRC = '/animations/gear-loader.lottie';
 
+/**
+ * withAdminAuth - Higher-Order Component for protecting admin routes
+ *
+ * Wraps components to require authentication via Supabase Auth.
+ * Redirects unauthenticated users to login page with return URL.
+ * Shows branded preloader during auth check.
+ *
+ * @example
+ * ```tsx
+ * function AdminDashboard() {
+ *   return <div>Admin Content</div>;
+ * }
+ *
+ * export default withAdminAuth(AdminDashboard);
+ * ```
+ */
 export function withAdminAuth<P extends object>(
   WrappedComponent: React.ComponentType<P>
 ) {
   return function AdminProtectedComponent(props: P) {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(
-      null
-    );
-    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const { user, profile, isLoading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-      // Check if admin is already authenticated in this session
-      const adminAuth = sessionStorage.getItem("admin-authenticated");
-
-      if (adminAuth === "true") {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-        setShowPasswordModal(true);
+      // Only redirect after loading complete and no user found
+      if (!isLoading && !user) {
+        // Redirect to login with return URL
+        const returnUrl = encodeURIComponent(window.location.pathname);
+        router.push(`/login?redirect=${returnUrl}`);
       }
-    }, []);
-
-    const handleAuthSuccess = () => {
-      setIsAuthenticated(true);
-      setShowPasswordModal(false);
-    };
-
-    const handleAuthCancel = () => {
-      setShowPasswordModal(false);
-      router.push("/");
-    };
+    }, [isLoading, user, router]);
 
     // Show branded preloader while checking authentication
-    if (isAuthenticated === null) {
+    if (isLoading) {
       return <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />;
     }
 
-    // Show password modal if not authenticated
-    if (!isAuthenticated && showPasswordModal) {
-      return (
-        <AdminPasswordModal
-          onSuccess={handleAuthSuccess}
-          onCancel={handleAuthCancel}
-        />
-      );
+    // Show preloader while redirecting (no user or profile)
+    if (!user || !profile) {
+      return <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />;
     }
 
-    // Render the protected component if authenticated
-    if (isAuthenticated) {
-      return <WrappedComponent {...props} />;
+    // Check if user account is active
+    if (!profile.is_active) {
+      // Redirect to homepage with inactive account
+      router.push('/');
+      return <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />;
     }
 
-    // Fallback - should not reach here but redirect to home if it does
-    router.push("/");
-    return null;
+    // User is authenticated and active - render protected component
+    return <WrappedComponent {...props} />;
   };
 }

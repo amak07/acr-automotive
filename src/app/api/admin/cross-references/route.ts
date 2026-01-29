@@ -9,10 +9,15 @@ import {
 } from "@/lib/schemas/admin";
 import { PostgrestError } from "@supabase/supabase-js";
 import { DatabaseCrossRefRow } from "@/types/database";
+import { requireAuth } from "@/lib/api/auth-helpers";
 
 type AdminCrossRefQueryParams = z.infer<typeof queryCrossRefSchema>;
 
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const { searchParams } = new URL(request.url);
   const rawParams = Object.fromEntries(searchParams.entries());
 
@@ -77,6 +82,10 @@ export async function GET(request: NextRequest) {
 type AdminCrossRefPostParams = z.infer<typeof createCrossRefSchema>;
 
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const body = await request.json();
 
   try {
@@ -126,6 +135,10 @@ export async function POST(request: NextRequest) {
 type AdminCrossRefPutParams = z.infer<typeof updateCrossRefSchema>;
 
 export async function PUT(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const body = await request.json();
 
   try {
@@ -185,6 +198,10 @@ export async function PUT(request: NextRequest) {
 type AdminCrossRefDeleteParams = z.infer<typeof deleteCrossRefSchema>;
 
 export async function DELETE(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const body = await request.json();
 
   try {

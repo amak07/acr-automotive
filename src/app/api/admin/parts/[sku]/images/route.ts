@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase/client";
 import { Tables, TablesInsert } from "@/lib/supabase/types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { normalizeSku } from "@/lib/utils/sku";
+import { requireAuth } from "@/lib/api/auth-helpers";
 
 type PartImage = Tables<"part_images">;
 
@@ -14,6 +15,10 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ sku: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { sku } = await params;
     const normalizedSku = normalizeSku(sku);

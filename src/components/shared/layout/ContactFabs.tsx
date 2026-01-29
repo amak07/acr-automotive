@@ -18,7 +18,7 @@ import { useLocale } from "@/contexts/LocaleContext";
  * - Responsive design (hides on small mobile screens)
  * - Dynamic content from site settings
  * - Accessible with ARIA labels
- * - Only shows on public pages (not admin)
+ * - Only shows on public search (/) and part details (/parts/*) pages
  */
 export function ContactFabs() {
   const { settings, isLoading } = useSettings();
@@ -35,8 +35,10 @@ export function ContactFabs() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Don't render on admin or docs pages
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/docs")) {
+  // Only render on public search (/) and part details (/parts/*) pages
+  const isPublicSearchPage = pathname === "/";
+  const isPartDetailsPage = pathname?.startsWith("/parts/");
+  if (!isPublicSearchPage && !isPartDetailsPage) {
     return null;
   }
 
