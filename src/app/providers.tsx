@@ -5,6 +5,7 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import { useState } from "react";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -26,9 +27,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
           enabled: false, // Disable dark mode completely
         }}
       >
-        <SettingsProvider>
-          <LocaleProvider>{children}</LocaleProvider>
-        </SettingsProvider>
+        <AuthProvider>
+          <SettingsProvider>
+            <LocaleProvider>{children}</LocaleProvider>
+          </SettingsProvider>
+        </AuthProvider>
       </RootProvider>
     </QueryClientProvider>
   );

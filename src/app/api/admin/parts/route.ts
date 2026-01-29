@@ -19,6 +19,7 @@ import {
 import { PostgrestError } from "@supabase/supabase-js";
 import { z } from "zod";
 import { normalizeSku } from "@/lib/utils/sku";
+import { requireAuth } from "@/lib/api/auth-helpers";
 
 // Type for part with image relations (internal use)
 type PartWithImageRelations = PartWithDetails & {
@@ -35,6 +36,10 @@ type PartWithImageRelations = PartWithDetails & {
 };
 
 export async function GET(request: NextRequest) {
+  // Require authentication (admin or data_manager)
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const { searchParams } = new URL(request.url);
   const rawParams = Object.fromEntries(searchParams.entries());
 
@@ -229,6 +234,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // Require authentication (admin or data_manager)
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const body = await request.json();
 
   try {
@@ -300,6 +309,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  // Require authentication (admin or data_manager)
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const body = await request.json();
 
   try {
@@ -366,6 +379,10 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  // Require authentication (admin or data_manager)
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const body = await request.json();
 
   try {

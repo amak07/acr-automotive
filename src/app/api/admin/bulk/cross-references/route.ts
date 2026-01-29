@@ -6,6 +6,7 @@ import {
   bulkDeleteCrossRefsSchema,
 } from "@/lib/schemas/admin";
 import { handleApiError } from "@/lib/api";
+import { requireAuth } from "@/lib/api/auth-helpers";
 
 /**
  * POST /api/admin/bulk/cross-references
@@ -25,6 +26,10 @@ import { handleApiError } from "@/lib/api";
  * }
  */
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
     const validated = bulkCreateCrossRefsSchema.parse(body);
@@ -62,6 +67,10 @@ export async function POST(request: NextRequest) {
  * }
  */
 export async function PUT(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
     const validated = bulkUpdateCrossRefsSchema.parse(body);
@@ -92,6 +101,10 @@ export async function PUT(request: NextRequest) {
  * }
  */
 export async function DELETE(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
     const validated = bulkDeleteCrossRefsSchema.parse(body);

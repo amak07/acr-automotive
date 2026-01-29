@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ExcelImportService } from '@/services/excel/import/ExcelImportService';
 import { ValidationEngine } from '@/services/excel/validation/ValidationEngine';
 import { fetchExistingData } from '../_helpers';
+import { requireAuth } from '@/lib/api/auth-helpers';
 
 /**
  * POST /api/admin/import/validate
@@ -30,6 +31,10 @@ import { fetchExistingData } from '../_helpers';
  * }
  */
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     // Parse form data
     const formData = await request.formData();

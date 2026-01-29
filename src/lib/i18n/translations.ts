@@ -37,6 +37,222 @@ export const translations: Record<
     en: "Settings",
     es: "Configuración",
   },
+  "admin.header.users": {
+    en: "Users",
+    es: "Usuarios",
+  },
+
+  // Admin Users Management
+  "admin.users.title": {
+    en: "Users",
+    es: "Usuarios",
+  },
+  "admin.users.description": {
+    en: "Manage administrator and data manager accounts",
+    es: "Administrar cuentas de administrador y gestor de datos",
+  },
+  "admin.users.addUser": {
+    en: "Add User",
+    es: "Agregar Usuario",
+  },
+  "admin.users.edit": {
+    en: "Edit",
+    es: "Editar",
+  },
+  "admin.users.deactivate": {
+    en: "Deactivate",
+    es: "Desactivar",
+  },
+  "admin.users.allUsers": {
+    en: "All Users",
+    es: "Todos los Usuarios",
+  },
+  "admin.users.activeAdmins": {
+    en: "Active Admins",
+    es: "Admins Activos",
+  },
+  "admin.users.dataManagers": {
+    en: "Data Managers",
+    es: "Gestores de Datos",
+  },
+  "admin.users.inactiveUsers": {
+    en: "Inactive Users",
+    es: "Usuarios Inactivos",
+  },
+  "admin.users.noName": {
+    en: "No name provided",
+    es: "Sin nombre",
+  },
+  "admin.users.joined": {
+    en: "Joined",
+    es: "Se unió",
+  },
+  "admin.users.lastLogin": {
+    en: "Last login",
+    es: "Último acceso",
+  },
+  "admin.users.never": {
+    en: "Never",
+    es: "Nunca",
+  },
+  "admin.users.active": {
+    en: "Active",
+    es: "Activo",
+  },
+  "admin.users.inactive": {
+    en: "Inactive",
+    es: "Inactivo",
+  },
+  "admin.users.roleAdmin": {
+    en: "Admin",
+    es: "Admin",
+  },
+  "admin.users.roleDataManager": {
+    en: "Data Manager",
+    es: "Gestor de Datos",
+  },
+  "admin.users.owner": {
+    en: "Owner",
+    es: "Propietario",
+  },
+  "admin.users.confirmDeactivateTitle": {
+    en: "Deactivate User",
+    es: "Desactivar Usuario",
+  },
+  "admin.users.confirmDeactivate": {
+    en: "Are you sure you want to deactivate {name}? They will no longer be able to access the system.",
+    es: "¿Estás seguro de que deseas desactivar a {name}? Ya no podrá acceder al sistema.",
+  },
+  "admin.users.deactivateError": {
+    en: "Failed to deactivate user",
+    es: "Error al desactivar el usuario",
+  },
+  "admin.users.reactivate": {
+    en: "Reactivate",
+    es: "Reactivar",
+  },
+  "admin.users.reactivateError": {
+    en: "Failed to reactivate user",
+    es: "Error al reactivar el usuario",
+  },
+  "admin.users.loadError": {
+    en: "Failed to load users",
+    es: "Error al cargar los usuarios",
+  },
+  "admin.users.errorTitle": {
+    en: "Error Loading Users",
+    es: "Error al Cargar Usuarios",
+  },
+  // Add User Modal
+  "admin.users.modal.title": {
+    en: "Add New User",
+    es: "Agregar Nuevo Usuario",
+  },
+  "admin.users.modal.description": {
+    en: "Create a new user account with role-based permissions",
+    es: "Crear una nueva cuenta de usuario con permisos basados en rol",
+  },
+  "admin.users.modal.email": {
+    en: "Email Address",
+    es: "Correo Electrónico",
+  },
+  "admin.users.modal.emailPlaceholder": {
+    en: "user@example.com",
+    es: "usuario@ejemplo.com",
+  },
+  "admin.users.modal.emailInvalid": {
+    en: "Please enter a valid email address",
+    es: "Por favor ingresa un correo electrónico válido",
+  },
+  "admin.users.modal.fullName": {
+    en: "Full Name",
+    es: "Nombre Completo",
+  },
+  "admin.users.modal.fullNameOptional": {
+    en: "Optional",
+    es: "Opcional",
+  },
+  "admin.users.modal.password": {
+    en: "Initial Password",
+    es: "Contraseña Inicial",
+  },
+  "admin.users.modal.passwordPlaceholder": {
+    en: "Minimum 8 characters",
+    es: "Mínimo 8 caracteres",
+  },
+  "admin.users.modal.passwordTooShort": {
+    en: "Password must be at least 8 characters",
+    es: "La contraseña debe tener al menos 8 caracteres",
+  },
+  "admin.users.modal.role": {
+    en: "Role",
+    es: "Rol",
+  },
+  "admin.users.modal.dataManagerTitle": {
+    en: "Data Manager",
+    es: "Gestor de Datos",
+  },
+  "admin.users.modal.dataManagerDesc": {
+    en: "Can manage parts, images, and Excel imports. No access to user management or settings.",
+    es: "Puede gestionar piezas, imágenes e importaciones Excel. Sin acceso a usuarios o configuración.",
+  },
+  "admin.users.modal.recommended": {
+    en: "Recommended",
+    es: "Recomendado",
+  },
+  "admin.users.modal.adminTitle": {
+    en: "Administrator",
+    es: "Administrador",
+  },
+  "admin.users.modal.adminDesc": {
+    en: "Full system access including user management, settings, and all admin features.",
+    es: "Acceso completo al sistema incluyendo usuarios, configuración y todas las funciones.",
+  },
+  "admin.users.modal.createError": {
+    en: "Failed to create user",
+    es: "Error al crear usuario",
+  },
+  "admin.users.modal.cancel": {
+    en: "Cancel",
+    es: "Cancelar",
+  },
+  "admin.users.modal.submit": {
+    en: "Add User",
+    es: "Agregar Usuario",
+  },
+  "admin.users.modal.creating": {
+    en: "Creating...",
+    es: "Creando...",
+  },
+  // Edit User Modal
+  "admin.users.editModal.title": {
+    en: "Edit User",
+    es: "Editar Usuario",
+  },
+  "admin.users.editModal.fullName": {
+    en: "Full Name",
+    es: "Nombre Completo",
+  },
+  "admin.users.editModal.fullNamePlaceholder": {
+    en: "Enter full name",
+    es: "Ingresa el nombre completo",
+  },
+  "admin.users.editModal.cancel": {
+    en: "Cancel",
+    es: "Cancelar",
+  },
+  "admin.users.editModal.save": {
+    en: "Save",
+    es: "Guardar",
+  },
+  "admin.users.editModal.saving": {
+    en: "Saving...",
+    es: "Guardando...",
+  },
+  "admin.users.editModal.updateError": {
+    en: "Failed to update user",
+    es: "Error al actualizar el usuario",
+  },
 
   // Admin Dashboard
   "admin.dashboard.totalParts": {
@@ -2722,5 +2938,39 @@ export const translations: Record<
   "admin.bulkUpload.360.uploadMore": {
     en: "Upload More",
     es: "Subir Más",
+  },
+
+  // Data Portal (for data managers)
+  "portal.title": {
+    en: "Data Portal",
+    es: "Portal de Datos",
+  },
+  "portal.welcome": {
+    en: "Welcome",
+    es: "Bienvenido",
+  },
+  "portal.description": {
+    en: "Choose an action to manage the parts catalog",
+    es: "Elija una acción para administrar el catálogo de partes",
+  },
+  "portal.import.title": {
+    en: "Import Data",
+    es: "Importar Datos",
+  },
+  "portal.import.description": {
+    en: "Upload an Excel file to update the parts catalog",
+    es: "Sube un archivo Excel para actualizar el catálogo de partes",
+  },
+  "portal.export.title": {
+    en: "Export Data",
+    es: "Exportar Datos",
+  },
+  "portal.export.description": {
+    en: "Download the current parts catalog as an Excel file",
+    es: "Descarga el catálogo de partes actual como archivo Excel",
+  },
+  "portal.helpText": {
+    en: "Need help? Contact your administrator.",
+    es: "¿Necesita ayuda? Contacte a su administrador.",
   },
 };
