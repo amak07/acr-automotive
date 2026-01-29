@@ -6,7 +6,7 @@ import { AppHeader } from '@/components/shared/layout/AppHeader';
 import { UserManagementContent } from '@/components/features/admin/users/UserManagementContent';
 import { withAdminAuth } from '@/components/shared/auth/withAdminAuth';
 import { useAuth } from '@/contexts/AuthContext';
-import { CardError } from '@/components/ui/error-states';
+import { PageError } from '@/components/ui/error-states';
 import { ShieldAlert } from 'lucide-react';
 
 /**
@@ -37,10 +37,10 @@ function UsersPage() {
       <div className="min-h-screen bg-acr-gray-50 acr-page-bg-pattern">
         <AppHeader variant="admin" />
         <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
-          <CardError
+          <PageError
             title="Access Denied"
             message="User management is only available to administrators."
-            icon={ShieldAlert}
+            icon={<ShieldAlert className="w-12 h-12 mx-auto" />}
             className="max-w-md mx-auto acr-animate-fade-up"
           />
         </main>
