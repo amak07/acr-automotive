@@ -5,7 +5,7 @@ import { AcrButton } from '@/components/acr/Button';
 import { AcrCard, AcrCardHeader, AcrCardContent } from '@/components/acr/Card';
 import { AcrSpinner } from '@/components/acr/Spinner';
 import { ConfirmDialog } from '@/components/acr/ConfirmDialog';
-import { CardError } from '@/components/ui/error-states';
+import { InlineError } from '@/components/ui/error-states';
 import { InviteUserModal } from './InviteUserModal';
 import { EditUserModal } from './EditUserModal';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -159,7 +159,7 @@ export function UserManagementContent() {
   if (error) {
     return (
       <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
-        <CardError
+        <InlineError
           title={t('admin.users.errorTitle')}
           message={error}
           onRetry={fetchUsers}
