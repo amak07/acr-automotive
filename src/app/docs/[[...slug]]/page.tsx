@@ -8,6 +8,7 @@ import {
 import { notFound } from "next/navigation";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import { Mermaid } from "@/components/docs/Mermaid";
+import { DocsAccessCheck } from "./access-check";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -20,15 +21,19 @@ export default async function Page({ params }: PageProps) {
   if (!page) notFound();
 
   const MDX = page.data.body;
+  // Get allowed roles from page frontmatter, default to admin-only
+  const allowedRoles = (page.data as { allowedRoles?: string[] }).allowedRoles ?? ["admin"];
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
-      <DocsBody>
-        <MDX components={{ ...defaultMdxComponents, Mermaid }} />
-      </DocsBody>
-    </DocsPage>
+    <DocsAccessCheck allowedRoles={allowedRoles}>
+      <DocsPage toc={page.data.toc} full={page.data.full}>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription>{page.data.description}</DocsDescription>
+        <DocsBody>
+          <MDX components={{ ...defaultMdxComponents, Mermaid }} />
+        </DocsBody>
+      </DocsPage>
+    </DocsAccessCheck>
   );
 }
 
