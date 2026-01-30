@@ -2981,6 +2981,10 @@ export const translations: Record<
     en: "Choose an action to manage the parts catalog",
     es: "Elija una acción para administrar el catálogo de partes",
   },
+  "portal.quickActions": {
+    en: "Quick Actions",
+    es: "Acciones Rápidas",
+  },
   "portal.import.title": {
     en: "Import Data",
     es: "Importar Datos",
@@ -2996,6 +3000,42 @@ export const translations: Record<
   "portal.export.description": {
     en: "Download the current parts catalog as an Excel file",
     es: "Descarga el catálogo de partes actual como archivo Excel",
+  },
+  "portal.docs.title": {
+    en: "Documentation",
+    es: "Documentación",
+  },
+  "portal.docs.description": {
+    en: "Learn how to use the data portal with step-by-step guides",
+    es: "Aprende a usar el portal de datos con guías paso a paso",
+  },
+  "portal.docs.importing": {
+    en: "Importing Data",
+    es: "Importar Datos",
+  },
+  "portal.docs.importingDesc": {
+    en: "Learn how to bulk import parts from Excel files",
+    es: "Aprende a importar partes en masa desde archivos Excel",
+  },
+  "portal.docs.exporting": {
+    en: "Exporting Data",
+    es: "Exportar Datos",
+  },
+  "portal.docs.exportingDesc": {
+    en: "Download and backup your parts catalog",
+    es: "Descarga y respalda tu catálogo de partes",
+  },
+  "portal.docs.images": {
+    en: "Managing Images",
+    es: "Gestión de Imágenes",
+  },
+  "portal.docs.imagesDesc": {
+    en: "Upload and organize product images",
+    es: "Sube y organiza imágenes de productos",
+  },
+  "portal.docs.viewAll": {
+    en: "View All Documentation",
+    es: "Ver Toda la Documentación",
   },
   "portal.helpText": {
     en: "Need help? Contact your administrator.",
