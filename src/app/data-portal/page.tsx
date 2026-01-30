@@ -4,11 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { AcrCard, AcrCardContent } from '@/components/acr/Card';
-import { AcrButton } from '@/components/acr/Button';
 import { AcrSpinner } from '@/components/acr/Spinner';
-import { AcrLanguageToggle } from '@/components/acr/LanguageToggle';
-import { AcrLogo } from '@/components/ui/AcrLogo';
-import { Upload, Download, LogOut } from 'lucide-react';
+import { AppHeader } from '@/components/shared/layout/AppHeader';
+import { Upload, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStaggerClass } from '@/lib/animations';
 
@@ -20,13 +18,8 @@ import { getStaggerClass } from '@/lib/animations';
  */
 export default function DataPortalPage() {
   const router = useRouter();
-  const { user, profile, isLoading, signOut } = useAuth();
-  const { t, locale, setLocale } = useLocale();
-
-  const handleLogout = async () => {
-    await signOut();
-    router.push('/');
-  };
+  const { user, profile, isLoading } = useAuth();
+  const { t } = useLocale();
 
   // Loading state
   if (isLoading) {
@@ -45,35 +38,7 @@ export default function DataPortalPage() {
 
   return (
     <div className="min-h-screen bg-acr-gray-50">
-      {/* Header - matches admin header style */}
-      <header className="relative before:absolute before:top-0 before:left-0 before:right-0 before:h-0.5 before:bg-acr-red-500 bg-white shadow-md">
-        <div className="max-w-4xl mx-auto px-4 py-3 lg:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 lg:gap-3">
-            <AcrLogo className="h-14 md:h-12 lg:h-14" />
-            <h1 className="acr-brand-heading-xl text-acr-gray-800 truncate hidden md:block">
-              {t('portal.title')}
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* Language Toggle */}
-            <AcrLanguageToggle
-              locale={locale}
-              onLocaleChange={setLocale}
-              size="sm"
-            />
-            {/* Logout */}
-            <AcrButton
-              variant="secondary"
-              size="sm"
-              onClick={handleLogout}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('admin.settings.logout')}</span>
-            </AcrButton>
-          </div>
-        </div>
-      </header>
+      <AppHeader variant="data-portal" />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-12">

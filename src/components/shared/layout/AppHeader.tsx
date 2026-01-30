@@ -4,11 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Shield, Settings, LogOut, Search, BookOpen, Users } from 'lucide-react';
+import { Shield, Settings, LogOut, Search, BookOpen, Users, Database } from 'lucide-react';
 import { AcrHeader, type AcrHeaderAction } from '@/components/acr';
 
 interface AppHeaderProps {
-  variant?: 'public' | 'admin';
+  variant?: 'public' | 'admin' | 'data-portal';
 }
 
 /**
@@ -33,7 +33,11 @@ export function AppHeader({ variant = 'public' }: AppHeaderProps) {
 
   // Determine title based on variant
   const title =
-    variant === 'admin' ? t('admin.header.admin') : t('public.header.title');
+    variant === 'admin'
+      ? t('admin.header.admin')
+      : variant === 'data-portal'
+        ? t('portal.title')
+        : t('public.header.title');
 
   // Logout handler
   const handleLogout = async () => {
@@ -47,22 +51,34 @@ export function AppHeader({ variant = 'public' }: AppHeaderProps) {
 
   // Add menu items if authenticated
   if (user && profile?.is_active) {
-    menuActions.push(
-      {
-        id: 'public-search',
-        label: t('admin.header.publicSearch'),
-        icon: Search,
-        href: '/',
-        variant: 'default',
-      },
-      {
+    // Public search - available to all authenticated users
+    menuActions.push({
+      id: 'public-search',
+      label: t('admin.header.publicSearch'),
+      icon: Search,
+      href: '/',
+      variant: 'default',
+    });
+
+    // Data managers see Data Portal link, admins see Admin link
+    if (isAdmin) {
+      menuActions.push({
         id: 'admin',
         label: t('admin.header.admin'),
         icon: Shield,
         href: '/admin',
         variant: 'default',
-      }
-    );
+      });
+    } else {
+      // Data manager - show Data Portal link
+      menuActions.push({
+        id: 'data-portal',
+        label: t('portal.title'),
+        icon: Database,
+        href: '/data-portal',
+        variant: 'default',
+      });
+    }
 
     // Admin-only menu items
     if (isAdmin) {
@@ -80,32 +96,30 @@ export function AppHeader({ variant = 'public' }: AppHeaderProps) {
           icon: Settings,
           href: '/admin/settings',
           variant: 'default',
+        },
+        {
+          id: 'documentation',
+          label: t('admin.header.documentation'),
+          icon: BookOpen,
+          href: '/docs',
+          variant: 'default',
         }
       );
     }
 
-    // Documentation and logout available to all authenticated users
-    menuActions.push(
-      {
-        id: 'documentation',
-        label: t('admin.header.documentation'),
-        icon: BookOpen,
-        href: '/docs',
-        variant: 'default',
-      },
-      {
-        id: 'logout',
-        label: t('admin.settings.logout'),
-        icon: LogOut,
-        onClick: handleLogout,
-        variant: 'danger',
-        asButton: true,
-      }
-    );
+    // Logout available to all authenticated users
+    menuActions.push({
+      id: 'logout',
+      label: t('admin.settings.logout'),
+      icon: LogOut,
+      onClick: handleLogout,
+      variant: 'danger',
+      asButton: true,
+    });
   }
 
   // Border color based on variant
-  const borderVariant = variant === 'admin' ? 'gray-200' : 'gray-300';
+  const borderVariant = variant === 'public' ? 'gray-300' : 'gray-200';
 
   return (
     <AcrHeader
