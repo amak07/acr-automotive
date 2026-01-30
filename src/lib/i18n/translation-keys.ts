@@ -11,6 +11,70 @@ export interface TranslationKeys {
   "admin.header.publicSearch": string;
   "admin.header.documentation": string;
   "admin.header.settings": string;
+  "admin.header.users": string;
+
+  // Admin Users Management
+  "admin.users.title": string;
+  "admin.users.description": string;
+  "admin.users.addUser": string;
+  "admin.users.edit": string;
+  "admin.users.deactivate": string;
+  "admin.users.allUsers": string;
+  "admin.users.activeAdmins": string;
+  "admin.users.dataManagers": string;
+  "admin.users.inactiveUsers": string;
+  "admin.users.noName": string;
+  "admin.users.joined": string;
+  "admin.users.lastLogin": string;
+  "admin.users.never": string;
+  "admin.users.active": string;
+  "admin.users.inactive": string;
+  "admin.users.roleAdmin": string;
+  "admin.users.roleDataManager": string;
+  "admin.users.owner": string;
+  "admin.users.confirmDeactivateTitle": string;
+  "admin.users.confirmDeactivate": string;
+  "admin.users.deactivateError": string;
+  "admin.users.reactivate": string;
+  "admin.users.reactivateError": string;
+  "admin.users.delete": string;
+  "admin.users.confirmDeleteTitle": string;
+  "admin.users.confirmDelete": string;
+  "admin.users.deleteError": string;
+  "admin.users.loadError": string;
+  "admin.users.errorTitle": string;
+  // Add User Modal
+  "admin.users.modal.title": string;
+  "admin.users.modal.description": string;
+  "admin.users.modal.email": string;
+  "admin.users.modal.emailPlaceholder": string;
+  "admin.users.modal.emailInvalid": string;
+  "admin.users.modal.fullName": string;
+  "admin.users.modal.fullNameOptional": string;
+  "admin.users.modal.password": string;
+  "admin.users.modal.passwordPlaceholder": string;
+  "admin.users.modal.passwordTooShort": string;
+  "admin.users.modal.confirmPassword": string;
+  "admin.users.modal.confirmPasswordPlaceholder": string;
+  "admin.users.modal.passwordMismatch": string;
+  "admin.users.modal.role": string;
+  "admin.users.modal.dataManagerTitle": string;
+  "admin.users.modal.dataManagerDesc": string;
+  "admin.users.modal.recommended": string;
+  "admin.users.modal.adminTitle": string;
+  "admin.users.modal.adminDesc": string;
+  "admin.users.modal.createError": string;
+  "admin.users.modal.cancel": string;
+  "admin.users.modal.submit": string;
+  "admin.users.modal.creating": string;
+  // Edit User Modal
+  "admin.users.editModal.title": string;
+  "admin.users.editModal.fullName": string;
+  "admin.users.editModal.fullNamePlaceholder": string;
+  "admin.users.editModal.cancel": string;
+  "admin.users.editModal.save": string;
+  "admin.users.editModal.saving": string;
+  "admin.users.editModal.updateError": string;
 
   // Admin Dashboard
   "admin.dashboard.totalParts": string;
@@ -743,4 +807,24 @@ export interface TranslationKeys {
   "admin.bulkUpload.360.nUploaded": string;
   "admin.bulkUpload.360.nFailed": string;
   "admin.bulkUpload.360.uploadMore": string;
+
+  // Data Portal (for data managers)
+  "portal.title": string;
+  "portal.welcome": string;
+  "portal.description": string;
+  "portal.quickActions": string;
+  "portal.import.title": string;
+  "portal.import.description": string;
+  "portal.export.title": string;
+  "portal.export.description": string;
+  "portal.docs.title": string;
+  "portal.docs.description": string;
+  "portal.docs.importing": string;
+  "portal.docs.importingDesc": string;
+  "portal.docs.exporting": string;
+  "portal.docs.exportingDesc": string;
+  "portal.docs.images": string;
+  "portal.docs.imagesDesc": string;
+  "portal.docs.viewAll": string;
+  "portal.helpText": string;
 }

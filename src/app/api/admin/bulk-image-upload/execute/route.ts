@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase/client";
 import sharp from "sharp";
 import { TablesInsert } from "@/lib/supabase/types";
 import { VALIDATION } from "@/lib/bulk-upload/patterns.config";
+import { requireAuth } from "@/lib/api/auth-helpers";
 import type { ExecuteResult, PartUploadResult } from "@/lib/bulk-upload/types";
 
 // Vercel function configuration
@@ -348,6 +349,10 @@ async function recalculateDisplayOrder(partId: string): Promise<void> {
  * }
  */
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const formData = await request.formData();
 

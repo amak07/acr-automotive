@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ExcelExportService } from '@/services/export/ExcelExportService';
 import type { ExportFilters } from '@/services/excel/shared';
+import { requireAuth } from '@/lib/api/auth-helpers';
 
 /**
  * GET /api/admin/export
@@ -34,6 +35,10 @@ import type { ExportFilters } from '@/services/excel/shared';
  * ```
  */
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const searchParams = request.nextUrl.searchParams;
 

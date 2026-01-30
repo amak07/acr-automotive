@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import { z } from "zod";
 import { normalizeSku } from "@/lib/utils/sku";
+import { requireAuth } from "@/lib/api/auth-helpers";
 
 const reorderSchema = z.object({
   image_ids: z.array(z.string().uuid()).min(1),
@@ -15,6 +16,10 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ sku: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { sku } = await params;
     const normalizedSku = normalizeSku(sku);

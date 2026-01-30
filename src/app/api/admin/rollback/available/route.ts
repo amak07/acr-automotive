@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
+import { requireAuth } from '@/lib/api/auth-helpers';
 
 /**
  * GET /api/admin/rollback/available
@@ -31,6 +32,10 @@ import { supabase } from '@/lib/supabase/client';
  * }
  */
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     console.log('[Rollback Available] Fetching rollback-able imports');
 

@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
+import { requireAuth } from '@/lib/api/auth-helpers';
 
 export interface FilterOptionsResponse {
   part_types: string[];
@@ -9,9 +10,12 @@ export interface FilterOptionsResponse {
   bolt_patterns: string[];
 }
 
-export async function GET() {
-  try {
+export async function GET(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
 
+  try {
     // Query for distinct values in each filterable field
     const [partTypesResult, positionTypesResult, absTypesResult, driveTypesResult, boltPatternsResult] = 
       await Promise.all([

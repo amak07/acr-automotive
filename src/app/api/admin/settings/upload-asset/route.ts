@@ -1,19 +1,24 @@
 /**
  * Admin Settings Asset Upload API
- * POST /api/admin/settings/upload-asset - Upload logo, favicon, or other branding assets
+ * POST /api/admin/settings/upload-asset - Upload logo, favicon, or other branding assets (admin only)
  */
 
 import { supabase } from "@/lib/supabase/client";
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/api/auth-helpers";
 
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/svg+xml", "image/x-icon"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 /**
  * POST /api/admin/settings/upload-asset
- * Upload a branding asset (logo, favicon, etc.) to Supabase Storage
+ * Upload a branding asset (logo, favicon, etc.) to Supabase Storage (admin only)
  */
 export async function POST(request: NextRequest) {
+  // Require admin access
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const formData = await request.formData();
 

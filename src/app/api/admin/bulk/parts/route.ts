@@ -6,6 +6,7 @@ import {
   bulkDeletePartsSchema,
 } from "@/lib/schemas/admin";
 import { handleApiError } from "@/lib/api";
+import { requireAuth } from "@/lib/api/auth-helpers";
 
 /**
  * POST /api/admin/bulk/parts
@@ -33,6 +34,10 @@ import { handleApiError } from "@/lib/api";
  * }
  */
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
     const validated = bulkCreatePartsSchema.parse(body);
@@ -68,6 +73,10 @@ export async function POST(request: NextRequest) {
  * }
  */
 export async function PUT(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
     const validated = bulkUpdatePartsSchema.parse(body);
@@ -96,6 +105,10 @@ export async function PUT(request: NextRequest) {
  * }
  */
 export async function DELETE(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
     const validated = bulkDeletePartsSchema.parse(body);

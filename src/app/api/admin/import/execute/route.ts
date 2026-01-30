@@ -8,6 +8,7 @@ import { ValidationEngine } from '@/services/excel/validation/ValidationEngine';
 import { DiffEngine } from '@/services/excel/diff/DiffEngine';
 import { ImportService } from '@/services/excel/import';
 import { fetchExistingData } from '../_helpers';
+import { requireAuth } from '@/lib/api/auth-helpers';
 
 /**
  * POST /api/admin/import/execute
@@ -29,6 +30,10 @@ import { fetchExistingData } from '../_helpers';
  * }
  */
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const startTime = Date.now();
 
   try {
