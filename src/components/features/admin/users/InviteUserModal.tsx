@@ -54,7 +54,7 @@ export function InviteUserModal({ onClose, onSuccess }: InviteUserModalProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          full_name: fullName || undefined,
+          full_name: fullName.trim(),
           role,
           password,
         }),
@@ -76,6 +76,7 @@ export function InviteUserModal({ onClose, onSuccess }: InviteUserModalProps) {
   const passwordsMatch = password === confirmPassword;
   const isFormValid =
     email.length > 0 &&
+    fullName.trim().length > 0 &&
     password.length >= 8 &&
     passwordsMatch &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -113,14 +114,11 @@ export function InviteUserModal({ onClose, onSuccess }: InviteUserModalProps) {
           )}
         </div>
 
-        {/* Full Name (Optional) */}
+        {/* Full Name */}
         <div className="space-y-2">
           <AcrLabel htmlFor="fullName" className="flex items-center gap-2">
             <User className="w-4 h-4 text-acr-gray-400" />
-            {t('admin.users.modal.fullName')}{' '}
-            <span className="text-acr-gray-400 text-xs">
-              ({t('admin.users.modal.fullNameOptional')})
-            </span>
+            {t('admin.users.modal.fullName')}
           </AcrLabel>
           <AcrInput
             id="fullName"
@@ -129,6 +127,7 @@ export function InviteUserModal({ onClose, onSuccess }: InviteUserModalProps) {
             onChange={(e) => setFullName(e.target.value)}
             className="h-11"
             placeholder="John Doe"
+            required
             disabled={isLoading}
           />
         </div>
