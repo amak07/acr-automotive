@@ -21,7 +21,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   isLoading: boolean;
   isAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<UserProfile>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -92,8 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Sign in with email/password
-  const signIn = async (email: string, password: string) => {
+  // Sign in with email/password - returns profile for redirect logic
+  const signIn = async (email: string, password: string): Promise<UserProfile> => {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -108,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const data = await response.json();
     setUser(data.user);
     setProfile(data.profile);
+    return data.profile;
   };
 
   // Sign out and clear state
