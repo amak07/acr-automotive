@@ -135,6 +135,22 @@ export const translations: Record<
     en: "Failed to reactivate user",
     es: "Error al reactivar el usuario",
   },
+  "admin.users.delete": {
+    en: "Delete",
+    es: "Eliminar",
+  },
+  "admin.users.confirmDeleteTitle": {
+    en: "Permanently Delete User",
+    es: "Eliminar Usuario Permanentemente",
+  },
+  "admin.users.confirmDelete": {
+    en: "Are you sure you want to permanently delete {name}? This action cannot be undone and will remove all associated data.",
+    es: "¿Estás seguro de que deseas eliminar permanentemente a {name}? Esta acción no se puede deshacer y eliminará todos los datos asociados.",
+  },
+  "admin.users.deleteError": {
+    en: "Failed to delete user",
+    es: "Error al eliminar el usuario",
+  },
   "admin.users.loadError": {
     en: "Failed to load users",
     es: "Error al cargar los usuarios",

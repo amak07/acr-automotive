@@ -22,6 +22,7 @@ import {
   Calendar,
   Mail,
   Crown,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStaggerClass } from '@/lib/animations';
@@ -52,7 +53,9 @@ export function UserManagementContent() {
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
   const [reactivatingUserId, setReactivatingUserId] = useState<string | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [userToDeactivate, setUserToDeactivate] = useState<UserProfile | null>(null);
+  const [userToDelete, setUserToDelete] = useState<UserProfile | null>(null);
 
   const { t } = useLocale();
   const { user: currentUser } = useAuth();
@@ -134,6 +137,34 @@ export function UserManagementContent() {
       alert(err instanceof Error ? err.message : t('admin.users.reactivateError'));
     } finally {
       setReactivatingUserId(null);
+    }
+  };
+
+  const handleDeleteClick = (user: UserProfile) => {
+    setUserToDelete(user);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+
+    try {
+      setDeletingUserId(userToDelete.id);
+      setUserToDelete(null);
+
+      const response = await fetch(`/api/auth/users/${userToDelete.id}?permanent=true`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete user');
+      }
+
+      await fetchUsers();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : t('admin.users.deleteError'));
+    } finally {
+      setDeletingUserId(null);
     }
   };
 
@@ -360,20 +391,36 @@ export function UserManagementContent() {
                           <span className="hidden lg:inline">{t('admin.users.deactivate')}</span>
                         </AcrButton>
                       ) : (
-                        <AcrButton
-                          variant="primary"
-                          size="sm"
-                          className="flex items-center gap-1.5"
-                          onClick={() => handleReactivate(user.id)}
-                          disabled={reactivatingUserId === user.id}
-                        >
-                          {reactivatingUserId === user.id ? (
-                            <AcrSpinner size="xs" color="white" />
-                          ) : (
-                            <UserCheck className="w-3.5 h-3.5" />
-                          )}
-                          <span className="hidden lg:inline">{t('admin.users.reactivate')}</span>
-                        </AcrButton>
+                        <>
+                          <AcrButton
+                            variant="primary"
+                            size="sm"
+                            className="flex items-center gap-1.5"
+                            onClick={() => handleReactivate(user.id)}
+                            disabled={reactivatingUserId === user.id}
+                          >
+                            {reactivatingUserId === user.id ? (
+                              <AcrSpinner size="xs" color="white" />
+                            ) : (
+                              <UserCheck className="w-3.5 h-3.5" />
+                            )}
+                            <span className="hidden lg:inline">{t('admin.users.reactivate')}</span>
+                          </AcrButton>
+                          <AcrButton
+                            variant="destructive"
+                            size="sm"
+                            className="flex items-center gap-1.5"
+                            onClick={() => handleDeleteClick(user)}
+                            disabled={deletingUserId === user.id}
+                          >
+                            {deletingUserId === user.id ? (
+                              <AcrSpinner size="xs" color="white" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
+                            <span className="hidden lg:inline">{t('admin.users.delete')}</span>
+                          </AcrButton>
+                        </>
                       )
                     )}
                   </div>
@@ -418,6 +465,21 @@ export function UserManagementContent() {
           userToDeactivate?.full_name || userToDeactivate?.email || ''
         )}
         confirmText={t('admin.users.deactivate')}
+        cancelText={t('admin.users.editModal.cancel')}
+        variant="destructive"
+      />
+
+      {/* Permanent Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!userToDelete}
+        onClose={() => setUserToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        title={t('admin.users.confirmDeleteTitle')}
+        description={t('admin.users.confirmDelete').replace(
+          '{name}',
+          userToDelete?.full_name || userToDelete?.email || ''
+        )}
+        confirmText={t('admin.users.delete')}
         cancelText={t('admin.users.editModal.cancel')}
         variant="destructive"
       />

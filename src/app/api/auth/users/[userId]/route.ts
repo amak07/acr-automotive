@@ -102,8 +102,11 @@ export async function PATCH(
 
 /**
  * DELETE /api/auth/users/:userId
- * Deactivate user (admin only)
- * We deactivate instead of deleting to preserve audit trails
+ * Deactivate or permanently delete user (admin only)
+ *
+ * Query params:
+ * - permanent=true: Permanently delete (only works for already deactivated users)
+ * - Without permanent: Deactivate (soft delete)
  */
 export async function DELETE(
   request: NextRequest,
@@ -111,6 +114,9 @@ export async function DELETE(
 ) {
   try {
     const { userId } = await params;
+    const { searchParams } = new URL(request.url);
+    const permanent = searchParams.get('permanent') === 'true';
+
     const supabase = await createClient();
 
     // Check if user is admin
@@ -136,43 +142,81 @@ export async function DELETE(
       );
     }
 
-    // Prevent admin from deactivating themselves
+    // Prevent admin from deleting themselves
     if (userId === user.id) {
       return NextResponse.json(
-        { error: 'Cannot deactivate your own account' },
+        { error: 'Cannot delete your own account' },
         { status: 400 }
       );
     }
 
-    // Check if target user is an owner (protected from deactivation)
+    // Check target user's status
     const { data: targetProfile } = await supabase
       .from('user_profiles')
-      .select('is_owner')
+      .select('is_owner, is_active')
       .eq('id', userId)
       .single();
 
     if (targetProfile?.is_owner) {
       return NextResponse.json(
-        { error: 'Cannot deactivate owner account' },
+        { error: 'Cannot delete owner account' },
         { status: 403 }
       );
     }
 
-    // Deactivate user
-    const { error } = await supabase
-      .from('user_profiles')
-      .update({ is_active: false })
-      .eq('id', userId);
+    if (permanent) {
+      // Permanent deletion - only allowed for deactivated users
+      if (targetProfile?.is_active) {
+        return NextResponse.json(
+          { error: 'User must be deactivated before permanent deletion' },
+          { status: 400 }
+        );
+      }
 
-    if (error) {
-      throw error;
+      // Check for service role key
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!serviceRoleKey) {
+        console.error('SUPABASE_SERVICE_ROLE_KEY not configured');
+        return NextResponse.json(
+          { error: 'Server configuration error' },
+          { status: 500 }
+        );
+      }
+
+      // Use admin client to delete auth user
+      const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+      const adminClient = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        serviceRoleKey,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      );
+
+      // Delete auth user (this will cascade delete the profile due to FK constraint)
+      const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
+
+      if (deleteError) {
+        console.error('Delete auth user error:', deleteError);
+        throw deleteError;
+      }
+
+      return NextResponse.json({ success: true, deleted: true });
+    } else {
+      // Soft delete - deactivate user
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ is_active: false })
+        .eq('id', userId);
+
+      if (error) {
+        throw error;
+      }
+
+      return NextResponse.json({ success: true, deactivated: true });
     }
-
-    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Deactivate user error:', error);
+    console.error('Delete user error:', error);
     return NextResponse.json(
-      { error: 'Failed to deactivate user' },
+      { error: 'Failed to delete user' },
       { status: 500 }
     );
   }
