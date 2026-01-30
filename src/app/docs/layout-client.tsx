@@ -1,40 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { AppHeader } from "@/components/shared/layout/AppHeader";
-import { AdminPasswordModal } from "@/components/shared/auth/AdminPasswordModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { filterEnrichedTreeByRole, type EnrichedPageTree } from "@/lib/docs-utils";
+import { baseOptions } from "@/lib/layout.shared";
 import type { ReactNode } from "react";
 
-export function DocsLayoutClient({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
+interface DocsLayoutClientProps {
+  children: ReactNode;
+  pageTree: EnrichedPageTree;
+}
+
+export function DocsLayoutClient({ children, pageTree }: DocsLayoutClientProps) {
+  const { user, profile, isLoading, isAdmin } = useAuth();
   const router = useRouter();
 
+  // Filter page tree based on user role
+  const filteredTree = useMemo(() => {
+    if (!profile) return pageTree;
+    return filterEnrichedTreeByRole(pageTree, profile.role);
+  }, [pageTree, profile]);
+
   useEffect(() => {
-    // Check authentication after component mounts (client-side only)
-    const adminAuth = sessionStorage.getItem("admin-authenticated");
-    const isAuthed = adminAuth === "true";
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsAuthenticated(isAuthed);
-    if (!isAuthed) {
-      setShowPasswordModal(true);
+    // Redirect to login if not authenticated after loading
+    if (!isLoading && !user) {
+      router.push(`/login?redirect=${encodeURIComponent("/docs")}`);
     }
-  }, []);
-
-  const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
-    setShowPasswordModal(false);
-  };
-
-  const handleAuthCancel = () => {
-    setShowPasswordModal(false);
-    router.push("/");
-  };
+  }, [isLoading, user, router]);
 
   // Show loading state while checking authentication
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-acr-gray-100 flex items-center justify-center">
         <div className="flex items-center gap-3">
@@ -45,27 +43,19 @@ export function DocsLayoutClient({ children }: { children: ReactNode }) {
     );
   }
 
-  // Show password modal if not authenticated
-  if (!isAuthenticated && showPasswordModal) {
-    return (
-      <AdminPasswordModal
-        onSuccess={handleAuthSuccess}
-        onCancel={handleAuthCancel}
-      />
-    );
+  // Redirect if not authenticated
+  if (!user || !profile?.is_active) {
+    return null;
   }
 
-  // Render the docs with header if authenticated
-  if (isAuthenticated) {
-    return (
-      <>
-        <AppHeader variant="admin" />
+  // Render the docs with role-appropriate header and filtered sidebar
+  // Cast to any for DocsLayout since the enriched tree is compatible
+  return (
+    <>
+      <AppHeader variant={isAdmin ? "admin" : "data-portal"} />
+      <DocsLayout tree={filteredTree as unknown as Parameters<typeof DocsLayout>[0]["tree"]} {...baseOptions()}>
         {children}
-      </>
-    );
-  }
-
-  // Fallback - should not reach here but redirect to home if it does
-  router.push("/");
-  return null;
+      </DocsLayout>
+    </>
+  );
 }

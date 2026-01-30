@@ -9,10 +9,15 @@ import {
 } from "@/lib/schemas/admin";
 import { PostgrestError } from "@supabase/supabase-js";
 import { DatabaseVehicleAppRow } from "@/types/database";
+import { requireAuth } from "@/lib/api/auth-helpers";
 
 type AdminVehicleQueryParams = z.infer<typeof queryVehicleSchema>;
 
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const { searchParams } = new URL(request.url);
   const rawParams = Object.fromEntries(searchParams.entries());
 
@@ -76,6 +81,10 @@ export async function GET(request: NextRequest) {
 type AdminVehiclePostParams = z.infer<typeof createVehicleSchema>;
 
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const body = await request.json();
 
   try {
@@ -127,6 +136,10 @@ export async function POST(request: NextRequest) {
 type AdminVehiclePutParams = z.infer<typeof updateVehicleSchema>;
 
 export async function PUT(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const body = await request.json();
 
   try {
@@ -185,6 +198,10 @@ export async function PUT(request: NextRequest) {
 type AdminVehicleDeleteParams = z.infer<typeof deleteVehicleSchema>;
 
 export async function DELETE(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const body = await request.json();
 
   try {

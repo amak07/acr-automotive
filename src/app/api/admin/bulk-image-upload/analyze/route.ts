@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import { z } from "zod";
 import { VALIDATION } from "@/lib/bulk-upload/patterns.config";
+import { requireAuth } from "@/lib/api/auth-helpers";
 import type {
   AnalyzeResult,
   MatchedPart,
@@ -65,6 +66,10 @@ interface SkuSearchResult {
  * }
  */
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
     const { classifiedFiles } = analyzeRequestSchema.parse(body);

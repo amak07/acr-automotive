@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/api/auth-helpers";
 
 export type AdminStats = {
   totalParts: number;
@@ -13,7 +14,11 @@ export type AdminStatsApiResponse = {
   error?: any;
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const [
       { count: totalPartsCount, error: partError },

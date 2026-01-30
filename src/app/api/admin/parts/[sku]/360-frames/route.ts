@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import sharp from "sharp";
 import { normalizeSku } from "@/lib/utils/sku";
+import { requireAuth } from "@/lib/api/auth-helpers";
 
 // =====================================================
 // Configuration
@@ -76,6 +77,10 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ sku: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { sku } = await params;
     const normalizedSku = normalizeSku(sku);
@@ -303,6 +308,10 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ sku: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { sku } = await params;
     const normalizedSku = normalizeSku(sku);
@@ -359,6 +368,10 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ sku: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { sku } = await params;
     const normalizedSku = normalizeSku(sku);
