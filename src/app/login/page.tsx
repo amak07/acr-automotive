@@ -29,10 +29,21 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
-      await signIn(email, password);
+      const profile = await signIn(email, password);
 
-      // Redirect to original destination or admin dashboard
-      const redirect = searchParams?.get('redirect') || '/admin';
+      // Redirect based on role
+      // Data managers go to /data-portal, admins can go anywhere
+      const requestedRedirect = searchParams?.get('redirect');
+      let redirect: string;
+
+      if (profile.role === 'data_manager') {
+        // Data managers always go to data-portal
+        redirect = '/data-portal';
+      } else {
+        // Admins can go to requested redirect or default to /admin
+        redirect = requestedRedirect || '/admin';
+      }
+
       router.push(redirect);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
