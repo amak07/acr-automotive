@@ -54,6 +54,9 @@ export interface TranslationKeys {
   "admin.users.modal.password": string;
   "admin.users.modal.passwordPlaceholder": string;
   "admin.users.modal.passwordTooShort": string;
+  "admin.users.modal.confirmPassword": string;
+  "admin.users.modal.confirmPasswordPlaceholder": string;
+  "admin.users.modal.passwordMismatch": string;
   "admin.users.modal.role": string;
   "admin.users.modal.dataManagerTitle": string;
   "admin.users.modal.dataManagerDesc": string;

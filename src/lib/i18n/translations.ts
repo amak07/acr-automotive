@@ -189,8 +189,8 @@ export const translations: Record<
     es: "Opcional",
   },
   "admin.users.modal.password": {
-    en: "Initial Password",
-    es: "Contraseña Inicial",
+    en: "Password",
+    es: "Contraseña",
   },
   "admin.users.modal.passwordPlaceholder": {
     en: "Minimum 8 characters",
@@ -199,6 +199,18 @@ export const translations: Record<
   "admin.users.modal.passwordTooShort": {
     en: "Password must be at least 8 characters",
     es: "La contraseña debe tener al menos 8 caracteres",
+  },
+  "admin.users.modal.confirmPassword": {
+    en: "Confirm Password",
+    es: "Confirmar Contraseña",
+  },
+  "admin.users.modal.confirmPasswordPlaceholder": {
+    en: "Re-enter password",
+    es: "Vuelve a ingresar la contraseña",
+  },
+  "admin.users.modal.passwordMismatch": {
+    en: "Passwords do not match",
+    es: "Las contraseñas no coinciden",
   },
   "admin.users.modal.role": {
     en: "Role",

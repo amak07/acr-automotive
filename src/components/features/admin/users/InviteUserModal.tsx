@@ -36,7 +36,9 @@ export function InviteUserModal({ onClose, onSuccess }: InviteUserModalProps) {
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [role, setRole] = useState<'admin' | 'data_manager'>('data_manager');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -71,9 +73,11 @@ export function InviteUserModal({ onClose, onSuccess }: InviteUserModalProps) {
     }
   };
 
+  const passwordsMatch = password === confirmPassword;
   const isFormValid =
     email.length > 0 &&
     password.length >= 8 &&
+    passwordsMatch &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   return (
@@ -168,6 +172,49 @@ export function InviteUserModal({ onClose, onSuccess }: InviteUserModalProps) {
             <p className="text-xs text-acr-gray-500 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
               {t('admin.users.modal.passwordTooShort')}
+            </p>
+          )}
+        </div>
+
+        {/* Confirm Password */}
+        <div className="space-y-2">
+          <AcrLabel htmlFor="confirmPassword" className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-acr-gray-400" />
+            {t('admin.users.modal.confirmPassword')}
+          </AcrLabel>
+          <div className="relative">
+            <AcrInput
+              id="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="h-11 pr-12"
+              placeholder={t('admin.users.modal.confirmPasswordPlaceholder')}
+              required
+              disabled={isLoading}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className={cn(
+                'absolute right-3 top-1/2 -translate-y-1/2',
+                'text-acr-gray-400 hover:text-acr-gray-600',
+                'transition-colors duration-150'
+              )}
+              tabIndex={-1}
+              disabled={isLoading}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+          {confirmPassword.length > 0 && !passwordsMatch && (
+            <p className="text-xs text-red-500 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {t('admin.users.modal.passwordMismatch')}
             </p>
           )}
         </div>
