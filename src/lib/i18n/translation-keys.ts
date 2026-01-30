@@ -37,6 +37,10 @@ export interface TranslationKeys {
   "admin.users.deactivateError": string;
   "admin.users.reactivate": string;
   "admin.users.reactivateError": string;
+  "admin.users.delete": string;
+  "admin.users.confirmDeleteTitle": string;
+  "admin.users.confirmDelete": string;
+  "admin.users.deleteError": string;
   "admin.users.loadError": string;
   "admin.users.errorTitle": string;
   // Add User Modal
