@@ -812,9 +812,19 @@ export interface TranslationKeys {
   "portal.title": string;
   "portal.welcome": string;
   "portal.description": string;
+  "portal.quickActions": string;
   "portal.import.title": string;
   "portal.import.description": string;
   "portal.export.title": string;
   "portal.export.description": string;
+  "portal.docs.title": string;
+  "portal.docs.description": string;
+  "portal.docs.importing": string;
+  "portal.docs.importingDesc": string;
+  "portal.docs.exporting": string;
+  "portal.docs.exportingDesc": string;
+  "portal.docs.images": string;
+  "portal.docs.imagesDesc": string;
+  "portal.docs.viewAll": string;
   "portal.helpText": string;
 }

@@ -96,16 +96,18 @@ export function AppHeader({ variant = 'public' }: AppHeaderProps) {
           icon: Settings,
           href: '/admin/settings',
           variant: 'default',
-        },
-        {
-          id: 'documentation',
-          label: t('admin.header.documentation'),
-          icon: BookOpen,
-          href: '/docs',
-          variant: 'default',
         }
       );
     }
+
+    // Documentation - available to all authenticated users (role filtering happens in docs layout)
+    menuActions.push({
+      id: 'documentation',
+      label: t('admin.header.documentation'),
+      icon: BookOpen,
+      href: '/docs',
+      variant: 'default',
+    });
 
     // Logout available to all authenticated users
     menuActions.push({
