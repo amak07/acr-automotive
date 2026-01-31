@@ -299,13 +299,29 @@ export class ImportService {
       };
     });
 
+    // Format delete payloads (extract IDs from 'before' records)
+    const partsToDelete = diff.parts.deletes.map((d) => ({
+      id: d.before!._id,
+    }));
+
+    const vehiclesToDelete = diff.vehicleApplications.deletes.map((d) => ({
+      id: d.before!._id,
+    }));
+
+    const crossRefsToDelete = diff.crossReferences.deletes.map((d) => ({
+      id: d.before!._id,
+    }));
+
     console.log('[ImportService] Transaction payload:', {
       partsToAdd: partsToAdd.length,
       partsToUpdate: partsToUpdate.length,
+      partsToDelete: partsToDelete.length,
       vehiclesToAdd: vehiclesToAdd.length,
       vehiclesToUpdate: vehiclesToUpdate.length,
+      vehiclesToDelete: vehiclesToDelete.length,
       crossRefsToAdd: crossRefsToAdd.length,
       crossRefsToUpdate: crossRefsToUpdate.length,
+      crossRefsToDelete: crossRefsToDelete.length,
     });
 
     // Execute atomic transaction with retry logic
@@ -319,10 +335,13 @@ export class ImportService {
         const { data, error } = await this.supabase.rpc('execute_atomic_import', {
           parts_to_add: partsToAdd,
           parts_to_update: partsToUpdate,
+          parts_to_delete: partsToDelete,
           vehicles_to_add: vehiclesToAdd,
           vehicles_to_update: vehiclesToUpdate,
+          vehicles_to_delete: vehiclesToDelete,
           cross_refs_to_add: crossRefsToAdd,
           cross_refs_to_update: crossRefsToUpdate,
+          cross_refs_to_delete: crossRefsToDelete,
           tenant_id_filter: tenantId || null,
         });
 
@@ -335,10 +354,13 @@ export class ImportService {
         console.log('[ImportService] Transaction completed successfully:', {
           parts_added: result.parts_added,
           parts_updated: result.parts_updated,
+          parts_deleted: result.parts_deleted,
           vehicles_added: result.vehicles_added,
           vehicles_updated: result.vehicles_updated,
+          vehicles_deleted: result.vehicles_deleted,
           cross_refs_added: result.cross_refs_added,
           cross_refs_updated: result.cross_refs_updated,
+          cross_refs_deleted: result.cross_refs_deleted,
         });
 
         return; // Success - exit retry loop
