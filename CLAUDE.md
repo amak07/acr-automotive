@@ -122,6 +122,26 @@ See `docs/database/DATABASE.md` → "Database Development Workflows" for complet
 - **One task at a time** for better code quality
 - **Data integrity first** - validate all inputs with Zod schemas
 
+## 🤖 Subagent Protocol
+
+When offloading work to subagents (Task tool), always:
+
+1. **Notify the user first** - explain what's being delegated
+2. **State the reason** - why subagents vs direct work
+3. **List the tasks** - what each agent will handle
+
+**Use subagents for:**
+
+- Exploring unfamiliar parts of the codebase
+- 2+ independent tasks that can run in parallel
+- Complex research/investigation tasks
+
+**Use direct work for:**
+
+- Sequential tasks with dependencies
+- Simple edits with known file paths
+- Following a detailed written plan
+
 ---
 
 _For detailed information, always reference the specific documentation files listed above. This file provides context structure, not implementation details._
