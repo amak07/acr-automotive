@@ -1,10 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/api/auth-helpers";
 import { randomUUID } from "crypto";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+// Create admin client with service role for storage operations (bypasses RLS)
+function getAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!serviceRoleKey) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY not configured");
+  }
+
+  // Service role client must disable session persistence for server-side use
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
 
 interface UploadedImage {
   filename: string;
@@ -23,6 +41,7 @@ export async function POST(request: NextRequest) {
   if (authResult instanceof NextResponse) return authResult;
 
   try {
+    const adminClient = getAdminClient();
     const formData = await request.formData();
     const files = formData.getAll("files") as File[];
 
@@ -50,8 +69,8 @@ export async function POST(request: NextRequest) {
       const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
       const fileName = `${randomUUID()}.${fileExt}`;
 
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      // Upload to Supabase Storage (using admin client to bypass RLS)
+      const { error: uploadError } = await adminClient.storage
         .from("acr-part-images")
         .upload(fileName, file, {
           cacheControl: "3600",
@@ -67,7 +86,7 @@ export async function POST(request: NextRequest) {
       // Get public URL
       const {
         data: { publicUrl },
-      } = supabase.storage.from("acr-part-images").getPublicUrl(fileName);
+      } = adminClient.storage.from("acr-part-images").getPublicUrl(fileName);
 
       uploaded.push({
         filename: file.name,
@@ -111,6 +130,7 @@ export async function DELETE(request: NextRequest) {
   if (authResult instanceof NextResponse) return authResult;
 
   try {
+    const adminClient = getAdminClient();
     const { url } = await request.json();
 
     if (!url) {
@@ -129,8 +149,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Delete from Supabase Storage
-    const { error: deleteError } = await supabase.storage
+    // Delete from Supabase Storage (using admin client to bypass RLS)
+    const { error: deleteError } = await adminClient.storage
       .from("acr-part-images")
       .remove([filename]);
 
