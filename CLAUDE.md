@@ -82,11 +82,11 @@
 
 ## 🔧 Technical Notes
 
-- **Database**: 8-table design (parts, vehicle_applications, cross_references, part_images, part_360_frames, site_settings, tenants, import_history)
+- **Database**: 9-table design (parts, vehicle_applications, cross_references, part_images, part_360_frames, site_settings, tenants, import_history, user_profiles)
 - **Storage**: Buckets configured in `supabase/config.toml` (NOT in migrations - migrations only capture PostgreSQL schema)
 - **Performance target**: Sub-300ms search response times
 - **Mobile focus**: Tablet-optimized for parts counter staff
-- **Authentication**: MVP password protection (production upgrade planned)
+- **Authentication**: Supabase Auth with 2-role RBAC (admin, data_manager)
 
 ## 🗄️ Database Workflow (IMPORTANT)
 
