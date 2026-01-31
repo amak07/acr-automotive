@@ -1,28 +1,9 @@
 -- =====================================================
--- Migration 014: Fix Delete Operations in Atomic Import
+-- Migration 014b: Create import function with DELETE ops
 -- =====================================================
--- Description: Add DELETE operations to execute_atomic_import()
---              function to properly remove parts during Excel imports.
---              Also adds missing index on competitor_brand.
---
--- Created: January 27, 2026
---
--- ROOT CAUSE FIX: The original function (Migration 008) only had
--- ADD and UPDATE operations. DELETE operations were mentioned in
--- comments but never implemented, causing orphaned part records
--- when parts were removed from Excel imports.
+-- See Supabase CLI bug #4746 for why this is separate
 -- =====================================================
 
--- =====================================================
--- Part 1: Update atomic import function with DELETE logic
--- =====================================================
-
--- Drop existing function to recreate with new signature
-DROP FUNCTION IF EXISTS execute_atomic_import(
-  jsonb, jsonb, jsonb, jsonb, jsonb, jsonb, uuid
-);
-
--- Recreate with DELETE parameters and logic
 CREATE OR REPLACE FUNCTION execute_atomic_import(
   -- Parts to add/update/delete
   parts_to_add JSONB DEFAULT '[]'::jsonb,
@@ -66,17 +47,7 @@ DECLARE
   v_cross_refs_updated INTEGER := 0;
   v_cross_refs_deleted INTEGER := 0;
 BEGIN
-  -- ============================================
-  -- TRANSACTION STARTS HERE
-  -- All operations below are atomic
-  -- ============================================
-
-  -- ============================================
   -- STEP 1: DELETE OPERATIONS (must come first)
-  -- Order: children before parents to be explicit
-  -- Note: CASCADE would handle this, but explicit
-  -- deletes give us accurate counts
-  -- ============================================
 
   -- Step 1a: Delete cross-references first (leaf table)
   IF jsonb_array_length(cross_refs_to_delete) > 0 THEN
@@ -102,7 +73,7 @@ BEGIN
     GET DIAGNOSTICS v_vehicles_deleted = ROW_COUNT;
   END IF;
 
-  -- Step 1c: Delete parts last (CASCADE handles remaining children like images)
+  -- Step 1c: Delete parts last (CASCADE handles remaining children)
   IF jsonb_array_length(parts_to_delete) > 0 THEN
     DELETE FROM parts
     WHERE id IN (
@@ -114,9 +85,7 @@ BEGIN
     GET DIAGNOSTICS v_parts_deleted = ROW_COUNT;
   END IF;
 
-  -- ============================================
   -- STEP 2: ADD OPERATIONS
-  -- ============================================
 
   -- Step 2a: Add new parts
   IF jsonb_array_length(parts_to_add) > 0 THEN
@@ -200,9 +169,7 @@ BEGIN
     GET DIAGNOSTICS v_cross_refs_added = ROW_COUNT;
   END IF;
 
-  -- ============================================
   -- STEP 3: UPDATE OPERATIONS
-  -- ============================================
 
   -- Step 3a: Update existing parts
   IF jsonb_array_length(parts_to_update) > 0 THEN
@@ -295,12 +262,6 @@ BEGIN
     GET DIAGNOSTICS v_cross_refs_updated = ROW_COUNT;
   END IF;
 
-  -- ============================================
-  -- TRANSACTION ENDS HERE
-  -- If we reach this point, all operations succeeded
-  -- If ANY operation failed, PostgreSQL auto-rollback
-  -- ============================================
-
   -- Return summary of operations
   RETURN QUERY SELECT
     v_parts_added,
@@ -315,41 +276,3 @@ BEGIN
 
 END;
 $$ LANGUAGE plpgsql;
-
--- =====================================================
--- Part 2: Add missing index on competitor_brand
--- =====================================================
-
-CREATE INDEX IF NOT EXISTS idx_cross_references_competitor_brand
-ON cross_references(competitor_brand);
-
-COMMENT ON INDEX idx_cross_references_competitor_brand IS
-  'Speeds up brand filtering in admin UI and search API';
-
--- =====================================================
--- Part 3: Fix import_history RLS policy for INSERT
--- =====================================================
--- Server-side API routes use anon key client, so auth.uid() is null.
--- Allow both authenticated users AND service_role to manage import_history.
-
-DROP POLICY IF EXISTS "Authenticated users can manage import_history" ON import_history;
-
--- Allow authenticated users (browser-based)
-CREATE POLICY "Authenticated users can manage import_history"
-    ON import_history FOR ALL
-    TO authenticated
-    USING (true)
-    WITH CHECK (true);
-
--- Allow anon role for server-side API operations (uses anon key)
-CREATE POLICY "Anon can manage import_history"
-    ON import_history FOR ALL
-    TO anon
-    USING (true)
-    WITH CHECK (true);
-
--- =====================================================
--- Part 4: Verification (run manually after migration)
--- =====================================================
--- SELECT pg_get_function_arguments(oid) FROM pg_proc WHERE proname = 'execute_atomic_import';
--- SELECT indexname FROM pg_indexes WHERE indexname = 'idx_cross_references_competitor_brand';
