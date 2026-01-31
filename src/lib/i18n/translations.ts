@@ -2602,6 +2602,76 @@ export const translations: Record<
     es: "Todos los derechos reservados.",
   },
 
+  // Admin Upload Images Dashboard
+  "admin.uploadImages.title": {
+    en: "Upload Images",
+    es: "Subir Imágenes",
+  },
+  "admin.uploadImages.description": {
+    en: "Upload images here, copy the URL, then paste into your Excel file's image columns.",
+    es: "Sube imágenes aquí, copia la URL y pégala en las columnas de imágenes de tu archivo Excel.",
+  },
+  "admin.uploadImages.howItWorks": {
+    en: "How it works",
+    es: "Cómo funciona",
+  },
+  "admin.uploadImages.step1": {
+    en: "Drag and drop images or click to browse",
+    es: "Arrastra y suelta imágenes o haz clic para buscar",
+  },
+  "admin.uploadImages.step2": {
+    en: "Click 'Copy URL' to copy the image link",
+    es: "Haz clic en 'Copiar URL' para copiar el enlace de la imagen",
+  },
+  "admin.uploadImages.step3": {
+    en: "Paste the URL into Excel (Image_URL_Front, Image_URL_Back, etc.)",
+    es: "Pega la URL en Excel (Image_URL_Front, Image_URL_Back, etc.)",
+  },
+  "admin.uploadImages.dragDrop": {
+    en: "Drag and drop images here, or click to browse",
+    es: "Arrastra y suelta imágenes aquí, o haz clic para buscar",
+  },
+  "admin.uploadImages.supportedFormats": {
+    en: "Supports: JPG, PNG, WebP (max 5MB)",
+    es: "Formatos: JPG, PNG, WebP (máx 5MB)",
+  },
+  "admin.uploadImages.uploading": {
+    en: "Uploading...",
+    es: "Subiendo...",
+  },
+  "admin.uploadImages.uploadedImages": {
+    en: "Uploaded Images",
+    es: "Imágenes Subidas",
+  },
+  "admin.uploadImages.clearAll": {
+    en: "Clear All",
+    es: "Limpiar Todo",
+  },
+  "admin.uploadImages.copyUrl": {
+    en: "Copy URL",
+    es: "Copiar URL",
+  },
+  "admin.uploadImages.copied": {
+    en: "Copied!",
+    es: "Copiado!",
+  },
+  "admin.uploadImages.noImages": {
+    en: "No images uploaded yet. Drag and drop to get started.",
+    es: "No hay imágenes subidas aún. Arrastra y suelta para comenzar.",
+  },
+  "admin.uploadImages.errorInvalidType": {
+    en: "Invalid file type. Please upload JPG, PNG, or WebP images.",
+    es: "Tipo de archivo inválido. Por favor sube imágenes JPG, PNG o WebP.",
+  },
+  "admin.uploadImages.errorTooLarge": {
+    en: "File too large. Maximum size is 5MB.",
+    es: "Archivo demasiado grande. El tamaño máximo es 5MB.",
+  },
+  "admin.uploadImages.errorUploadFailed": {
+    en: "Failed to upload images. Please try again.",
+    es: "Error al subir imágenes. Por favor intenta de nuevo.",
+  },
+
   // Data Portal (for data managers)
   "portal.title": {
     en: "Data Portal",

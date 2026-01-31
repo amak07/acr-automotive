@@ -715,6 +715,25 @@ export interface TranslationKeys {
   "footer.contact.location": string;
   "footer.copyright": string;
 
+  // Admin Upload Images Dashboard
+  "admin.uploadImages.title": string;
+  "admin.uploadImages.description": string;
+  "admin.uploadImages.howItWorks": string;
+  "admin.uploadImages.step1": string;
+  "admin.uploadImages.step2": string;
+  "admin.uploadImages.step3": string;
+  "admin.uploadImages.dragDrop": string;
+  "admin.uploadImages.supportedFormats": string;
+  "admin.uploadImages.uploading": string;
+  "admin.uploadImages.uploadedImages": string;
+  "admin.uploadImages.clearAll": string;
+  "admin.uploadImages.copyUrl": string;
+  "admin.uploadImages.copied": string;
+  "admin.uploadImages.noImages": string;
+  "admin.uploadImages.errorInvalidType": string;
+  "admin.uploadImages.errorTooLarge": string;
+  "admin.uploadImages.errorUploadFailed": string;
+
   // Data Portal (for data managers)
   "portal.title": string;
   "portal.welcome": string;
