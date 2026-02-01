@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLocale } from '@/contexts/LocaleContext';
-import { AcrCard, AcrCardContent } from '@/components/acr/Card';
-import { AcrSpinner } from '@/components/acr/Spinner';
-import { AppHeader } from '@/components/shared/layout/AppHeader';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
+import { AcrCard, AcrCardContent } from "@/components/acr/Card";
+import { AcrSpinner } from "@/components/acr/Spinner";
+import { AppHeader } from "@/components/shared/layout/AppHeader";
 import {
   Upload,
   Download,
@@ -14,10 +14,10 @@ import {
   FileSpreadsheet,
   ImageIcon,
   ArrowRight,
-  Sparkles
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { getStaggerClass } from '@/lib/animations';
+  Sparkles,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { getStaggerClass } from "@/lib/animations";
 
 /**
  * DataPortal - Dashboard interface for data managers
@@ -41,50 +41,52 @@ export default function DataPortalPage() {
 
   // Not authenticated
   if (!user || !profile) {
-    router.push('/login?redirect=/data-portal');
+    router.push("/login?redirect=/data-portal");
     return null;
   }
 
   // Get first name for greeting
-  const firstName = profile.full_name?.split(' ')[0] || profile.email.split('@')[0];
+  const firstName =
+    profile.full_name?.split(" ")[0] || profile.email.split("@")[0];
 
   return (
     <div>
       <AppHeader variant="data-portal" />
 
       {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 py-8 lg:py-12">
+      <main className="max-w-5xl mx-auto px-4 py-8 md:px-6 lg:py-12">
         {/* Welcome Section */}
         <div className="mb-10 acr-animate-fade-up">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-5 h-5 text-acr-red-500" />
             <span className="text-sm font-medium text-acr-red-600 uppercase tracking-wide">
-              {t('portal.title')}
+              {t("portal.title")}
             </span>
           </div>
           <h1 className="acr-brand-heading-2xl text-acr-gray-900 mb-2">
-            {t('portal.welcome')}, {firstName}
+            {t("portal.welcome")}, {firstName}
           </h1>
-          <p className="text-acr-gray-600 text-lg">
-            {t('portal.description')}
-          </p>
+          <p className="text-acr-gray-600 text-lg">{t("portal.description")}</p>
         </div>
 
         {/* Quick Actions Section */}
         <section className="mb-12">
-          <h2 className="acr-brand-heading-lg text-acr-gray-900 mb-4 acr-animate-fade-up" style={{ animationDelay: '0.75s' }}>
-            {t('portal.quickActions')}
+          <h2
+            className="acr-brand-heading-lg text-acr-gray-900 mb-4 acr-animate-fade-up"
+            style={{ animationDelay: "0.75s" }}
+          >
+            {t("portal.quickActions")}
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             {/* Import Card */}
             <AcrCard
               variant="interactive"
               className={cn(
-                'cursor-pointer group acr-animate-fade-up',
+                "cursor-pointer group acr-animate-fade-up",
                 getStaggerClass(0)
               )}
-              onClick={() => router.push('/data-portal/import')}
+              onClick={() => router.push("/data-portal/import")}
             >
               <AcrCardContent className="p-6">
                 <div className="flex items-start gap-4">
@@ -94,12 +96,12 @@ export default function DataPortalPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="font-semibold text-acr-gray-900">
-                        {t('portal.import.title')}
+                        {t("portal.import.title")}
                       </h3>
                       <ArrowRight className="w-5 h-5 text-acr-gray-400 group-hover:text-acr-red-500 group-hover:translate-x-1 transition-all duration-300" />
                     </div>
                     <p className="text-acr-gray-600 text-sm leading-relaxed">
-                      {t('portal.import.description')}
+                      {t("portal.import.description")}
                     </p>
                   </div>
                 </div>
@@ -110,10 +112,10 @@ export default function DataPortalPage() {
             <AcrCard
               variant="interactive"
               className={cn(
-                'cursor-pointer group acr-animate-fade-up',
+                "cursor-pointer group acr-animate-fade-up",
                 getStaggerClass(1)
               )}
-              onClick={() => window.location.href = '/api/admin/export'}
+              onClick={() => (window.location.href = "/api/admin/export")}
             >
               <AcrCardContent className="p-6">
                 <div className="flex items-start gap-4">
@@ -123,12 +125,12 @@ export default function DataPortalPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="font-semibold text-acr-gray-900">
-                        {t('portal.export.title')}
+                        {t("portal.export.title")}
                       </h3>
                       <ArrowRight className="w-5 h-5 text-acr-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300" />
                     </div>
                     <p className="text-acr-gray-600 text-sm leading-relaxed">
-                      {t('portal.export.description')}
+                      {t("portal.export.description")}
                     </p>
                   </div>
                 </div>
@@ -139,14 +141,20 @@ export default function DataPortalPage() {
 
         {/* Documentation Section */}
         <section>
-          <div className="flex items-center gap-2 mb-4 acr-animate-fade-up" style={{ animationDelay: '0.9s' }}>
+          <div
+            className="flex items-center gap-2 mb-4 acr-animate-fade-up"
+            style={{ animationDelay: "0.9s" }}
+          >
             <BookOpen className="w-5 h-5 text-acr-gray-500" />
             <h2 className="acr-brand-heading-lg text-acr-gray-900">
-              {t('portal.docs.title')}
+              {t("portal.docs.title")}
             </h2>
           </div>
-          <p className="text-acr-gray-600 mb-6 acr-animate-fade-up" style={{ animationDelay: '0.95s' }}>
-            {t('portal.docs.description')}
+          <p
+            className="text-acr-gray-600 mb-6 acr-animate-fade-up"
+            style={{ animationDelay: "0.95s" }}
+          >
+            {t("portal.docs.description")}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -154,11 +162,11 @@ export default function DataPortalPage() {
             <Link
               href="/docs/admin-guide/importing-data"
               className={cn(
-                'group bg-white rounded-xl border border-acr-gray-200 p-5',
-                'hover:border-acr-gray-300 hover:shadow-md transition-all duration-200',
-                'acr-animate-fade-up'
+                "group bg-white rounded-xl border border-acr-gray-200 p-5",
+                "hover:border-acr-gray-300 hover:shadow-md transition-all duration-200",
+                "acr-animate-fade-up"
               )}
-              style={{ animationDelay: '1s' }}
+              style={{ animationDelay: "1s" }}
             >
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
@@ -166,10 +174,10 @@ export default function DataPortalPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-acr-gray-900 text-sm mb-1 group-hover:text-acr-red-600 transition-colors">
-                    {t('portal.docs.importing')}
+                    {t("portal.docs.importing")}
                   </h3>
                   <p className="text-xs text-acr-gray-500 leading-relaxed">
-                    {t('portal.docs.importingDesc')}
+                    {t("portal.docs.importingDesc")}
                   </p>
                 </div>
               </div>
@@ -179,11 +187,11 @@ export default function DataPortalPage() {
             <Link
               href="/docs/admin-guide/exporting-data"
               className={cn(
-                'group bg-white rounded-xl border border-acr-gray-200 p-5',
-                'hover:border-acr-gray-300 hover:shadow-md transition-all duration-200',
-                'acr-animate-fade-up'
+                "group bg-white rounded-xl border border-acr-gray-200 p-5",
+                "hover:border-acr-gray-300 hover:shadow-md transition-all duration-200",
+                "acr-animate-fade-up"
               )}
-              style={{ animationDelay: '1.05s' }}
+              style={{ animationDelay: "1.05s" }}
             >
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -191,10 +199,10 @@ export default function DataPortalPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-acr-gray-900 text-sm mb-1 group-hover:text-acr-red-600 transition-colors">
-                    {t('portal.docs.exporting')}
+                    {t("portal.docs.exporting")}
                   </h3>
                   <p className="text-xs text-acr-gray-500 leading-relaxed">
-                    {t('portal.docs.exportingDesc')}
+                    {t("portal.docs.exportingDesc")}
                   </p>
                 </div>
               </div>
@@ -204,11 +212,11 @@ export default function DataPortalPage() {
             <Link
               href="/docs/admin-guide/managing-images"
               className={cn(
-                'group bg-white rounded-xl border border-acr-gray-200 p-5',
-                'hover:border-acr-gray-300 hover:shadow-md transition-all duration-200',
-                'acr-animate-fade-up'
+                "group bg-white rounded-xl border border-acr-gray-200 p-5",
+                "hover:border-acr-gray-300 hover:shadow-md transition-all duration-200",
+                "acr-animate-fade-up"
               )}
-              style={{ animationDelay: '1.1s' }}
+              style={{ animationDelay: "1.1s" }}
             >
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
@@ -216,10 +224,10 @@ export default function DataPortalPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-acr-gray-900 text-sm mb-1 group-hover:text-acr-red-600 transition-colors">
-                    {t('portal.docs.images')}
+                    {t("portal.docs.images")}
                   </h3>
                   <p className="text-xs text-acr-gray-500 leading-relaxed">
-                    {t('portal.docs.imagesDesc')}
+                    {t("portal.docs.imagesDesc")}
                   </p>
                 </div>
               </div>
@@ -227,21 +235,27 @@ export default function DataPortalPage() {
           </div>
 
           {/* View All Docs Link */}
-          <div className="mt-6 text-center acr-animate-fade-up" style={{ animationDelay: '1.15s' }}>
+          <div
+            className="mt-6 text-center acr-animate-fade-up"
+            style={{ animationDelay: "1.15s" }}
+          >
             <Link
               href="/docs"
               className="inline-flex items-center gap-2 text-sm font-medium text-acr-gray-600 hover:text-acr-red-600 transition-colors"
             >
               <BookOpen className="w-4 h-4" />
-              {t('portal.docs.viewAll')}
+              {t("portal.docs.viewAll")}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </section>
 
         {/* Help Text */}
-        <p className="text-center text-sm text-acr-gray-500 mt-12 acr-animate-fade-up" style={{ animationDelay: '1.2s' }}>
-          {t('portal.helpText')}
+        <p
+          className="text-center text-sm text-acr-gray-500 mt-12 acr-animate-fade-up"
+          style={{ animationDelay: "1.2s" }}
+        >
+          {t("portal.helpText")}
         </p>
       </main>
     </div>

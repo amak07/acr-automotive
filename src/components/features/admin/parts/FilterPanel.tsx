@@ -59,8 +59,8 @@ export function FilterPanel({
 
   return (
     <div>
-      {/* Filter Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      {/* Filter Grid - stacked on mobile/tablet, 2 cols on lg, 3 on xl */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
         {/* Part Type */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-acr-gray-700">

@@ -241,8 +241,8 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
 
         {/* Vehicle Search Tab Content */}
         <AcrTabsContent value="vehicle">
-          {/* Mobile & Tablet: Stacked Layout */}
-          <div className="md:hidden space-y-3" onKeyDown={handleVehicleKeyDown}>
+          {/* Mobile & Tablet: Stacked Layout (up to lg breakpoint for better iPad experience) */}
+          <div className="lg:hidden space-y-3" onKeyDown={handleVehicleKeyDown}>
             <AcrComboBox
               value={selectedMake}
               onValueChange={(value) => {
@@ -351,9 +351,9 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             )}
           </div>
 
-          {/* Desktop: Horizontal Layout */}
+          {/* Desktop: Horizontal Layout (lg and up) */}
           <div
-            className="hidden md:flex md:items-center md:gap-4"
+            className="hidden lg:flex lg:items-center lg:gap-4"
             onKeyDown={handleVehicleKeyDown}
           >
             <AcrComboBox
@@ -467,8 +467,8 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
 
         {/* SKU Search Tab Content */}
         <AcrTabsContent value="sku">
-          {/* Mobile: Stacked Layout */}
-          <div className="md:hidden space-y-3">
+          {/* Mobile & Tablet: Stacked Layout */}
+          <div className="lg:hidden space-y-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-acr-gray-500 w-4 h-4" />
               <input
@@ -493,8 +493,8 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             </AcrButton>
           </div>
 
-          {/* Desktop: Horizontal Layout */}
-          <div className="hidden md:flex md:items-center md:gap-3">
+          {/* Desktop: Horizontal Layout (lg and up) */}
+          <div className="hidden lg:flex lg:items-center lg:gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-acr-gray-500 w-4 h-4" />
               <input
@@ -530,12 +530,12 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             )}
           </div>
 
-          {/* Clear Filters - Mobile */}
+          {/* Clear Filters - Mobile & Tablet */}
           {hasActiveFilters && (
             <AcrButton
               onClick={clearAllFilters}
               variant="secondary"
-              className="md:hidden w-full mt-3"
+              className="lg:hidden w-full mt-3"
             >
               {t("common.actions.clearFilters")}
             </AcrButton>

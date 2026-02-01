@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { AcrButton } from '@/components/acr/Button';
-import { AcrCard, AcrCardHeader, AcrCardContent } from '@/components/acr/Card';
-import { AcrSpinner } from '@/components/acr/Spinner';
-import { ConfirmDialog } from '@/components/acr/ConfirmDialog';
-import { InlineError } from '@/components/ui/error-states';
-import { InviteUserModal } from './InviteUserModal';
-import { EditUserModal } from './EditUserModal';
-import { useLocale } from '@/contexts/LocaleContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect } from "react";
+import { AcrButton } from "@/components/acr/Button";
+import { AcrCard, AcrCardHeader, AcrCardContent } from "@/components/acr/Card";
+import { AcrSpinner } from "@/components/acr/Spinner";
+import { ConfirmDialog } from "@/components/acr/ConfirmDialog";
+import { InlineError } from "@/components/ui/error-states";
+import { InviteUserModal } from "./InviteUserModal";
+import { EditUserModal } from "./EditUserModal";
+import { useLocale } from "@/contexts/LocaleContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   UserPlus,
   Shield,
@@ -23,15 +23,15 @@ import {
   Mail,
   Crown,
   Trash2,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { getStaggerClass } from '@/lib/animations';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { getStaggerClass } from "@/lib/animations";
 
 interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'admin' | 'data_manager';
+  role: "admin" | "data_manager";
   is_active: boolean;
   is_owner: boolean;
   created_at: string;
@@ -48,13 +48,19 @@ interface UserProfile {
 export function UserManagementContent() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
-  const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
-  const [reactivatingUserId, setReactivatingUserId] = useState<string | null>(null);
+  const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(
+    null
+  );
+  const [reactivatingUserId, setReactivatingUserId] = useState<string | null>(
+    null
+  );
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
-  const [userToDeactivate, setUserToDeactivate] = useState<UserProfile | null>(null);
+  const [userToDeactivate, setUserToDeactivate] = useState<UserProfile | null>(
+    null
+  );
   const [userToDelete, setUserToDelete] = useState<UserProfile | null>(null);
 
   const { t } = useLocale();
@@ -71,21 +77,22 @@ export function UserManagementContent() {
 
   useEffect(() => {
     fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/auth/users');
+      const response = await fetch("/api/auth/users");
 
       if (!response.ok) {
-        throw new Error('Failed to fetch users');
+        throw new Error("Failed to fetch users");
       }
 
       const data = await response.json();
       setUsers(data.users);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin.users.loadError'));
+      setError(err instanceof Error ? err.message : t("admin.users.loadError"));
     } finally {
       setIsLoading(false);
     }
@@ -103,16 +110,18 @@ export function UserManagementContent() {
       setUserToDeactivate(null);
 
       const response = await fetch(`/api/auth/users/${userToDeactivate.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error('Failed to deactivate user');
+        throw new Error("Failed to deactivate user");
       }
 
       await fetchUsers();
     } catch (err) {
-      alert(err instanceof Error ? err.message : t('admin.users.deactivateError'));
+      alert(
+        err instanceof Error ? err.message : t("admin.users.deactivateError")
+      );
     } finally {
       setDeactivatingUserId(null);
     }
@@ -123,18 +132,20 @@ export function UserManagementContent() {
       setReactivatingUserId(userId);
 
       const response = await fetch(`/api/auth/users/${userId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_active: true }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to reactivate user');
+        throw new Error("Failed to reactivate user");
       }
 
       await fetchUsers();
     } catch (err) {
-      alert(err instanceof Error ? err.message : t('admin.users.reactivateError'));
+      alert(
+        err instanceof Error ? err.message : t("admin.users.reactivateError")
+      );
     } finally {
       setReactivatingUserId(null);
     }
@@ -151,35 +162,38 @@ export function UserManagementContent() {
       setDeletingUserId(userToDelete.id);
       setUserToDelete(null);
 
-      const response = await fetch(`/api/auth/users/${userToDelete.id}?permanent=true`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/auth/users/${userToDelete.id}?permanent=true`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to delete user');
+        throw new Error(data.error || "Failed to delete user");
       }
 
       await fetchUsers();
     } catch (err) {
-      alert(err instanceof Error ? err.message : t('admin.users.deleteError'));
+      alert(err instanceof Error ? err.message : t("admin.users.deleteError"));
     } finally {
       setDeletingUserId(null);
     }
   };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return t('admin.users.never');
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    if (!dateString) return t("admin.users.never");
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
   if (isLoading) {
     return (
-      <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
+      <main className="px-4 py-8 mx-auto md:px-6 lg:max-w-7xl lg:px-8">
         <div className="flex items-center justify-center min-h-[400px]">
           <AcrSpinner size="lg" color="primary" />
         </div>
@@ -189,9 +203,9 @@ export function UserManagementContent() {
 
   if (error) {
     return (
-      <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
+      <main className="px-4 py-8 mx-auto md:px-6 lg:max-w-7xl lg:px-8">
         <InlineError
-          title={t('admin.users.errorTitle')}
+          title={t("admin.users.errorTitle")}
           message={error}
           onRetry={fetchUsers}
         />
@@ -200,15 +214,15 @@ export function UserManagementContent() {
   }
 
   return (
-    <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8 space-y-6">
+    <main className="px-4 py-8 mx-auto md:px-6 lg:max-w-7xl lg:px-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between acr-animate-fade-up">
         <div>
           <h1 className="acr-brand-heading-2xl text-acr-gray-900">
-            {t('admin.users.title')}
+            {t("admin.users.title")}
           </h1>
           <p className="text-acr-gray-600 acr-body mt-2">
-            {t('admin.users.description')}
+            {t("admin.users.description")}
           </p>
         </div>
         <AcrButton
@@ -217,15 +231,15 @@ export function UserManagementContent() {
           onClick={() => setShowInviteModal(true)}
         >
           <UserPlus className="w-4 h-4" />
-          {t('admin.users.addUser')}
+          {t("admin.users.addUser")}
         </AcrButton>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-6">
+      {/* Stats - stacked on mobile/tablet, 3 cols on desktop */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
         <AcrCard
           padding="compact"
-          className={cn('acr-animate-fade-up', getStaggerClass(0))}
+          className={cn("acr-animate-fade-up", getStaggerClass(0))}
         >
           <AcrCardContent className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-acr-red-100 flex items-center justify-center flex-shrink-0">
@@ -233,16 +247,21 @@ export function UserManagementContent() {
             </div>
             <div>
               <div className="text-2xl font-bold text-acr-gray-900">
-                {visibleUsers.filter((u) => u.role === 'admin' && u.is_active).length}
+                {
+                  visibleUsers.filter((u) => u.role === "admin" && u.is_active)
+                    .length
+                }
               </div>
-              <div className="text-sm text-acr-gray-600">{t('admin.users.activeAdmins')}</div>
+              <div className="text-sm text-acr-gray-600">
+                {t("admin.users.activeAdmins")}
+              </div>
             </div>
           </AcrCardContent>
         </AcrCard>
 
         <AcrCard
           padding="compact"
-          className={cn('acr-animate-fade-up', getStaggerClass(1))}
+          className={cn("acr-animate-fade-up", getStaggerClass(1))}
         >
           <AcrCardContent className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -250,16 +269,22 @@ export function UserManagementContent() {
             </div>
             <div>
               <div className="text-2xl font-bold text-acr-gray-900">
-                {visibleUsers.filter((u) => u.role === 'data_manager' && u.is_active).length}
+                {
+                  visibleUsers.filter(
+                    (u) => u.role === "data_manager" && u.is_active
+                  ).length
+                }
               </div>
-              <div className="text-sm text-acr-gray-600">{t('admin.users.dataManagers')}</div>
+              <div className="text-sm text-acr-gray-600">
+                {t("admin.users.dataManagers")}
+              </div>
             </div>
           </AcrCardContent>
         </AcrCard>
 
         <AcrCard
           padding="compact"
-          className={cn('acr-animate-fade-up', getStaggerClass(2))}
+          className={cn("acr-animate-fade-up", getStaggerClass(2))}
         >
           <AcrCardContent className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-acr-gray-100 flex items-center justify-center flex-shrink-0">
@@ -269,7 +294,9 @@ export function UserManagementContent() {
               <div className="text-2xl font-bold text-acr-gray-900">
                 {visibleUsers.filter((u) => !u.is_active).length}
               </div>
-              <div className="text-sm text-acr-gray-600">{t('admin.users.inactiveUsers')}</div>
+              <div className="text-sm text-acr-gray-600">
+                {t("admin.users.inactiveUsers")}
+              </div>
             </div>
           </AcrCardContent>
         </AcrCard>
@@ -277,19 +304,18 @@ export function UserManagementContent() {
 
       {/* Users List */}
       <AcrCard
-        className={cn('acr-animate-fade-up', getStaggerClass(3))}
+        className={cn("acr-animate-fade-up", getStaggerClass(3))}
         padding="none"
       >
         <AcrCardHeader className="px-6 py-4 border-b border-acr-gray-200">
-          <h2 className="acr-brand-heading-lg text-acr-gray-900">{t('admin.users.allUsers')}</h2>
+          <h2 className="acr-brand-heading-lg text-acr-gray-900">
+            {t("admin.users.allUsers")}
+          </h2>
         </AcrCardHeader>
         <AcrCardContent className="p-0">
           <div className="divide-y divide-acr-gray-200">
             {visibleUsers.map((user) => (
-              <div
-                key={user.id}
-                className="p-6 transition-colors duration-150"
-              >
+              <div key={user.id} className="p-6 transition-colors duration-150">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   {/* User Info */}
                   <div className="flex-1 space-y-3">
@@ -297,26 +323,26 @@ export function UserManagementContent() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="text-base font-semibold text-acr-gray-900">
-                            {user.full_name || t('admin.users.noName')}
+                            {user.full_name || t("admin.users.noName")}
                           </h3>
                           {/* Role Badge */}
                           <span
                             className={cn(
-                              'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium',
-                              user.role === 'admin'
-                                ? 'bg-purple-100 text-purple-800'
-                                : 'bg-blue-100 text-blue-800'
+                              "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium",
+                              user.role === "admin"
+                                ? "bg-purple-100 text-purple-800"
+                                : "bg-blue-100 text-blue-800"
                             )}
                           >
-                            {user.role === 'admin' ? (
+                            {user.role === "admin" ? (
                               <>
                                 <Shield className="w-3 h-3" />
-                                {t('admin.users.roleAdmin')}
+                                {t("admin.users.roleAdmin")}
                               </>
                             ) : (
                               <>
                                 <Briefcase className="w-3 h-3" />
-                                {t('admin.users.roleDataManager')}
+                                {t("admin.users.roleDataManager")}
                               </>
                             )}
                           </span>
@@ -324,19 +350,19 @@ export function UserManagementContent() {
                           {user.is_owner && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
                               <Crown className="w-3 h-3" />
-                              {t('admin.users.owner')}
+                              {t("admin.users.owner")}
                             </span>
                           )}
                           {/* Status Badge */}
                           {user.is_active ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               <CheckCircle className="w-3 h-3" />
-                              {t('admin.users.active')}
+                              {t("admin.users.active")}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                               <XCircle className="w-3 h-3" />
-                              {t('admin.users.inactive')}
+                              {t("admin.users.inactive")}
                             </span>
                           )}
                         </div>
@@ -351,11 +377,17 @@ export function UserManagementContent() {
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-acr-gray-500">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        <span>{t('admin.users.joined')} {formatDate(user.created_at)}</span>
+                        <span>
+                          {t("admin.users.joined")}{" "}
+                          {formatDate(user.created_at)}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" />
-                        <span>{t('admin.users.lastLogin')} {formatDate(user.last_login_at)}</span>
+                        <span>
+                          {t("admin.users.lastLogin")}{" "}
+                          {formatDate(user.last_login_at)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -370,12 +402,15 @@ export function UserManagementContent() {
                         onClick={() => setEditingUser(user)}
                       >
                         <Edit className="w-3.5 h-3.5" />
-                        <span className="hidden lg:inline">{t('admin.users.edit')}</span>
+                        <span className="hidden lg:inline">
+                          {t("admin.users.edit")}
+                        </span>
                       </AcrButton>
                     )}
                     {/* Don't show deactivate/reactivate for current user or owners */}
-                    {user.id !== currentUser?.id && !user.is_owner && (
-                      user.is_active ? (
+                    {user.id !== currentUser?.id &&
+                      !user.is_owner &&
+                      (user.is_active ? (
                         <AcrButton
                           variant="destructive"
                           size="sm"
@@ -388,7 +423,9 @@ export function UserManagementContent() {
                           ) : (
                             <UserX className="w-3.5 h-3.5" />
                           )}
-                          <span className="hidden lg:inline">{t('admin.users.deactivate')}</span>
+                          <span className="hidden lg:inline">
+                            {t("admin.users.deactivate")}
+                          </span>
                         </AcrButton>
                       ) : (
                         <>
@@ -404,7 +441,9 @@ export function UserManagementContent() {
                             ) : (
                               <UserCheck className="w-3.5 h-3.5" />
                             )}
-                            <span className="hidden lg:inline">{t('admin.users.reactivate')}</span>
+                            <span className="hidden lg:inline">
+                              {t("admin.users.reactivate")}
+                            </span>
                           </AcrButton>
                           <AcrButton
                             variant="destructive"
@@ -418,11 +457,12 @@ export function UserManagementContent() {
                             ) : (
                               <Trash2 className="w-3.5 h-3.5" />
                             )}
-                            <span className="hidden lg:inline">{t('admin.users.delete')}</span>
+                            <span className="hidden lg:inline">
+                              {t("admin.users.delete")}
+                            </span>
                           </AcrButton>
                         </>
-                      )
-                    )}
+                      ))}
                   </div>
                 </div>
               </div>
@@ -459,13 +499,13 @@ export function UserManagementContent() {
         isOpen={!!userToDeactivate}
         onClose={() => setUserToDeactivate(null)}
         onConfirm={handleDeactivateConfirm}
-        title={t('admin.users.confirmDeactivateTitle')}
-        description={t('admin.users.confirmDeactivate').replace(
-          '{name}',
-          userToDeactivate?.full_name || userToDeactivate?.email || ''
+        title={t("admin.users.confirmDeactivateTitle")}
+        description={t("admin.users.confirmDeactivate").replace(
+          "{name}",
+          userToDeactivate?.full_name || userToDeactivate?.email || ""
         )}
-        confirmText={t('admin.users.deactivate')}
-        cancelText={t('admin.users.editModal.cancel')}
+        confirmText={t("admin.users.deactivate")}
+        cancelText={t("admin.users.editModal.cancel")}
         variant="destructive"
       />
 
@@ -474,13 +514,13 @@ export function UserManagementContent() {
         isOpen={!!userToDelete}
         onClose={() => setUserToDelete(null)}
         onConfirm={handleDeleteConfirm}
-        title={t('admin.users.confirmDeleteTitle')}
-        description={t('admin.users.confirmDelete').replace(
-          '{name}',
-          userToDelete?.full_name || userToDelete?.email || ''
+        title={t("admin.users.confirmDeleteTitle")}
+        description={t("admin.users.confirmDelete").replace(
+          "{name}",
+          userToDelete?.full_name || userToDelete?.email || ""
         )}
-        confirmText={t('admin.users.delete')}
-        cancelText={t('admin.users.editModal.cancel')}
+        confirmText={t("admin.users.delete")}
+        cancelText={t("admin.users.editModal.cancel")}
         variant="destructive"
       />
     </main>

@@ -134,13 +134,13 @@ export function PublicPartDetails({
         <div className="mt-2 h-1 w-24 bg-acr-red-500 rounded-full" />
       </div>
 
-      {/* Main Content - Image Emphasized Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Product Image Gallery - 2/3 width */}
+      {/* Main Content - Image Emphasized Layout (stacked on mobile/tablet, side-by-side on desktop) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Product Image Gallery - 2/3 width on desktop */}
         <AcrCard
           variant="elevated"
           padding="none"
-          className="md:col-span-2 overflow-hidden acr-animate-fade-up acr-stagger-2"
+          className="lg:col-span-2 overflow-hidden acr-animate-fade-up acr-stagger-2"
         >
           <PartImageGallery
             images={images}
@@ -152,11 +152,11 @@ export function PublicPartDetails({
           />
         </AcrCard>
 
-        {/* Part Details - Baleros-Bisa Style - 1/3 width */}
+        {/* Part Details - Baleros-Bisa Style - 1/3 width on desktop */}
         <AcrCard
           variant="featured"
           padding="default"
-          className="md:col-span-1 acr-animate-fade-up acr-stagger-3"
+          className="lg:col-span-1 acr-animate-fade-up acr-stagger-3"
         >
           <AcrCardContent>
             {/* Specifications Table */}
@@ -242,7 +242,7 @@ export function PublicPartDetails({
         </AcrCard>
       </div>
 
-      {/* Applications and References - Baleros-Bisa Style */}
+      {/* Applications and References - Baleros-Bisa Style (2 cols on tablet+) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <AcrCard
           variant="default"
