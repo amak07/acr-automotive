@@ -172,7 +172,7 @@ function AdminPage() {
         <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />
       }
     >
-      <div className="min-h-screen acr-page-bg-pattern">
+      <div>
         <AppHeader variant="admin" />
         <AdminPageWrapper />
       </div>

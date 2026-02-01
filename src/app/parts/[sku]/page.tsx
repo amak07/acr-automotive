@@ -37,7 +37,7 @@ export default function PublicPartDetailsPage() {
         <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />
       }
     >
-      <div className="min-h-screen acr-page-bg-pattern">
+      <div>
         <AppHeader variant="public" />
         <PartDetailsContent />
       </div>

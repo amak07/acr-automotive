@@ -29,7 +29,7 @@ export default function DataManagerImportPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-acr-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <AcrSpinner size="lg" color="primary" />
       </div>
     );

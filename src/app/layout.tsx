@@ -90,7 +90,9 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <Providers>
-          <div className="flex-1">{children}</div>
+          <div className="flex-1 min-h-screen bg-acr-gray-50 acr-page-bg-pattern">
+            {children}
+          </div>
           <Footer />
           <ContactFabs />
         </Providers>

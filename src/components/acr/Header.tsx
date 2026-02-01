@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X, LucideIcon, MoreVertical, Globe, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AcrLogo } from "@/components/ui/AcrLogo";
@@ -138,15 +139,26 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
   ) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const homeLink = useHomeLink();
+    const pathname = usePathname();
 
     const closeMenu = () => setIsMenuOpen(false);
 
+    // Check if a menu item is active based on current pathname
+    const isActive = (href: string | undefined): boolean => {
+      if (!href) return false;
+      // Exact match only - prevents /admin matching /admin/users
+      return pathname === href;
+    };
+
     // Render menu item (for dropdown menu)
     const renderMenuItem = (action: AcrHeaderAction) => {
+      const active = isActive(action.href);
+
       const content = (
         <>
           {action.icon && <action.icon className="w-4 h-4" />}
           <span>{action.label}</span>
+          {active && <Check className="w-4 h-4 ml-auto" />}
         </>
       );
 
@@ -154,7 +166,9 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
         "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
         action.variant === "danger"
           ? "text-red-600 hover:bg-red-50"
-          : "text-acr-gray-700 hover:bg-acr-gray-50 hover:text-acr-red-600"
+          : active
+            ? "bg-acr-red-50 text-acr-red-600 font-medium"
+            : "text-acr-gray-700 hover:bg-acr-gray-50 hover:text-acr-red-600"
       );
 
       if (action.asButton || action.onClick) {
