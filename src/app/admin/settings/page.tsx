@@ -11,7 +11,7 @@ import { withAdminAuth } from "@/components/shared/auth/withAdminAuth";
 
 function SettingsPage() {
   return (
-    <div className="min-h-screen bg-acr-gray-50">
+    <div>
       <AppHeader variant="admin" />
       <SettingsPageContent />
     </div>

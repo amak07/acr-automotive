@@ -145,7 +145,7 @@ export default function HomePage() {
         <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />
       }
     >
-      <div className="min-h-screen acr-page-bg-pattern">
+      <div>
         <AppHeader variant="public" />
         <HomePageContent />
       </div>

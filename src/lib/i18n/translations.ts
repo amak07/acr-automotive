@@ -2643,9 +2643,33 @@ export const translations: Record<
     en: "Uploaded Images",
     es: "Imágenes Subidas",
   },
-  "admin.uploadImages.clearAll": {
-    en: "Clear All",
-    es: "Limpiar Todo",
+  "admin.uploadImages.sessionNote": {
+    en: "Images are stored permanently. Delete individually when no longer needed.",
+    es: "Las imágenes se almacenan permanentemente. Elimina individualmente cuando ya no las necesites.",
+  },
+  "admin.uploadImages.copiedBadge": {
+    en: "copied",
+    es: "copiadas",
+  },
+  "admin.uploadImages.imageCount": {
+    en: "images",
+    es: "imágenes",
+  },
+  "admin.uploadImages.urlCopied": {
+    en: "URL copied",
+    es: "URL copiada",
+  },
+  "admin.uploadImages.deleteImage": {
+    en: "Delete image",
+    es: "Eliminar imagen",
+  },
+  "admin.uploadImages.deleteNote": {
+    en: "Deleting an image removes it from storage permanently. Make sure you've pasted the URL into Excel before deleting.",
+    es: "Eliminar una imagen la borra del almacenamiento permanentemente. Asegúrate de haber pegado la URL en Excel antes de eliminar.",
+  },
+  "admin.uploadImages.noImagesHint": {
+    en: "Drag files here or click to browse",
+    es: "Arrastra archivos aquí o haz clic para buscar",
   },
   "admin.uploadImages.copyUrl": {
     en: "Copy URL",

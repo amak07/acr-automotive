@@ -1,38 +1,44 @@
-import ExcelJS from 'exceljs';
-import { supabase } from '@/lib/supabase/client';
+import ExcelJS from "exceljs";
+import { supabase } from "@/lib/supabase/client";
 import {
   SHEET_NAMES,
   PARTS_COLUMNS,
   VEHICLE_APPLICATIONS_COLUMNS,
-  CROSS_REFERENCES_COLUMNS,
+  CROSS_REFERENCES_COLUMNS, // @deprecated - kept for backward compatibility
+  BRAND_COLUMN_MAP,
+  IMAGE_VIEW_TYPE_MAP,
   ExportFilters,
-} from '@/services/excel/shared';
+} from "@/services/excel/shared";
+
+// Type for cross-refs grouped by part and brand
+type CrossRefsByPart = Map<string, Map<string, string[]>>;
+
+// Type for images grouped by part and view_type
+type ImagesByPart = Map<string, Record<string, string>>;
 
 /**
  * ExcelExportService
  *
- * Handles Excel export of catalog data in standardized 3-sheet format.
+ * Handles Excel export of catalog data in standardized 2-sheet format (Phase 3).
  * Supports both full catalog export and filtered export based on search criteria.
  * Uses ExcelJS library for full Excel feature support including hidden columns.
  *
- * Sheet Structure:
- * 1. Parts - All/filtered parts with hidden ID columns
- *    Columns: _id (hidden), ACR_SKU, Part_Type, Position_Type, ABS_Type, Bolt_Pattern, Drive_Type, Specifications
+ * Sheet Structure (Phase 3 - 2 sheets):
+ * 1. Parts - All/filtered parts with cross-refs and images inline
+ *    - Core: _id (hidden), ACR_SKU, Part_Type, Position_Type, ABS_Type, Bolt_Pattern, Drive_Type, Specifications
+ *    - Cross-refs: National_SKUs, ATV_SKUs, SYD_SKUs, TMK_SKUs, GROB_SKUs, RACE_SKUs, OEM_SKUs, OEM_2_SKUs, GMB_SKUs, GSP_SKUs, FAG_SKUs
+ *    - Images: Image_URL_Front, Image_URL_Back, Image_URL_Top, Image_URL_Other, 360_Viewer_Status
  *
  * 2. Vehicle Applications - Vehicle fitment data for exported parts
  *    Columns: _id (hidden), _part_id (hidden), ACR_SKU, Make, Model, Start_Year, End_Year
  *
- * 3. Cross References - Competitor cross-references for exported parts
- *    Columns: _id (hidden), _acr_part_id (hidden), ACR_SKU, Competitor_Brand, Competitor_SKU
+ * Cross-Reference Format:
+ * - Each brand column contains semicolon-separated SKUs (e.g., "TM-123;TM-456")
+ * - Use [DELETE]SKU to mark a SKU for explicit deletion on import
  *
- * Hidden Columns (for import matching):
- * - _id: Record UUID (hidden, for matching on re-import)
- * - _part_id: Foreign key UUID (hidden, for VAs)
- * - _acr_part_id: Foreign key UUID (hidden, for CRs)
- *
- * Visible ACR_SKU:
- * - Parts sheet: Direct column from parts table
- * - VA/CR sheets: Joined from parts table for user-friendly reference (Humberto maps by SKU, not UUID)
+ * Image URL Format:
+ * - URLs from Supabase Storage or external sources
+ * - 360_Viewer_Status shows "Confirmed" if part has 360 viewer
  *
  * Export-Import Loop:
  * 1. User exports to get IDs (all data or filtered results)
@@ -50,11 +56,15 @@ export class ExcelExportService {
    * @param orderBy - ORDER BY clause
    * @returns All rows from the table
    */
-  private async fetchAllRows(tableName: string, orderBy: string): Promise<any[]> {
-    // Exclude computed columns from parts table
-    let selectColumns = '*';
-    if (tableName === 'parts') {
-      selectColumns = 'id, acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications';
+  private async fetchAllRows(
+    tableName: string,
+    orderBy: string
+  ): Promise<any[]> {
+    // Exclude computed columns from parts table, include has_360_viewer for status
+    let selectColumns = "*";
+    if (tableName === "parts") {
+      selectColumns =
+        "id, acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, has_360_viewer";
     }
 
     const PAGE_SIZE = 1000;
@@ -63,7 +73,7 @@ export class ExcelExportService {
     let hasMore = true;
 
     while (hasMore) {
-      const { data, error} = await supabase
+      const { data, error } = await supabase
         .from(tableName)
         .select(selectColumns)
         .order(orderBy, { ascending: true })
@@ -88,29 +98,31 @@ export class ExcelExportService {
   /**
    * Export all catalog data to Excel workbook
    *
+   * Phase 3: 2-sheet format with inline cross-refs and images
+   *
    * @returns Excel file buffer ready for download
    */
   async exportAllData(): Promise<Buffer> {
     // Fetch all data from database
-    const [parts, vehicles, crossRefs] = await Promise.all([
-      this.fetchAllRows('parts', 'acr_sku'),
+    const [parts, vehicles, crossRefsByPart, imagesByPart] = await Promise.all([
+      this.fetchAllRows("parts", "acr_sku"),
       this.fetchVehiclesWithSku(),
-      this.fetchCrossRefsWithSku(),
+      this.fetchCrossRefsByPart(),
+      this.fetchImagesByPart(),
     ]);
 
     // Create workbook
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'ACR Automotive';
+    workbook.creator = "ACR Automotive";
     workbook.created = new Date();
 
-    // Add Parts sheet
-    this.addPartsSheet(workbook, parts);
+    // Add Parts sheet (with inline cross-refs and images)
+    this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart);
 
     // Add Vehicle Applications sheet
     this.addVehiclesSheet(workbook, vehicles);
 
-    // Add Cross References sheet
-    this.addCrossRefsSheet(workbook, crossRefs);
+    // Note: Cross References sheet removed in Phase 3 (now inline in Parts sheet)
 
     // Generate Excel file buffer
     const buffer = await workbook.xlsx.writeBuffer();
@@ -121,8 +133,10 @@ export class ExcelExportService {
   /**
    * Export filtered catalog data to Excel workbook
    *
+   * Phase 3: 2-sheet format with inline cross-refs and images
+   *
    * Filters parts based on search criteria, then includes all related
-   * vehicle applications and cross-references for the filtered parts.
+   * vehicle applications for the filtered parts.
    *
    * @param filters - Search filters to apply
    * @returns Excel file buffer ready for download
@@ -137,32 +151,33 @@ export class ExcelExportService {
     // If no parts match, return empty workbook
     if (partIds.length === 0) {
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'ACR Automotive';
+      workbook.creator = "ACR Automotive";
       workbook.created = new Date();
 
-      this.addPartsSheet(workbook, []);
+      this.addPartsSheet(workbook, [], new Map(), new Map());
       this.addVehiclesSheet(workbook, []);
-      this.addCrossRefsSheet(workbook, []);
 
       const buffer = await workbook.xlsx.writeBuffer();
       return Buffer.from(buffer);
     }
 
-    // Fetch all vehicle applications and cross-references for the filtered parts
-    const [vehicles, crossRefs] = await Promise.all([
-      this.fetchRowsByPartIds('vehicle_applications', partIds),
-      this.fetchRowsByPartIds('cross_references', partIds),
+    // Fetch vehicle applications, cross-refs, and images for filtered parts
+    const [vehicles, crossRefsByPart, imagesByPart] = await Promise.all([
+      this.fetchRowsByPartIds("vehicle_applications", partIds),
+      this.fetchCrossRefsByPartIds(partIds),
+      this.fetchImagesByPartIds(partIds),
     ]);
 
     // Create workbook
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'ACR Automotive';
+    workbook.creator = "ACR Automotive";
     workbook.created = new Date();
 
     // Add sheets
-    this.addPartsSheet(workbook, parts);
+    this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart);
     this.addVehiclesSheet(workbook, vehicles);
-    this.addCrossRefsSheet(workbook, crossRefs);
+
+    // Note: Cross References sheet removed in Phase 3 (now inline in Parts sheet)
 
     // Generate Excel file buffer
     const buffer = await workbook.xlsx.writeBuffer();
@@ -181,28 +196,32 @@ export class ExcelExportService {
 
     while (hasMore) {
       let query = supabase
-        .from('parts')
-        .select('id, acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications')
-        .order('acr_sku', { ascending: true });
+        .from("parts")
+        .select(
+          "id, acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, has_360_viewer"
+        )
+        .order("acr_sku", { ascending: true });
 
       // Apply filters
       if (filters.search) {
-        query = query.or(`acr_sku.ilike.%${filters.search}%,part_type.ilike.%${filters.search}%,specifications.ilike.%${filters.search}%`);
+        query = query.or(
+          `acr_sku.ilike.%${filters.search}%,part_type.ilike.%${filters.search}%,specifications.ilike.%${filters.search}%`
+        );
       }
       if (filters.part_type) {
-        query = query.eq('part_type', filters.part_type);
+        query = query.eq("part_type", filters.part_type);
       }
       if (filters.position_type) {
-        query = query.eq('position_type', filters.position_type);
+        query = query.eq("position_type", filters.position_type);
       }
       if (filters.abs_type) {
-        query = query.eq('abs_type', filters.abs_type);
+        query = query.eq("abs_type", filters.abs_type);
       }
       if (filters.drive_type) {
-        query = query.eq('drive_type', filters.drive_type);
+        query = query.eq("drive_type", filters.drive_type);
       }
       if (filters.bolt_pattern) {
-        query = query.eq('bolt_pattern', filters.bolt_pattern);
+        query = query.eq("bolt_pattern", filters.bolt_pattern);
       }
 
       const { data, error } = await query.range(start, start + PAGE_SIZE - 1);
@@ -234,20 +253,22 @@ export class ExcelExportService {
 
     while (hasMore) {
       const { data, error } = await supabase
-        .from('vehicle_applications')
-        .select('*, parts!inner(acr_sku)')
-        .order('part_id, make, model, start_year', { ascending: true })
+        .from("vehicle_applications")
+        .select("*, parts!inner(acr_sku)")
+        .order("part_id, make, model, start_year", { ascending: true })
         .range(start, start + PAGE_SIZE - 1);
 
       if (error) {
-        throw new Error(`Failed to fetch vehicle applications: ${error.message}`);
+        throw new Error(
+          `Failed to fetch vehicle applications: ${error.message}`
+        );
       }
 
       if (data && data.length > 0) {
         // Flatten the nested parts.acr_sku into top-level acr_sku
         const flattened = data.map((row: any) => ({
           ...row,
-          acr_sku: row.parts?.acr_sku || '',
+          acr_sku: row.parts?.acr_sku || "",
           parts: undefined, // Remove nested object
         }));
         allRows = allRows.concat(flattened);
@@ -272,9 +293,13 @@ export class ExcelExportService {
 
     while (hasMore) {
       const { data, error } = await supabase
-        .from('cross_references')
-        .select('id, acr_part_id, competitor_brand, competitor_sku, parts!inner(acr_sku)')
-        .order('acr_part_id, competitor_brand, competitor_sku', { ascending: true })
+        .from("cross_references")
+        .select(
+          "id, acr_part_id, competitor_brand, competitor_sku, parts!inner(acr_sku)"
+        )
+        .order("acr_part_id, competitor_brand, competitor_sku", {
+          ascending: true,
+        })
         .range(start, start + PAGE_SIZE - 1);
 
       if (error) {
@@ -285,7 +310,7 @@ export class ExcelExportService {
         // Flatten the nested parts.acr_sku into top-level acr_sku
         const flattened = data.map((row: any) => ({
           ...row,
-          acr_sku: row.parts?.acr_sku || '',
+          acr_sku: row.parts?.acr_sku || "",
           parts: undefined, // Remove nested object
         }));
         allRows = allRows.concat(flattened);
@@ -300,9 +325,87 @@ export class ExcelExportService {
   }
 
   /**
+   * Fetch all cross-references grouped by part ID and brand
+   * Returns: Map<partId, Map<brand, sku[]>>
+   */
+  private async fetchCrossRefsByPart(): Promise<CrossRefsByPart> {
+    const crossRefs = await this.fetchCrossRefsWithSku();
+    const result: CrossRefsByPart = new Map();
+
+    for (const cr of crossRefs) {
+      const partId = cr.acr_part_id;
+      const brand = (cr.competitor_brand || "").toUpperCase();
+      const sku = cr.competitor_sku;
+
+      if (!result.has(partId)) {
+        result.set(partId, new Map());
+      }
+      const partMap = result.get(partId)!;
+
+      if (!partMap.has(brand)) {
+        partMap.set(brand, []);
+      }
+      partMap.get(brand)!.push(sku);
+    }
+
+    return result;
+  }
+
+  /**
+   * Fetch all images grouped by part ID and view_type
+   * Returns: Map<partId, { front?: url, back?: url, top?: url, other?: url }>
+   */
+  private async fetchImagesByPart(): Promise<ImagesByPart> {
+    const PAGE_SIZE = 1000;
+    const result: ImagesByPart = new Map();
+    let start = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from("part_images")
+        .select("part_id, image_url, view_type")
+        .order("part_id, display_order", { ascending: true })
+        .range(start, start + PAGE_SIZE - 1);
+
+      if (error) {
+        throw new Error(`Failed to fetch part images: ${error.message}`);
+      }
+
+      if (data && data.length > 0) {
+        for (const img of data) {
+          const partId = img.part_id;
+          const viewType = img.view_type || "other";
+          const url = img.image_url;
+
+          if (!result.has(partId)) {
+            result.set(partId, {});
+          }
+          const partImages = result.get(partId)!;
+
+          // Only store first image per view_type (by display_order)
+          if (!partImages[viewType]) {
+            partImages[viewType] = url;
+          }
+        }
+
+        start += PAGE_SIZE;
+        hasMore = data.length === PAGE_SIZE;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Fetch vehicle applications or cross-references by part IDs (with ACR_SKU joined)
    */
-  private async fetchRowsByPartIds(tableName: string, partIds: string[]): Promise<any[]> {
+  private async fetchRowsByPartIds(
+    tableName: string,
+    partIds: string[]
+  ): Promise<any[]> {
     const PAGE_SIZE = 1000;
     let allRows: any[] = [];
 
@@ -315,12 +418,14 @@ export class ExcelExportService {
       let hasMore = true;
 
       while (hasMore) {
-        const partIdColumn = tableName === 'vehicle_applications' ? 'part_id' : 'acr_part_id';
+        const partIdColumn =
+          tableName === "vehicle_applications" ? "part_id" : "acr_part_id";
 
         // Exclude computed columns from cross_references
-        const selectColumns = tableName === 'cross_references'
-          ? 'id, acr_part_id, competitor_brand, competitor_sku, parts!inner(acr_sku)'
-          : '*, parts!inner(acr_sku)';
+        const selectColumns =
+          tableName === "cross_references"
+            ? "id, acr_part_id, competitor_brand, competitor_sku, parts!inner(acr_sku)"
+            : "*, parts!inner(acr_sku)";
 
         const { data, error } = await supabase
           .from(tableName)
@@ -329,14 +434,16 @@ export class ExcelExportService {
           .range(start, start + PAGE_SIZE - 1);
 
         if (error) {
-          throw new Error(`Failed to fetch ${tableName} by part IDs: ${error.message}`);
+          throw new Error(
+            `Failed to fetch ${tableName} by part IDs: ${error.message}`
+          );
         }
 
         if (data && data.length > 0) {
           // Flatten the nested parts.acr_sku into top-level acr_sku
           const flattened = data.map((row: any) => ({
             ...row,
-            acr_sku: row.parts?.acr_sku || '',
+            acr_sku: row.parts?.acr_sku || "",
             parts: undefined, // Remove nested object
           }));
           allRows = allRows.concat(flattened);
@@ -352,30 +459,156 @@ export class ExcelExportService {
   }
 
   /**
-   * Add Parts sheet to workbook
+   * Fetch cross-references for specific part IDs, grouped by part and brand
    */
-  private addPartsSheet(workbook: ExcelJS.Workbook, parts: any[]): void {
+  private async fetchCrossRefsByPartIds(
+    partIds: string[]
+  ): Promise<CrossRefsByPart> {
+    const result: CrossRefsByPart = new Map();
+    const CHUNK_SIZE = 100;
+
+    for (let i = 0; i < partIds.length; i += CHUNK_SIZE) {
+      const chunk = partIds.slice(i, i + CHUNK_SIZE);
+
+      const { data, error } = await supabase
+        .from("cross_references")
+        .select("acr_part_id, competitor_brand, competitor_sku")
+        .in("acr_part_id", chunk);
+
+      if (error) {
+        throw new Error(
+          `Failed to fetch cross-references by part IDs: ${error.message}`
+        );
+      }
+
+      if (data) {
+        for (const cr of data) {
+          const partId = cr.acr_part_id;
+          const brand = (cr.competitor_brand || "").toUpperCase();
+          const sku = cr.competitor_sku;
+
+          if (!result.has(partId)) {
+            result.set(partId, new Map());
+          }
+          const partMap = result.get(partId)!;
+
+          if (!partMap.has(brand)) {
+            partMap.set(brand, []);
+          }
+          partMap.get(brand)!.push(sku);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Fetch images for specific part IDs, grouped by part and view_type
+   */
+  private async fetchImagesByPartIds(partIds: string[]): Promise<ImagesByPart> {
+    const result: ImagesByPart = new Map();
+    const CHUNK_SIZE = 100;
+
+    for (let i = 0; i < partIds.length; i += CHUNK_SIZE) {
+      const chunk = partIds.slice(i, i + CHUNK_SIZE);
+
+      const { data, error } = await supabase
+        .from("part_images")
+        .select("part_id, image_url, view_type")
+        .in("part_id", chunk)
+        .order("display_order", { ascending: true });
+
+      if (error) {
+        throw new Error(`Failed to fetch images by part IDs: ${error.message}`);
+      }
+
+      if (data) {
+        for (const img of data) {
+          const partId = img.part_id;
+          const viewType = img.view_type || "other";
+          const url = img.image_url;
+
+          if (!result.has(partId)) {
+            result.set(partId, {});
+          }
+          const partImages = result.get(partId)!;
+
+          // Only store first image per view_type (by display_order)
+          if (!partImages[viewType]) {
+            partImages[viewType] = url;
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Add Parts sheet to workbook (Phase 3: with inline cross-refs and images)
+   */
+  private addPartsSheet(
+    workbook: ExcelJS.Workbook,
+    parts: any[],
+    crossRefsByPart: CrossRefsByPart,
+    imagesByPart: ImagesByPart
+  ): void {
     const worksheet = workbook.addWorksheet(SHEET_NAMES.PARTS);
 
     // Define columns using shared constants (single source of truth)
     worksheet.columns = PARTS_COLUMNS;
 
-    // Add rows
+    // Add rows with inline cross-refs and images
     parts.forEach((part) => {
+      const partId = part.id;
+
+      // Get cross-refs for this part, grouped by brand
+      const partCrossRefs = crossRefsByPart.get(partId) || new Map();
+
+      // Get images for this part, by view_type
+      const partImages = imagesByPart.get(partId) || {};
+
+      // Build brand column values (semicolon-separated SKUs)
+      const brandColumnValues: Record<string, string> = {};
+      for (const [propName, brandName] of Object.entries(BRAND_COLUMN_MAP)) {
+        const skus = partCrossRefs.get(brandName) || [];
+        brandColumnValues[propName] = skus.join(";");
+      }
+
       worksheet.addRow({
-        _id: part.id, // Map database 'id' to Excel '_id' column key
+        // Core part fields
+        _id: part.id,
         acr_sku: part.acr_sku,
         part_type: part.part_type,
-        position_type: part.position_type || '',
-        abs_type: part.abs_type || '',
-        bolt_pattern: part.bolt_pattern || '',
-        drive_type: part.drive_type || '',
-        specifications: part.specifications || '',
+        position_type: part.position_type || "",
+        abs_type: part.abs_type || "",
+        bolt_pattern: part.bolt_pattern || "",
+        drive_type: part.drive_type || "",
+        specifications: part.specifications || "",
+        // Cross-reference brand columns (semicolon-separated SKUs)
+        national_skus: brandColumnValues.national_skus || "",
+        atv_skus: brandColumnValues.atv_skus || "",
+        syd_skus: brandColumnValues.syd_skus || "",
+        tmk_skus: brandColumnValues.tmk_skus || "",
+        grob_skus: brandColumnValues.grob_skus || "",
+        race_skus: brandColumnValues.race_skus || "",
+        oem_skus: brandColumnValues.oem_skus || "",
+        oem_2_skus: brandColumnValues.oem_2_skus || "",
+        gmb_skus: brandColumnValues.gmb_skus || "",
+        gsp_skus: brandColumnValues.gsp_skus || "",
+        fag_skus: brandColumnValues.fag_skus || "",
+        // Image URL columns
+        image_url_front: partImages.front || "",
+        image_url_back: partImages.back || "",
+        image_url_top: partImages.top || "",
+        image_url_other: partImages.other || "",
+        viewer_360_status: part.has_360_viewer ? "Confirmed" : "",
       });
     });
 
     // Freeze header row
-    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
   }
 
   /**
@@ -392,7 +625,7 @@ export class ExcelExportService {
       worksheet.addRow({
         _id: vehicle.id, // Map database 'id' to Excel '_id' column key
         _part_id: vehicle.part_id, // Map database 'part_id' to Excel '_part_id' column key
-        acr_sku: vehicle.acr_sku || '',
+        acr_sku: vehicle.acr_sku || "",
         make: vehicle.make,
         model: vehicle.model,
         start_year: vehicle.start_year,
@@ -401,13 +634,18 @@ export class ExcelExportService {
     });
 
     // Freeze header row
-    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
   }
 
   /**
    * Add Cross References sheet to workbook
+   * @deprecated Phase 3 moves cross-references to brand columns in Parts sheet.
+   * This method is kept for backward compatibility only.
    */
-  private addCrossRefsSheet(workbook: ExcelJS.Workbook, crossRefs: any[]): void {
+  private addCrossRefsSheet(
+    workbook: ExcelJS.Workbook,
+    crossRefs: any[]
+  ): void {
     const worksheet = workbook.addWorksheet(SHEET_NAMES.CROSS_REFERENCES);
 
     // Define columns using shared constants (single source of truth)
@@ -418,14 +656,14 @@ export class ExcelExportService {
       worksheet.addRow({
         _id: crossRef.id, // Map database 'id' to Excel '_id' column key
         _acr_part_id: crossRef.acr_part_id, // Map database 'acr_part_id' to Excel '_acr_part_id' column key
-        acr_sku: crossRef.acr_sku || '',
-        competitor_brand: crossRef.competitor_brand || '',
+        acr_sku: crossRef.acr_sku || "",
+        competitor_brand: crossRef.competitor_brand || "",
         competitor_sku: crossRef.competitor_sku,
       });
     });
 
     // Freeze header row
-    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
   }
 
   /**
@@ -438,9 +676,13 @@ export class ExcelExportService {
     totalRecords: number;
   }> {
     const [partsCount, vehiclesCount, crossRefsCount] = await Promise.all([
-      supabase.from('parts').select('id', { count: 'exact', head: true }),
-      supabase.from('vehicle_applications').select('id', { count: 'exact', head: true }),
-      supabase.from('cross_references').select('id', { count: 'exact', head: true }),
+      supabase.from("parts").select("id", { count: "exact", head: true }),
+      supabase
+        .from("vehicle_applications")
+        .select("id", { count: "exact", head: true }),
+      supabase
+        .from("cross_references")
+        .select("id", { count: "exact", head: true }),
     ]);
 
     const parts = partsCount.count || 0;

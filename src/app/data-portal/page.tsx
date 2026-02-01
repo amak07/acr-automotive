@@ -33,7 +33,7 @@ export default function DataPortalPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-acr-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <AcrSpinner size="lg" color="primary" />
       </div>
     );
@@ -49,7 +49,7 @@ export default function DataPortalPage() {
   const firstName = profile.full_name?.split(' ')[0] || profile.email.split('@')[0];
 
   return (
-    <div className="min-h-screen acr-page-bg-pattern">
+    <div>
       <AppHeader variant="data-portal" />
 
       {/* Main Content */}

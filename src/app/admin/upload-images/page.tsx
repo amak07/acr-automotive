@@ -6,7 +6,7 @@ import { withAdminAuth } from "@/components/shared/auth/withAdminAuth";
 
 function UploadImagesPage() {
   return (
-    <div className="min-h-screen bg-acr-gray-50">
+    <div>
       <AppHeader variant="admin" />
       <UploadImagesDashboard />
     </div>

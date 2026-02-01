@@ -726,10 +726,16 @@ export interface TranslationKeys {
   "admin.uploadImages.supportedFormats": string;
   "admin.uploadImages.uploading": string;
   "admin.uploadImages.uploadedImages": string;
-  "admin.uploadImages.clearAll": string;
+  "admin.uploadImages.sessionNote": string;
+  "admin.uploadImages.copiedBadge": string;
+  "admin.uploadImages.imageCount": string;
   "admin.uploadImages.copyUrl": string;
   "admin.uploadImages.copied": string;
+  "admin.uploadImages.urlCopied": string;
+  "admin.uploadImages.deleteImage": string;
+  "admin.uploadImages.deleteNote": string;
   "admin.uploadImages.noImages": string;
+  "admin.uploadImages.noImagesHint": string;
   "admin.uploadImages.errorInvalidType": string;
   "admin.uploadImages.errorTooLarge": string;
   "admin.uploadImages.errorUploadFailed": string;

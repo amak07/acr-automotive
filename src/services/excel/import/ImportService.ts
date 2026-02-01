@@ -2,15 +2,12 @@
 // Import Service - Execute validated import with snapshot creation
 // ============================================================================
 
-import { supabase as defaultSupabase } from '@/lib/supabase/client';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DiffResult } from '../diff/types';
-import type { ParsedExcelFile } from '../shared/types';
-import type {
-  ImportResult,
-  ImportMetadata,
-  SnapshotData,
-} from './types';
+import { supabase as defaultSupabase } from "@/lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DiffResult } from "../diff/types";
+import type { ParsedExcelFile, ExcelPartRow } from "../shared/types";
+import type { ImportResult, ImportMetadata, SnapshotData } from "./types";
+import { IMAGE_VIEW_TYPE_MAP } from "../shared/constants";
 
 /**
  * ImportService
@@ -57,21 +54,30 @@ export class ImportService {
     const startTime = Date.now();
 
     try {
-      console.log('[ImportService] Starting import execution...');
-      console.log('[ImportService] Changes:', diff.summary);
+      console.log("[ImportService] Starting import execution...");
+      console.log("[ImportService] Changes:", diff.summary);
 
       // Step 1: Create snapshot (before making changes)
       const snapshot = await this.createSnapshot(metadata.tenantId);
-      console.log('[ImportService] Pre-import snapshot created');
+      console.log("[ImportService] Pre-import snapshot created");
 
       // Step 2: Execute bulk operations
       await this.executeBulkOperations(diff, metadata.tenantId);
-      const executionTime = Date.now() - startTime;
-      console.log(`[ImportService] Bulk operations completed in ${executionTime}ms`);
+      console.log("[ImportService] Bulk operations completed");
 
-      // Step 3: Save import history
+      // Step 3: Process image URLs from parts (Phase 3B)
+      const imageStats = await this.processImageUrls(
+        parsed.parts.data,
+        metadata.tenantId
+      );
+      console.log("[ImportService] Image URLs processed:", imageStats);
+
+      const executionTime = Date.now() - startTime;
+      console.log(`[ImportService] Total execution time: ${executionTime}ms`);
+
+      // Step 4: Save import history
       const { data: historyRecords, error: historyError } = await this.supabase
-        .from('import_history')
+        .from("import_history")
         .insert({
           tenant_id: metadata.tenantId || null,
           imported_by: metadata.importedBy || null,
@@ -88,13 +94,15 @@ export class ImportService {
         .select();
 
       if (historyError || !historyRecords || historyRecords.length === 0) {
-        throw new Error(`Failed to save import history: ${historyError?.message || 'No record returned'}`);
+        throw new Error(
+          `Failed to save import history: ${historyError?.message || "No record returned"}`
+        );
       }
 
       const historyRecord = historyRecords[0];
 
-      console.log('[ImportService] Import history saved:', historyRecord.id);
-      console.log('[ImportService] Auto-cleanup will keep last 3 snapshots');
+      console.log("[ImportService] Import history saved:", historyRecord.id);
+      console.log("[ImportService] Auto-cleanup will keep last 3 snapshots");
 
       return {
         success: true,
@@ -103,7 +111,7 @@ export class ImportService {
         executionTimeMs: executionTime,
       };
     } catch (error) {
-      console.error('[ImportService] Import failed:', error);
+      console.error("[ImportService] Import failed:", error);
 
       // Rethrow with context
       if (error instanceof Error) {
@@ -111,7 +119,7 @@ export class ImportService {
       }
 
       throw new Error(
-        `Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Import failed: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }
@@ -130,23 +138,22 @@ export class ImportService {
   private async createSnapshot(tenantId?: string): Promise<SnapshotData> {
     try {
       // Build queries with optional tenant filter
-      let partsQuery = this.supabase.from('parts').select('*');
-      let vehicleAppsQuery = this.supabase.from('vehicle_applications').select('*');
-      let crossRefsQuery = this.supabase.from('cross_references').select('*');
+      let partsQuery = this.supabase.from("parts").select("*");
+      let vehicleAppsQuery = this.supabase
+        .from("vehicle_applications")
+        .select("*");
+      let crossRefsQuery = this.supabase.from("cross_references").select("*");
 
       // Apply tenant filter only if tenantId provided
       if (tenantId) {
-        partsQuery = partsQuery.eq('tenant_id', tenantId);
-        vehicleAppsQuery = vehicleAppsQuery.eq('tenant_id', tenantId);
-        crossRefsQuery = crossRefsQuery.eq('tenant_id', tenantId);
+        partsQuery = partsQuery.eq("tenant_id", tenantId);
+        vehicleAppsQuery = vehicleAppsQuery.eq("tenant_id", tenantId);
+        crossRefsQuery = crossRefsQuery.eq("tenant_id", tenantId);
       }
 
       // Fetch all data in parallel
-      const [partsResult, vehicleAppsResult, crossRefsResult] = await Promise.all([
-        partsQuery,
-        vehicleAppsQuery,
-        crossRefsQuery,
-      ]);
+      const [partsResult, vehicleAppsResult, crossRefsResult] =
+        await Promise.all([partsQuery, vehicleAppsQuery, crossRefsQuery]);
 
       // Check for errors
       if (partsResult.error) {
@@ -170,7 +177,7 @@ export class ImportService {
         timestamp: new Date().toISOString(),
       };
 
-      console.log('[ImportService] Snapshot stats:', {
+      console.log("[ImportService] Snapshot stats:", {
         parts: snapshot.parts.length,
         vehicle_applications: snapshot.vehicle_applications.length,
         cross_references: snapshot.cross_references.length,
@@ -178,9 +185,9 @@ export class ImportService {
 
       return snapshot;
     } catch (error) {
-      console.error('[ImportService] Snapshot creation failed:', error);
+      console.error("[ImportService] Snapshot creation failed:", error);
       throw new Error(
-        `Snapshot creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Snapshot creation failed: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }
@@ -209,7 +216,7 @@ export class ImportService {
     diff: DiffResult,
     tenantId?: string
   ): Promise<void> {
-    console.log('[ImportService] Executing atomic import transaction...');
+    console.log("[ImportService] Executing atomic import transaction...");
 
     // Format parts data for PostgreSQL function
     const partsToAdd = diff.parts.adds.map((d) => {
@@ -226,7 +233,7 @@ export class ImportService {
         specifications: row.specifications,
         has_360_viewer: false, // 360 viewer managed separately via admin UI
         viewer_360_frame_count: null,
-        updated_by: 'import',
+        updated_by: "import",
       };
     });
 
@@ -243,7 +250,7 @@ export class ImportService {
         specifications: row.specifications,
         has_360_viewer: false, // 360 viewer managed separately via admin UI
         viewer_360_frame_count: null,
-        updated_by: 'import',
+        updated_by: "import",
       };
     });
 
@@ -258,7 +265,7 @@ export class ImportService {
         model: row.model,
         start_year: row.start_year,
         end_year: row.end_year,
-        updated_by: 'import',
+        updated_by: "import",
       };
     });
 
@@ -271,7 +278,7 @@ export class ImportService {
         model: row.model,
         start_year: row.start_year,
         end_year: row.end_year,
-        updated_by: 'import',
+        updated_by: "import",
       };
     });
 
@@ -284,7 +291,7 @@ export class ImportService {
         acr_part_id: row._acr_part_id,
         competitor_brand: row.competitor_brand,
         competitor_sku: row.competitor_sku,
-        updated_by: 'import',
+        updated_by: "import",
       };
     });
 
@@ -295,7 +302,7 @@ export class ImportService {
         acr_part_id: row._acr_part_id,
         competitor_brand: row.competitor_brand,
         competitor_sku: row.competitor_sku,
-        updated_by: 'import',
+        updated_by: "import",
       };
     });
 
@@ -312,7 +319,7 @@ export class ImportService {
       id: d.before!._id,
     }));
 
-    console.log('[ImportService] Transaction payload:', {
+    console.log("[ImportService] Transaction payload:", {
       partsToAdd: partsToAdd.length,
       partsToUpdate: partsToUpdate.length,
       partsToDelete: partsToDelete.length,
@@ -332,18 +339,21 @@ export class ImportService {
       try {
         console.log(`[ImportService] Attempt ${attempt}/${maxRetries}...`);
 
-        const { data, error } = await this.supabase.rpc('execute_atomic_import', {
-          parts_to_add: partsToAdd,
-          parts_to_update: partsToUpdate,
-          parts_to_delete: partsToDelete,
-          vehicles_to_add: vehiclesToAdd,
-          vehicles_to_update: vehiclesToUpdate,
-          vehicles_to_delete: vehiclesToDelete,
-          cross_refs_to_add: crossRefsToAdd,
-          cross_refs_to_update: crossRefsToUpdate,
-          cross_refs_to_delete: crossRefsToDelete,
-          tenant_id_filter: tenantId || null,
-        });
+        const { data, error } = await this.supabase.rpc(
+          "execute_atomic_import",
+          {
+            parts_to_add: partsToAdd,
+            parts_to_update: partsToUpdate,
+            parts_to_delete: partsToDelete,
+            vehicles_to_add: vehiclesToAdd,
+            vehicles_to_update: vehiclesToUpdate,
+            vehicles_to_delete: vehiclesToDelete,
+            cross_refs_to_add: crossRefsToAdd,
+            cross_refs_to_update: crossRefsToUpdate,
+            cross_refs_to_delete: crossRefsToDelete,
+            tenant_id_filter: tenantId || null,
+          }
+        );
 
         if (error) {
           throw new Error(error.message);
@@ -351,7 +361,7 @@ export class ImportService {
 
         // Success! Log results
         const result = data?.[0] || {};
-        console.log('[ImportService] Transaction completed successfully:', {
+        console.log("[ImportService] Transaction completed successfully:", {
           parts_added: result.parts_added,
           parts_updated: result.parts_updated,
           parts_deleted: result.parts_deleted,
@@ -366,7 +376,10 @@ export class ImportService {
         return; // Success - exit retry loop
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        console.error(`[ImportService] Attempt ${attempt} failed:`, lastError.message);
+        console.error(
+          `[ImportService] Attempt ${attempt} failed:`,
+          lastError.message
+        );
 
         // Check if error is retryable
         const isRetryable = this.isRetryableError(lastError);
@@ -384,7 +397,102 @@ export class ImportService {
     }
 
     // Should never reach here, but TypeScript needs this
-    throw lastError || new Error('Transaction failed: Unknown error');
+    throw lastError || new Error("Transaction failed: Unknown error");
+  }
+
+  // --------------------------------------------------------------------------
+  // Image URL Processing (Phase 3B)
+  // --------------------------------------------------------------------------
+
+  /**
+   * Process image URLs from Parts sheet and upsert to part_images table
+   *
+   * ML-style behavior:
+   * - Non-empty URL: Upsert (update if exists, create if new)
+   * - Empty URL: Skip (don't delete existing images)
+   *
+   * @param parts - Parsed parts with image URL columns
+   * @param tenantId - Optional tenant ID for multi-tenant filtering
+   * @returns Statistics of image operations
+   */
+  private async processImageUrls(
+    parts: ExcelPartRow[],
+    tenantId?: string
+  ): Promise<{ added: number; updated: number; skipped: number }> {
+    const stats = { added: 0, updated: 0, skipped: 0 };
+
+    // Collect all image upserts
+    const imagesToUpsert: Array<{
+      part_id: string;
+      view_type: string;
+      image_url: string;
+      tenant_id: string | null;
+    }> = [];
+
+    for (const part of parts) {
+      // Skip parts without IDs (new parts - handle image separately after part creation)
+      if (!part._id) continue;
+
+      // Process each image URL column
+      for (const [propName, viewType] of Object.entries(IMAGE_VIEW_TYPE_MAP)) {
+        const url = part[propName as keyof ExcelPartRow] as string | undefined;
+
+        if (url && url.trim() !== "") {
+          imagesToUpsert.push({
+            part_id: part._id,
+            view_type: viewType,
+            image_url: url.trim(),
+            tenant_id: tenantId || null,
+          });
+        } else {
+          // Empty URL - skip, don't delete existing
+          stats.skipped++;
+        }
+      }
+    }
+
+    if (imagesToUpsert.length === 0) {
+      console.log("[ImportService] No image URLs to process");
+      return stats;
+    }
+
+    console.log(
+      `[ImportService] Processing ${imagesToUpsert.length} image URLs...`
+    );
+
+    // Upsert images in batches
+    const batchSize = 100;
+    for (let i = 0; i < imagesToUpsert.length; i += batchSize) {
+      const batch = imagesToUpsert.slice(i, i + batchSize);
+
+      const { data, error } = await this.supabase
+        .from("part_images")
+        .upsert(
+          batch.map((img) => ({
+            part_id: img.part_id,
+            view_type: img.view_type,
+            image_url: img.image_url,
+            tenant_id: img.tenant_id,
+            is_primary: img.view_type === "front", // Front image is primary
+            updated_by: "import",
+          })),
+          {
+            onConflict: "part_id,view_type",
+            ignoreDuplicates: false,
+          }
+        )
+        .select("id");
+
+      if (error) {
+        console.error("[ImportService] Image upsert error:", error);
+        throw new Error(`Failed to process image URLs: ${error.message}`);
+      }
+
+      // Count results (upsert doesn't tell us add vs update, so count as "processed")
+      stats.added += data?.length || 0;
+    }
+
+    return stats;
   }
 
   /**
@@ -397,14 +505,14 @@ export class ImportService {
 
     // Retryable conditions
     const retryablePatterns = [
-      'timeout',
-      'network',
-      'connection',
-      'deadlock',
-      'temporary',
-      'unavailable',
-      'econnrefused',
-      'enotfound',
+      "timeout",
+      "network",
+      "connection",
+      "deadlock",
+      "temporary",
+      "unavailable",
+      "econnrefused",
+      "enotfound",
     ];
 
     return retryablePatterns.some((pattern) => message.includes(pattern));
