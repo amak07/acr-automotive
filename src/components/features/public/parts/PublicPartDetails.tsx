@@ -291,11 +291,12 @@ export function PublicPartDetails({
                 {part.cross_references && part.cross_references.length > 0 ? (
                   <div className="space-y-1">
                     {part.cross_references.map((ref) => (
-                      <div
-                        key={ref.id}
-                        className="text-sm text-acr-gray-900 font-mono"
-                      >
-                        - {ref.competitor_sku}
+                      <div key={ref.id} className="text-sm text-acr-gray-900">
+                        -{" "}
+                        <span className="font-medium text-acr-gray-600">
+                          {ref.competitor_brand}:
+                        </span>{" "}
+                        <span className="font-mono">{ref.competitor_sku}</span>
                       </div>
                     ))}
                   </div>
