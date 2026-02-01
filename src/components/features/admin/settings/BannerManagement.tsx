@@ -382,8 +382,8 @@ export function BannerManagement({
                 </p>
               </div>
 
-              {/* Text Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Text Fields - stacked on mobile/tablet, 2 cols on desktop */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-acr-gray-700 mb-1">
                     {t("admin.settings.branding.title")}

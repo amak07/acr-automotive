@@ -23,7 +23,7 @@ function PartDetailsContent() {
     <>
       <Preloader isLoading={isInitialLoad} animationSrc={GEAR_ANIMATION_SRC} />
 
-      <main className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
+      <main className="px-4 py-6 mx-auto md:px-6 lg:max-w-6xl lg:px-8">
         <PublicPartDetails part={part} isLoading={isLoading} error={error} />
       </main>
     </>

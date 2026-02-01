@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLocale } from '@/contexts/LocaleContext';
-import { AcrSpinner } from '@/components/acr/Spinner';
-import { AppHeader } from '@/components/shared/layout/AppHeader';
-import { ImportWizard } from '@/components/features/admin/import/ImportWizard';
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
+import { AcrSpinner } from "@/components/acr/Spinner";
+import { AppHeader } from "@/components/shared/layout/AppHeader";
+import { ImportWizard } from "@/components/features/admin/import/ImportWizard";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,7 +13,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+} from "@/components/ui/breadcrumb";
 
 /**
  * Data Manager Import Page
@@ -37,7 +37,7 @@ export default function DataManagerImportPage() {
 
   // Not authenticated
   if (!user || !profile) {
-    router.push('/login?redirect=/data-portal/import');
+    router.push("/login?redirect=/data-portal/import");
     return null;
   }
 
@@ -46,7 +46,7 @@ export default function DataManagerImportPage() {
       <AppHeader variant="data-portal" />
 
       {/* Main Content */}
-      <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
+      <main className="px-4 py-8 mx-auto md:px-6 lg:max-w-7xl lg:px-8">
         {/* Breadcrumb */}
         <div className="mb-6">
           <Breadcrumb>
@@ -56,13 +56,13 @@ export default function DataManagerImportPage() {
                   href="/data-portal"
                   className="text-acr-gray-600 hover:text-acr-gray-800"
                 >
-                  {t('portal.title')}
+                  {t("portal.title")}
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="text-acr-gray-600" />
               <BreadcrumbItem>
                 <BreadcrumbPage className="text-acr-gray-800 font-medium">
-                  {t('portal.import.title')}
+                  {t("portal.import.title")}
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
