@@ -139,6 +139,29 @@ export interface ExcelCrossRefRow {
 }
 
 // ----------------------------------------------------------------------------
+// Vehicle Alias Row (Sheet 4: Vehicle Aliases - Phase 4A)
+// ----------------------------------------------------------------------------
+
+/**
+ * Vehicle alias row structure for Excel export/import (Phase 4A)
+ *
+ * Allows Humberto to manage vehicle nickname/abbreviation mappings.
+ * Examples: "chevy" → "CHEVROLET", "stang" → "MUSTANG"
+ *
+ * Columns:
+ * - _id (hidden): UUID for tracking existing aliases on re-import
+ * - Alias: The nickname (e.g., "chevy", "beemer")
+ * - Canonical_Name: The actual make/model name (e.g., "CHEVROLET", "BMW")
+ * - Type: Either "make" or "model"
+ */
+export interface ExcelAliasRow {
+  _id?: string; // Hidden column (UUID)
+  alias: string;
+  canonical_name: string;
+  alias_type: "make" | "model";
+}
+
+// ----------------------------------------------------------------------------
 // Parsed Sheet Metadata
 // ----------------------------------------------------------------------------
 
@@ -164,6 +187,8 @@ export interface ParsedExcelFile {
   parts: ParsedSheet<ExcelPartRow>;
   vehicleApplications: ParsedSheet<ExcelVehicleAppRow>;
   crossReferences: ParsedSheet<ExcelCrossRefRow>;
+  /** Vehicle aliases for keyword search (Phase 4A) - optional */
+  aliases?: ParsedSheet<ExcelAliasRow>;
   metadata: {
     uploadedAt: Date;
     fileName: string;

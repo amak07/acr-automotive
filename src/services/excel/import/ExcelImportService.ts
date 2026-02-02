@@ -2,20 +2,21 @@
 // Excel Import Service - Parse uploaded files with hidden ID columns
 // ============================================================================
 
-import ExcelJS from 'exceljs';
+import ExcelJS from "exceljs";
 import {
   SHEET_NAMES,
   HIDDEN_ID_COLUMNS,
   FILE_VALIDATION,
   headerToPropertyName,
-} from '../shared/constants';
+} from "../shared/constants";
 import type {
   ExcelPartRow,
   ExcelVehicleAppRow,
   ExcelCrossRefRow,
+  ExcelAliasRow,
   ParsedSheet,
   ParsedExcelFile,
-} from '../shared/types';
+} from "../shared/types";
 
 // ----------------------------------------------------------------------------
 // Excel Parser
@@ -37,28 +38,42 @@ export class ExcelImportService {
 
       // Validate sheet structure (using shared constants)
       const partsSheet = workbook.getWorksheet(SHEET_NAMES.PARTS);
-      const vehicleAppsSheet = workbook.getWorksheet(SHEET_NAMES.VEHICLE_APPLICATIONS);
-      const crossRefsSheet = workbook.getWorksheet(SHEET_NAMES.CROSS_REFERENCES);
+      const vehicleAppsSheet = workbook.getWorksheet(
+        SHEET_NAMES.VEHICLE_APPLICATIONS
+      );
+      // Cross References sheet is optional (Phase 3 uses brand columns in Parts sheet)
+      const crossRefsSheet = workbook.getWorksheet(
+        SHEET_NAMES.CROSS_REFERENCES
+      );
+      // Aliases sheet is optional (Phase 4A)
+      const aliasesSheet = workbook.getWorksheet(SHEET_NAMES.ALIASES);
 
       if (!partsSheet) {
         throw new Error(`Missing required sheet: ${SHEET_NAMES.PARTS}`);
       }
       if (!vehicleAppsSheet) {
-        throw new Error(`Missing required sheet: ${SHEET_NAMES.VEHICLE_APPLICATIONS}`);
-      }
-      if (!crossRefsSheet) {
-        throw new Error(`Missing required sheet: ${SHEET_NAMES.CROSS_REFERENCES}`);
+        throw new Error(
+          `Missing required sheet: ${SHEET_NAMES.VEHICLE_APPLICATIONS}`
+        );
       }
 
       // Parse each sheet
       const partsData = this.parseSheet<ExcelPartRow>(partsSheet);
-      const vehicleAppsData = this.parseSheet<ExcelVehicleAppRow>(vehicleAppsSheet);
-      const crossRefsData = this.parseSheet<ExcelCrossRefRow>(crossRefsSheet);
+      const vehicleAppsData =
+        this.parseSheet<ExcelVehicleAppRow>(vehicleAppsSheet);
+      // Cross-refs optional - returns empty array if sheet missing
+      const crossRefsData = crossRefsSheet
+        ? this.parseSheet<ExcelCrossRefRow>(crossRefsSheet)
+        : [];
+      // Aliases optional - parse if present
+      const aliasesData = aliasesSheet
+        ? this.parseSheet<ExcelAliasRow>(aliasesSheet)
+        : [];
 
       // Check for hidden ID columns
       const hasHiddenIds = this.detectHiddenColumns(partsSheet);
 
-      return {
+      const result: ParsedExcelFile = {
         parts: {
           sheetName: SHEET_NAMES.PARTS,
           data: partsData,
@@ -83,11 +98,23 @@ export class ExcelImportService {
           fileSize: file.size,
         },
       };
+
+      // Add aliases if sheet was present
+      if (aliasesSheet) {
+        result.aliases = {
+          sheetName: SHEET_NAMES.ALIASES,
+          data: aliasesData,
+          rowCount: aliasesData.length,
+          hasHiddenIds,
+        };
+      }
+
+      return result;
     } catch (error) {
-      console.error('[ExcelImportService] Parse error:', error);
+      console.error("[ExcelImportService] Parse error:", error);
       throw new Error(
         `Failed to parse Excel file: ${
-          error instanceof Error ? error.message : 'Unknown error'
+          error instanceof Error ? error.message : "Unknown error"
         }`
       );
     }
@@ -112,7 +139,7 @@ export class ExcelImportService {
     const headerMap: Map<number, string> = new Map();
 
     headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-      const header = cell.value?.toString() || '';
+      const header = cell.value?.toString() || "";
       if (header) {
         // Convert header to snake_case property name using shared function
         const propertyName = headerToPropertyName(header);
@@ -140,12 +167,12 @@ export class ExcelImportService {
         }
 
         // Handle numeric values
-        if (typeof value === 'number') {
+        if (typeof value === "number") {
           rowData[propertyName] = value;
           hasData = true;
         }
         // Handle string values (trim whitespace)
-        else if (typeof value === 'string') {
+        else if (typeof value === "string") {
           const trimmed = value.trim();
           if (trimmed) {
             rowData[propertyName] = trimmed;
@@ -153,7 +180,7 @@ export class ExcelImportService {
           }
         }
         // Handle boolean values
-        else if (typeof value === 'boolean') {
+        else if (typeof value === "boolean") {
           rowData[propertyName] = value;
           hasData = true;
         }
@@ -192,7 +219,7 @@ export class ExcelImportService {
     let hasHiddenIds = false;
 
     headerRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
-      const header = cell.value?.toString() || '';
+      const header = cell.value?.toString() || "";
       const column = worksheet.getColumn(colNumber);
 
       // Check if column is both an ID column AND hidden (using shared constant)
@@ -210,12 +237,12 @@ export class ExcelImportService {
    */
   validateFileFormat(file: File): void {
     const extension = file.name
-      .substring(file.name.lastIndexOf('.'))
+      .substring(file.name.lastIndexOf("."))
       .toLowerCase();
 
     if (!FILE_VALIDATION.VALID_EXTENSIONS.includes(extension as any)) {
       throw new Error(
-        `Invalid file format. Expected Excel file (${FILE_VALIDATION.VALID_EXTENSIONS.join(', ')}), got: ${extension}`
+        `Invalid file format. Expected Excel file (${FILE_VALIDATION.VALID_EXTENSIONS.join(", ")}), got: ${extension}`
       );
     }
 
@@ -228,7 +255,10 @@ export class ExcelImportService {
 
     // Note: MIME type check can be unreliable (user can rename .csv to .xlsx)
     // We rely primarily on extension and ExcelJS parsing
-    if (file.type && !FILE_VALIDATION.VALID_MIME_TYPES.includes(file.type as any)) {
+    if (
+      file.type &&
+      !FILE_VALIDATION.VALID_MIME_TYPES.includes(file.type as any)
+    ) {
       console.warn(
         `[ExcelImportService] Unexpected MIME type: ${file.type}. Proceeding with parse attempt.`
       );
