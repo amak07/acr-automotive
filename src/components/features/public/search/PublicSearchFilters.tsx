@@ -472,14 +472,14 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
           {/* Mobile & Tablet: Stacked Layout */}
           <div className="lg:hidden space-y-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-acr-gray-500 w-4 h-4" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-acr-gray-500 w-4 h-4 pointer-events-none" />
               <input
                 type="text"
                 value={skuTerm}
                 onChange={(e) => setSkuTerm(e.target.value)}
                 onKeyDown={handleSkuKeyDown}
                 placeholder={t("public.search.skuPlaceholder")}
-                className="w-full h-12 pl-10 pr-4 py-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 placeholder:text-acr-gray-500 transition-all duration-200"
+                className="w-full h-12 pl-11 pr-4 py-3 bg-white text-sm font-medium text-acr-gray-900 border-2 border-acr-gray-900 rounded-lg placeholder:text-acr-gray-500 placeholder:font-normal transition-all duration-150 ease-out hover:border-acr-gray-700 hover:bg-acr-gray-50/50 focus:outline-none focus:ring-2 focus:ring-acr-gray-900 focus:ring-offset-2"
               />
             </div>
 
@@ -498,14 +498,14 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
           {/* Desktop: Horizontal Layout (lg and up) */}
           <div className="hidden lg:flex lg:items-center lg:gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-acr-gray-500 w-4 h-4" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-acr-gray-500 w-4 h-4 pointer-events-none" />
               <input
                 type="text"
                 value={skuTerm}
                 onChange={(e) => setSkuTerm(e.target.value)}
                 onKeyDown={handleSkuKeyDown}
                 placeholder={t("public.search.skuPlaceholder")}
-                className="w-full pl-10 pr-4 py-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 placeholder:text-acr-gray-500 transition-all duration-200"
+                className="w-full h-12 pl-11 pr-4 py-3 bg-white text-sm font-medium text-acr-gray-900 border-2 border-acr-gray-900 rounded-lg placeholder:text-acr-gray-500 placeholder:font-normal transition-all duration-150 ease-out hover:border-acr-gray-700 hover:bg-acr-gray-50/50 focus:outline-none focus:ring-2 focus:ring-acr-gray-900 focus:ring-offset-2"
               />
             </div>
 

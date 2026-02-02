@@ -1,8 +1,7 @@
-import React, { useState } from "react";
-import { ChevronsUpDown } from "lucide-react";
+import React, { useState, useMemo, useId } from "react";
+import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/contexts/LocaleContext";
-import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -16,7 +15,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useMemo } from "react";
 import { Skeleton } from "../ui/skeleton";
 
 export interface AcrComboBoxOption {
@@ -59,11 +57,11 @@ export const AcrComboBox = React.forwardRef<
     const { t } = useLocale();
     const [open, setOpen] = useState(false);
     const [searchValue, setSearchValue] = useState("");
+    const listboxId = useId();
 
     // Handle display label - show custom values that aren't in options yet
-    const displayLabel = options?.find(
-      (option) => option.value === value
-    )?.label || value; // Fallback to raw value for custom entries
+    const displayLabel =
+      options?.find((option) => option.value === value)?.label || value; // Fallback to raw value for custom entries
 
     // Implement filtering logic based on searchValue
     const filteredOptions = useMemo(() => {
@@ -113,124 +111,147 @@ export const AcrComboBox = React.forwardRef<
     };
 
     if (isLoading) {
-      return <Skeleton className={cn("w-full", "h-12")} />;
-    } else {
-      return (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              ref={ref}
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              onKeyDown={handleKeyDown}
-              className={cn(
-                // ACR-specific styling overrides
-                "pl-4 pr-3 py-3 h-auto w-full", // ACR spacing standards
+      return <Skeleton className={cn("w-full h-12 rounded-lg", className)} />;
+    }
 
-                // Base styles
-                "transition-colors duration-200",
-
-                // Coca-Cola chunky style - matches inputs
-                "!border-black !border !bg-white !text-black",
-                "hover:!border-gray-600 hover:!shadow-[0_0_0_2px_rgba(0,0,0,0.24)]", // Coca-Cola hover
-                "!px-6 !py-4", // Extra padding but keep normal radius
-                "!font-medium", // Slightly bolder text
-
-                // Focus state - matches Coca-Cola (force override all focus styles)
-                "!focus:outline-2 !focus:outline-black !focus:outline-offset-2 !focus:border-black !focus:ring-0",
-                "!focus-visible:outline-2 !focus-visible:outline-black !focus-visible:outline-offset-2 !focus-visible:border-black !focus-visible:ring-0",
-                "focus:!outline focus-visible:!outline", // Force outline to be visible
-                // Override any red focus styles
-                "focus:!border-black focus-visible:!border-black focus:!ring-black focus-visible:!ring-black",
-                "focus:!ring-offset-0 focus-visible:!ring-offset-0",
-
-                // Open state - show dark border when dropdown is open (like Select component)
-                // Need to override button's focus-visible behavior
-                open && [
-                  "!border-black !outline-2 !outline-black !outline-offset-2",
-                  "focus-visible:!outline-2 focus-visible:!outline-black focus-visible:!outline-offset-2",
-                  "focus:!outline-2 focus:!outline-black focus:!outline-offset-2"
-                ],
-
-                // Custom dropdown arrow styling - black to match Coca-Cola style
-                "[&>*[data-radix-select-icon]]:!text-black [&>*[data-radix-select-icon]]:!opacity-100",
-                "[&_svg]:!text-black [&_svg]:!opacity-100",
-
-                // disabled styles
-                disabled &&
-                  "!bg-acr-gray-50 !text-acr-gray-500 !cursor-not-allowed !opacity-50",
-
-                className
-              )}
-              disabled={disabled}
-            >
-              <span className="flex-1 text-left truncate">
-                {displayLabel ? displayLabel : placeholder}
-              </span>
-              <ChevronsUpDown className="ml-1 mr-1 h-4 w-4 shrink-0 !text-black !opacity-100" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="start"
-            sideOffset={4}
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            ref={ref}
+            type="button"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={listboxId}
+            onKeyDown={handleKeyDown}
             className={cn(
-              "p-0",
-              "border-acr-gray-200 bg-white",
-              "shadow-lg"
+              // Base layout
+              "flex items-center justify-between w-full",
+              "h-12 px-4 py-3",
+
+              // Typography
+              "text-sm font-medium text-left",
+
+              // Crisp borders & background
+              "bg-white rounded-lg",
+              "border-2 border-acr-gray-900",
+
+              // Smooth transitions
+              "transition-all duration-150 ease-out",
+
+              // Hover state
+              "hover:border-acr-gray-700 hover:bg-acr-gray-50/50",
+
+              // Focus state - clean ring
+              "focus:outline-none focus-visible:outline-none",
+              "focus:ring-2 focus:ring-acr-gray-900 focus:ring-offset-2",
+
+              // Open state
+              open &&
+                "ring-2 ring-acr-gray-900 ring-offset-2 border-acr-gray-900",
+
+              // Text colors
+              displayLabel ? "text-acr-gray-900" : "text-acr-gray-500",
+
+              // Disabled state
+              disabled && [
+                "bg-acr-gray-100 text-acr-gray-400",
+                "border-acr-gray-300 cursor-not-allowed",
+              ],
+
+              className
             )}
-            style={{ width: "var(--radix-popover-trigger-width)" }}
+            disabled={disabled}
           >
-            <Command>
-              <CommandInput
-                placeholder={searchPlaceholder || t("common.search")}
-                value={searchValue}
-                className="[&>svg]:!ml-4 [&_input]:!pl-4" // Fix search icon padding - more space
-                onValueChange={setSearchValue}
-              />
-              <CommandList>
-                <CommandEmpty>
-                  {allowCustomValue && searchValue.trim()
-                    ? t("comboBox.noMatchesAddNew").replace("{{value}}", searchValue)
-                    : t("comboBox.noResults")}
-                </CommandEmpty>
-                <CommandGroup>
-                  {/* Map through filtered options */}
-                  {filteredOptions.map((option) => (
+            <span className="flex-1 truncate">
+              {displayLabel || placeholder}
+            </span>
+            <ChevronDown
+              className={cn(
+                "ml-2 h-4 w-4 shrink-0 text-acr-gray-600",
+                "transition-transform duration-200",
+                open && "rotate-180"
+              )}
+            />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          sideOffset={6}
+          className={cn(
+            "p-0 overflow-hidden",
+            "bg-white rounded-lg",
+            "border border-acr-gray-200",
+            "shadow-lg shadow-acr-gray-900/10"
+          )}
+          style={{ width: "var(--radix-popover-trigger-width)" }}
+        >
+          <Command className="bg-transparent">
+            <CommandInput
+              placeholder={searchPlaceholder || t("common.search")}
+              value={searchValue}
+              onValueChange={setSearchValue}
+              className="border-b border-acr-gray-200"
+            />
+            <CommandList id={listboxId} className="max-h-[280px]">
+              <CommandEmpty className="py-4 text-center text-sm text-acr-gray-500">
+                {allowCustomValue && searchValue.trim()
+                  ? t("comboBox.noMatchesAddNew").replace(
+                      "{{value}}",
+                      searchValue
+                    )
+                  : t("comboBox.noResults")}
+              </CommandEmpty>
+              <CommandGroup className="p-1.5">
+                {filteredOptions.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    onSelect={handleOptionSelection}
+                    className={cn(
+                      "relative flex items-center",
+                      "px-3 py-2.5 rounded-md",
+                      "text-sm text-acr-gray-900",
+                      "cursor-pointer select-none",
+                      "transition-colors duration-100",
+                      "data-[selected=true]:bg-acr-gray-100",
+                      "hover:bg-acr-gray-50",
+                      // Selected item styling
+                      value === option.value &&
+                        "bg-acr-red-50 text-acr-red-900 font-medium"
+                    )}
+                  >
+                    <span className="flex-1">{option.label}</span>
+                    {value === option.value && (
+                      <Check className="h-4 w-4 text-acr-red-600 ml-2" />
+                    )}
+                  </CommandItem>
+                ))}
+                {allowCustomValue &&
+                  searchValue.trim() &&
+                  filteredOptions.length === 0 &&
+                  onCreateValue && (
                     <CommandItem
-                      key={option.value}
-                      value={option.value}
-                      onSelect={handleOptionSelection}
+                      value={searchValue}
+                      onSelect={handleCustomValueCreation}
                       className={cn(
-                        "text-acr-gray-900 focus:bg-acr-red-50 focus:text-acr-red-900",
-                        "cursor-pointer"
+                        "px-3 py-2.5 rounded-md",
+                        "text-sm text-acr-gray-900",
+                        "cursor-pointer select-none",
+                        "transition-colors duration-100",
+                        "data-[selected=true]:bg-acr-gray-100",
+                        "hover:bg-acr-gray-50"
                       )}
                     >
-                      {option.label}
+                      {t("comboBox.addValue").replace("{{value}}", searchValue)}
                     </CommandItem>
-                  ))}
-                  {allowCustomValue &&
-                    searchValue.trim() &&
-                    filteredOptions.length === 0 &&
-                    onCreateValue && (
-                      <CommandItem
-                        value={searchValue}
-                        onSelect={handleCustomValueCreation}
-                        className={cn(
-                          "text-acr-gray-900 focus:bg-acr-red-50 focus:text-acr-red-900",
-                          "cursor-pointer"
-                        )}
-                      >
-                        {t("comboBox.addValue").replace("{{value}}", searchValue)}
-                      </CommandItem>
-                    )}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      );
-    }
+                  )}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    );
   }
 );
 
