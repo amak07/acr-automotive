@@ -75,7 +75,7 @@
 
 ### Development Workflow
 
-- **Task tracking**: Update `docs/TASKS.md` when starting/completing work
+- **Task tracking**: Use `bd ready` for available tasks, update with `bd update`/`bd close`
 - **Documentation**: Update relevant docs when making architectural changes
 - **Testing**: Focus on core business logic (Excel parsing, search, data integrity)
 - **Internationalization**: All UI text must use translation keys

@@ -1,2 +1,5 @@
 # Ensure husky hooks always use LF line endings (required for shell scripts)
 .husky/* text eol=lf
+
+# Use bd merge for beads JSONL files
+.beads/issues.jsonl merge=beads
