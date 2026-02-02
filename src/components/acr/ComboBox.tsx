@@ -140,18 +140,16 @@ export const AcrComboBox = React.forwardRef<
               "transition-all duration-150 ease-out",
 
               // Hover state
-              "hover:border-acr-gray-700 hover:bg-acr-gray-50/50",
+              "hover:border-acr-gray-700",
 
-              // Focus state - clean ring
-              "focus:outline-none focus-visible:outline-none",
-              "focus:ring-2 focus:ring-acr-gray-900 focus:ring-offset-2",
+              // Focus state - subtle black ring
+              "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black",
 
               // Open state
-              open &&
-                "ring-2 ring-acr-gray-900 ring-offset-2 border-acr-gray-900",
+              open && "ring-1 ring-black border-acr-gray-900",
 
-              // Text colors
-              displayLabel ? "text-acr-gray-900" : "text-acr-gray-500",
+              // Text colors - placeholder matches border color
+              "text-acr-gray-900",
 
               // Disabled state
               disabled && [
