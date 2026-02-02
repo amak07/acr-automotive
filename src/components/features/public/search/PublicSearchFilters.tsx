@@ -164,26 +164,30 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
   };
 
   const clearAllFilters = () => {
-    // Only clear filters for the active tab
-    if (activeTab === "vehicle") {
-      setSelectedMake("");
-      setSelectedModel("");
-      setSelectedYear("");
-      // Clear vehicle search, preserve SKU if on different tab
-      setSearchTerms({
-        ...DEFAULT_PUBLIC_SEARCH_TERMS,
-        sku_term: "", // Clear any SKU search too when clearing from vehicle tab
-      });
-    } else {
-      setSkuTerm("");
-      // Clear SKU search, preserve vehicle if on different tab
-      setSearchTerms({
-        ...DEFAULT_PUBLIC_SEARCH_TERMS,
-        make: "",
-        model: "",
-        year: "",
-      });
-    }
+    // Clear all filters regardless of active tab
+    setSelectedMake("");
+    setSelectedModel("");
+    setSelectedYear("");
+    setSkuTerm("");
+    setSearchTerms({
+      ...DEFAULT_PUBLIC_SEARCH_TERMS,
+      sku_term: "",
+      make: "",
+      model: "",
+      year: "",
+    });
+  };
+
+  // Clear SKU search and update URL (for X button)
+  const clearSkuSearch = () => {
+    setSkuTerm("");
+    setSearchTerms({
+      ...DEFAULT_PUBLIC_SEARCH_TERMS,
+      sku_term: "",
+      make: "",
+      model: "",
+      year: "",
+    });
   };
 
   // Check if current tab has active filters
@@ -479,13 +483,13 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                 onChange={(e) => setSkuTerm(e.target.value)}
                 onKeyDown={handleSkuKeyDown}
                 placeholder={t("public.search.skuPlaceholder")}
-                className="w-full h-12 pl-11 pr-10 py-3 bg-white text-sm font-medium text-acr-gray-900 border-2 border-acr-gray-900 rounded-lg placeholder:text-acr-gray-500 placeholder:font-normal transition-all duration-150 ease-out hover:border-acr-gray-700 hover:bg-acr-gray-50/50 focus:outline-none focus:ring-2 focus:ring-acr-gray-900 focus:ring-offset-2"
+                className="w-full h-12 pl-11 pr-10 py-3 bg-white text-sm font-medium text-acr-gray-900 border-2 border-acr-gray-900 rounded-lg placeholder:text-acr-gray-500 placeholder:font-normal transition-all duration-150 ease-out hover:border-acr-gray-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black"
               />
               {skuTerm && (
                 <button
                   type="button"
-                  onClick={() => setSkuTerm("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-acr-gray-400 hover:text-acr-gray-600 transition-colors duration-150"
+                  onClick={clearSkuSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-acr-gray-900 hover:text-black hover:bg-acr-gray-100 rounded transition-all duration-150"
                   aria-label="Clear search"
                 >
                   <X className="w-4 h-4" />
@@ -515,13 +519,13 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                 onChange={(e) => setSkuTerm(e.target.value)}
                 onKeyDown={handleSkuKeyDown}
                 placeholder={t("public.search.skuPlaceholder")}
-                className="w-full h-12 pl-11 pr-10 py-3 bg-white text-sm font-medium text-acr-gray-900 border-2 border-acr-gray-900 rounded-lg placeholder:text-acr-gray-500 placeholder:font-normal transition-all duration-150 ease-out hover:border-acr-gray-700 hover:bg-acr-gray-50/50 focus:outline-none focus:ring-2 focus:ring-acr-gray-900 focus:ring-offset-2"
+                className="w-full h-12 pl-11 pr-10 py-3 bg-white text-sm font-medium text-acr-gray-900 border-2 border-acr-gray-900 rounded-lg placeholder:text-acr-gray-500 placeholder:font-normal transition-all duration-150 ease-out hover:border-acr-gray-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black"
               />
               {skuTerm && (
                 <button
                   type="button"
-                  onClick={() => setSkuTerm("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-acr-gray-400 hover:text-acr-gray-600 transition-colors duration-150"
+                  onClick={clearSkuSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-acr-gray-900 hover:text-black hover:bg-acr-gray-100 rounded transition-all duration-150"
                   aria-label="Clear search"
                 >
                   <X className="w-4 h-4" />
