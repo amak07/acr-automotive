@@ -11,7 +11,7 @@ import type {
   ExcelAliasRow,
 } from "../shared/types";
 import type { ImportResult, ImportMetadata, SnapshotData } from "./types";
-import { IMAGE_VIEW_TYPE_MAP } from "../shared/constants";
+import { IMAGE_VIEW_TYPE_MAP, WORKFLOW_STATUS_MAP } from "../shared/constants";
 
 /**
  * ImportService
@@ -229,40 +229,60 @@ export class ImportService {
     console.log("[ImportService] Executing atomic import transaction...");
 
     // Format parts data for PostgreSQL function
-    const partsToAdd = diff.parts.adds.map((d) => {
-      const row = d.row!;
-      return {
-        id: row._id || crypto.randomUUID(), // Generate UUID for new parts without IDs
-        tenant_id: tenantId || null,
-        acr_sku: row.acr_sku,
-        part_type: row.part_type,
-        position_type: row.position_type,
-        abs_type: row.abs_type,
-        bolt_pattern: row.bolt_pattern,
-        drive_type: row.drive_type,
-        specifications: row.specifications,
-        has_360_viewer: false, // 360 viewer managed separately via admin UI
-        viewer_360_frame_count: null,
-        updated_by: "import",
-      };
-    });
+    // Filter out parts with DELETE status from adds (they shouldn't be added)
+    const partsToAdd = diff.parts.adds
+      .filter((d) => {
+        const statusValue =
+          WORKFLOW_STATUS_MAP[d.row?.status?.toLowerCase() || ""] || "ACTIVE";
+        return statusValue !== "DELETE";
+      })
+      .map((d) => {
+        const row = d.row!;
+        const workflowStatus =
+          WORKFLOW_STATUS_MAP[row.status?.toLowerCase() || ""] || "ACTIVE";
+        return {
+          id: row._id || crypto.randomUUID(), // Generate UUID for new parts without IDs
+          tenant_id: tenantId || null,
+          acr_sku: row.acr_sku,
+          workflow_status: workflowStatus,
+          part_type: row.part_type,
+          position_type: row.position_type,
+          abs_type: row.abs_type,
+          bolt_pattern: row.bolt_pattern,
+          drive_type: row.drive_type,
+          specifications: row.specifications,
+          has_360_viewer: false, // 360 viewer managed separately via admin UI
+          viewer_360_frame_count: null,
+          updated_by: "import",
+        };
+      });
 
-    const partsToUpdate = diff.parts.updates.map((d) => {
-      const row = d.after!;
-      return {
-        id: row._id,
-        acr_sku: row.acr_sku,
-        part_type: row.part_type,
-        position_type: row.position_type,
-        abs_type: row.abs_type,
-        bolt_pattern: row.bolt_pattern,
-        drive_type: row.drive_type,
-        specifications: row.specifications,
-        has_360_viewer: false, // 360 viewer managed separately via admin UI
-        viewer_360_frame_count: null,
-        updated_by: "import",
-      };
-    });
+    // Filter out parts with DELETE status from updates (they should be deleted instead)
+    const partsToUpdate = diff.parts.updates
+      .filter((d) => {
+        const statusValue =
+          WORKFLOW_STATUS_MAP[d.after?.status?.toLowerCase() || ""] || "ACTIVE";
+        return statusValue !== "DELETE";
+      })
+      .map((d) => {
+        const row = d.after!;
+        const workflowStatus =
+          WORKFLOW_STATUS_MAP[row.status?.toLowerCase() || ""] || "ACTIVE";
+        return {
+          id: row._id,
+          acr_sku: row.acr_sku,
+          workflow_status: workflowStatus,
+          part_type: row.part_type,
+          position_type: row.position_type,
+          abs_type: row.abs_type,
+          bolt_pattern: row.bolt_pattern,
+          drive_type: row.drive_type,
+          specifications: row.specifications,
+          has_360_viewer: false, // 360 viewer managed separately via admin UI
+          viewer_360_frame_count: null,
+          updated_by: "import",
+        };
+      });
 
     // Format vehicle applications data
     const vehiclesToAdd = diff.vehicleApplications.adds.map((d) => {
@@ -317,9 +337,19 @@ export class ImportService {
     });
 
     // Format delete payloads (extract IDs from 'before' records)
-    const partsToDelete = diff.parts.deletes.map((d) => ({
-      id: d.before!._id,
-    }));
+    // Also include parts from updates that have status="Eliminar"
+    const partsMarkedForDeletion = diff.parts.updates
+      .filter((d) => {
+        const statusValue =
+          WORKFLOW_STATUS_MAP[d.after?.status?.toLowerCase() || ""] || "ACTIVE";
+        return statusValue === "DELETE" && d.after?._id;
+      })
+      .map((d) => ({ id: d.after!._id }));
+
+    const partsToDelete = [
+      ...diff.parts.deletes.map((d) => ({ id: d.before!._id })),
+      ...partsMarkedForDeletion,
+    ];
 
     const vehiclesToDelete = diff.vehicleApplications.deletes.map((d) => ({
       id: d.before!._id,

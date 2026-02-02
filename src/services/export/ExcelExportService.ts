@@ -8,7 +8,20 @@ import {
   ALIASES_COLUMNS,
   BRAND_COLUMN_MAP,
   IMAGE_VIEW_TYPE_MAP,
+  WORKFLOW_STATUS_DISPLAY,
   ExportFilters,
+  // Styling imports
+  PARTS_COLUMN_GROUPS,
+  VEHICLE_APPS_COLUMN_GROUPS,
+  ALIASES_COLUMN_GROUPS,
+  ROW_HEIGHTS,
+  addGroupHeaderRow,
+  addColumnHeaderRow,
+  addInstructionsRow,
+  applyDataRowStyle,
+  PARTS_INSTRUCTIONS,
+  VEHICLE_APPS_INSTRUCTIONS,
+  ALIASES_INSTRUCTIONS,
 } from "@/services/excel/shared";
 
 // Type for cross-refs grouped by part and brand
@@ -61,11 +74,11 @@ export class ExcelExportService {
     tableName: string,
     orderBy: string
   ): Promise<any[]> {
-    // Exclude computed columns from parts table, include has_360_viewer for status
+    // Exclude computed columns from parts table, include has_360_viewer and workflow_status
     let selectColumns = "*";
     if (tableName === "parts") {
       selectColumns =
-        "id, acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, has_360_viewer";
+        "id, acr_sku, workflow_status, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, has_360_viewer";
     }
 
     const PAGE_SIZE = 1000;
@@ -209,7 +222,7 @@ export class ExcelExportService {
       let query = supabase
         .from("parts")
         .select(
-          "id, acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, has_360_viewer"
+          "id, acr_sku, workflow_status, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, has_360_viewer"
         )
         .order("acr_sku", { ascending: true });
 
@@ -574,20 +587,47 @@ export class ExcelExportService {
 
   /**
    * Add Parts sheet to workbook (Phase 3: with inline cross-refs and images)
+   * Styled with group headers, column headers, instructions row, and alternating data rows
+   *
+   * Row Structure:
+   * - Row 1: Group headers (merged cells for logical groupings)
+   * - Row 2: Column headers
+   * - Row 3: Instructions row (help text for each column)
+   * - Row 4+: Data rows with alternating colors
    */
   private addPartsSheet(
     workbook: ExcelJS.Workbook,
     parts: any[],
     crossRefsByPart: CrossRefsByPart,
-    imagesByPart: ImagesByPart
+    imagesByPart: ImagesByPart,
+    locale: "en" | "es" = "es",
+    baseUrl: string = ""
   ): void {
     const worksheet = workbook.addWorksheet(SHEET_NAMES.PARTS);
 
-    // Define columns using shared constants (single source of truth)
-    worksheet.columns = PARTS_COLUMNS;
+    // Define columns (widths and keys only - headers added manually for styling)
+    worksheet.columns = PARTS_COLUMNS.map((col) => ({
+      key: col.key,
+      width: col.width,
+      hidden: col.hidden,
+    }));
 
-    // Add rows with inline cross-refs and images
-    parts.forEach((part) => {
+    // Row 1: Group headers (merged cells for logical groupings)
+    addGroupHeaderRow(worksheet, PARTS_COLUMNS, PARTS_COLUMN_GROUPS);
+
+    // Row 2: Column headers with styling
+    addColumnHeaderRow(worksheet, PARTS_COLUMNS);
+
+    // Row 3: Instructions row with help text
+    addInstructionsRow(
+      worksheet,
+      PARTS_COLUMNS,
+      PARTS_INSTRUCTIONS[locale],
+      baseUrl
+    );
+
+    // Row 4+: Data rows with alternating colors
+    parts.forEach((part, rowIndex) => {
       const partId = part.id;
 
       // Get cross-refs for this part, grouped by brand
@@ -603,10 +643,11 @@ export class ExcelExportService {
         brandColumnValues[propName] = skus.join(";");
       }
 
-      worksheet.addRow({
+      const row = worksheet.addRow({
         // Core part fields
         _id: part.id,
         acr_sku: part.acr_sku,
+        status: WORKFLOW_STATUS_DISPLAY[part.workflow_status] || "Activo",
         part_type: part.part_type,
         position_type: part.position_type || "",
         abs_type: part.abs_type || "",
@@ -632,24 +673,79 @@ export class ExcelExportService {
         image_url_other: partImages.other || "",
         viewer_360_status: part.has_360_viewer ? "Confirmed" : "",
       });
+
+      // Apply alternating row styling
+      applyDataRowStyle(row, rowIndex, PARTS_COLUMNS.length);
+      row.height = ROW_HEIGHTS.DATA_ROW;
     });
 
-    // Freeze header row
-    worksheet.views = [{ state: "frozen", ySplit: 1 }];
+    // Add data validation for Status column (dropdown: Activo, Inactivo, Eliminar)
+    const statusColIndex =
+      PARTS_COLUMNS.findIndex((col) => col.key === "status") + 1;
+    if (statusColIndex > 0) {
+      const statusColumn = worksheet.getColumn(statusColIndex);
+      // Apply to data rows only (row 4+, skipping header and instruction rows)
+      for (let rowNum = 4; rowNum <= worksheet.rowCount; rowNum++) {
+        const cell = worksheet.getCell(rowNum, statusColIndex);
+        cell.dataValidation = {
+          type: "list",
+          allowBlank: true,
+          formulae: ['"Activo,Inactivo,Eliminar"'],
+          showErrorMessage: true,
+          errorTitle: "Invalid Status",
+          error: "Please select: Activo, Inactivo, or Eliminar",
+        };
+      }
+    }
+
+    // Freeze header rows (group headers + column headers + instructions)
+    worksheet.views = [{ state: "frozen", ySplit: 3 }];
   }
 
   /**
    * Add Vehicle Applications sheet to workbook
+   * Styled with group headers, column headers, instructions row, and alternating data rows
+   *
+   * Row Structure:
+   * - Row 1: Group headers (merged cells for logical groupings)
+   * - Row 2: Column headers
+   * - Row 3: Instructions row (help text for each column)
+   * - Row 4+: Data rows with alternating colors
    */
-  private addVehiclesSheet(workbook: ExcelJS.Workbook, vehicles: any[]): void {
+  private addVehiclesSheet(
+    workbook: ExcelJS.Workbook,
+    vehicles: any[],
+    locale: "en" | "es" = "es"
+  ): void {
     const worksheet = workbook.addWorksheet(SHEET_NAMES.VEHICLE_APPLICATIONS);
 
-    // Define columns using shared constants (single source of truth)
-    worksheet.columns = VEHICLE_APPLICATIONS_COLUMNS;
+    // Define columns (widths and keys only - headers added manually for styling)
+    worksheet.columns = VEHICLE_APPLICATIONS_COLUMNS.map((col) => ({
+      key: col.key,
+      width: col.width,
+      hidden: col.hidden,
+    }));
 
-    // Add rows
-    vehicles.forEach((vehicle) => {
-      worksheet.addRow({
+    // Row 1: Group headers (merged cells for logical groupings)
+    addGroupHeaderRow(
+      worksheet,
+      VEHICLE_APPLICATIONS_COLUMNS,
+      VEHICLE_APPS_COLUMN_GROUPS
+    );
+
+    // Row 2: Column headers with styling
+    addColumnHeaderRow(worksheet, VEHICLE_APPLICATIONS_COLUMNS);
+
+    // Row 3: Instructions row with help text
+    addInstructionsRow(
+      worksheet,
+      VEHICLE_APPLICATIONS_COLUMNS,
+      VEHICLE_APPS_INSTRUCTIONS[locale]
+    );
+
+    // Row 4+: Data rows with alternating colors
+    vehicles.forEach((vehicle, rowIndex) => {
+      const row = worksheet.addRow({
         _id: vehicle.id, // Map database 'id' to Excel '_id' column key
         _part_id: vehicle.part_id, // Map database 'part_id' to Excel '_part_id' column key
         acr_sku: vehicle.acr_sku || "",
@@ -658,34 +754,70 @@ export class ExcelExportService {
         start_year: vehicle.start_year,
         end_year: vehicle.end_year,
       });
+
+      // Apply alternating row styling
+      applyDataRowStyle(row, rowIndex, VEHICLE_APPLICATIONS_COLUMNS.length);
+      row.height = ROW_HEIGHTS.DATA_ROW;
     });
 
-    // Freeze header row
-    worksheet.views = [{ state: "frozen", ySplit: 1 }];
+    // Freeze header rows (group headers + column headers + instructions)
+    worksheet.views = [{ state: "frozen", ySplit: 3 }];
   }
 
   /**
    * Add Vehicle Aliases sheet to workbook (Phase 4A)
    * Allows Humberto to manage vehicle nickname mappings via Excel
+   * Styled with group headers, column headers, instructions row, and alternating data rows
+   *
+   * Row Structure:
+   * - Row 1: Group headers (merged cells for logical groupings)
+   * - Row 2: Column headers
+   * - Row 3: Instructions row (help text for each column)
+   * - Row 4+: Data rows with alternating colors
    */
-  private addAliasesSheet(workbook: ExcelJS.Workbook, aliases: any[]): void {
+  private addAliasesSheet(
+    workbook: ExcelJS.Workbook,
+    aliases: any[],
+    locale: "en" | "es" = "es"
+  ): void {
     const worksheet = workbook.addWorksheet(SHEET_NAMES.ALIASES);
 
-    // Define columns using shared constants
-    worksheet.columns = ALIASES_COLUMNS;
+    // Define columns (widths and keys only - headers added manually for styling)
+    worksheet.columns = ALIASES_COLUMNS.map((col) => ({
+      key: col.key,
+      width: col.width,
+      hidden: col.hidden,
+    }));
 
-    // Add rows
-    aliases.forEach((alias) => {
-      worksheet.addRow({
+    // Row 1: Group headers (merged cells for logical groupings)
+    addGroupHeaderRow(worksheet, ALIASES_COLUMNS, ALIASES_COLUMN_GROUPS);
+
+    // Row 2: Column headers with styling
+    addColumnHeaderRow(worksheet, ALIASES_COLUMNS);
+
+    // Row 3: Instructions row with help text
+    addInstructionsRow(
+      worksheet,
+      ALIASES_COLUMNS,
+      ALIASES_INSTRUCTIONS[locale]
+    );
+
+    // Row 4+: Data rows with alternating colors
+    aliases.forEach((alias, rowIndex) => {
+      const row = worksheet.addRow({
         _id: alias.id,
         alias: alias.alias,
         canonical_name: alias.canonical_name,
         alias_type: alias.alias_type,
       });
+
+      // Apply alternating row styling
+      applyDataRowStyle(row, rowIndex, ALIASES_COLUMNS.length);
+      row.height = ROW_HEIGHTS.DATA_ROW;
     });
 
-    // Freeze header row
-    worksheet.views = [{ state: "frozen", ySplit: 1 }];
+    // Freeze header rows (group headers + column headers + instructions)
+    worksheet.views = [{ state: "frozen", ySplit: 3 }];
   }
 
   /**
@@ -699,8 +831,18 @@ export class ExcelExportService {
   ): void {
     const worksheet = workbook.addWorksheet(SHEET_NAMES.CROSS_REFERENCES);
 
-    // Define columns using shared constants (single source of truth)
-    worksheet.columns = CROSS_REFERENCES_COLUMNS;
+    // Define columns (widths and keys only - headers added manually for styling)
+    worksheet.columns = CROSS_REFERENCES_COLUMNS.map((col) => ({
+      key: col.key,
+      width: col.width,
+      hidden: col.hidden,
+    }));
+
+    // Row 1: Simple header row (no group headers for deprecated sheet)
+    const headerRow = worksheet.getRow(1);
+    CROSS_REFERENCES_COLUMNS.forEach((col, idx) => {
+      headerRow.getCell(idx + 1).value = col.header;
+    });
 
     // Add rows
     crossRefs.forEach((crossRef) => {

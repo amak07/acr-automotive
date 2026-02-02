@@ -40,6 +40,7 @@ export interface ExcelColumnDefinition {
  * Core Columns:
  * - _id (hidden): UUID for tracking existing parts on re-import
  * - ACR_SKU: ACR part number (user-visible, required)
+ * - Status: Workflow status (Activo, Inactivo, Eliminar) - Phase 5
  * - Part_Type: Part classification (e.g., "Wheel Hub", "Brake Rotor")
  * - Position_Type: Position (e.g., "Front", "Rear", "Front Left")
  * - ABS_Type: ABS compatibility (e.g., "C/ABS", "S/ABS")
@@ -59,6 +60,7 @@ export interface ExcelPartRow {
   _id?: string; // Hidden column (UUID)
   _action?: string; // ML-style: set to "DELETE" to explicitly delete a part
   acr_sku: string;
+  status?: string; // Workflow status: Activo, Inactivo, Eliminar
   part_type: string;
   position_type?: string;
   abs_type?: string;
