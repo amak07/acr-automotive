@@ -43,8 +43,10 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
 
     // SKU search takes precedence if present
     if (skuParam) return "sku";
-    // Otherwise default to vehicle tab
-    return "vehicle";
+    // Vehicle params switch to vehicle tab
+    if (searchParams?.get("make")) return "vehicle";
+    // Default to Quick Search tab
+    return "sku";
   };
 
   const [activeTab, setActiveTab] = useState(getInitialTab());
@@ -218,15 +220,6 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             {t("common.actions.searchBy")}
           </span>
           <AcrTabsList>
-            <AcrTabsTrigger value="vehicle">
-              <Car className="w-4 h-4 mr-1.5 hidden lg:inline" />
-              <span className="lg:hidden">
-                {t("public.search.vehicleTabShort")}
-              </span>
-              <span className="hidden lg:inline">
-                {t("public.search.vehicleSearchTitle")}
-              </span>
-            </AcrTabsTrigger>
             <AcrTabsTrigger value="sku">
               <Package className="w-4 h-4 mr-1.5 hidden lg:inline" />
               <span className="lg:hidden">
@@ -234,6 +227,15 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
               </span>
               <span className="hidden lg:inline">
                 {t("public.search.skuSearchTitle")}
+              </span>
+            </AcrTabsTrigger>
+            <AcrTabsTrigger value="vehicle">
+              <Car className="w-4 h-4 mr-1.5 hidden lg:inline" />
+              <span className="lg:hidden">
+                {t("public.search.vehicleTabShort")}
+              </span>
+              <span className="hidden lg:inline">
+                {t("public.search.vehicleSearchTitle")}
               </span>
             </AcrTabsTrigger>
           </AcrTabsList>
