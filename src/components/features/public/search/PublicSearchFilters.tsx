@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Car, Package } from "lucide-react";
+import { Search, Car, Package, X } from "lucide-react";
 import {
   AcrButton,
   AcrTabs,
@@ -479,8 +479,18 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                 onChange={(e) => setSkuTerm(e.target.value)}
                 onKeyDown={handleSkuKeyDown}
                 placeholder={t("public.search.skuPlaceholder")}
-                className="w-full h-12 pl-11 pr-4 py-3 bg-white text-sm font-medium text-acr-gray-900 border-2 border-acr-gray-900 rounded-lg placeholder:text-acr-gray-500 placeholder:font-normal transition-all duration-150 ease-out hover:border-acr-gray-700 hover:bg-acr-gray-50/50 focus:outline-none focus:ring-2 focus:ring-acr-gray-900 focus:ring-offset-2"
+                className="w-full h-12 pl-11 pr-10 py-3 bg-white text-sm font-medium text-acr-gray-900 border-2 border-acr-gray-900 rounded-lg placeholder:text-acr-gray-500 placeholder:font-normal transition-all duration-150 ease-out hover:border-acr-gray-700 hover:bg-acr-gray-50/50 focus:outline-none focus:ring-2 focus:ring-acr-gray-900 focus:ring-offset-2"
               />
+              {skuTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSkuTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-acr-gray-400 hover:text-acr-gray-600 transition-colors duration-150"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
             <AcrButton
@@ -505,8 +515,18 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
                 onChange={(e) => setSkuTerm(e.target.value)}
                 onKeyDown={handleSkuKeyDown}
                 placeholder={t("public.search.skuPlaceholder")}
-                className="w-full h-12 pl-11 pr-4 py-3 bg-white text-sm font-medium text-acr-gray-900 border-2 border-acr-gray-900 rounded-lg placeholder:text-acr-gray-500 placeholder:font-normal transition-all duration-150 ease-out hover:border-acr-gray-700 hover:bg-acr-gray-50/50 focus:outline-none focus:ring-2 focus:ring-acr-gray-900 focus:ring-offset-2"
+                className="w-full h-12 pl-11 pr-10 py-3 bg-white text-sm font-medium text-acr-gray-900 border-2 border-acr-gray-900 rounded-lg placeholder:text-acr-gray-500 placeholder:font-normal transition-all duration-150 ease-out hover:border-acr-gray-700 hover:bg-acr-gray-50/50 focus:outline-none focus:ring-2 focus:ring-acr-gray-900 focus:ring-offset-2"
               />
+              {skuTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSkuTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-acr-gray-400 hover:text-acr-gray-600 transition-colors duration-150"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
             <AcrButton
@@ -519,29 +539,7 @@ export function PublicSearchFilters(props: PublicSearchFiltersProps) {
             >
               {t("common.actions.search")}
             </AcrButton>
-
-            {/* Clear Filters - Desktop */}
-            {hasActiveFilters && (
-              <AcrButton
-                onClick={clearAllFilters}
-                variant="secondary"
-                className="whitespace-nowrap"
-              >
-                {t("common.actions.clearFilters")}
-              </AcrButton>
-            )}
           </div>
-
-          {/* Clear Filters - Mobile & Tablet */}
-          {hasActiveFilters && (
-            <AcrButton
-              onClick={clearAllFilters}
-              variant="secondary"
-              className="lg:hidden w-full mt-3"
-            >
-              {t("common.actions.clearFilters")}
-            </AcrButton>
-          )}
         </AcrTabsContent>
       </AcrTabs>
     </div>
