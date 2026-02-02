@@ -2132,12 +2132,12 @@ export const translations: Record<
     es: "Vehículo",
   },
   "public.search.skuSearchTitle": {
-    en: "Part Number Search",
-    es: "Búsqueda por Número de Parte",
+    en: "Quick Search",
+    es: "Búsqueda Rápida",
   },
   "public.search.skuTabShort": {
-    en: "Part Number",
-    es: "Número de Parte",
+    en: "Quick Search",
+    es: "Búsqueda Rápida",
   },
   "public.search.advancedFilters": {
     en: "Advanced Filters",
