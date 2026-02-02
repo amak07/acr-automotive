@@ -2120,8 +2120,8 @@ export const translations: Record<
     es: "Seleccionar Año",
   },
   "public.search.skuPlaceholder": {
-    en: "e.g., ACR10094077, 04616263AA, or Mustang",
-    es: "ej., ACR10094077, 04616263AA, o Mustang",
+    en: "Ex: ACR10094077, 04616263AA, or Mustang",
+    es: "Ej.: ACR10094077, 04616263AA, o Mustang",
   },
   "public.search.vehicleSearchTitle": {
     en: "Vehicle Search",
