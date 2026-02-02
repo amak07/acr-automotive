@@ -23,6 +23,7 @@ import { TranslationKeys } from "@/lib/i18n";
 interface PartBasicInfoProps {
   data: {
     acr_sku?: string;
+    workflow_status?: string;
     part_type?: string;
     position_type?: string | null;
     abs_type?: string | null;
@@ -177,6 +178,35 @@ export function PartBasicInfo({
                   />
                 </AcrFormField>
               )}
+
+              {/* Workflow Status */}
+              <AcrFormField
+                label={t("parts.status.label")}
+                htmlFor="workflow_status"
+                isDirty={isFieldDirty("workflow_status")}
+              >
+                <Controller
+                  name="workflow_status"
+                  control={control}
+                  render={({ field }) => (
+                    <AcrComboBox
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      options={[
+                        {
+                          label: t("parts.status.active"),
+                          value: "ACTIVE",
+                        },
+                        {
+                          label: t("parts.status.inactive"),
+                          value: "INACTIVE",
+                        },
+                      ]}
+                      placeholder={t("common.actions.select")}
+                    />
+                  )}
+                />
+              </AcrFormField>
 
               {/* Part Type */}
               {primaryFields.map((config, index) => (

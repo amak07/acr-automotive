@@ -21,6 +21,7 @@ import {
   BRAND_COLUMN_MAP,
   IMAGE_VIEW_TYPE_MAP,
   DELETE_MARKER,
+  splitCrossRefSkus,
 } from "../shared/constants";
 
 // ----------------------------------------------------------------------------
@@ -838,6 +839,7 @@ export class ValidationEngine {
    * - Each SKU max 50 chars
    * - [DELETE] marker allowed as prefix
    * - Warn on duplicate SKUs within same brand column
+   * - Warn on legacy space-delimited format (auto-converted)
    */
   private validateBrandColumns(part: ExcelPartRow, rowNumber: number): void {
     for (const [propName, brandName] of Object.entries(BRAND_COLUMN_MAP)) {
@@ -849,10 +851,21 @@ export class ValidationEngine {
         continue; // Empty is valid (no change to existing)
       }
 
-      const skus = columnValue
-        .split(";")
-        .map((s) => s.trim())
-        .filter((s) => s !== "");
+      // Use shared helper to split on semicolon or space (legacy)
+      const { skus, hadSpaceDelimiters } = splitCrossRefSkus(columnValue);
+
+      // Warn if legacy space delimiters were detected
+      if (hadSpaceDelimiters) {
+        this.addWarning(
+          ValidationWarningCode.W12_SPACE_DELIMITED_SKUS,
+          `${brandName} column uses space-delimited SKUs (legacy format). Will be normalized to semicolon-delimited on import.`,
+          SHEET_NAMES.PARTS,
+          rowNumber,
+          propName,
+          columnValue
+        );
+      }
+
       const seenSkus = new Set<string>();
 
       for (const sku of skus) {

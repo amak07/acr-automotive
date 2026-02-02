@@ -1329,6 +1329,24 @@ export const translations: Record<
     es: "4x4",
   },
 
+  // Workflow Status (Phase 5)
+  "parts.status.label": {
+    en: "Status",
+    es: "Estado",
+  },
+  "parts.status.active": {
+    en: "Active",
+    es: "Activo",
+  },
+  "parts.status.inactive": {
+    en: "Inactive",
+    es: "Inactivo",
+  },
+  "parts.status.delete": {
+    en: "Mark for Deletion",
+    es: "Marcar para Eliminar",
+  },
+
   // Field labels for specs display
   "parts.labels.position": {
     en: "Position",
@@ -2204,6 +2222,22 @@ export const translations: Record<
   "public.parts.noResults": {
     en: "No parts found",
     es: "No se encontraron refacciones",
+  },
+  "public.parts.noResultsTitle": {
+    en: "No matching parts found",
+    es: "No se encontraron coincidencias",
+  },
+  "public.parts.noResultsMessage": {
+    en: "We couldn't find any parts matching your search criteria.",
+    es: "No pudimos encontrar refacciones con los criterios de búsqueda.",
+  },
+  "public.parts.noResultsSuggestion": {
+    en: "Try adjusting your search terms or clearing filters to see more results.",
+    es: "Intenta ajustar los términos de búsqueda o limpiar los filtros para ver más resultados.",
+  },
+  "public.parts.clearSearch": {
+    en: "Clear Search",
+    es: "Limpiar Búsqueda",
   },
   "public.parts.viewDetails": {
     en: "View details",
