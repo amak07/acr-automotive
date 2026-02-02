@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
       let query = supabase
         .from("parts")
         .select(`*`, { count: "exact" })
-        .not("part_type", "eq", "PENDING") // remove any unready parts.
+        .eq("workflow_status", "ACTIVE") // Only show active parts (Phase 5)
         .order("has_360_viewer", { ascending: false }) // Parts with 360° viewer first
         .order("has_product_images", { ascending: false }) // Then parts with product images
         .order("acr_sku", { ascending: true }) // Then alphabetically
@@ -260,7 +260,7 @@ export async function GET(request: NextRequest) {
       const { data: allData, error: rpcError } = await supabase.rpc(
         "search_by_sku",
         {
-          search_sku: params.sku_term,
+          search_term: params.sku_term,
         }
       );
 

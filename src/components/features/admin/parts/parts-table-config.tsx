@@ -78,6 +78,30 @@ export const createAcrPartsTableColumns = (
     },
   },
   {
+    key: "workflow_status",
+    label: t("parts.status.label"),
+    render: (value: any) => {
+      const statusColors: Record<string, string> = {
+        ACTIVE: "bg-green-100 text-green-800 border-green-200",
+        INACTIVE: "bg-amber-100 text-amber-800 border-amber-200",
+        DELETE: "bg-red-100 text-red-800 border-red-200",
+      };
+      const statusLabels: Record<string, keyof TranslationKeys> = {
+        ACTIVE: "parts.status.active",
+        INACTIVE: "parts.status.inactive",
+        DELETE: "parts.status.delete",
+      };
+      const status = value || "ACTIVE";
+      return (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium border ${statusColors[status] || statusColors.ACTIVE}`}
+        >
+          {t(statusLabels[status] || statusLabels.ACTIVE)}
+        </span>
+      );
+    },
+  },
+  {
     key: "part_type",
     label: t("admin.search.partType"),
     render: (value: any) => (

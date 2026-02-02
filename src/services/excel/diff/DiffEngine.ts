@@ -14,6 +14,7 @@ import {
   SHEET_NAMES,
   BRAND_COLUMN_MAP,
   DELETE_MARKER,
+  splitCrossRefSkus,
 } from "../shared/constants";
 
 // Type for parsed brand column (adds and explicit deletes)
@@ -48,20 +49,15 @@ export class DiffEngine {
   /**
    * Parse a brand column value into adds and explicit deletes
    * Format: "SKU1;SKU2;[DELETE]SKU3;SKU4" => { adds: ["SKU1", "SKU2", "SKU4"], deletes: ["SKU3"] }
+   * Also supports legacy space-delimited format for backwards compatibility
    */
   private parseBrandColumn(
     value: string | undefined | null
   ): ParsedBrandColumn {
     const result: ParsedBrandColumn = { adds: [], deletes: [] };
 
-    if (!value || value.trim() === "") {
-      return result;
-    }
-
-    const skus = value
-      .split(";")
-      .map((s) => s.trim())
-      .filter((s) => s !== "");
+    // Use shared helper to split on semicolon or space (legacy)
+    const { skus } = splitCrossRefSkus(value);
 
     for (const sku of skus) {
       if (sku.startsWith(DELETE_MARKER)) {
@@ -295,6 +291,14 @@ export class DiffEngine {
     // Required fields: direct comparison
     if (before.acr_sku !== after.acr_sku) changes.push("acr_sku");
     if (before.part_type !== after.part_type) changes.push("part_type");
+
+    // Status field: normalize for comparison (treat empty as default)
+    if (
+      this.normalizeOptional(before.status) !==
+      this.normalizeOptional(after.status)
+    ) {
+      changes.push("status");
+    }
 
     // Optional fields: normalize null/undefined/empty before comparison
     if (

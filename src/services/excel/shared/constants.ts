@@ -17,50 +17,51 @@ export const SHEET_NAMES = {
 } as const;
 
 /**
- * Excel column headers (PascalCase with underscores)
- * These appear in the Excel file header row
+ * Excel column headers (friendly names without underscores)
+ * These appear in the Excel file header row (Row 2)
  */
 export const COLUMN_HEADERS = {
   // Parts sheet
   PARTS: {
     ID: "_id",
     ACTION: "_action", // ML-style: set to "DELETE" to explicitly delete a part
-    ACR_SKU: "ACR_SKU",
-    PART_TYPE: "Part_Type",
-    POSITION_TYPE: "Position_Type",
-    ABS_TYPE: "ABS_Type",
-    BOLT_PATTERN: "Bolt_Pattern",
-    DRIVE_TYPE: "Drive_Type",
+    ACR_SKU: "ACR SKU",
+    STATUS: "Status", // Workflow status (Activo/Inactivo/Eliminar)
+    PART_TYPE: "Part Type",
+    POSITION_TYPE: "Position",
+    ABS_TYPE: "ABS Type",
+    BOLT_PATTERN: "Bolt Pattern",
+    DRIVE_TYPE: "Drive Type",
     SPECIFICATIONS: "Specifications",
-    // Cross-reference brand columns (Phase 3A)
-    NATIONAL_SKUS: "National_SKUs",
-    ATV_SKUS: "ATV_SKUs",
-    SYD_SKUS: "SYD_SKUs",
-    TMK_SKUS: "TMK_SKUs",
-    GROB_SKUS: "GROB_SKUs",
-    RACE_SKUS: "RACE_SKUs",
-    OEM_SKUS: "OEM_SKUs",
-    OEM_2_SKUS: "OEM_2_SKUs",
-    GMB_SKUS: "GMB_SKUs",
-    GSP_SKUS: "GSP_SKUs",
-    FAG_SKUS: "FAG_SKUs",
-    // Image URL columns (Phase 3B)
-    IMAGE_URL_FRONT: "Image_URL_Front",
-    IMAGE_URL_BACK: "Image_URL_Back",
-    IMAGE_URL_TOP: "Image_URL_Top",
-    IMAGE_URL_OTHER: "Image_URL_Other",
-    VIEWER_360_STATUS: "360_Viewer_Status",
+    // Cross-reference brand columns (Phase 3A) - just brand names
+    NATIONAL_SKUS: "National",
+    ATV_SKUS: "ATV",
+    SYD_SKUS: "SYD",
+    TMK_SKUS: "TMK",
+    GROB_SKUS: "GROB",
+    RACE_SKUS: "RACE",
+    OEM_SKUS: "OEM",
+    OEM_2_SKUS: "OEM_2",
+    GMB_SKUS: "GMB",
+    GSP_SKUS: "GSP",
+    FAG_SKUS: "FAG",
+    // Image URL columns (Phase 3B) - friendly names
+    IMAGE_URL_FRONT: "Image URL Front",
+    IMAGE_URL_BACK: "Image URL Back",
+    IMAGE_URL_TOP: "Image URL Top",
+    IMAGE_URL_OTHER: "Image URL Other",
+    VIEWER_360_STATUS: "360 Viewer",
   },
 
   // Vehicle Applications sheet
   VEHICLE_APPLICATIONS: {
     ID: "_id",
     PART_ID: "_part_id",
-    ACR_SKU: "ACR_SKU",
+    ACR_SKU: "ACR SKU",
     MAKE: "Make",
     MODEL: "Model",
-    START_YEAR: "Start_Year",
-    END_YEAR: "End_Year",
+    START_YEAR: "Start Year",
+    END_YEAR: "End Year",
   },
 
   // Cross References sheet
@@ -76,7 +77,7 @@ export const COLUMN_HEADERS = {
   ALIASES: {
     ID: "_id",
     ALIAS: "Alias",
-    CANONICAL_NAME: "Canonical_Name",
+    CANONICAL_NAME: "Canonical Name",
     ALIAS_TYPE: "Type",
   },
 } as const;
@@ -91,6 +92,7 @@ export const PROPERTY_NAMES = {
     ID: "_id",
     ACTION: "_action", // ML-style: set to "DELETE" to explicitly delete a part
     ACR_SKU: "acr_sku",
+    STATUS: "status", // Workflow status
     PART_TYPE: "part_type",
     POSITION_TYPE: "position_type",
     ABS_TYPE: "abs_type",
@@ -155,6 +157,7 @@ export const COLUMN_WIDTHS = {
     ID: 36,
     ACTION: 10, // For "DELETE" marker
     ACR_SKU: 15,
+    STATUS: 12, // Workflow status (Activo/Inactivo/Eliminar)
     PART_TYPE: 20,
     POSITION_TYPE: 15,
     ABS_TYPE: 15,
@@ -291,8 +294,57 @@ export const IMAGE_URL_COLUMN_NAMES = Object.keys(IMAGE_VIEW_TYPE_MAP);
 export const DELETE_MARKER = "[DELETE]";
 
 /**
+ * Mapping of simplified brand column headers to property names
+ * Used for import when headers don't have "_SKUs" suffix
+ */
+const BRAND_HEADER_TO_PROPERTY: Record<string, string> = {
+  national: "national_skus",
+  atv: "atv_skus",
+  syd: "syd_skus",
+  tmk: "tmk_skus",
+  grob: "grob_skus",
+  race: "race_skus",
+  oem: "oem_skus",
+  oem_2: "oem_2_skus",
+  gmb: "gmb_skus",
+  gsp: "gsp_skus",
+  fag: "fag_skus",
+};
+
+/**
+ * Mapping of friendly column headers (without underscores) to property names
+ * Used for import when headers use spaces instead of underscores
+ */
+const FRIENDLY_HEADER_TO_PROPERTY: Record<string, string> = {
+  // Part Information (friendly → property)
+  "acr sku": "acr_sku",
+  status: "status", // Workflow status
+  "part type": "part_type",
+  position: "position_type",
+  "abs type": "abs_type",
+  "bolt pattern": "bolt_pattern",
+  "drive type": "drive_type",
+  // Image columns (friendly → property)
+  "image url front": "image_url_front",
+  "image url back": "image_url_back",
+  "image url top": "image_url_top",
+  "image url other": "image_url_other",
+  "360 viewer": "viewer_360_status",
+  // Vehicle Applications (friendly → property)
+  "start year": "start_year",
+  "end year": "end_year",
+  // Aliases (friendly → property)
+  "canonical name": "canonical_name",
+};
+
+/**
  * Helper function to convert column header to property name
- * Example: "ACR_SKU" → "acr_sku", "Part_Type" → "part_type"
+ * Supports both old format (with underscores) and new format (with spaces)
+ *
+ * Examples:
+ * - Old: "ACR_SKU" → "acr_sku", "Part_Type" → "part_type"
+ * - New: "ACR SKU" → "acr_sku", "Part Type" → "part_type"
+ * - Brand: "National" → "national_skus"
  */
 export function headerToPropertyName(header: string): string {
   // Hidden ID columns: keep as-is (lowercase)
@@ -300,10 +352,22 @@ export function headerToPropertyName(header: string): string {
     return header.toLowerCase();
   }
 
-  // Regular columns: simply lowercase and normalize underscores
-  // Excel headers already have underscores in the right places (ACR_SKU, Part_Type)
-  // Just need to lowercase and collapse any double underscores
-  return header.toLowerCase().replace(/_+/g, "_"); // Collapse multiple underscores to single
+  // Normalize: lowercase and convert underscores to spaces for lookup
+  const lowercased = header.toLowerCase();
+
+  // Check friendly header mapping first (headers with spaces)
+  if (FRIENDLY_HEADER_TO_PROPERTY[lowercased]) {
+    return FRIENDLY_HEADER_TO_PROPERTY[lowercased];
+  }
+
+  // Check if this is a simplified brand column header (e.g., "National" → "national_skus")
+  if (BRAND_HEADER_TO_PROPERTY[lowercased]) {
+    return BRAND_HEADER_TO_PROPERTY[lowercased];
+  }
+
+  // Fallback: convert underscores to property format
+  // Excel headers with underscores: just lowercase and collapse double underscores
+  return lowercased.replace(/\s+/g, "_").replace(/_+/g, "_");
 }
 
 /**
@@ -321,6 +385,68 @@ export function propertyNameToHeader(propertyName: string): string {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("_");
+}
+
+/**
+ * Cross-reference SKU delimiter - semicolon is the canonical delimiter
+ */
+export const CROSS_REF_DELIMITER = ";";
+
+/**
+ * Result of splitting cross-reference SKUs
+ */
+export interface SplitCrossRefResult {
+  /** The individual SKUs after splitting */
+  skus: string[];
+  /** Whether the original value contained space-delimited SKUs (legacy format) */
+  hadSpaceDelimiters: boolean;
+}
+
+/**
+ * Split cross-reference SKUs from a cell value.
+ * Handles both semicolon (new format) and space (legacy format) delimiters.
+ *
+ * - Semicolon is the canonical delimiter for new data
+ * - Space delimiter is supported for backwards compatibility with old data
+ * - When spaces are detected, hadSpaceDelimiters is set to true for warnings
+ *
+ * @param value - The raw cell value containing one or more SKUs
+ * @returns Object with split SKUs and whether legacy space delimiters were found
+ */
+export function splitCrossRefSkus(
+  value: string | undefined | null
+): SplitCrossRefResult {
+  if (!value || value.trim() === "") {
+    return { skus: [], hadSpaceDelimiters: false };
+  }
+
+  const trimmedValue = value.trim();
+
+  // Check if value contains semicolons - use semicolon delimiter only
+  if (trimmedValue.includes(";")) {
+    const skus = trimmedValue
+      .split(";")
+      .map((s) => s.trim())
+      .filter((s) => s !== "");
+    return { skus, hadSpaceDelimiters: false };
+  }
+
+  // No semicolons - check if value contains spaces (legacy format)
+  // Only split on spaces if there are multiple words that look like SKUs
+  if (trimmedValue.includes(" ")) {
+    const parts = trimmedValue
+      .split(/\s+/)
+      .map((s) => s.trim())
+      .filter((s) => s !== "");
+
+    // Only treat as space-delimited if we get multiple parts
+    if (parts.length > 1) {
+      return { skus: parts, hadSpaceDelimiters: true };
+    }
+  }
+
+  // Single value (no delimiters)
+  return { skus: [trimmedValue], hadSpaceDelimiters: false };
 }
 
 // ----------------------------------------------------------------------------
@@ -351,6 +477,11 @@ export const PARTS_COLUMNS = [
     header: COLUMN_HEADERS.PARTS.ACR_SKU,
     key: PROPERTY_NAMES.PARTS.ACR_SKU,
     width: COLUMN_WIDTHS.PARTS.ACR_SKU,
+  },
+  {
+    header: COLUMN_HEADERS.PARTS.STATUS,
+    key: PROPERTY_NAMES.PARTS.STATUS,
+    width: COLUMN_WIDTHS.PARTS.STATUS,
   },
   {
     header: COLUMN_HEADERS.PARTS.PART_TYPE,
@@ -572,3 +703,29 @@ export const ALIASES_COLUMNS = [
     width: COLUMN_WIDTHS.ALIASES.ALIAS_TYPE,
   },
 ];
+
+// ----------------------------------------------------------------------------
+// Workflow Status Mappings (Phase 5)
+// ----------------------------------------------------------------------------
+
+/**
+ * Map Spanish Excel status values to database enum values
+ * Supports both Spanish and English inputs (case-insensitive)
+ */
+export const WORKFLOW_STATUS_MAP: Record<string, string> = {
+  activo: "ACTIVE",
+  active: "ACTIVE",
+  inactivo: "INACTIVE",
+  inactive: "INACTIVE",
+  eliminar: "DELETE",
+  delete: "DELETE",
+};
+
+/**
+ * Map database enum values to Spanish display values for Excel export
+ */
+export const WORKFLOW_STATUS_DISPLAY: Record<string, string> = {
+  ACTIVE: "Activo",
+  INACTIVE: "Inactivo",
+  DELETE: "Eliminar",
+};

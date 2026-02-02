@@ -359,6 +359,12 @@ export interface TranslationKeys {
   "parts.drive.4x2": string;
   "parts.drive.4x4": string;
 
+  // Workflow Status (Phase 5)
+  "parts.status.label": string;
+  "parts.status.active": string;
+  "parts.status.inactive": string;
+  "parts.status.delete": string;
+
   // Field labels for specs display
   "parts.labels.position": string;
   "parts.labels.abs": string;
@@ -609,6 +615,10 @@ export interface TranslationKeys {
   "public.parts.showingRange": string;
   "public.parts.showingRangeSingle": string;
   "public.parts.noResults": string;
+  "public.parts.noResultsTitle": string;
+  "public.parts.noResultsMessage": string;
+  "public.parts.noResultsSuggestion": string;
+  "public.parts.clearSearch": string;
   "public.parts.viewDetails": string;
   "public.parts.brand": string;
   "public.parts.errorTitle": string;
