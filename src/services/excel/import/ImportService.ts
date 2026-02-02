@@ -5,7 +5,11 @@
 import { supabase as defaultSupabase } from "@/lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { DiffResult } from "../diff/types";
-import type { ParsedExcelFile, ExcelPartRow } from "../shared/types";
+import type {
+  ParsedExcelFile,
+  ExcelPartRow,
+  ExcelAliasRow,
+} from "../shared/types";
 import type { ImportResult, ImportMetadata, SnapshotData } from "./types";
 import { IMAGE_VIEW_TYPE_MAP } from "../shared/constants";
 
@@ -71,6 +75,12 @@ export class ImportService {
         metadata.tenantId
       );
       console.log("[ImportService] Image URLs processed:", imageStats);
+
+      // Step 4: Process vehicle aliases if sheet is present (Phase 4A)
+      if (parsed.aliases && parsed.aliases.data.length > 0) {
+        const aliasStats = await this.processAliases(parsed.aliases.data);
+        console.log("[ImportService] Vehicle aliases processed:", aliasStats);
+      }
 
       const executionTime = Date.now() - startTime;
       console.log(`[ImportService] Total execution time: ${executionTime}ms`);
@@ -516,5 +526,112 @@ export class ImportService {
     ];
 
     return retryablePatterns.some((pattern) => message.includes(pattern));
+  }
+
+  // --------------------------------------------------------------------------
+  // Vehicle Aliases Processing (Phase 4A)
+  // --------------------------------------------------------------------------
+
+  /**
+   * Process vehicle aliases from Excel sheet
+   *
+   * Strategy: Full replace when sheet is present
+   * - Delete all existing aliases without _id
+   * - Upsert all aliases from Excel
+   *
+   * This allows Humberto to manage aliases via Excel export/import.
+   *
+   * @param aliases - Parsed alias rows from Excel
+   * @returns Statistics of alias operations
+   */
+  private async processAliases(
+    aliases: ExcelAliasRow[]
+  ): Promise<{ added: number; updated: number; deleted: number }> {
+    const stats = { added: 0, updated: 0, deleted: 0 };
+
+    if (aliases.length === 0) {
+      console.log("[ImportService] No aliases to process");
+      return stats;
+    }
+
+    console.log(
+      `[ImportService] Processing ${aliases.length} vehicle aliases...`
+    );
+
+    // Separate aliases with IDs (updates) from those without (adds)
+    const aliasesWithIds = aliases.filter((a) => a._id);
+    const aliasesWithoutIds = aliases.filter((a) => !a._id);
+
+    // Get existing aliases to identify deletes
+    const { data: existingAliases, error: fetchError } = await this.supabase
+      .from("vehicle_aliases")
+      .select("id");
+
+    if (fetchError) {
+      throw new Error(
+        `Failed to fetch existing aliases: ${fetchError.message}`
+      );
+    }
+
+    // Find aliases to delete (in DB but not in Excel)
+    const excelIds = new Set(aliasesWithIds.map((a) => a._id));
+    const aliasesToDelete = (existingAliases || []).filter(
+      (a) => !excelIds.has(a.id)
+    );
+
+    // Delete aliases not in Excel (only if we have Excel IDs to compare)
+    if (aliasesToDelete.length > 0 && aliasesWithIds.length > 0) {
+      const deleteIds = aliasesToDelete.map((a) => a.id);
+      const { error: deleteError } = await this.supabase
+        .from("vehicle_aliases")
+        .delete()
+        .in("id", deleteIds);
+
+      if (deleteError) {
+        throw new Error(`Failed to delete aliases: ${deleteError.message}`);
+      }
+      stats.deleted = deleteIds.length;
+      console.log(`[ImportService] Deleted ${stats.deleted} aliases`);
+    }
+
+    // Upsert aliases with IDs
+    if (aliasesWithIds.length > 0) {
+      const { error: upsertError } = await this.supabase
+        .from("vehicle_aliases")
+        .upsert(
+          aliasesWithIds.map((a) => ({
+            id: a._id,
+            alias: a.alias.toLowerCase(),
+            canonical_name: a.canonical_name.toUpperCase(),
+            alias_type: a.alias_type,
+          })),
+          { onConflict: "id" }
+        );
+
+      if (upsertError) {
+        throw new Error(`Failed to upsert aliases: ${upsertError.message}`);
+      }
+      stats.updated = aliasesWithIds.length;
+    }
+
+    // Insert new aliases without IDs
+    if (aliasesWithoutIds.length > 0) {
+      const { error: insertError } = await this.supabase
+        .from("vehicle_aliases")
+        .insert(
+          aliasesWithoutIds.map((a) => ({
+            alias: a.alias.toLowerCase(),
+            canonical_name: a.canonical_name.toUpperCase(),
+            alias_type: a.alias_type,
+          }))
+        );
+
+      if (insertError) {
+        throw new Error(`Failed to insert new aliases: ${insertError.message}`);
+      }
+      stats.added = aliasesWithoutIds.length;
+    }
+
+    return stats;
   }
 }

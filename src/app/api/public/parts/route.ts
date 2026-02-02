@@ -5,6 +5,27 @@ import { PostgrestError } from "@supabase/supabase-js";
 import { publicSearchSchema, PublicSearchParams } from "@/lib/schemas/public";
 import { normalizeSku } from "@/lib/utils/sku";
 
+// Helper function to detect if a search term looks like a vehicle keyword
+// (vs a SKU pattern like "ACR-15002" or "512348")
+function detectVehicleKeyword(term: string): boolean {
+  const normalized = term.trim().toLowerCase();
+
+  // Too short to be meaningful
+  if (normalized.length < 3) return false;
+
+  // Starts with ACR prefix - definitely a SKU
+  if (normalized.startsWith("acr")) return false;
+
+  // Matches SKU patterns: digits, or alphanumeric with hyphens containing numbers
+  // Examples: "512348", "15002", "ACR-15002", "WB-123"
+  if (/^\d+$/.test(normalized)) return false; // Pure digits = SKU
+  if (/^[a-z]+-\d+/i.test(normalized)) return false; // "prefix-numbers" = SKU
+
+  // Contains mostly letters (with optional spaces/hyphens) = vehicle keyword
+  // Examples: "mustang", "f-150", "monte carlo", "chevy"
+  return /^[a-z][a-z0-9\s-]*$/i.test(normalized);
+}
+
 // Helper function to enrich parts with primary image URLs
 // Falls back to first 360° frame if no product images exist
 async function enrichWithPrimaryImages(
@@ -194,8 +215,48 @@ export async function GET(request: NextRequest) {
       return Response.json({ data: enrichedData, count });
     }
 
-    // SKU search using RPC
+    // SKU or Vehicle Keyword search
     if (params.sku_term) {
+      // Detect if this looks like a vehicle keyword vs a SKU
+      const isVehicleKeyword = detectVehicleKeyword(params.sku_term);
+
+      if (isVehicleKeyword) {
+        // Use vehicle keyword search
+        const { data: allData, error: rpcError } = await supabase.rpc(
+          "search_by_vehicle_keyword",
+          {
+            search_term: params.sku_term,
+          }
+        );
+
+        if (rpcError) throw rpcError;
+
+        // Extract unique matched vehicles for display
+        const matchedVehicles = [
+          ...new Set(
+            (allData || []).map(
+              (d: { matched_vehicle: string }) => d.matched_vehicle
+            )
+          ),
+        ].slice(0, 5);
+
+        // Apply pagination
+        const totalCount = allData?.length || 0;
+        const paginatedData =
+          allData?.slice(params.offset, params.offset + params.limit) || [];
+
+        // Enrich with primary images
+        const enrichedData = await enrichWithPrimaryImages(paginatedData);
+
+        return Response.json({
+          data: enrichedData,
+          count: totalCount,
+          search_type: "vehicle_keyword",
+          matched_vehicles: matchedVehicles,
+        });
+      }
+
+      // Use existing SKU search
       const { data: allData, error: rpcError } = await supabase.rpc(
         "search_by_sku",
         {

@@ -5,6 +5,7 @@ import {
   PARTS_COLUMNS,
   VEHICLE_APPLICATIONS_COLUMNS,
   CROSS_REFERENCES_COLUMNS, // @deprecated - kept for backward compatibility
+  ALIASES_COLUMNS,
   BRAND_COLUMN_MAP,
   IMAGE_VIEW_TYPE_MAP,
   ExportFilters,
@@ -104,12 +105,14 @@ export class ExcelExportService {
    */
   async exportAllData(): Promise<Buffer> {
     // Fetch all data from database
-    const [parts, vehicles, crossRefsByPart, imagesByPart] = await Promise.all([
-      this.fetchAllRows("parts", "acr_sku"),
-      this.fetchVehiclesWithSku(),
-      this.fetchCrossRefsByPart(),
-      this.fetchImagesByPart(),
-    ]);
+    const [parts, vehicles, crossRefsByPart, imagesByPart, aliases] =
+      await Promise.all([
+        this.fetchAllRows("parts", "acr_sku"),
+        this.fetchVehiclesWithSku(),
+        this.fetchCrossRefsByPart(),
+        this.fetchImagesByPart(),
+        this.fetchAllAliases(),
+      ]);
 
     // Create workbook
     const workbook = new ExcelJS.Workbook();
@@ -121,6 +124,9 @@ export class ExcelExportService {
 
     // Add Vehicle Applications sheet
     this.addVehiclesSheet(workbook, vehicles);
+
+    // Add Vehicle Aliases sheet (Phase 4A)
+    this.addAliasesSheet(workbook, aliases);
 
     // Note: Cross References sheet removed in Phase 3 (now inline in Parts sheet)
 
@@ -148,7 +154,7 @@ export class ExcelExportService {
     // Extract part IDs for relationship queries
     const partIds = parts.map((p) => p.id);
 
-    // If no parts match, return empty workbook
+    // If no parts match, return empty workbook with aliases only
     if (partIds.length === 0) {
       const workbook = new ExcelJS.Workbook();
       workbook.creator = "ACR Automotive";
@@ -156,17 +162,21 @@ export class ExcelExportService {
 
       this.addPartsSheet(workbook, [], new Map(), new Map());
       this.addVehiclesSheet(workbook, []);
+      const aliases = await this.fetchAllAliases();
+      this.addAliasesSheet(workbook, aliases);
 
       const buffer = await workbook.xlsx.writeBuffer();
       return Buffer.from(buffer);
     }
 
-    // Fetch vehicle applications, cross-refs, and images for filtered parts
-    const [vehicles, crossRefsByPart, imagesByPart] = await Promise.all([
-      this.fetchRowsByPartIds("vehicle_applications", partIds),
-      this.fetchCrossRefsByPartIds(partIds),
-      this.fetchImagesByPartIds(partIds),
-    ]);
+    // Fetch vehicle applications, cross-refs, images, and aliases for filtered parts
+    const [vehicles, crossRefsByPart, imagesByPart, aliases] =
+      await Promise.all([
+        this.fetchRowsByPartIds("vehicle_applications", partIds),
+        this.fetchCrossRefsByPartIds(partIds),
+        this.fetchImagesByPartIds(partIds),
+        this.fetchAllAliases(),
+      ]);
 
     // Create workbook
     const workbook = new ExcelJS.Workbook();
@@ -176,6 +186,7 @@ export class ExcelExportService {
     // Add sheets
     this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart);
     this.addVehiclesSheet(workbook, vehicles);
+    this.addAliasesSheet(workbook, aliases);
 
     // Note: Cross References sheet removed in Phase 3 (now inline in Parts sheet)
 
@@ -240,6 +251,22 @@ export class ExcelExportService {
     }
 
     return allRows;
+  }
+
+  /**
+   * Fetch all vehicle aliases (Phase 4A)
+   */
+  private async fetchAllAliases(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from("vehicle_aliases")
+      .select("id, alias, canonical_name, alias_type")
+      .order("alias_type, alias", { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to fetch vehicle aliases: ${error.message}`);
+    }
+
+    return data || [];
   }
 
   /**
@@ -630,6 +657,30 @@ export class ExcelExportService {
         model: vehicle.model,
         start_year: vehicle.start_year,
         end_year: vehicle.end_year,
+      });
+    });
+
+    // Freeze header row
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
+  }
+
+  /**
+   * Add Vehicle Aliases sheet to workbook (Phase 4A)
+   * Allows Humberto to manage vehicle nickname mappings via Excel
+   */
+  private addAliasesSheet(workbook: ExcelJS.Workbook, aliases: any[]): void {
+    const worksheet = workbook.addWorksheet(SHEET_NAMES.ALIASES);
+
+    // Define columns using shared constants
+    worksheet.columns = ALIASES_COLUMNS;
+
+    // Add rows
+    aliases.forEach((alias) => {
+      worksheet.addRow({
+        _id: alias.id,
+        alias: alias.alias,
+        canonical_name: alias.canonical_name,
+        alias_type: alias.alias_type,
       });
     });
 

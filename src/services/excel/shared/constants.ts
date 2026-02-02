@@ -12,6 +12,8 @@ export const SHEET_NAMES = {
   VEHICLE_APPLICATIONS: "Vehicle Applications",
   /** @deprecated Cross-references now in Parts sheet brand columns */
   CROSS_REFERENCES: "Cross References",
+  /** Vehicle aliases for keyword search (Phase 4A) */
+  ALIASES: "Vehicle Aliases",
 } as const;
 
 /**
@@ -68,6 +70,14 @@ export const COLUMN_HEADERS = {
     ACR_SKU: "ACR_SKU",
     COMPETITOR_BRAND: "Competitor_Brand",
     COMPETITOR_SKU: "Competitor_SKU",
+  },
+
+  // Vehicle Aliases sheet (Phase 4A)
+  ALIASES: {
+    ID: "_id",
+    ALIAS: "Alias",
+    CANONICAL_NAME: "Canonical_Name",
+    ALIAS_TYPE: "Type",
   },
 } as const;
 
@@ -126,6 +136,14 @@ export const PROPERTY_NAMES = {
     COMPETITOR_BRAND: "competitor_brand",
     COMPETITOR_SKU: "competitor_sku",
   },
+
+  // Vehicle Aliases (Phase 4A)
+  ALIASES: {
+    ID: "_id",
+    ALIAS: "alias",
+    CANONICAL_NAME: "canonical_name",
+    ALIAS_TYPE: "alias_type",
+  },
 } as const;
 
 /**
@@ -181,6 +199,14 @@ export const COLUMN_WIDTHS = {
     ACR_SKU: 15,
     COMPETITOR_BRAND: 20,
     COMPETITOR_SKU: 20,
+  },
+
+  // Vehicle Aliases sheet (Phase 4A)
+  ALIASES: {
+    ID: 36,
+    ALIAS: 20,
+    CANONICAL_NAME: 25,
+    ALIAS_TYPE: 12,
   },
 } as const;
 
@@ -516,5 +542,33 @@ export const CROSS_REFERENCES_COLUMNS = [
     header: COLUMN_HEADERS.CROSS_REFERENCES.COMPETITOR_SKU,
     key: PROPERTY_NAMES.CROSS_REFERENCES.COMPETITOR_SKU,
     width: COLUMN_WIDTHS.CROSS_REFERENCES.COMPETITOR_SKU,
+  },
+];
+
+/**
+ * Vehicle Aliases sheet column definitions (Phase 4A)
+ * Allows Humberto to manage vehicle nickname mappings via Excel
+ */
+export const ALIASES_COLUMNS = [
+  {
+    header: COLUMN_HEADERS.ALIASES.ID,
+    key: PROPERTY_NAMES.ALIASES.ID,
+    width: COLUMN_WIDTHS.ALIASES.ID,
+    hidden: true,
+  },
+  {
+    header: COLUMN_HEADERS.ALIASES.ALIAS,
+    key: PROPERTY_NAMES.ALIASES.ALIAS,
+    width: COLUMN_WIDTHS.ALIASES.ALIAS,
+  },
+  {
+    header: COLUMN_HEADERS.ALIASES.CANONICAL_NAME,
+    key: PROPERTY_NAMES.ALIASES.CANONICAL_NAME,
+    width: COLUMN_WIDTHS.ALIASES.CANONICAL_NAME,
+  },
+  {
+    header: COLUMN_HEADERS.ALIASES.ALIAS_TYPE,
+    key: PROPERTY_NAMES.ALIASES.ALIAS_TYPE,
+    width: COLUMN_WIDTHS.ALIASES.ALIAS_TYPE,
   },
 ];
