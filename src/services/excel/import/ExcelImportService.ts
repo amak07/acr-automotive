@@ -124,6 +124,10 @@ export class ExcelImportService {
    * Parse worksheet to array of objects
    * Handles hidden columns and type conversion
    *
+   * Supports both header formats:
+   * - Old format: Column headers in Row 1, data in Row 2+
+   * - New format: Group headers in Row 1, column headers in Row 2, data in Row 3+
+   *
    * Maps Excel column headers to object properties using shared headerToPropertyName():
    * - "_id" → "_id"
    * - "ACR_SKU" → "acr_sku"
@@ -133,9 +137,15 @@ export class ExcelImportService {
   private parseSheet<T>(worksheet: ExcelJS.Worksheet): T[] {
     const rows: T[] = [];
 
-    // Get header row (row 1)
+    // Detect header format: check if Row 1 has column headers or group headers
+    // Group headers typically contain spaces (e.g., "Part Information")
+    // Column headers use underscores (e.g., "_id", "ACR_SKU", "Part_Type")
+    const { headerRowNumber, dataStartRow } =
+      this.detectHeaderFormat(worksheet);
+
+    // Get header row
     // IMPORTANT: Use includeEmpty: true to include hidden columns
-    const headerRow = worksheet.getRow(1);
+    const headerRow = worksheet.getRow(headerRowNumber);
     const headerMap: Map<number, string> = new Map();
 
     headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
@@ -147,9 +157,9 @@ export class ExcelImportService {
       }
     });
 
-    // Parse data rows (starting from row 2)
+    // Parse data rows (starting from dataStartRow)
     worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-      if (rowNumber === 1) return; // Skip header
+      if (rowNumber < dataStartRow) return; // Skip header row(s)
 
       const rowData: any = {};
       let hasData = false;
@@ -208,14 +218,111 @@ export class ExcelImportService {
   }
 
   /**
+   * Detect worksheet header format to determine where data starts
+   *
+   * Supports 3 formats:
+   * 1. Legacy (single header): Column headers in Row 1, data in Row 2+
+   * 2. Styled (2-row header): Group headers Row 1, column headers Row 2, data Row 3+
+   * 3. Full (3-row header): Group headers Row 1, column headers Row 2, instructions Row 3, data Row 4+
+   *
+   * Detection logic:
+   * - Row 1 with spaces (e.g., "Part Information") = group header
+   * - Row 2 with column patterns (e.g., "_id", "ACR SKU") = column header
+   * - Row 3 with instruction patterns (e.g., "separate with", "Do not") = instructions
+   *
+   * @returns { headerRowNumber, dataStartRow }
+   */
+  private detectHeaderFormat(worksheet: ExcelJS.Worksheet): {
+    headerRowNumber: number;
+    dataStartRow: number;
+  } {
+    const row1 = worksheet.getRow(1);
+    const row2 = worksheet.getRow(2);
+    const row3 = worksheet.getRow(3);
+
+    // Check Row 1 cells for group header characteristics (contains spaces)
+    let row1HasSpaces = false;
+    let row1HasColumnHeaders = false;
+
+    row1.eachCell({ includeEmpty: false }, (cell) => {
+      const value = cell.value?.toString() || "";
+      if (value.includes(" ")) {
+        row1HasSpaces = true;
+      }
+      // Check for typical column header patterns (starts with _ or uses PascalCase with underscore)
+      if (value.startsWith("_") || /^[A-Z][a-z]*_/.test(value)) {
+        row1HasColumnHeaders = true;
+      }
+    });
+
+    // Check Row 2 for column header characteristics
+    // New format uses spaces (e.g., "ACR SKU", "Part Type") or underscores
+    let row2HasColumnHeaders = false;
+    row2.eachCell({ includeEmpty: false }, (cell) => {
+      const value = cell.value?.toString() || "";
+      // Matches: "_id", "ACR_SKU", "ACR SKU", "Part Type", etc.
+      if (
+        value.startsWith("_") ||
+        /^[A-Z][a-z]*[_ ]/.test(value) ||
+        value === "Make" ||
+        value === "Model" ||
+        value === "Alias" ||
+        value === "Type"
+      ) {
+        row2HasColumnHeaders = true;
+      }
+    });
+
+    // Check Row 3 for instruction-like content
+    let row3HasInstructions = false;
+    row3.eachCell({ includeEmpty: false }, (cell) => {
+      const value = cell.value?.toString() || "";
+      // Instruction patterns (both English and Spanish)
+      if (
+        value.includes("separate with") ||
+        value.includes("separar con") ||
+        value.includes("Do not") ||
+        value.includes("No modificar") ||
+        value.includes("Upload via") ||
+        value.includes("Subir en") ||
+        value.includes("e.g.,") ||
+        value.includes("ej.,")
+      ) {
+        row3HasInstructions = true;
+      }
+    });
+
+    // Determine format:
+    // 1. Full format: Group headers + Column headers + Instructions → data at Row 4
+    // 2. Styled format: Group headers + Column headers → data at Row 3
+    // 3. Legacy format: Column headers only → data at Row 2
+    const hasGroupHeaders = row1HasSpaces && row2HasColumnHeaders;
+
+    if (hasGroupHeaders && row3HasInstructions) {
+      // Full format with instructions row
+      return { headerRowNumber: 2, dataStartRow: 4 };
+    } else if (hasGroupHeaders) {
+      // Styled format without instructions
+      return { headerRowNumber: 2, dataStartRow: 3 };
+    } else {
+      // Legacy format
+      return { headerRowNumber: 1, dataStartRow: 2 };
+    }
+  }
+
+  /**
    * Detect if file has hidden ID columns (_id, _part_id, _acr_part_id)
    * Checks for hidden columns in first worksheet
    *
    * This enforces the "export-only" workflow - users must export first
    * to get IDs before re-importing.
+   *
+   * Supports both old format (headers in Row 1) and new format (headers in Row 2)
    */
   private detectHiddenColumns(worksheet: ExcelJS.Worksheet): boolean {
-    const headerRow = worksheet.getRow(1);
+    // Detect which row contains headers
+    const { headerRowNumber } = this.detectHeaderFormat(worksheet);
+    const headerRow = worksheet.getRow(headerRowNumber);
     let hasHiddenIds = false;
 
     headerRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
