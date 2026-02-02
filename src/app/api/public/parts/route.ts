@@ -286,9 +286,9 @@ export async function GET(request: NextRequest) {
       const { data: allData, error: rpcError } = await supabase.rpc(
         "search_by_vehicle",
         {
-          make: params.make,
-          model: params.model,
-          target_year: parseInt(params.year),
+          p_make: params.make,
+          p_model: params.model,
+          p_year: parseInt(params.year),
         }
       );
 
