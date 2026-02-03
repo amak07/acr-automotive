@@ -66,6 +66,9 @@ COMMENT ON INDEX idx_parts_active_sku IS 'Partial index for active parts SKU loo
 -- STEP 5: Update search_by_sku() to filter by workflow_status
 -- ============================================================================
 
+-- Must DROP first because return type is changing
+DROP FUNCTION IF EXISTS search_by_sku(TEXT);
+
 CREATE OR REPLACE FUNCTION search_by_sku(search_sku TEXT)
 RETURNS TABLE (
     id UUID,
@@ -199,6 +202,9 @@ COMMENT ON FUNCTION search_by_sku IS 'Flexible SKU search using normalized colum
 -- STEP 6: Update search_by_vehicle() to filter by workflow_status
 -- ============================================================================
 
+-- Must DROP first because return type is changing
+DROP FUNCTION IF EXISTS search_by_vehicle(TEXT, TEXT, INT);
+
 CREATE OR REPLACE FUNCTION search_by_vehicle(
     make TEXT,
     model TEXT,
@@ -238,6 +244,9 @@ COMMENT ON FUNCTION search_by_vehicle IS 'Vehicle search with workflow_status fi
 -- ============================================================================
 -- STEP 7: Update search_by_vehicle_keyword() to use workflow_status
 -- ============================================================================
+
+-- Must DROP first because return type is changing
+DROP FUNCTION IF EXISTS search_by_vehicle_keyword(TEXT);
 
 CREATE OR REPLACE FUNCTION search_by_vehicle_keyword(search_term TEXT)
 RETURNS TABLE (
