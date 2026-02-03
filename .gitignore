@@ -121,3 +121,6 @@ public/CTK*/
 
 # Product images (served locally, not tracked in git)
 public/product-images/
+
+# SWC compiler cache
+.swc
