@@ -7,30 +7,11 @@
 **Before starting any work:**
 
 1. **Read `docs/PLANNING.md`** - Technical architecture, tech stack, and implementation strategy
-2. **Check `docs/TASKS.md`** - Current development priorities and session state
-3. **Say "session start"** - Automatic time tracking begins (fully automated via hooks!)
-
-**During work session:**
-
-- **Say "session pause"** - Temporarily stop tracking (lunch, breaks, meetings)
-- **Say "session continue"** - Resume tracking after pause
-- Work on features and tasks as normal
-
-**When ending session:**
-
-1. Say **"session end"** to trigger automatic documentation
-2. Claude will generate TASKS.md entry with:
-   - Session number and date
-   - Start/end times with calculated work duration (excluding pauses!)
-   - Pause time breakdown (if any)
-   - Work completed summary
-   - Git statistics (lines changed, files modified, commits)
+2. **Run `bd ready`** - Check for pending tasks from previous sessions
 
 **Pre-commit hooks (configured):**
 
-- Run lint-staged (ESLint + Prettier) on staged files
-- Ensure code quality before commits
-- Auto-format TypeScript, JSON, and Markdown files
+- lint-staged (ESLint + Prettier) on staged files
 - Beads sync (flushes task database to git)
 
 ## 🔗 Beads Task Management
