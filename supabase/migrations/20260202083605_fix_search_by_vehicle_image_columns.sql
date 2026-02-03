@@ -1,6 +1,9 @@
 -- Fix search_by_vehicle to use correct part_images columns
 -- The table uses is_primary and view_type, not image_type and angle
 
+-- Must DROP first because return type and parameter names are changing
+DROP FUNCTION IF EXISTS search_by_vehicle(TEXT, TEXT, INT);
+
 CREATE OR REPLACE FUNCTION search_by_vehicle(
   p_make TEXT DEFAULT NULL,
   p_model TEXT DEFAULT NULL,
