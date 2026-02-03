@@ -31,6 +31,43 @@
 - Run lint-staged (ESLint + Prettier) on staged files
 - Ensure code quality before commits
 - Auto-format TypeScript, JSON, and Markdown files
+- Beads sync (flushes task database to git)
+
+## 🔗 Beads Task Management
+
+This project uses **beads (bd)** for persistent task tracking across sessions. Tasks survive context resets and are stored in `.beads/`.
+
+**Session start:**
+```bash
+bd ready              # See available (unblocked) tasks
+bd list               # See all tasks
+```
+
+**After plan approval - create tasks from plan steps:**
+```bash
+bd new "Step 1: Description"
+bd new "Step 2: Description"
+bd dep add <step2-id> <step1-id>  # Step 2 depends on step 1
+```
+
+**During work:**
+```bash
+bd update <id> --status in_progress  # Mark task started
+bd new "Discovered: edge case X"     # File new work as discovered
+bd dep add <new-id> <blocking-id>    # Add dependencies
+```
+
+**Completing work:**
+```bash
+bd close <id> --reason "Completed: brief description"
+```
+
+**When plans change:**
+- Add new tasks: `bd new "New requirement"`
+- Close obsolete tasks: `bd close <id> --reason "No longer needed"`
+- Update scope: `bd update <id> --body "Updated description"`
+
+**Key principle:** Beads is a persistence layer, not automation. Claude must explicitly create/update/close tasks. The value is state survives across sessions.
 
 ## 📁 Key File Locations
 
