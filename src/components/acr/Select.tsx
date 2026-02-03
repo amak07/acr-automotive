@@ -15,7 +15,7 @@ export interface AcrSelectTriggerProps
 }
 
 /**
- * ACR-branded select trigger with consistent styling
+ * ACR-branded select trigger with crisp, consistent styling
  */
 export const AcrSelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectTrigger>,
@@ -23,34 +23,32 @@ export const AcrSelectTrigger = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectTrigger
     className={cn(
-      // ACR-specific styling overrides
-      "pl-4 pr-3 py-3 h-auto", // ACR spacing standards
+      // Base layout
+      "h-12 px-4 py-3",
 
-      // Base styles
-      "transition-colors duration-200",
+      // Typography
+      "text-sm font-medium",
 
-      // Coca-Cola chunky style - matches inputs
-      "!border-black !border !bg-white !text-black",
-      "hover:!border-gray-600 hover:!shadow-[0_0_0_2px_rgba(0,0,0,0.24)]", // Coca-Cola hover
-      "!px-6 !py-4", // Extra padding but keep normal radius
-      "!font-medium", // Slightly bolder text
+      // Crisp borders & background
+      "bg-white rounded-lg",
+      "border-2 border-acr-gray-900",
 
-      // Focus state - matches Coca-Cola (force override all focus styles)
-      "!focus:outline-2 !focus:outline-black !focus:outline-offset-2 !focus:border-black !focus:ring-0",
-      "!focus-visible:outline-2 !focus-visible:outline-black !focus-visible:outline-offset-2 !focus-visible:border-black !focus-visible:ring-0",
-      "focus:!outline focus-visible:!outline", // Force outline to be visible
-      // Override any red focus styles
-      "focus:!border-black focus-visible:!border-black focus:!ring-black focus-visible:!ring-black",
-      "focus:!ring-offset-0 focus-visible:!ring-offset-0",
+      // Smooth transitions
+      "transition-all duration-150 ease-out",
+
+      // Hover state
+      "hover:border-acr-gray-700 hover:bg-acr-gray-50/50",
+
+      // Focus state - clean ring
+      "focus:outline-none focus-visible:outline-none",
+      "focus:ring-2 focus:ring-acr-gray-900 focus:ring-offset-2",
 
       // Placeholder styling
-      "data-[placeholder]:!text-acr-gray-500",
+      "data-[placeholder]:text-acr-gray-500",
 
-      // Custom dropdown arrow styling - black to match Coca-Cola style
-      "[&>*[data-radix-select-icon]]:!text-black [&>*[data-radix-select-icon]]:!opacity-100",
-      "[&_svg]:!text-black [&_svg]:!opacity-100",
-      // Move arrow closer to right border
-      "[&>*[data-radix-select-icon]]:!mr-1",
+      // Arrow icon styling
+      "[&_svg]:text-acr-gray-600 [&_svg]:transition-transform [&_svg]:duration-200",
+      "[&[data-state=open]_svg]:rotate-180",
 
       className
     )}
@@ -62,7 +60,7 @@ export const AcrSelectTrigger = React.forwardRef<
 AcrSelectTrigger.displayName = "AcrSelectTrigger";
 
 /**
- * ACR-branded select content with consistent styling
+ * ACR-branded select content with polished dropdown styling
  */
 export const AcrSelectContent = React.forwardRef<
   React.ElementRef<typeof SelectContent>,
@@ -70,9 +68,10 @@ export const AcrSelectContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectContent
     className={cn(
-      // ACR-specific content styling
-      "border-acr-gray-200 bg-white",
-      "shadow-lg",
+      // Crisp dropdown styling
+      "bg-white rounded-lg overflow-hidden",
+      "border border-acr-gray-200",
+      "shadow-lg shadow-acr-gray-900/10",
       className
     )}
     ref={ref}
@@ -83,7 +82,7 @@ export const AcrSelectContent = React.forwardRef<
 AcrSelectContent.displayName = "AcrSelectContent";
 
 /**
- * ACR-branded select item with consistent styling
+ * ACR-branded select item with refined hover/focus states
  */
 export const AcrSelectItem = React.forwardRef<
   React.ElementRef<typeof SelectItem>,
@@ -91,9 +90,24 @@ export const AcrSelectItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectItem
     className={cn(
-      // ACR-specific item styling
-      "text-acr-gray-900 focus:bg-acr-red-50 focus:text-acr-red-900",
-      "cursor-pointer",
+      // Base item styling
+      "px-3 py-2.5 mx-1 my-0.5 rounded-md",
+      "text-sm text-acr-gray-900",
+      "cursor-pointer select-none",
+
+      // Smooth transitions
+      "transition-colors duration-100",
+
+      // Hover & focus states
+      "hover:bg-acr-gray-50",
+      "focus:bg-acr-gray-100 focus:text-acr-gray-900",
+
+      // Selected state (via data attribute)
+      "data-[state=checked]:bg-acr-red-50 data-[state=checked]:text-acr-red-900 data-[state=checked]:font-medium",
+
+      // Checkmark styling
+      "[&_span:first-child]:text-acr-red-600",
+
       className
     )}
     ref={ref}
@@ -130,11 +144,7 @@ export const AcrSelectRoot: React.FC<AcrSelectRootProps> = ({
     return <Skeleton className={cn("w-full", skeletonHeight)} />;
   }
 
-  return (
-    <Select {...props}>
-      {children}
-    </Select>
-  );
+  return <Select {...props}>{children}</Select>;
 };
 
 /**

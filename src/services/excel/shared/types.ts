@@ -2,7 +2,7 @@
 // Shared Excel Export/Import Types
 // ============================================================================
 
-import type { COLUMN_HEADERS, COLUMN_WIDTHS } from './constants';
+import type { COLUMN_HEADERS, COLUMN_WIDTHS } from "./constants";
 
 /**
  * Shared type definitions for Excel export and import operations.
@@ -37,25 +37,55 @@ export interface ExcelColumnDefinition {
 /**
  * Part row structure for Excel export/import
  *
- * Columns:
+ * Core Columns:
  * - _id (hidden): UUID for tracking existing parts on re-import
  * - ACR_SKU: ACR part number (user-visible, required)
+ * - Status: Workflow status (Activo, Inactivo, Eliminar) - Phase 5
  * - Part_Type: Part classification (e.g., "Wheel Hub", "Brake Rotor")
  * - Position_Type: Position (e.g., "Front", "Rear", "Front Left")
  * - ABS_Type: ABS compatibility (e.g., "C/ABS", "S/ABS")
  * - Bolt_Pattern: Wheel bolt pattern (e.g., "4 ROSCAS", "5")
  * - Drive_Type: Drive type (e.g., "2WD", "4WD", "AWD")
  * - Specifications: Technical specifications (TEXT field)
+ *
+ * Cross-Reference Brand Columns (Phase 3A):
+ * - National_SKUs, ATV_SKUs, SYD_SKUs, etc. (semicolon-separated SKUs)
+ * - Use [DELETE]SKU to explicitly mark a SKU for deletion
+ *
+ * Image URL Columns (Phase 3B):
+ * - Image_URL_Front, Image_URL_Back, Image_URL_Top, Image_URL_Other
+ * - 360_Viewer_Status: "Confirmed" if part has 360 viewer
  */
 export interface ExcelPartRow {
   _id?: string; // Hidden column (UUID)
+  _action?: string; // ML-style: set to "DELETE" to explicitly delete a part
   acr_sku: string;
+  status?: string; // Workflow status: Activo, Inactivo, Eliminar
   part_type: string;
   position_type?: string;
   abs_type?: string;
   bolt_pattern?: string;
   drive_type?: string;
   specifications?: string;
+  // Cross-reference brand columns (Phase 3A) - semicolon-separated SKUs
+  // Use [DELETE]SKU to mark a SKU for explicit deletion
+  national_skus?: string;
+  atv_skus?: string;
+  syd_skus?: string;
+  tmk_skus?: string;
+  grob_skus?: string;
+  race_skus?: string;
+  oem_skus?: string;
+  oem_2_skus?: string;
+  gmb_skus?: string;
+  gsp_skus?: string;
+  fag_skus?: string;
+  // Image URL columns (Phase 3B)
+  image_url_front?: string;
+  image_url_back?: string;
+  image_url_top?: string;
+  image_url_other?: string;
+  viewer_360_status?: string; // "Confirmed" or empty (readonly on export)
 }
 
 // ----------------------------------------------------------------------------
@@ -91,6 +121,10 @@ export interface ExcelVehicleAppRow {
 /**
  * Cross reference row structure for Excel export/import
  *
+ * @deprecated Phase 3 moves cross-references to brand columns in Parts sheet.
+ * This interface is kept for backward compatibility with old imports only.
+ * New exports use brand columns (national_skus, atv_skus, etc.) in ExcelPartRow.
+ *
  * Columns:
  * - _id (hidden): UUID for tracking existing CRs on re-import
  * - _acr_part_id (hidden): Foreign key to Parts._id
@@ -104,6 +138,29 @@ export interface ExcelCrossRefRow {
   acr_sku: string; // User-visible reference (Humberto maps by SKU)
   competitor_brand?: string;
   competitor_sku: string;
+}
+
+// ----------------------------------------------------------------------------
+// Vehicle Alias Row (Sheet 4: Vehicle Aliases - Phase 4A)
+// ----------------------------------------------------------------------------
+
+/**
+ * Vehicle alias row structure for Excel export/import (Phase 4A)
+ *
+ * Allows Humberto to manage vehicle nickname/abbreviation mappings.
+ * Examples: "chevy" → "CHEVROLET", "stang" → "MUSTANG"
+ *
+ * Columns:
+ * - _id (hidden): UUID for tracking existing aliases on re-import
+ * - Alias: The nickname (e.g., "chevy", "beemer")
+ * - Canonical_Name: The actual make/model name (e.g., "CHEVROLET", "BMW")
+ * - Type: Either "make" or "model"
+ */
+export interface ExcelAliasRow {
+  _id?: string; // Hidden column (UUID)
+  alias: string;
+  canonical_name: string;
+  alias_type: "make" | "model";
 }
 
 // ----------------------------------------------------------------------------
@@ -132,6 +189,8 @@ export interface ParsedExcelFile {
   parts: ParsedSheet<ExcelPartRow>;
   vehicleApplications: ParsedSheet<ExcelVehicleAppRow>;
   crossReferences: ParsedSheet<ExcelCrossRefRow>;
+  /** Vehicle aliases for keyword search (Phase 4A) - optional */
+  aliases?: ParsedSheet<ExcelAliasRow>;
   metadata: {
     uploadedAt: Date;
     fileName: string;

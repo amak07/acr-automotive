@@ -34,7 +34,7 @@ function UsersPage() {
   // Show access denied if not admin (before redirect completes)
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-acr-gray-50 acr-page-bg-pattern">
+      <div>
         <AppHeader variant="admin" />
         <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
           <PageError
@@ -49,7 +49,7 @@ function UsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-acr-gray-50 acr-page-bg-pattern">
+    <div>
       <AppHeader variant="admin" />
       <UserManagementContent />
     </div>

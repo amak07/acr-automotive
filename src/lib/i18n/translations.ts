@@ -321,13 +321,13 @@ export const translations: Record<
     en: "Create a single part manually",
     es: "Crear una pieza manualmente",
   },
-  "admin.quickActions.manageImages": {
-    en: "Manage Images",
-    es: "Gestionar Imágenes",
+  "admin.quickActions.uploadImages": {
+    en: "Upload Images",
+    es: "Subir Imágenes",
   },
-  "admin.quickActions.manageImagesDescription": {
-    en: "Bulk upload product images",
-    es: "Subir imágenes de productos en lote",
+  "admin.quickActions.uploadImagesDescription": {
+    en: "Upload images for Excel import",
+    es: "Subir imágenes para importar en Excel",
   },
   "admin.quickActions.settings": {
     en: "Settings",
@@ -1329,6 +1329,24 @@ export const translations: Record<
     es: "4x4",
   },
 
+  // Workflow Status (Phase 5)
+  "parts.status.label": {
+    en: "Status",
+    es: "Estado",
+  },
+  "parts.status.active": {
+    en: "Active",
+    es: "Activo",
+  },
+  "parts.status.inactive": {
+    en: "Inactive",
+    es: "Inactivo",
+  },
+  "parts.status.delete": {
+    en: "Mark for Deletion",
+    es: "Marcar para Eliminar",
+  },
+
   // Field labels for specs display
   "parts.labels.position": {
     en: "Position",
@@ -2120,8 +2138,8 @@ export const translations: Record<
     es: "Seleccionar Año",
   },
   "public.search.skuPlaceholder": {
-    en: "Enter part number (e.g., MOC-123, DEL-456)",
-    es: "Ingrese número de parte (ej: MOC-123, DEL-456)",
+    en: "Ex: ACR10094077, 04616263AA, or Mustang",
+    es: "Ej.: ACR10094077, 04616263AA, o Mustang",
   },
   "public.search.vehicleSearchTitle": {
     en: "Vehicle Search",
@@ -2132,12 +2150,12 @@ export const translations: Record<
     es: "Vehículo",
   },
   "public.search.skuSearchTitle": {
-    en: "Part Number Search",
-    es: "Búsqueda por Número de Parte",
+    en: "Quick Search",
+    es: "Búsqueda Rápida",
   },
   "public.search.skuTabShort": {
-    en: "Part Number",
-    es: "Número de Parte",
+    en: "Quick Search",
+    es: "Búsqueda Rápida",
   },
   "public.search.advancedFilters": {
     en: "Advanced Filters",
@@ -2204,6 +2222,22 @@ export const translations: Record<
   "public.parts.noResults": {
     en: "No parts found",
     es: "No se encontraron refacciones",
+  },
+  "public.parts.noResultsTitle": {
+    en: "No matching parts found",
+    es: "No se encontraron coincidencias",
+  },
+  "public.parts.noResultsMessage": {
+    en: "We couldn't find any parts matching your search criteria.",
+    es: "No pudimos encontrar refacciones con los criterios de búsqueda.",
+  },
+  "public.parts.noResultsSuggestion": {
+    en: "Try adjusting your search terms or clearing filters to see more results.",
+    es: "Intenta ajustar los términos de búsqueda o limpiar los filtros para ver más resultados.",
+  },
+  "public.parts.clearSearch": {
+    en: "Clear Search",
+    es: "Limpiar Búsqueda",
   },
   "public.parts.viewDetails": {
     en: "View details",
@@ -2602,370 +2636,98 @@ export const translations: Record<
     es: "Todos los derechos reservados.",
   },
 
-  // Admin Bulk Image Upload
-  "admin.bulkUpload.title": {
-    en: "Bulk Image Upload",
-    es: "Carga Masiva de Imágenes",
+  // Admin Upload Images Dashboard
+  "admin.uploadImages.title": {
+    en: "Upload Images",
+    es: "Subir Imágenes",
   },
-  "admin.bulkUpload.description": {
-    en: "Upload folders of supplier photos to automatically map to parts",
-    es: "Sube carpetas de fotos de proveedores para asignarlas automáticamente a piezas",
+  "admin.uploadImages.description": {
+    en: "Upload images here, copy the URL, then paste into your Excel file's image columns.",
+    es: "Sube imágenes aquí, copia la URL y pégala en las columnas de imágenes de tu archivo Excel.",
   },
-  "admin.bulkUpload.button": {
-    en: "Bulk Images",
-    es: "Imágenes Masivas",
+  "admin.uploadImages.howItWorks": {
+    en: "How it works",
+    es: "Cómo funciona",
   },
-  "admin.bulkUpload.uploadFolder": {
-    en: "Upload Folder",
-    es: "Subir Carpeta",
+  "admin.uploadImages.step1": {
+    en: "Drag and drop images or click to browse",
+    es: "Arrastra y suelta imágenes o haz clic para buscar",
   },
-  "admin.bulkUpload.back": {
-    en: "Back",
-    es: "Volver",
+  "admin.uploadImages.step2": {
+    en: "Click 'Copy URL' to copy the image link",
+    es: "Haz clic en 'Copiar URL' para copiar el enlace de la imagen",
   },
-  "admin.bulkUpload.noPartsFound": {
-    en: "No parts found matching your filters.",
-    es: "No se encontraron piezas que coincidan con tus filtros.",
+  "admin.uploadImages.step3": {
+    en: "Paste the URL into Excel (Image_URL_Front, Image_URL_Back, etc.)",
+    es: "Pega la URL en Excel (Image_URL_Front, Image_URL_Back, etc.)",
   },
-  "admin.bulkUpload.showingParts": {
-    en: "Showing {{start}} to {{end}} of {{total}} parts",
-    es: "Mostrando {{start}} a {{end}} de {{total}} piezas",
+  "admin.uploadImages.dragDrop": {
+    en: "Drag and drop images here, or click to browse",
+    es: "Arrastra y suelta imágenes aquí, o haz clic para buscar",
   },
-  "admin.bulkUpload.pageOf": {
-    en: "Page {current} of {total}",
-    es: "Página {current} de {total}",
+  "admin.uploadImages.supportedFormats": {
+    en: "Supports: JPG, PNG, WebP (max 5MB)",
+    es: "Formatos: JPG, PNG, WebP (máx 5MB)",
   },
-  "admin.bulkUpload.thumb": {
-    en: "Thumb",
-    es: "Mini",
+  "admin.uploadImages.uploading": {
+    en: "Uploading...",
+    es: "Subiendo...",
   },
-  "admin.bulkUpload.part": {
-    en: "Part",
-    es: "Pieza",
-  },
-  "admin.bulkUpload.type": {
-    en: "Type",
-    es: "Tipo",
-  },
-  "admin.bulkUpload.images": {
-    en: "Images",
-    es: "Imágenes",
-  },
-  "admin.bulkUpload.viewer360": {
-    en: "360° Viewer",
-    es: "Visor 360°",
-  },
-  "admin.bulkUpload.filterImages": {
-    en: "Filter by images",
-    es: "Filtrar por imágenes",
-  },
-  "admin.bulkUpload.filter360": {
-    en: "Filter by 360°",
-    es: "Filtrar por 360°",
-  },
-  "admin.bulkUpload.allParts": {
-    en: "All Parts",
-    es: "Todas las Piezas",
-  },
-  "admin.bulkUpload.hasImages": {
-    en: "Has Images",
-    es: "Con Imágenes",
-  },
-  "admin.bulkUpload.noImages": {
-    en: "No Images",
-    es: "Sin Imágenes",
-  },
-  "admin.bulkUpload.has360": {
-    en: "Has 360°",
-    es: "Con 360°",
-  },
-  "admin.bulkUpload.no360": {
-    en: "No 360°",
-    es: "Sin 360°",
-  },
-  "admin.bulkUpload.searchPlaceholder": {
-    en: "Search by SKU...",
-    es: "Buscar por SKU...",
-  },
-  "admin.bulkUpload.modal.selectTitle": {
-    en: "Select Files",
-    es: "Seleccionar Archivos",
-  },
-  "admin.bulkUpload.modal.reviewTitle": {
-    en: "Review & Confirm",
-    es: "Revisar y Confirmar",
-  },
-  "admin.bulkUpload.modal.progressTitle": {
-    en: "Upload Progress",
-    es: "Progreso de Carga",
-  },
-  "admin.bulkUpload.dropHere": {
-    en: "Drop files here...",
-    es: "Suelta los archivos aquí...",
-  },
-  "admin.bulkUpload.dragDrop": {
-    en: "Drag and drop folder or files here",
-    es: "Arrastra y suelta carpeta o archivos aquí",
-  },
-  "admin.bulkUpload.orBrowse": {
-    en: "or click to browse",
-    es: "o haz clic para explorar",
-  },
-  "admin.bulkUpload.selectFiles": {
-    en: "Select Files",
-    es: "Seleccionar Archivos",
-  },
-  "admin.bulkUpload.filesSelected": {
-    en: "{count} files selected",
-    es: "{count} archivos seleccionados",
-  },
-  "admin.bulkUpload.productImages": {
-    en: "Product Images",
-    es: "Imágenes de Producto",
-  },
-  "admin.bulkUpload.frames360": {
-    en: "360° Frames",
-    es: "Cuadros 360°",
-  },
-  "admin.bulkUpload.unknown": {
-    en: "Unknown",
-    es: "Desconocido",
-  },
-  "admin.bulkUpload.uniqueSkus": {
-    en: "Unique SKUs",
-    es: "SKUs Únicos",
-  },
-  "admin.bulkUpload.filesSkipped": {
-    en: "{count} files skipped (unsupported format)",
-    es: "{count} archivos omitidos (formato no soportado)",
-  },
-  "admin.bulkUpload.analyzeFiles": {
-    en: "Analyze Files",
-    es: "Analizar Archivos",
-  },
-  "admin.bulkUpload.clear": {
-    en: "Clear",
-    es: "Limpiar",
-  },
-  "admin.bulkUpload.analyzing": {
-    en: "Analyzing files...",
-    es: "Analizando archivos...",
-  },
-  "admin.bulkUpload.matchingSkus": {
-    en: "Matching SKUs to parts",
-    es: "Emparejando SKUs con piezas",
-  },
-  "admin.bulkUpload.processingBatch": {
-    en: "Processing batch {current} of {total}...",
-    es: "Procesando lote {current} de {total}...",
-  },
-  "admin.bulkUpload.filesMatched": {
-    en: "Files Matched",
-    es: "Archivos Emparejados",
-  },
-  "admin.bulkUpload.newParts": {
-    en: "New Parts",
-    es: "Piezas Nuevas",
-  },
-  "admin.bulkUpload.partsToUpdate": {
-    en: "Parts to Update",
-    es: "Piezas a Actualizar",
-  },
-  "admin.bulkUpload.unmatched": {
-    en: "Unmatched",
-    es: "Sin Emparejar",
-  },
-  "admin.bulkUpload.new": {
-    en: "NEW",
-    es: "NUEVO",
-  },
-  "admin.bulkUpload.partsGettingImages": {
-    en: "{count} parts getting images for the first time",
-    es: "{count} piezas recibiendo imágenes por primera vez",
-  },
-  "admin.bulkUpload.updating": {
-    en: "UPDATING",
-    es: "ACTUALIZANDO",
-  },
-  "admin.bulkUpload.partsWithExisting": {
-    en: "{count} parts with existing images",
-    es: "{count} piezas con imágenes existentes",
-  },
-  "admin.bulkUpload.unmatchedFiles": {
-    en: "Unmatched Files",
-    es: "Archivos Sin Emparejar",
-  },
-  "admin.bulkUpload.unmatchedDescription": {
-    en: "These files could not be matched to any part in the database.",
-    es: "Estos archivos no pudieron emparejarse con ninguna pieza en la base de datos.",
-  },
-  "admin.bulkUpload.moreFiles": {
-    en: "+{count} more",
-    es: "+{count} más",
-  },
-  "admin.bulkUpload.startUpload": {
-    en: "Start Upload",
-    es: "Iniciar Carga",
-  },
-  "admin.bulkUpload.uploading": {
-    en: "Uploading images...",
-    es: "Subiendo imágenes...",
-  },
-  "admin.bulkUpload.processingFiles": {
-    en: "Processing and uploading your files. This may take a few minutes.",
-    es: "Procesando y subiendo tus archivos. Esto puede tomar unos minutos.",
-  },
-  "admin.bulkUpload.uploadComplete": {
-    en: "Upload Complete!",
-    es: "¡Carga Completa!",
-  },
-  "admin.bulkUpload.uploadPartial": {
-    en: "Upload Partially Complete",
-    es: "Carga Parcialmente Completa",
-  },
-  "admin.bulkUpload.partsSuccessful": {
-    en: "Parts Successful",
-    es: "Piezas Exitosas",
-  },
-  "admin.bulkUpload.imagesUploaded": {
-    en: "Images Uploaded",
+  "admin.uploadImages.uploadedImages": {
+    en: "Uploaded Images",
     es: "Imágenes Subidas",
   },
-  "admin.bulkUpload.partsFailed": {
-    en: "Parts Failed",
-    es: "Piezas Fallidas",
+  "admin.uploadImages.sessionNote": {
+    en: "Images are stored permanently. Delete individually when no longer needed.",
+    es: "Las imágenes se almacenan permanentemente. Elimina individualmente cuando ya no las necesites.",
   },
-  "admin.bulkUpload.successfulUploads": {
-    en: "Successful Uploads",
-    es: "Cargas Exitosas",
+  "admin.uploadImages.copiedBadge": {
+    en: "copied",
+    es: "copiadas",
   },
-  "admin.bulkUpload.failedUploads": {
-    en: "Failed Uploads",
-    es: "Cargas Fallidas",
+  "admin.uploadImages.imageCount": {
+    en: "images",
+    es: "imágenes",
   },
-  "admin.bulkUpload.uploadFailed": {
-    en: "Upload Failed",
-    es: "Carga Fallida",
+  "admin.uploadImages.urlCopied": {
+    en: "URL copied",
+    es: "URL copiada",
   },
-  "admin.bulkUpload.retry": {
-    en: "Retry",
-    es: "Reintentar",
+  "admin.uploadImages.deleteImage": {
+    en: "Delete image",
+    es: "Eliminar imagen",
   },
-  "admin.bulkUpload.done": {
-    en: "Done",
-    es: "Listo",
+  "admin.uploadImages.deleteNote": {
+    en: "Deleting an image removes it from storage permanently. Make sure you've pasted the URL into Excel before deleting.",
+    es: "Eliminar una imagen la borra del almacenamiento permanentemente. Asegúrate de haber pegado la URL en Excel antes de eliminar.",
   },
-  "admin.bulkUpload.close": {
-    en: "Close",
-    es: "Cerrar",
+  "admin.uploadImages.noImagesHint": {
+    en: "Drag files here or click to browse",
+    es: "Arrastra archivos aquí o haz clic para buscar",
   },
-  "admin.bulkUpload.upload360Button": {
-    en: "Upload 360° Viewer",
-    es: "Subir Visor 360°",
+  "admin.uploadImages.copyUrl": {
+    en: "Copy URL",
+    es: "Copiar URL",
   },
-  "admin.bulkUpload.uploadProductButton": {
-    en: "Upload Product Images",
-    es: "Subir Imágenes de Producto",
+  "admin.uploadImages.copied": {
+    en: "Copied!",
+    es: "Copiado!",
   },
-  "admin.bulkUpload.360.selectTitle": {
-    en: "Select 360° Frame Images",
-    es: "Seleccionar Imágenes 360°",
+  "admin.uploadImages.noImages": {
+    en: "No images uploaded yet. Drag and drop to get started.",
+    es: "No hay imágenes subidas aún. Arrastra y suelta para comenzar.",
   },
-  "admin.bulkUpload.360.reviewTitle": {
-    en: "Review 360° Uploads",
-    es: "Revisar Subidas 360°",
+  "admin.uploadImages.errorInvalidType": {
+    en: "Invalid file type. Please upload JPG, PNG, or WebP images.",
+    es: "Tipo de archivo inválido. Por favor sube imágenes JPG, PNG o WebP.",
   },
-  "admin.bulkUpload.360.uploadingTitle": {
-    en: "Uploading 360° Viewers",
-    es: "Subiendo Visores 360°",
+  "admin.uploadImages.errorTooLarge": {
+    en: "File too large. Maximum size is 5MB.",
+    es: "Archivo demasiado grande. El tamaño máximo es 5MB.",
   },
-  "admin.bulkUpload.360.completeTitle": {
-    en: "Upload Complete",
-    es: "Subida Completa",
-  },
-  "admin.bulkUpload.360.dropHere": {
-    en: "Drop files here...",
-    es: "Suelta los archivos aquí...",
-  },
-  "admin.bulkUpload.360.dragDrop": {
-    en: "Drag and drop 360° frame images",
-    es: "Arrastra y suelta imágenes 360°",
-  },
-  "admin.bulkUpload.360.orBrowse": {
-    en: "or click to browse",
-    es: "o haz clic para buscar",
-  },
-  "admin.bulkUpload.360.frames": {
-    en: "360° Frames",
-    es: "Cuadros 360°",
-  },
-  "admin.bulkUpload.360.uniqueParts": {
-    en: "Unique Parts",
-    es: "Piezas Únicas",
-  },
-  "admin.bulkUpload.360.filesSkipped": {
-    en: "{{count}} non-image files skipped",
-    es: "{{count}} archivos no imagen omitidos",
-  },
-  "admin.bulkUpload.360.readyToUpload": {
-    en: "Ready to Upload",
-    es: "Listo para Subir",
-  },
-  "admin.bulkUpload.360.skuNotFound": {
-    en: "SKU Not Found",
-    es: "SKU No Encontrado",
-  },
-  "admin.bulkUpload.360.lessThanFrames": {
-    en: "< {{min}} Frames",
-    es: "< {{min}} Cuadros",
-  },
-  "admin.bulkUpload.360.nFrames": {
-    en: "{{count}} frames",
-    es: "{{count}} cuadros",
-  },
-  "admin.bulkUpload.360.replacesN": {
-    en: "(replaces {{count}})",
-    es: "(reemplaza {{count}})",
-  },
-  "admin.bulkUpload.360.ready": {
-    en: "Ready",
-    es: "Listo",
-  },
-  "admin.bulkUpload.360.partNotFound": {
-    en: "Part Not Found",
-    es: "Pieza No Encontrada",
-  },
-  "admin.bulkUpload.360.needMoreFrames": {
-    en: "Need {{count}} more frames",
-    es: "Faltan {{count}} cuadros",
-  },
-  "admin.bulkUpload.360.uploadN": {
-    en: "Upload {{count}} 360° Viewer",
-    es: "Subir {{count}} Visor 360°",
-  },
-  "admin.bulkUpload.360.uploading": {
-    en: "Uploading 360° viewers...",
-    es: "Subiendo visores 360°...",
-  },
-  "admin.bulkUpload.360.nOfNComplete": {
-    en: "{{current}} of {{total}} complete",
-    es: "{{current}} de {{total}} completados",
-  },
-  "admin.bulkUpload.360.uploadComplete": {
-    en: "Upload Complete!",
-    es: "¡Subida Completa!",
-  },
-  "admin.bulkUpload.360.nUploaded": {
-    en: "{{count}} 360° viewer(s) uploaded",
-    es: "{{count}} visor(es) 360° subido(s)",
-  },
-  "admin.bulkUpload.360.nFailed": {
-    en: "{{count}} failed",
-    es: "{{count}} fallido(s)",
-  },
-  "admin.bulkUpload.360.uploadMore": {
-    en: "Upload More",
-    es: "Subir Más",
+  "admin.uploadImages.errorUploadFailed": {
+    en: "Failed to upload images. Please try again.",
+    es: "Error al subir imágenes. Por favor intenta de nuevo.",
   },
 
   // Data Portal (for data managers)
