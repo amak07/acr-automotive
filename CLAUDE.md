@@ -1,5 +1,7 @@
 # CLAUDE.md - ACR Automotive
 
+**Always announce when using a skill or subagent** (e.g., "Using skill: frontend-design").
+
 ## Project
 
 ACR Automotive: Production-ready auto parts cross-reference search platform. Deployed to production with complete parts catalog.
