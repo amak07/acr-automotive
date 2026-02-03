@@ -99,39 +99,39 @@ function HomePageContent() {
           )}
 
         {/* Search and Parts List - Contained width */}
-        <div className="px-4 py-6 mx-auto lg:max-w-6xl lg:px-8">
+        <div className="px-4 py-6 mx-auto md:px-6 lg:max-w-6xl lg:px-8">
           <PublicSearchFilters setSearchTerms={setSearchTerms} />
 
-          {/* Error State for Parts Search */}
-          {error && (
+          {/* Error State for Parts Search - takes precedence over results */}
+          {error ? (
             <div className="mt-8">
               <CardError
                 title={t("public.parts.errorTitle")}
                 message={t("public.parts.errorMessage")}
               />
             </div>
+          ) : (
+            <div className="mt-8">
+              <PublicPartsList
+                partsData={data?.data || []}
+                partsCount={data?.count || 0}
+                isDataLoading={partsLoading}
+                currentPage={currentPage}
+                limit={searchTerms.limit}
+              />
+              {data && data.count > searchTerms.limit && (
+                <div className="mt-8">
+                  <AcrPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    total={data.count}
+                    limit={searchTerms.limit}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
+            </div>
           )}
-
-          <div className="mt-8">
-            <PublicPartsList
-              partsData={data?.data || []}
-              partsCount={data?.count || 0}
-              isDataLoading={partsLoading}
-              currentPage={currentPage}
-              limit={searchTerms.limit}
-            />
-            {data && data.count > searchTerms.limit && (
-              <div className="mt-8">
-                <AcrPagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  total={data.count}
-                  limit={searchTerms.limit}
-                  onPageChange={handlePageChange}
-                />
-              </div>
-            )}
-          </div>
         </div>
       </main>
     </>
@@ -145,7 +145,7 @@ export default function HomePage() {
         <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />
       }
     >
-      <div className="min-h-screen acr-page-bg-pattern">
+      <div>
         <AppHeader variant="public" />
         <HomePageContent />
       </div>

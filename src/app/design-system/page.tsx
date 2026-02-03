@@ -47,7 +47,7 @@ export default function DesignSystemPage() {
   };
 
   return (
-    <div className="min-h-screen bg-acr-gray-50">
+    <div className="min-h-screen">
       {/* Fixed Sidebar */}
       <div className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-acr-gray-200 shadow-sm z-10">
         <div className="p-6 border-b border-acr-gray-200">

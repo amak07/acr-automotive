@@ -43,11 +43,11 @@ const QUICK_ACTIONS: QuickAction[] = [
     variant: "secondary",
   },
   {
-    id: "manageImages",
-    title: "admin.quickActions.manageImages",
-    description: "admin.quickActions.manageImagesDescription",
+    id: "uploadImages",
+    title: "admin.quickActions.uploadImages",
+    description: "admin.quickActions.uploadImagesDescription",
     icon: ImagePlus,
-    href: "/admin/bulk-image-upload",
+    href: "/admin/upload-images",
     variant: "secondary",
   },
   {

@@ -260,8 +260,8 @@ export interface TranslationKeys {
   "admin.quickActions.importDescription": string;
   "admin.quickActions.addPart": string;
   "admin.quickActions.addPartDescription": string;
-  "admin.quickActions.manageImages": string;
-  "admin.quickActions.manageImagesDescription": string;
+  "admin.quickActions.uploadImages": string;
+  "admin.quickActions.uploadImagesDescription": string;
   "admin.quickActions.settings": string;
   "admin.quickActions.settingsDescription": string;
 
@@ -358,6 +358,12 @@ export interface TranslationKeys {
   // Drive Types
   "parts.drive.4x2": string;
   "parts.drive.4x4": string;
+
+  // Workflow Status (Phase 5)
+  "parts.status.label": string;
+  "parts.status.active": string;
+  "parts.status.inactive": string;
+  "parts.status.delete": string;
 
   // Field labels for specs display
   "parts.labels.position": string;
@@ -609,6 +615,10 @@ export interface TranslationKeys {
   "public.parts.showingRange": string;
   "public.parts.showingRangeSingle": string;
   "public.parts.noResults": string;
+  "public.parts.noResultsTitle": string;
+  "public.parts.noResultsMessage": string;
+  "public.parts.noResultsSuggestion": string;
+  "public.parts.clearSearch": string;
   "public.parts.viewDetails": string;
   "public.parts.brand": string;
   "public.parts.errorTitle": string;
@@ -715,98 +725,30 @@ export interface TranslationKeys {
   "footer.contact.location": string;
   "footer.copyright": string;
 
-  // Admin Bulk Image Upload
-  "admin.bulkUpload.title": string;
-  "admin.bulkUpload.description": string;
-  "admin.bulkUpload.button": string;
-  "admin.bulkUpload.uploadFolder": string;
-  "admin.bulkUpload.back": string;
-  "admin.bulkUpload.noPartsFound": string;
-  "admin.bulkUpload.showingParts": string;
-  "admin.bulkUpload.pageOf": string;
-  "admin.bulkUpload.thumb": string;
-  "admin.bulkUpload.part": string;
-  "admin.bulkUpload.type": string;
-  "admin.bulkUpload.images": string;
-  "admin.bulkUpload.viewer360": string;
-  "admin.bulkUpload.filterImages": string;
-  "admin.bulkUpload.filter360": string;
-  "admin.bulkUpload.allParts": string;
-  "admin.bulkUpload.hasImages": string;
-  "admin.bulkUpload.noImages": string;
-  "admin.bulkUpload.has360": string;
-  "admin.bulkUpload.no360": string;
-  "admin.bulkUpload.searchPlaceholder": string;
-  "admin.bulkUpload.modal.selectTitle": string;
-  "admin.bulkUpload.modal.reviewTitle": string;
-  "admin.bulkUpload.modal.progressTitle": string;
-  "admin.bulkUpload.dropHere": string;
-  "admin.bulkUpload.dragDrop": string;
-  "admin.bulkUpload.orBrowse": string;
-  "admin.bulkUpload.selectFiles": string;
-  "admin.bulkUpload.filesSelected": string;
-  "admin.bulkUpload.productImages": string;
-  "admin.bulkUpload.frames360": string;
-  "admin.bulkUpload.unknown": string;
-  "admin.bulkUpload.uniqueSkus": string;
-  "admin.bulkUpload.filesSkipped": string;
-  "admin.bulkUpload.analyzeFiles": string;
-  "admin.bulkUpload.clear": string;
-  "admin.bulkUpload.analyzing": string;
-  "admin.bulkUpload.matchingSkus": string;
-  "admin.bulkUpload.processingBatch": string;
-  "admin.bulkUpload.filesMatched": string;
-  "admin.bulkUpload.newParts": string;
-  "admin.bulkUpload.partsToUpdate": string;
-  "admin.bulkUpload.unmatched": string;
-  "admin.bulkUpload.new": string;
-  "admin.bulkUpload.partsGettingImages": string;
-  "admin.bulkUpload.updating": string;
-  "admin.bulkUpload.partsWithExisting": string;
-  "admin.bulkUpload.unmatchedFiles": string;
-  "admin.bulkUpload.unmatchedDescription": string;
-  "admin.bulkUpload.moreFiles": string;
-  "admin.bulkUpload.startUpload": string;
-  "admin.bulkUpload.uploading": string;
-  "admin.bulkUpload.processingFiles": string;
-  "admin.bulkUpload.uploadComplete": string;
-  "admin.bulkUpload.uploadPartial": string;
-  "admin.bulkUpload.partsSuccessful": string;
-  "admin.bulkUpload.imagesUploaded": string;
-  "admin.bulkUpload.partsFailed": string;
-  "admin.bulkUpload.successfulUploads": string;
-  "admin.bulkUpload.failedUploads": string;
-  "admin.bulkUpload.uploadFailed": string;
-  "admin.bulkUpload.retry": string;
-  "admin.bulkUpload.done": string;
-  "admin.bulkUpload.close": string;
-  "admin.bulkUpload.upload360Button": string;
-  "admin.bulkUpload.uploadProductButton": string;
-  "admin.bulkUpload.360.selectTitle": string;
-  "admin.bulkUpload.360.reviewTitle": string;
-  "admin.bulkUpload.360.uploadingTitle": string;
-  "admin.bulkUpload.360.completeTitle": string;
-  "admin.bulkUpload.360.dropHere": string;
-  "admin.bulkUpload.360.dragDrop": string;
-  "admin.bulkUpload.360.orBrowse": string;
-  "admin.bulkUpload.360.frames": string;
-  "admin.bulkUpload.360.uniqueParts": string;
-  "admin.bulkUpload.360.filesSkipped": string;
-  "admin.bulkUpload.360.readyToUpload": string;
-  "admin.bulkUpload.360.skuNotFound": string;
-  "admin.bulkUpload.360.lessThanFrames": string;
-  "admin.bulkUpload.360.nFrames": string;
-  "admin.bulkUpload.360.replacesN": string;
-  "admin.bulkUpload.360.ready": string;
-  "admin.bulkUpload.360.partNotFound": string;
-  "admin.bulkUpload.360.needMoreFrames": string;
-  "admin.bulkUpload.360.uploadN": string;
-  "admin.bulkUpload.360.uploading": string;
-  "admin.bulkUpload.360.nOfNComplete": string;
-  "admin.bulkUpload.360.uploadComplete": string;
-  "admin.bulkUpload.360.nUploaded": string;
-  "admin.bulkUpload.360.nFailed": string;
-  "admin.bulkUpload.360.uploadMore": string;
+  // Admin Upload Images Dashboard
+  "admin.uploadImages.title": string;
+  "admin.uploadImages.description": string;
+  "admin.uploadImages.howItWorks": string;
+  "admin.uploadImages.step1": string;
+  "admin.uploadImages.step2": string;
+  "admin.uploadImages.step3": string;
+  "admin.uploadImages.dragDrop": string;
+  "admin.uploadImages.supportedFormats": string;
+  "admin.uploadImages.uploading": string;
+  "admin.uploadImages.uploadedImages": string;
+  "admin.uploadImages.sessionNote": string;
+  "admin.uploadImages.copiedBadge": string;
+  "admin.uploadImages.imageCount": string;
+  "admin.uploadImages.copyUrl": string;
+  "admin.uploadImages.copied": string;
+  "admin.uploadImages.urlCopied": string;
+  "admin.uploadImages.deleteImage": string;
+  "admin.uploadImages.deleteNote": string;
+  "admin.uploadImages.noImages": string;
+  "admin.uploadImages.noImagesHint": string;
+  "admin.uploadImages.errorInvalidType": string;
+  "admin.uploadImages.errorTooLarge": string;
+  "admin.uploadImages.errorUploadFailed": string;
 
   // Data Portal (for data managers)
   "portal.title": string;

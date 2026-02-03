@@ -42,7 +42,7 @@ Text Primary:         #111827 (acr-gray-900)
 ### Usage Rules
 
 1. **White Backgrounds**: All content cards use `bg-white` for clean separation
-2. **Page Backgrounds**: Use `acr-page-bg-pattern` class for subtle dot grid texture
+2. **Page Backgrounds**: Applied globally via root layout - no need to add per-page
 3. **Borders**: Default to `border-acr-gray-200` for cards, `border-acr-gray-300` for interactive elements
 4. **Red Sparingly**: Only for primary CTAs, active states, and strategic highlights
 5. **No Dark Mode**: Light mode only (business context, professional consistency)
@@ -768,7 +768,7 @@ import { getStaggerClass, getStaggerDelay } from "@/lib/animations";
 
 When building new pages or features, follow these patterns:
 
-1. **Start with Layout**: `acr-page-bg-pattern` → container with max-width → white cards
+1. **Start with Layout**: Background is global → add container with max-width → white cards
 2. **Loading**:
    - Initial load: `<Preloader />` with Lottie animation
    - Refetch: `<Skeleton.../>` components matching layout

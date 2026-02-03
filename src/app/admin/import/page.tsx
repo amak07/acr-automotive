@@ -9,7 +9,7 @@ function ImportPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-acr-gray-50 to-acr-gray-100">
       <AppHeader variant="admin" />
-      <main className="px-4 py-8 mx-auto lg:max-w-7xl lg:px-8">
+      <main className="px-4 py-8 mx-auto md:px-6 lg:max-w-7xl lg:px-8">
         <ImportBreadcrumb />
         <ImportWizard />
       </main>

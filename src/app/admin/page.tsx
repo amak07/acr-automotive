@@ -112,7 +112,7 @@ function AdminPageContent() {
   });
 
   return (
-    <main className="px-3 py-5 mx-auto lg:max-w-7xl lg:px-8 lg:py-8 space-y-4 lg:space-y-6">
+    <main className="px-4 py-5 mx-auto md:px-6 lg:max-w-7xl lg:px-8 lg:py-8 space-y-4 lg:space-y-6">
       <QuickActions />
       <DashboardCards />
       <SearchFilters
@@ -172,7 +172,7 @@ function AdminPage() {
         <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />
       }
     >
-      <div className="min-h-screen acr-page-bg-pattern">
+      <div>
         <AppHeader variant="admin" />
         <AdminPageWrapper />
       </div>

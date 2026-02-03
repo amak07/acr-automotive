@@ -8,8 +8,15 @@
 import { describe, it, expect, beforeAll } from "@jest/globals";
 import { ExcelImportService } from "../../../src/services/excel/import/ExcelImportService";
 import { ValidationEngine } from "../../../src/services/excel/validation/ValidationEngine";
-import { ValidationErrorCode, ValidationWarningCode } from "../../../src/services/excel/validation/types";
-import { loadFixture, emptyDbState, seedDbState } from "../../../scripts/test/helpers/fixture-loader";
+import {
+  ValidationErrorCode,
+  ValidationWarningCode,
+} from "../../../src/services/excel/validation/types";
+import {
+  loadFixture,
+  emptyDbState,
+  seedDbState,
+} from "../../../scripts/test/helpers/fixture-loader";
 
 describe("ValidationEngine", () => {
   const parser = new ExcelImportService();
@@ -199,9 +206,11 @@ describe("ValidationEngine", () => {
 
       // Debug: log all errors to see what's actually being detected
       if (result.errors.length > 0) {
-        console.log('\n=== ALL ERRORS IN error-invalid-formats.xlsx ===');
+        console.log("\n=== ALL ERRORS IN error-invalid-formats.xlsx ===");
         result.errors.forEach((e, i) => {
-          console.log(`${i+1}. [${e.code}] ${e.message} (sheet: ${e.sheet}, row: ${e.row})`);
+          console.log(
+            `${i + 1}. [${e.code}] ${e.message} (sheet: ${e.sheet}, row: ${e.row})`
+          );
         });
       }
 
@@ -229,7 +238,9 @@ describe("ValidationEngine", () => {
       if (result.errors.length > 0) {
         console.log("\n=== UNEXPECTED ERRORS IN warning-data-changes.xlsx ===");
         result.errors.forEach((e, i) => {
-          console.log(`${i + 1}. [${e.code}] ${e.message} (sheet: ${e.sheet}, row: ${e.row})`);
+          console.log(
+            `${i + 1}. [${e.code}] ${e.message} (sheet: ${e.sheet}, row: ${e.row})`
+          );
         });
       }
 
@@ -247,7 +258,9 @@ describe("ValidationEngine", () => {
       expect(warningCodes).toContain("W7_SPECIFICATIONS_SHORTENED"); // Specs shortened
       expect(warningCodes).toContain("W8_VEHICLE_MAKE_CHANGED"); // Honda → Toyota
       expect(warningCodes).toContain("W9_VEHICLE_MODEL_CHANGED"); // Civic → CR-V
-      expect(warningCodes).toContain("W10_COMPETITOR_BRAND_CHANGED"); // Brembo → StopTech
+      // Note: W10_COMPETITOR_BRAND_CHANGED no longer applies in Phase 3A (2-sheet format)
+      // Cross-references are now in brand columns, not a separate sheet
+      expect(warningCodes).toContain("W5_CROSS_REFERENCE_DELETED"); // Cross-ref deletion via [DELETE] marker
 
       console.log("\n=== WARNING CODES DETECTED ===");
       result.warnings.forEach((w, i) => {
@@ -293,7 +306,9 @@ describe("ValidationEngine", () => {
       if (result.errors.length > 0) {
         console.log("\n=== UNEXPECTED ERRORS IN valid=true test ===");
         result.errors.forEach((e, i) => {
-          console.log(`${i + 1}. [${e.code}] ${e.message} (sheet: ${e.sheet}, row: ${e.row})`);
+          console.log(
+            `${i + 1}. [${e.code}] ${e.message} (sheet: ${e.sheet}, row: ${e.row})`
+          );
         });
       }
 

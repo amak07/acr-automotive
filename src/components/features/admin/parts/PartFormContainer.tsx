@@ -21,6 +21,7 @@ export interface PartFormData {
   drive_type: string;
   bolt_pattern: string;
   specifications: string;
+  workflow_status: string; // ACTIVE, INACTIVE
   sku_number?: string; // Only for create mode
 }
 
@@ -67,6 +68,7 @@ export function PartFormContainer({
       drive_type: "__unspecified_drive_type__",
       bolt_pattern: "__unspecified_bolt_pattern__",
       specifications: "",
+      workflow_status: "ACTIVE",
       sku_number: "", // For create mode
     },
   });
@@ -82,6 +84,7 @@ export function PartFormContainer({
         drive_type: partData.drive_type ?? "__unspecified_drive_type__",
         bolt_pattern: partData.bolt_pattern ?? "__unspecified_bolt_pattern__",
         specifications: partData.specifications ?? "",
+        workflow_status: partData.workflow_status ?? "ACTIVE",
       };
 
       setTimeout(() => {

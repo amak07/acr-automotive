@@ -3,12 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import type { Route } from "next";
+import { XCircle, Lightbulb } from "lucide-react";
 import { PartSearchResult } from "@/types";
 import { useLocale } from "@/contexts/LocaleContext";
 import { TranslationKeys } from "@/lib/i18n/translation-keys";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AcrSpinner } from "@/components/acr/Spinner";
+import { AcrButton } from "@/components/acr/Button";
 import { getStaggerClass } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
@@ -110,6 +113,53 @@ type PublicPartsListProps = {
   limit: number;
 };
 
+// Empty state component - visually prominent and helpful
+function EmptyState({ t }: { t: (key: keyof TranslationKeys) => string }) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleClearSearch = () => {
+    router.push(pathname as Route);
+  };
+
+  return (
+    <div className="acr-animate-fade-up">
+      {/* Main empty state card */}
+      <div className="bg-gradient-to-br from-acr-gray-50 to-white border-2 border-dashed border-acr-gray-300 rounded-2xl p-8 md:p-12 text-center">
+        {/* Title */}
+        <h3 className="text-xl md:text-2xl font-bold text-acr-gray-900 mb-3">
+          {t("public.parts.noResultsTitle")}
+        </h3>
+
+        {/* Description */}
+        <p className="text-acr-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
+          {t("public.parts.noResultsMessage")}
+        </p>
+
+        {/* Suggestion box */}
+        <div className="inline-flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 mb-6 text-left max-w-lg">
+          <Lightbulb className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-amber-800">
+            {t("public.parts.noResultsSuggestion")}
+          </p>
+        </div>
+
+        {/* Clear search button */}
+        <div className="flex justify-center">
+          <AcrButton
+            variant="secondary"
+            onClick={handleClearSearch}
+            className="gap-2"
+          >
+            <XCircle className="w-4 h-4" />
+            {t("public.parts.clearSearch")}
+          </AcrButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PublicPartsList(props: PublicPartsListProps) {
   const { partsData, isDataLoading, partsCount, currentPage, limit } = props;
   const { t } = useLocale();
@@ -126,34 +176,37 @@ export function PublicPartsList(props: PublicPartsListProps) {
     );
   }
 
+  // Show empty state when no results
+  if (partsCount === 0) {
+    return <EmptyState t={t} />;
+  }
+
   return (
     <div>
       {/* Parts Count Display */}
       <div className="mb-4 acr-animate-fade-in">
         <p className="text-sm text-acr-gray-600 font-medium">
-          {partsCount > 0
-            ? partsCount === 1
-              ? t("public.parts.showingRangeSingle")
-                  .replace(
-                    "{{start}}",
-                    ((currentPage - 1) * limit + 1).toString()
-                  )
-                  .replace(
-                    "{{end}}",
-                    Math.min(currentPage * limit, partsCount).toString()
-                  )
-                  .replace("{{total}}", partsCount.toString())
-              : t("public.parts.showingRange")
-                  .replace(
-                    "{{start}}",
-                    ((currentPage - 1) * limit + 1).toString()
-                  )
-                  .replace(
-                    "{{end}}",
-                    Math.min(currentPage * limit, partsCount).toString()
-                  )
-                  .replace("{{total}}", partsCount.toString())
-            : t("public.parts.noResults")}
+          {partsCount === 1
+            ? t("public.parts.showingRangeSingle")
+                .replace(
+                  "{{start}}",
+                  ((currentPage - 1) * limit + 1).toString()
+                )
+                .replace(
+                  "{{end}}",
+                  Math.min(currentPage * limit, partsCount).toString()
+                )
+                .replace("{{total}}", partsCount.toString())
+            : t("public.parts.showingRange")
+                .replace(
+                  "{{start}}",
+                  ((currentPage - 1) * limit + 1).toString()
+                )
+                .replace(
+                  "{{end}}",
+                  Math.min(currentPage * limit, partsCount).toString()
+                )
+                .replace("{{total}}", partsCount.toString())}
         </p>
       </div>
 

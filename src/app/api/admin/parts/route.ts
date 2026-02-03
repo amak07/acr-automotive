@@ -185,6 +185,7 @@ export async function GET(request: NextRequest) {
             bolt_pattern: part.bolt_pattern,
             drive_type: part.drive_type,
             specifications: part.specifications,
+            workflow_status: part.workflow_status,
             has_360_viewer: part.has_360_viewer,
             has_product_images: part.has_product_images,
             viewer_360_frame_count: part.viewer_360_frame_count,
