@@ -93,6 +93,9 @@ junit.xml
 playwright-report/
 test-results/
 
+# Git worktrees
+.worktrees/
+
 # Database snapshots (local dev backups)
 .snapshots/
 
