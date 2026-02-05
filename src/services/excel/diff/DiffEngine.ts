@@ -332,6 +332,14 @@ export class DiffEngine {
       changes.push("specifications");
     }
 
+    // workflow_status field: normalize for comparison (ACTIVE/INACTIVE/DELETE)
+    if (
+      this.normalizeOptional(before.workflow_status) !==
+      this.normalizeOptional(after.workflow_status)
+    ) {
+      changes.push("workflow_status");
+    }
+
     return changes;
   }
 

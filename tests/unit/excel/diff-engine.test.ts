@@ -1,18 +1,21 @@
 /**
- * Phase 3A DiffEngine Unit Tests
+ * DiffEngine Unit Tests
  *
- * Tests ID-based change detection for the new 2-sheet format:
+ * Tests ID-based change detection for the 3-sheet Excel format:
  * - Parts (with inline brand columns for cross-refs)
  * - Vehicle Applications
+ * - Vehicle Aliases
  *
- * Cross-references are now in Parts sheet as brand columns:
- * - National_SKUs, ATV_SKUs, SYD_SKUs, etc. (semicolon-separated)
+ * Cross-references are in Parts sheet as brand columns:
+ * - National_SKUs, ATV_SKUs, SYD_SKUs, etc.
+ * - Supports semicolon-separated AND space-delimited (legacy) formats
  * - Use [DELETE]SKU to explicitly mark a SKU for deletion (ML-style)
  *
  * Key behaviors tested:
  * - ADD: New SKUs in brand column → create cross_references
  * - DELETE: Only SKUs with [DELETE] prefix → delete from DB
  * - UNCHANGED: SKUs in DB but not in Excel → NO ACTION (ML-style safe)
+ * - workflow_status: ACTIVE/INACTIVE/DELETE field handling
  */
 
 import { DiffEngine } from "../../../src/services/excel/diff/DiffEngine";
@@ -25,7 +28,7 @@ import type {
 } from "../../../src/services/excel/shared/types";
 import type { ExistingDatabaseData } from "../../../src/services/excel/validation/ValidationEngine";
 
-describe("Phase 3A DiffEngine - Brand Columns", () => {
+describe("DiffEngine", () => {
   let diffEngine: DiffEngine;
 
   beforeEach(() => {
@@ -530,6 +533,172 @@ describe("Phase 3A DiffEngine - Brand Columns", () => {
       // Should only add valid SKUs
       expect(result.crossReferences.adds.length).toBe(2); // NAT-100, NAT-200
       expect(result.crossReferences.deletes.length).toBe(0); // Empty marker ignored
+    });
+
+    it("should handle space-delimited SKUs (legacy format)", () => {
+      const part: ExcelPartRow = {
+        _id: "part-uuid-1",
+        acr_sku: "ACR15001",
+        part_type: "Wheel Hub",
+        national_skus: "NAT-100 NAT-200 NAT-300", // Space-delimited (legacy)
+      };
+
+      const existingPart: ExcelPartRow = {
+        _id: "part-uuid-1",
+        acr_sku: "ACR15001",
+        part_type: "Wheel Hub",
+      };
+
+      const existingData = createExistingData(
+        new Map([["part-uuid-1", existingPart]]),
+        new Map(),
+        new Map(),
+        new Set(["ACR15001"])
+      );
+
+      const parsed = createParsedFile([part]);
+      const result = diffEngine.generateDiff(parsed, existingData);
+
+      // Should parse all 3 space-delimited SKUs
+      expect(result.crossReferences.adds.length).toBe(3);
+      const skus = result.crossReferences.adds.map((a) => a.after?.competitor_sku);
+      expect(skus).toContain("NAT-100");
+      expect(skus).toContain("NAT-200");
+      expect(skus).toContain("NAT-300");
+    });
+
+    it("should handle mixed semicolon and space delimiters (semicolon takes precedence)", () => {
+      const part: ExcelPartRow = {
+        _id: "part-uuid-1",
+        acr_sku: "ACR15001",
+        part_type: "Wheel Hub",
+        national_skus: "NAT-100; NAT-200 NAT-300", // Semicolon present - only split on semicolons
+      };
+
+      const existingPart: ExcelPartRow = {
+        _id: "part-uuid-1",
+        acr_sku: "ACR15001",
+        part_type: "Wheel Hub",
+      };
+
+      const existingData = createExistingData(
+        new Map([["part-uuid-1", existingPart]]),
+        new Map(),
+        new Map(),
+        new Set(["ACR15001"])
+      );
+
+      const parsed = createParsedFile([part]);
+      const result = diffEngine.generateDiff(parsed, existingData);
+
+      // When semicolon is present, only split on semicolons
+      // "NAT-100" and "NAT-200 NAT-300" (second item includes space)
+      expect(result.crossReferences.adds.length).toBe(2);
+      const skus = result.crossReferences.adds.map((a) => a.after?.competitor_sku);
+      expect(skus).toContain("NAT-100");
+      expect(skus).toContain("NAT-200 NAT-300"); // Treated as single SKU
+    });
+  });
+
+  // ==========================================================================
+  // WORKFLOW STATUS TESTS
+  // ==========================================================================
+
+  describe("Workflow Status Handling", () => {
+    it("should detect UPDATE when workflow_status changes", () => {
+      const part: ExcelPartRow = {
+        _id: "part-uuid-1",
+        acr_sku: "ACR15001",
+        part_type: "Wheel Hub",
+        workflow_status: "INACTIVE", // Changed from ACTIVE
+      };
+
+      const existingPart: ExcelPartRow = {
+        _id: "part-uuid-1",
+        acr_sku: "ACR15001",
+        part_type: "Wheel Hub",
+        workflow_status: "ACTIVE",
+      };
+
+      const existingData = createExistingData(
+        new Map([["part-uuid-1", existingPart]]),
+        new Map(),
+        new Map(),
+        new Set(["ACR15001"])
+      );
+
+      const parsed = createParsedFile([part]);
+      const result = diffEngine.generateDiff(parsed, existingData);
+
+      expect(result.parts.updates.length).toBe(1);
+      expect(result.parts.updates[0].operation).toBe(DiffOperation.UPDATE);
+      expect(result.parts.updates[0].after?.workflow_status).toBe("INACTIVE");
+    });
+
+    it("should handle all valid workflow_status values", () => {
+      const statuses = ["ACTIVE", "INACTIVE", "DELETE"];
+
+      for (const status of statuses) {
+        const part: ExcelPartRow = {
+          _id: "part-uuid-1",
+          acr_sku: "ACR15001",
+          part_type: "Wheel Hub",
+          workflow_status: status,
+        };
+
+        const existingPart: ExcelPartRow = {
+          _id: "part-uuid-1",
+          acr_sku: "ACR15001",
+          part_type: "Wheel Hub",
+          workflow_status: "ACTIVE",
+        };
+
+        const existingData = createExistingData(
+          new Map([["part-uuid-1", existingPart]]),
+          new Map(),
+          new Map(),
+          new Set(["ACR15001"])
+        );
+
+        const parsed = createParsedFile([part]);
+        const result = diffEngine.generateDiff(parsed, existingData);
+
+        if (status === "ACTIVE") {
+          expect(result.parts.unchanged.length).toBe(1);
+        } else {
+          expect(result.parts.updates.length).toBe(1);
+        }
+      }
+    });
+
+    it("should treat empty workflow_status as null (normalized comparison)", () => {
+      const part: ExcelPartRow = {
+        _id: "part-uuid-1",
+        acr_sku: "ACR15001",
+        part_type: "Wheel Hub",
+        workflow_status: "", // Empty string
+      };
+
+      const existingPart: ExcelPartRow = {
+        _id: "part-uuid-1",
+        acr_sku: "ACR15001",
+        part_type: "Wheel Hub",
+        workflow_status: undefined, // Undefined in DB
+      };
+
+      const existingData = createExistingData(
+        new Map([["part-uuid-1", existingPart]]),
+        new Map(),
+        new Map(),
+        new Set(["ACR15001"])
+      );
+
+      const parsed = createParsedFile([part]);
+      const result = diffEngine.generateDiff(parsed, existingData);
+
+      // Empty and undefined should be treated as equivalent (no change)
+      expect(result.parts.unchanged.length).toBe(1);
+      expect(result.parts.updates.length).toBe(0);
     });
   });
 });

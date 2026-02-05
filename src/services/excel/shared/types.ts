@@ -60,7 +60,8 @@ export interface ExcelPartRow {
   _id?: string; // Hidden column (UUID)
   _action?: string; // ML-style: set to "DELETE" to explicitly delete a part
   acr_sku: string;
-  status?: string; // Workflow status: Activo, Inactivo, Eliminar
+  status?: string; // Workflow status from Excel: Activo, Inactivo, Eliminar
+  workflow_status?: string; // Workflow status in DB format: ACTIVE, INACTIVE, DELETE
   part_type: string;
   position_type?: string;
   abs_type?: string;

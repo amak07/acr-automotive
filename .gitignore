@@ -90,6 +90,8 @@ supabase/config.toml  # May contain sensitive project-specific config
 # Testing
 .nyc_output
 junit.xml
+playwright-report/
+test-results/
 
 # Database snapshots (local dev backups)
 .snapshots/
@@ -99,6 +101,7 @@ storybook-static/
 
 # Misc
 *.orig
+api-test.json
 
 # Excel uploads
 uploads/

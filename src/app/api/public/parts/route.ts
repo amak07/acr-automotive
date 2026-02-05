@@ -4,27 +4,7 @@ import { DatabasePartRow, PartSearchResult } from "@/types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { publicSearchSchema, PublicSearchParams } from "@/lib/schemas/public";
 import { normalizeSku } from "@/lib/utils/sku";
-
-// Helper function to detect if a search term looks like a vehicle keyword
-// (vs a SKU pattern like "ACR-15002" or "512348")
-function detectVehicleKeyword(term: string): boolean {
-  const normalized = term.trim().toLowerCase();
-
-  // Too short to be meaningful
-  if (normalized.length < 3) return false;
-
-  // Starts with ACR prefix - definitely a SKU
-  if (normalized.startsWith("acr")) return false;
-
-  // Matches SKU patterns: digits, or alphanumeric with hyphens containing numbers
-  // Examples: "512348", "15002", "ACR-15002", "WB-123"
-  if (/^\d+$/.test(normalized)) return false; // Pure digits = SKU
-  if (/^[a-z]+-\d+/i.test(normalized)) return false; // "prefix-numbers" = SKU
-
-  // Contains mostly letters (with optional spaces/hyphens) = vehicle keyword
-  // Examples: "mustang", "f-150", "monte carlo", "chevy"
-  return /^[a-z][a-z0-9\s-]*$/i.test(normalized);
-}
+import { detectVehicleKeyword } from "@/lib/utils/search";
 
 // Helper function to enrich parts with primary image URLs
 // Falls back to first 360° frame if no product images exist
@@ -260,7 +240,7 @@ export async function GET(request: NextRequest) {
       const { data: allData, error: rpcError } = await supabase.rpc(
         "search_by_sku",
         {
-          search_term: params.sku_term,
+          search_sku: params.sku_term,
         }
       );
 
