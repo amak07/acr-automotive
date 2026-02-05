@@ -15,7 +15,7 @@ import { useLocale } from "@/contexts/LocaleContext";
  * Features:
  * - WhatsApp direct chat link (opens WhatsApp with phone number)
  * - Email direct link (opens email client)
- * - Responsive design (hides on small mobile screens)
+ * - Desktop only (hidden on mobile and tablet)
  * - Dynamic content from site settings
  * - Accessible with ARIA labels
  * - Only shows on public search (/) and part details (/parts/*) pages
@@ -70,7 +70,7 @@ export function ContactFabs() {
 
   return (
     <div
-      className="fixed z-50 flex-col gap-3 hidden md:flex bottom-20 left-4 lg:left-8 xl:left-60"
+      className="fixed z-50 flex-col gap-3 hidden lg:flex bottom-20 left-4 lg:left-8 xl:left-60"
       role="complementary"
       aria-label={t("contactFabs.ariaLabel")}
     >
