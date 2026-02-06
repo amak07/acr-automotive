@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { VALID_VEHICLES } from "./fixtures/test-data";
-import { waitForHydration } from "./helpers/test-helpers";
+import { VALID_VEHICLES, UI_STRINGS } from "./fixtures/test-data";
+import {
+  waitForHydration,
+  getVehicleCombos,
+  selectVehicle,
+} from "./helpers/test-helpers";
 
 /**
  * Vehicle Dropdown Search E2E Tests
@@ -9,38 +13,6 @@ import { waitForHydration } from "./helpers/test-helpers";
  * Uses the search_by_vehicle RPC.
  * Plan: ~/.claude/plans/drifting-foraging-milner.md Section 3.6
  */
-
-/**
- * Get the three vehicle comboboxes scoped within the Vehicle Search tab panel.
- * The AcrComboBox aria-label changes based on state (e.g., "Select Make" vs
- * "Please select a make first"), so we use positional indexing within the panel.
- */
-function getVehicleCombos(page: import("@playwright/test").Page) {
-  const panel = page.getByRole("tabpanel", { name: /vehicle/i });
-  return {
-    make: panel.getByRole("combobox").nth(0),
-    model: panel.getByRole("combobox").nth(1),
-    year: panel.getByRole("combobox").nth(2),
-  };
-}
-
-async function selectVehicle(
-  page: import("@playwright/test").Page,
-  make: string,
-  model: string,
-  year: number
-) {
-  const combos = getVehicleCombos(page);
-
-  await combos.make.click();
-  await page.getByRole("option", { name: make }).click();
-
-  await combos.model.click();
-  await page.getByRole("option", { name: model }).click();
-
-  await combos.year.click();
-  await page.getByRole("option", { name: String(year) }).click();
-}
 
 test.describe("Vehicle Dropdown Search", () => {
   test.beforeEach(async ({ page }) => {
@@ -99,9 +71,9 @@ test.describe("Vehicle Dropdown Search", () => {
 
     await page.getByRole("button", { name: "Search", exact: true }).click();
 
-    await expect(page.locator("body")).not.toContainText(
-      "No matching parts found"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText(UI_STRINGS.noResults);
     await expect(page.locator("a[href*='/parts/ACR']").first()).toBeVisible();
   });
 
@@ -111,9 +83,9 @@ test.describe("Vehicle Dropdown Search", () => {
 
     await page.getByRole("button", { name: "Search", exact: true }).click();
 
-    await expect(page.locator("body")).not.toContainText(
-      "No matching parts found"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText(UI_STRINGS.noResults);
   });
 
   test("search button is disabled until all fields selected", async ({
@@ -160,7 +132,11 @@ test.describe("Vehicle Dropdown Search", () => {
     await firstResult.click();
 
     // Detail page should show this vehicle in applications
-    await expect(page.locator("body")).toContainText("ACURA");
-    await expect(page.locator("body")).toContainText("CL");
+    await expect(page.locator("[data-testid='part-detail']")).toContainText(
+      "ACURA"
+    );
+    await expect(page.locator("[data-testid='part-detail']")).toContainText(
+      "CL"
+    );
   });
 });

@@ -127,7 +127,15 @@ export const VEHICLE_ALIASES = {
 } as const;
 
 /** Aliases that have vehicle apps in the seed → should return results */
-export const ALIASES_WITH_DATA = ["chevy", "dodge", "beemer", "caddy", "stang", "monte", "slade"] as const;
+export const ALIASES_WITH_DATA = [
+  "chevy",
+  "dodge",
+  "beemer",
+  "caddy",
+  "stang",
+  "monte",
+  "slade",
+] as const;
 
 /** Aliases where the target has zero vehicle apps → should return empty */
 export const ALIASES_WITHOUT_DATA = ["vw", "merc", "cammy"] as const;
@@ -146,7 +154,12 @@ export const VALID_VEHICLES = [
   /** FORD EDGE 2007-2010 → ACR512334, ACR512335 (both ACTIVE). */
   { make: "FORD", model: "EDGE", year: 2010, expectedSku: "ACR512334" },
   /** CHEVROLET MONTE CARLO 2005-2007 → 12 parts. Rich test case. */
-  { make: "CHEVROLET", model: "MONTE CARLO", year: 2006, expectedSku: "ACR512244" },
+  {
+    make: "CHEVROLET",
+    model: "MONTE CARLO",
+    year: 2006,
+    expectedSku: "ACR512244",
+  },
 ] as const;
 
 /** Vehicle combo where INACTIVE part was the only match for a specific year range.
@@ -217,4 +230,14 @@ export const SKU_PATTERNS = {
   pureDigits: "518507",
   /** Prefix-number with hyphen → treated as SKU search */
   prefixNumber: "WB-123",
+} as const;
+
+// ---------------------------------------------------------------------------
+// UI Strings (centralized for easy maintenance)
+// ---------------------------------------------------------------------------
+
+export const UI_STRINGS = {
+  noResults: "No matching parts found",
+  vehicleApps: "Vehicle Applications",
+  crossRefs: "Cross References",
 } as const;

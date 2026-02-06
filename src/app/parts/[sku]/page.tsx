@@ -37,7 +37,7 @@ export default function PublicPartDetailsPage() {
         <Preloader isLoading={true} animationSrc={GEAR_ANIMATION_SRC} />
       }
     >
-      <div>
+      <div data-testid="part-detail">
         <AppHeader variant="public" />
         <PartDetailsContent />
       </div>

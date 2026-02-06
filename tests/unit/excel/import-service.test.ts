@@ -75,8 +75,8 @@ describe("ExcelImportService", () => {
 
         // Check that headers are converted correctly
         // Note: Properties may be undefined if cell was empty
-        expect("acr_sku" in firstPart || firstPart.acr_sku).toBeTruthy();
-        expect("part_type" in firstPart || firstPart.part_type !== undefined);
+        expect(firstPart).toHaveProperty("acr_sku");
+        expect(firstPart).toHaveProperty("part_type");
       }
     });
 
@@ -308,7 +308,9 @@ describe("ExcelImportService", () => {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       } as File;
 
-      expect(() => parser.validateFileFormat(file)).toThrow("File size exceeds");
+      expect(() => parser.validateFileFormat(file)).toThrow(
+        "File size exceeds"
+      );
     });
 
     it("should accept files within size limit", () => {

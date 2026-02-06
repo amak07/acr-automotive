@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { INVALID_INPUTS } from "./fixtures/test-data";
+import { INVALID_INPUTS, UI_STRINGS } from "./fixtures/test-data";
 import {
   waitForHydration,
   getSearchInput,
@@ -23,8 +23,8 @@ test.describe("Invalid Input Handling", () => {
   test("non-existent ACR SKU shows empty state", async ({ page }) => {
     await quickSearch(page, INVALID_INPUTS.nonExistentSku);
 
-    await expect(page.locator("body")).toContainText(
-      "No matching parts found"
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      UI_STRINGS.noResults
     );
   });
 
@@ -33,8 +33,8 @@ test.describe("Invalid Input Handling", () => {
 
     // "ZZZZZZ" is all-alpha, 6 chars → detectVehicleKeyword returns true
     // Vehicle keyword search with "ZZZZZZ" should return no results
-    await expect(page.locator("body")).toContainText(
-      "No matching parts found"
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      UI_STRINGS.noResults
     );
   });
 
@@ -42,7 +42,9 @@ test.describe("Invalid Input Handling", () => {
     await quickSearch(page, INVALID_INPUTS.sqlInjection);
 
     // App should not crash — show either empty results or error gracefully
-    await expect(page.locator("body")).not.toContainText("error");
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText("error");
     // Page should still be functional
     await expect(getSearchInput(page)).toBeVisible();
   });
@@ -52,7 +54,9 @@ test.describe("Invalid Input Handling", () => {
 
     // Script should not execute — check no alert dialog appeared
     // The text should be safely escaped in the DOM
-    await expect(page.locator("body")).not.toContainText("error");
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText("error");
     // Input should still be interactive
     await expect(getSearchInput(page)).toBeVisible();
   });
@@ -61,9 +65,9 @@ test.describe("Invalid Input Handling", () => {
     await quickSearch(page, INVALID_INPUTS.unicode);
 
     // Should gracefully show no results
-    await expect(page.locator("body")).not.toContainText(
-      "Unable to Load Parts"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText("Unable to Load Parts");
     await expect(getSearchInput(page)).toBeVisible();
   });
 
@@ -71,9 +75,9 @@ test.describe("Invalid Input Handling", () => {
     await quickSearch(page, INVALID_INPUTS.veryLongInput);
 
     // Should not crash
-    await expect(page.locator("body")).not.toContainText(
-      "Unable to Load Parts"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText("Unable to Load Parts");
     await expect(getSearchInput(page)).toBeVisible();
   });
 
@@ -89,25 +93,23 @@ test.describe("Invalid Input Handling", () => {
 
     // 1 char → detectVehicleKeyword returns false (< 3 chars)
     // search_by_sku with "A" may return results or empty
-    await expect(page.locator("body")).not.toContainText(
-      "Unable to Load Parts"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText("Unable to Load Parts");
   });
 
   test("two character search returns gracefully", async ({ page }) => {
     await quickSearch(page, INVALID_INPUTS.twoChars);
 
     // 2 chars → detectVehicleKeyword returns false (< 3 chars)
-    await expect(page.locator("body")).not.toContainText(
-      "Unable to Load Parts"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText("Unable to Load Parts");
   });
 });
 
 test.describe("Navigation Error States", () => {
-  test("direct navigation to non-existent part shows 404", async ({
-    page,
-  }) => {
+  test("direct navigation to non-existent part shows 404", async ({ page }) => {
     await page.goto("/parts/ACR999999");
 
     // Should show "Part Not Found" error page

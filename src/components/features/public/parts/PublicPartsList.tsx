@@ -178,11 +178,15 @@ export function PublicPartsList(props: PublicPartsListProps) {
 
   // Show empty state when no results
   if (partsCount === 0) {
-    return <EmptyState t={t} />;
+    return (
+      <div data-testid="search-results">
+        <EmptyState t={t} />
+      </div>
+    );
   }
 
   return (
-    <div>
+    <div data-testid="search-results">
       {/* Parts Count Display */}
       <div className="mb-4 acr-animate-fade-in">
         <p className="text-sm text-acr-gray-600 font-medium">

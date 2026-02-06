@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { VALID_ACR_SKUS, SKU_PATTERNS } from "./fixtures/test-data";
+import { VALID_ACR_SKUS, SKU_PATTERNS, UI_STRINGS } from "./fixtures/test-data";
 import {
   waitForHydration,
   getSearchInput,
@@ -26,11 +26,13 @@ test.describe("SKU Search", () => {
     await quickSearch(page, sku);
 
     // Should show results containing this SKU
-    await expect(page.locator("body")).toContainText(sku);
-    // Should indicate SKU search type (no "matched_vehicles" in response)
-    await expect(page.locator("body")).not.toContainText(
-      "No matching parts found"
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      sku
     );
+    // Should indicate SKU search type (no "matched_vehicles" in response)
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText(UI_STRINGS.noResults);
   });
 
   test("each valid ACR SKU returns results", async ({ page }) => {
@@ -42,7 +44,7 @@ test.describe("SKU Search", () => {
 
       // Wait for results to load
       await expect(
-        page.locator("body").getByText(sku).first()
+        page.locator("[data-testid='search-results']").getByText(sku).first()
       ).toBeVisible({ timeout: 10000 });
     }
   });
@@ -51,25 +53,33 @@ test.describe("SKU Search", () => {
     // Search for "ACR2302" should match ACR2302006 and ACR2302007
     await quickSearch(page, "ACR2302");
 
-    await expect(page.locator("body")).toContainText("ACR2302006");
-    await expect(page.locator("body")).toContainText("ACR2302007");
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      "ACR2302006"
+    );
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      "ACR2302007"
+    );
   });
 
   test("pure digit search is treated as SKU search", async ({ page }) => {
     // "518507" should find ACR518507 via SKU search (not vehicle keyword)
     await quickSearch(page, "518507");
 
-    await expect(page.locator("body")).toContainText("ACR518507");
-    await expect(page.locator("body")).not.toContainText(
-      "No matching parts found"
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      "ACR518507"
     );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText(UI_STRINGS.noResults);
   });
 
   test("case-insensitive SKU search works", async ({ page }) => {
     // "acr2302006" lowercase should find the part
     await quickSearch(page, "acr2302006");
 
-    await expect(page.locator("body")).toContainText("ACR2302006");
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      "ACR2302006"
+    );
   });
 
   test("SKU search with prefix-number pattern", async ({ page }) => {
@@ -78,14 +88,12 @@ test.describe("SKU Search", () => {
     await quickSearch(page, SKU_PATTERNS.prefixNumber);
 
     // Should show empty state since WB-123 doesn't exist
-    await expect(page.locator("body")).toContainText(
-      "No matching parts found"
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      UI_STRINGS.noResults
     );
   });
 
-  test("search results show part cards with SKU and type", async ({
-    page,
-  }) => {
+  test("search results show part cards with SKU and type", async ({ page }) => {
     await quickSearch(page, "ACR2302006");
 
     // Part card should show the SKU
@@ -123,7 +131,9 @@ test.describe("SKU Search", () => {
     await quickSearch(page, "ACR2302006");
 
     // Should have results
-    await expect(page.locator("body")).toContainText("ACR2302006");
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      "ACR2302006"
+    );
 
     // Click clear
     await page.getByRole("button", { name: /clear search/i }).click();
@@ -142,8 +152,12 @@ test.describe("SKU Search", () => {
 
     // Wait for search to execute
     await page.waitForURL(/[?&]sku=/, { timeout: 10000 });
-    await expect(page.locator("body")).toContainText("ACR2302006");
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      "ACR2302006"
+    );
     // Verify it's filtered results, not the full catalog
-    await expect(page.locator("body")).toContainText("1 part");
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      "1 part"
+    );
   });
 });

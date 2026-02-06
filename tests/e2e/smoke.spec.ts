@@ -23,9 +23,12 @@ test.describe("Smoke Tests", () => {
   });
 
   test("can navigate to parts page", async ({ page }) => {
-    await page.goto("/parts");
+    await page.goto("/");
+    await waitForHydration(page);
 
-    // Should show parts listing or search interface
-    await expect(page.locator("body")).toContainText(/part|search|catalog/i);
+    // Homepage is the parts catalog
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      /part/i
+    );
   });
 });

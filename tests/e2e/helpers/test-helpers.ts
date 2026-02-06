@@ -70,3 +70,35 @@ export async function quickSearch(page: Page, term: string) {
 
   await page.waitForURL(/[?&]sku=/, { timeout: 10_000 });
 }
+
+/**
+ * Get the three vehicle comboboxes scoped within the Vehicle Search tab panel.
+ * The AcrComboBox aria-label changes based on state (e.g., "Select Make" vs
+ * "Please select a make first"), so we use positional indexing within the panel.
+ */
+export function getVehicleCombos(page: Page) {
+  const panel = page.getByRole("tabpanel", { name: /vehicle/i });
+  return {
+    make: panel.getByRole("combobox").nth(0),
+    model: panel.getByRole("combobox").nth(1),
+    year: panel.getByRole("combobox").nth(2),
+  };
+}
+
+export async function selectVehicle(
+  page: Page,
+  make: string,
+  model: string,
+  year: number
+) {
+  const combos = getVehicleCombos(page);
+
+  await combos.make.click();
+  await page.getByRole("option", { name: make }).click();
+
+  await combos.model.click();
+  await page.getByRole("option", { name: model }).click();
+
+  await combos.year.click();
+  await page.getByRole("option", { name: String(year) }).click();
+}

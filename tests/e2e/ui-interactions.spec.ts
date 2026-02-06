@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { VALID_ACR_SKUS } from "./fixtures/test-data";
+import { VALID_ACR_SKUS, UI_STRINGS } from "./fixtures/test-data";
 import {
   waitForHydration,
   getSearchInput,
@@ -33,7 +33,9 @@ test.describe("Search Results Display", () => {
     await quickSearch(page, "ACR2302");
 
     // Should show "Showing X-Y of Z parts"
-    await expect(page.locator("body")).toContainText(/showing/i);
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      /showing/i
+    );
   });
 
   test("part card shows ACR brand badge", async ({ page }) => {
@@ -58,24 +60,36 @@ test.describe("Part Detail Page", () => {
     ).toBeVisible();
 
     // Should show specifications
-    await expect(page.locator("body")).toContainText("Specifications");
-    await expect(page.locator("body")).toContainText("ACR2302006");
-    await expect(page.locator("body")).toContainText("MAZA");
+    await expect(page.locator("[data-testid='part-detail']")).toContainText(
+      "Specifications"
+    );
+    await expect(page.locator("[data-testid='part-detail']")).toContainText(
+      "ACR2302006"
+    );
+    await expect(page.locator("[data-testid='part-detail']")).toContainText(
+      "MAZA"
+    );
   });
 
   test("detail page shows vehicle applications", async ({ page }) => {
     await page.goto("/parts/ACR2302006");
 
-    await expect(page.locator("body")).toContainText("Vehicle Applications");
+    await expect(page.locator("[data-testid='part-detail']")).toContainText(
+      UI_STRINGS.vehicleApps
+    );
     // ACR2302006 has vehicle applications in the seed data
   });
 
   test("detail page shows cross references", async ({ page }) => {
     await page.goto("/parts/ACR2302006");
 
-    await expect(page.locator("body")).toContainText("Cross References");
+    await expect(page.locator("[data-testid='part-detail']")).toContainText(
+      UI_STRINGS.crossRefs
+    );
     // ACR2302006 is referenced by "713 6493 80" (FAG) and "2302006" (SYD)
-    await expect(page.locator("body")).toContainText("FAG");
+    await expect(page.locator("[data-testid='part-detail']")).toContainText(
+      "FAG"
+    );
   });
 
   test("detail page has back navigation", async ({ page }) => {
@@ -108,7 +122,9 @@ test.describe("Part Detail Page", () => {
     // ACR2302006 has position_type = "DELANTERA"
     await page.goto("/parts/ACR2302006");
 
-    await expect(page.locator("body")).toContainText("DELANTERA");
+    await expect(page.locator("[data-testid='part-detail']")).toContainText(
+      "DELANTERA"
+    );
   });
 });
 
@@ -141,7 +157,9 @@ test.describe("Tab Switching", () => {
 
     // Do a quick search
     await quickSearch(page, "ACR2302006");
-    await expect(page.locator("body")).toContainText("ACR2302006");
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      "ACR2302006"
+    );
 
     // Switch to Vehicle tab
     await page.getByRole("tab", { name: /vehicle/i }).click();
@@ -156,9 +174,7 @@ test.describe("Homepage Default View", () => {
     await page.goto("/");
 
     // Default view shows all active parts
-    await expect(
-      page.locator("a[href*='/parts/ACR']").first()
-    ).toBeVisible();
+    await expect(page.locator("a[href*='/parts/ACR']").first()).toBeVisible();
   });
 
   test("homepage shows pagination for large catalog", async ({ page }) => {
@@ -166,6 +182,54 @@ test.describe("Homepage Default View", () => {
 
     // With 865 parts, pagination should appear (limit=15 per page)
     // Look for pagination controls
-    await expect(page.locator("body")).toContainText(/showing/i);
+    await expect(page.locator("[data-testid='search-results']")).toContainText(
+      /showing/i
+    );
+  });
+});
+
+test.describe("Sort Order", () => {
+  test("default catalog is sorted by enrichment tier then SKU", async ({
+    page,
+  }) => {
+    // Intercept the default catalog API call and capture the response
+    const apiResponsePromise = page.waitForResponse(
+      (resp) =>
+        resp.url().includes("/api/public/parts") &&
+        resp.status() === 200 &&
+        !resp.url().includes("sku_term=")
+    );
+
+    await page.goto("/");
+    const apiResponse = await apiResponsePromise;
+    const json = await apiResponse.json();
+
+    // Expected sort: has_360_viewer DESC, has_product_images DESC, acr_sku ASC
+    const parts = json.data as Array<{
+      acr_sku: string;
+      has_360_viewer: boolean;
+      has_product_images: boolean;
+    }>;
+    expect(parts.length).toBeGreaterThan(0);
+
+    function tier(p: { has_360_viewer: boolean; has_product_images: boolean }) {
+      if (p.has_360_viewer) return 0;
+      if (p.has_product_images) return 1;
+      return 2;
+    }
+
+    // Verify tier ordering never goes backwards
+    for (let i = 1; i < parts.length; i++) {
+      const prev = tier(parts[i - 1]);
+      const curr = tier(parts[i]);
+      expect(curr).toBeGreaterThanOrEqual(prev);
+    }
+
+    // Within the same tier, SKUs should be alphabetical
+    for (let i = 1; i < parts.length; i++) {
+      if (tier(parts[i - 1]) === tier(parts[i])) {
+        expect(parts[i].acr_sku >= parts[i - 1].acr_sku).toBe(true);
+      }
+    }
   });
 });

@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { VEHICLE_ALIASES, VEHICLE_KEYWORDS } from "./fixtures/test-data";
+import {
+  VEHICLE_ALIASES,
+  VEHICLE_KEYWORDS,
+  UI_STRINGS,
+} from "./fixtures/test-data";
 import {
   waitForHydration,
   getSearchInput,
@@ -27,9 +31,9 @@ test.describe("Vehicle Keyword Search", () => {
     await quickSearch(page, "mustang");
 
     // Should find parts and not show empty state
-    await expect(page.locator("body")).not.toContainText(
-      "No matching parts found"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText(UI_STRINGS.noResults);
 
     // Response should indicate vehicle_keyword search type
     // Parts shown should be for Ford Mustang applications
@@ -45,18 +49,18 @@ test.describe("Vehicle Keyword Search", () => {
 
     // Should not show "No matching parts found" if F-150 data exists in seed
     // Even if no results, it should NOT be treated as a SKU search
-    const body = page.locator("body");
+    const searchResults = page.locator("[data-testid='search-results']");
     // The search should complete without error
-    await expect(body).not.toContainText("Unable to Load Parts");
+    await expect(searchResults).not.toContainText("Unable to Load Parts");
   });
 
   test("multi-word model 'monte carlo' returns results", async ({ page }) => {
     await quickSearch(page, VEHICLE_KEYWORDS.multiWord);
 
     // Should find parts for MONTE CARLO
-    await expect(page.locator("body")).not.toContainText(
-      "No matching parts found"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText(UI_STRINGS.noResults);
   });
 });
 
@@ -70,9 +74,9 @@ test.describe("Vehicle Alias Search", () => {
     await quickSearch(page, "chevy");
 
     // Should find parts for CHEVROLET vehicles
-    await expect(page.locator("body")).not.toContainText(
-      "No matching parts found"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText(UI_STRINGS.noResults);
     // Should show results
     await expect(page.locator("a[href*='/parts/ACR']").first()).toBeVisible();
   });
@@ -80,38 +84,40 @@ test.describe("Vehicle Alias Search", () => {
   test("make alias 'beemer' resolves to BMW", async ({ page }) => {
     await quickSearch(page, "beemer");
 
-    await expect(page.locator("body")).not.toContainText(
-      "No matching parts found"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText(UI_STRINGS.noResults);
     await expect(page.locator("a[href*='/parts/ACR']").first()).toBeVisible();
   });
 
   test("make alias 'dodge' resolves to DODGE-RAM", async ({ page }) => {
     await quickSearch(page, "dodge");
 
-    await expect(page.locator("body")).not.toContainText(
-      "No matching parts found"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText(UI_STRINGS.noResults);
     await expect(page.locator("a[href*='/parts/ACR']").first()).toBeVisible();
   });
 
-  test("short alias 'vw' bypasses vehicle keyword detection", async ({ page }) => {
+  test("short alias 'vw' bypasses vehicle keyword detection", async ({
+    page,
+  }) => {
     await quickSearch(page, "vw");
 
     // "vw" is only 2 chars → detectVehicleKeyword returns false (< 3 chars)
     // Falls through to SKU search, which finds parts with "VW" in their SKU
     // The key assertion: search completes without error
-    await expect(page.locator("body")).not.toContainText(
-      "Unable to Load Parts"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText("Unable to Load Parts");
   });
 
   test("model alias 'stang' resolves to MUSTANG", async ({ page }) => {
     await quickSearch(page, "stang");
 
-    await expect(page.locator("body")).not.toContainText(
-      "No matching parts found"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText(UI_STRINGS.noResults);
     await expect(page.locator("a[href*='/parts/ACR']").first()).toBeVisible();
   });
 
@@ -120,9 +126,9 @@ test.describe("Vehicle Alias Search", () => {
 
     // CORVETTE may not have parts in the 1000-record seed,
     // but the search should not error
-    await expect(page.locator("body")).not.toContainText(
-      "Unable to Load Parts"
-    );
+    await expect(
+      page.locator("[data-testid='search-results']")
+    ).not.toContainText("Unable to Load Parts");
   });
 
   test("alias search result detail shows correct vehicle application", async ({
@@ -136,7 +142,11 @@ test.describe("Vehicle Alias Search", () => {
     await firstResult.click();
 
     // Detail page should show CHEVROLET in vehicle applications
-    await expect(page.locator("body")).toContainText("Vehicle Applications");
-    await expect(page.locator("body")).toContainText("CHEVROLET");
+    await expect(page.locator("[data-testid='part-detail']")).toContainText(
+      UI_STRINGS.vehicleApps
+    );
+    await expect(page.locator("[data-testid='part-detail']")).toContainText(
+      "CHEVROLET"
+    );
   });
 });
