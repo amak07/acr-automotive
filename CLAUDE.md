@@ -66,3 +66,45 @@ npx playwright test
 
 - lint-staged (ESLint + Prettier)
 - Beads sync (flushes task database to git)
+
+## Landing the Plane (Session Completion)
+
+When ending a work session, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**1. File issues for remaining work**
+```bash
+bd create --title="Follow-up: ..." --type=task --priority=2
+```
+
+**2. Run quality gates** (if code changed)
+```bash
+npx.cmd playwright test          # E2E tests (or from worktree)
+./node_modules/.bin/tsc.cmd --noEmit  # Type check
+```
+
+**3. Update beads**
+```bash
+bd close <id1> <id2> ... --reason="done"   # Close finished work
+bd sync                                     # Flush to .beads/issues.jsonl
+```
+
+**4. Clean up resources**
+- Stop background dev servers (port 3000/3001)
+- Remove worktrees: `git worktree remove ../worktree-name --force`
+- Verify removal: `git worktree list`
+- Prune stale branches if merged
+
+**5. Commit and push** (MANDATORY)
+```bash
+git add <files>                  # Stage changes (including .beads/issues.jsonl)
+git commit -m "..."              # Commit
+git pull --rebase                # Sync with remote
+git push                         # Push — work is NOT done until this succeeds
+git status                       # MUST show "up to date with origin"
+```
+
+**Critical rules:**
+- NEVER stop before pushing — that leaves work stranded locally
+- NEVER say "ready to push when you are" — YOU must push
+- If push fails, resolve and retry until it succeeds
+- If worktree was used, push BOTH the worktree branch AND the main branch
