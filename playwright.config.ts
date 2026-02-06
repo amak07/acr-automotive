@@ -39,18 +39,26 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // Auth setup: logs in as admin, saves storageState for reuse
+    { name: "setup", testMatch: /.*\.setup\.ts/ },
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "tests/e2e/.auth/admin.json",
+      },
+      dependencies: ["setup"],
     },
     // Uncomment for cross-browser testing
     // {
     //   name: "firefox",
-    //   use: { ...devices["Desktop Firefox"] },
+    //   use: { ...devices["Desktop Firefox"], storageState: "tests/e2e/.auth/admin.json" },
+    //   dependencies: ["setup"],
     // },
     // {
     //   name: "webkit",
-    //   use: { ...devices["Desktop Safari"] },
+    //   use: { ...devices["Desktop Safari"], storageState: "tests/e2e/.auth/admin.json" },
+    //   dependencies: ["setup"],
     // },
   ],
 

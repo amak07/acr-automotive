@@ -254,6 +254,93 @@ describe("ExcelImportService", () => {
       expect(result.parts.data.length).toBe(1);
       expect(result.parts.data[0].acr_sku).toBe("ACR-001");
     });
+
+    it("should detect Aliases instruction row and skip it", async () => {
+      // Regression test for beads issue 4hy.7:
+      // Aliases instruction text ("Nickname or alternate name", "Official name to map to",
+      // "make or model") was NOT recognized by detectHeaderFormat(), causing the
+      // instruction row to be parsed as data.
+      const workbook = new ExcelJS.Workbook();
+
+      // Parts sheet (minimal, with recognized instructions so it works)
+      const partsSheet = workbook.addWorksheet("Parts");
+      partsSheet.getRow(1).values = ["Part Information", "", ""];
+      partsSheet.getRow(2).values = ["ACR SKU", "Part Type", "Position"];
+      partsSheet.getRow(3).values = [
+        "Do not modify",
+        "e.g., Rotor",
+        "e.g., Front",
+      ];
+      partsSheet.getRow(4).values = ["ACR-001", "Rotor", "Front"];
+
+      // Vehicle Apps sheet (minimal)
+      const vehiclesSheet = workbook.addWorksheet("Vehicle Applications");
+      vehiclesSheet.getRow(1).values = ["Vehicle Information"];
+      vehiclesSheet.getRow(2).values = ["Make", "Model"];
+      vehiclesSheet.getRow(3).values = ["e.g., CHEVROLET", "e.g., SILVERADO"];
+
+      // Aliases sheet with instruction row that previously wasn't detected
+      const aliasesSheet = workbook.addWorksheet("Vehicle Aliases");
+      aliasesSheet.getRow(1).values = ["Alias Information"];
+      aliasesSheet.getRow(2).values = ["Alias", "Canonical Name", "Type"];
+      aliasesSheet.getRow(3).values = [
+        "Nickname or alternate name",
+        "Official name to map to",
+        "make or model",
+      ];
+      aliasesSheet.getRow(4).values = ["Chevy", "CHEVROLET", "make"];
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const file = new File([buffer], "aliases-instructions.xlsx");
+      (file as any).arrayBuffer = async () => buffer;
+
+      const result = await parser.parseFile(file);
+
+      // The aliases instruction row must be skipped — only 1 real data row
+      expect(result.aliases).toBeDefined();
+      expect(result.aliases!.rowCount).toBe(1);
+      expect(result.aliases!.data[0].alias).toBe("Chevy");
+      expect(result.aliases!.data[0].canonical_name).toBe("CHEVROLET");
+      expect(result.aliases!.data[0].alias_type).toBe("make");
+    });
+
+    it("should detect Spanish Aliases instruction row and skip it", async () => {
+      const workbook = new ExcelJS.Workbook();
+
+      const partsSheet = workbook.addWorksheet("Parts");
+      partsSheet.getRow(1).values = ["Part Information", "", ""];
+      partsSheet.getRow(2).values = ["ACR SKU", "Part Type", "Position"];
+      partsSheet.getRow(3).values = [
+        "No modificar",
+        "ej., Rotor",
+        "ej., Front",
+      ];
+      partsSheet.getRow(4).values = ["ACR-001", "Rotor", "Front"];
+
+      const vehiclesSheet = workbook.addWorksheet("Vehicle Applications");
+      vehiclesSheet.getRow(1).values = ["Vehicle Information"];
+      vehiclesSheet.getRow(2).values = ["Make", "Model"];
+
+      const aliasesSheet = workbook.addWorksheet("Vehicle Aliases");
+      aliasesSheet.getRow(1).values = ["Alias Information"];
+      aliasesSheet.getRow(2).values = ["Alias", "Canonical Name", "Type"];
+      aliasesSheet.getRow(3).values = [
+        "Apodo o nombre alternativo",
+        "Nombre oficial a mapear",
+        "make o model",
+      ];
+      aliasesSheet.getRow(4).values = ["Chevy", "CHEVROLET", "make"];
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const file = new File([buffer], "aliases-instructions-es.xlsx");
+      (file as any).arrayBuffer = async () => buffer;
+
+      const result = await parser.parseFile(file);
+
+      expect(result.aliases).toBeDefined();
+      expect(result.aliases!.rowCount).toBe(1);
+      expect(result.aliases!.data[0].alias).toBe("Chevy");
+    });
   });
 
   // ==========================================================================

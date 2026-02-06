@@ -228,7 +228,7 @@ export class ExcelImportService {
    * Detection logic:
    * - Row 1 with spaces (e.g., "Part Information") = group header
    * - Row 2 with column patterns (e.g., "_id", "ACR SKU") = column header
-   * - Row 3 with instruction patterns (e.g., "separate with", "Do not") = instructions
+   * - Row 3 with instruction patterns (e.g., "separate with", "Do not", "Nickname or alternate") = instructions
    *
    * @returns { headerRowNumber, dataStartRow }
    */
@@ -279,6 +279,7 @@ export class ExcelImportService {
       const value = cell.value?.toString() || "";
       // Instruction patterns (both English and Spanish)
       if (
+        // Parts & Vehicle Apps instructions
         value.includes("separate with") ||
         value.includes("separar con") ||
         value.includes("Do not") ||
@@ -286,7 +287,15 @@ export class ExcelImportService {
         value.includes("Upload via") ||
         value.includes("Subir en") ||
         value.includes("e.g.,") ||
-        value.includes("ej.,")
+        value.includes("ej.,") ||
+        // Aliases instructions (EN)
+        value.includes("Nickname or alternate") ||
+        value.includes("Official name to map") ||
+        value.includes("make or model") ||
+        // Aliases instructions (ES)
+        value.includes("Apodo o nombre") ||
+        value.includes("Nombre oficial a mapear") ||
+        value.includes("make o model")
       ) {
         row3HasInstructions = true;
       }
