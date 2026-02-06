@@ -71,6 +71,47 @@ npx playwright test
 
 When ending a work session, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
 
+**0. Code review** (before committing)
+
+Launch a `superpowers:code-reviewer` subagent with this prompt template:
+
+```
+## Code Review Request
+
+**What was implemented:** {DESCRIPTION}
+**Plan/Requirements:** {PLAN_FILE_OR_SUMMARY}
+**Base SHA:** {BASE_SHA}
+**Head SHA:** {HEAD_SHA} (or "uncommitted changes")
+
+Review the full diff and assess:
+
+### 1. Objective Alignment
+- Do the changes match the stated plan/requirements?
+- Was anything added that wasn't in scope?
+- Was anything from the plan skipped or partially done?
+
+### 2. Production Code Safety
+- List every non-test file modified and explain WHY it was changed
+- Are production changes minimal (no logic/behavior changes beyond what's needed)?
+- Could any production change affect users who aren't running tests?
+
+### 3. Regression Detection
+- For every piece of MODIFIED code: does the new version preserve 100% of the old behavior?
+- For every piece of DELETED code: was it truly unused, or did something depend on it?
+- For every REFACTORED function/assertion: compare old vs new — flag any semantic drift
+
+### 4. Test Integrity
+- Do modified tests still test the same thing, or did their meaning change?
+- Are there tests that now pass for the wrong reason (e.g., weaker assertion, different route)?
+- Do new tests actually verify what they claim to verify?
+
+### 5. Action Items
+- List issues as Critical (must fix), Important (should fix), or Suggestion (nice to have)
+- For each issue, cite the exact file and line number
+```
+
+Fix all Critical and Important issues before proceeding. Push back on the reviewer with reasoning if you disagree.
+
 **1. File issues for remaining work**
 ```bash
 bd create --title="Follow-up: ..." --type=task --priority=2
