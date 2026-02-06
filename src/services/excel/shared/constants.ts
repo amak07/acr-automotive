@@ -335,6 +335,7 @@ const FRIENDLY_HEADER_TO_PROPERTY: Record<string, string> = {
   "end year": "end_year",
   // Aliases (friendly → property)
   "canonical name": "canonical_name",
+  type: "alias_type",
 };
 
 /**
