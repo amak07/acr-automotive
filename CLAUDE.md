@@ -38,6 +38,30 @@ Use these skills when relevant:
 - Docker container name conflicts: `docker rm -f <id>` or `supabase stop --no-backup` first
 - Seed creates: 865 parts, 1000 vehicle_apps, 1000 cross_refs, 15 aliases
 
+## Git Worktrees
+
+Worktree for E2E test hardening lives at `../acr-search-tests` (branch `test/search-e2e-cleanup`).
+
+**Setup from scratch:**
+```bash
+git worktree add ../acr-search-tests test/search-e2e-cleanup
+cd ../acr-search-tests
+npm install
+cp ../acr-automotive/.env.local .
+```
+
+**Running tests (uses port 3001 to avoid conflicts):**
+```bash
+# Ensure local Supabase is running first
+npx playwright test
+```
+
+**Known gotchas:**
+- **Dual lockfile detection (Next.js 15.4+):** Turbopack walks up directories for lockfiles. Keep worktree at sibling level (`../`), not inside the project.
+- **SWC binary corruption:** If you see "not a valid Win32 application", run `rm -rf node_modules && npm install`.
+- **Port conflicts:** Worktree playwright.config.ts is set to port 3001. Don't change it back to 3000.
+- **Local Supabase required:** .env.local points to localhost:54321. Tests will fail without it.
+
 ## Pre-commit Hooks
 
 - lint-staged (ESLint + Prettier)
