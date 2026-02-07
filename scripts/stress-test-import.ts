@@ -389,9 +389,8 @@ async function main() {
               `  Cross-ref adds (unexpected): ${result.diff.crossReferences.adds.length}`
             );
             for (const add of result.diff.crossReferences.adds.slice(0, 5)) {
-              const row = add.row || add.after || add;
               console.log(
-                `    ADD: brand=${row.competitor_brand} sku="${row.competitor_sku}" part=${row._acr_part_id}`
+                `    ADD: brand=${add.brand} sku="${add.sku}" partId=${add.partId}`
               );
             }
           }
@@ -559,16 +558,16 @@ async function main() {
       const ws = getPartsSheet(wb);
 
       const colSpecs = findColumn(ws, "Specifications");
-      const colId = findColumn(ws, "_id");
+      const colSku = findColumn(ws, "ACR SKU");
 
       // Modify row 4 (first data row) specifications
       const origSpecs = ws.getRow(4).getCell(colSpecs).value;
-      const partId = String(ws.getRow(4).getCell(colId).value);
+      const partSku = String(ws.getRow(4).getCell(colSku).value);
       const newSpecs = "STRESS-TEST-UPDATED-SPECS";
       ws.getRow(4).getCell(colSpecs).value = newSpecs;
 
       console.log(
-        `  Modifying row 4 (part ${partId}): specs "${origSpecs}" -> "${newSpecs}"`
+        `  Modifying row 4 (${partSku}): specs "${origSpecs}" -> "${newSpecs}"`
       );
 
       const buffer = await saveWorkbook(wb);
@@ -588,12 +587,9 @@ async function main() {
       const exec = await executeImport(cookie, buffer);
       assert(exec.success === true, "execute should succeed");
 
-      // Verify
-      const { data: part } = await db
-        .from("parts")
-        .select("specifications")
-        .eq("id", partId)
-        .single();
+      // Verify by SKU
+      const part = await findPartBySku(partSku);
+      assert(part !== null, `${partSku} should exist in DB`);
       assertEqual(part?.specifications, newSpecs, "specifications in DB");
 
       // Restore
@@ -606,21 +602,19 @@ async function main() {
   // ====================================================================
 
   if (shouldRun(5)) {
-    console.log("--- Test 5: Delete via _action=DELETE ---");
-    await runTest("5. Delete part via _action", async () => {
+    console.log("--- Test 5: Delete via Status=Eliminar ---");
+    await runTest("5. Delete part via Status=Eliminar", async () => {
       const wb = await loadWorkbook(baselineBuffer);
       const ws = getPartsSheet(wb);
 
-      const colAction = findColumn(ws, "_action");
-      const colId = findColumn(ws, "_id");
+      const colStatus = findColumn(ws, "Status");
       const colSku = findColumn(ws, "ACR SKU");
 
       // Mark row 4 for deletion
-      const partId = String(ws.getRow(4).getCell(colId).value);
       const partSku = String(ws.getRow(4).getCell(colSku).value);
-      ws.getRow(4).getCell(colAction).value = "DELETE";
+      ws.getRow(4).getCell(colStatus).value = "Eliminar";
 
-      console.log(`  Marking row 4 for deletion: ${partSku} (${partId})`);
+      console.log(`  Marking row 4 for deletion: ${partSku}`);
 
       const buffer = await saveWorkbook(wb);
 
@@ -665,7 +659,7 @@ async function main() {
       const ws = getPartsSheet(wb);
 
       const colNational = findColumn(ws, "National");
-      const colId = findColumn(ws, "_id");
+      const colSku = findColumn(ws, "ACR SKU");
 
       // Find a row with existing National cross-refs
       let targetRow = 0;
@@ -680,7 +674,7 @@ async function main() {
       }
       assert(targetRow > 0, "should find a row with National cross-refs");
 
-      const partId = String(ws.getRow(targetRow).getCell(colId).value);
+      const partSku = String(ws.getRow(targetRow).getCell(colSku).value);
       const newVal = `${existingVal};STRESS-XREF-001`;
       ws.getRow(targetRow).getCell(colNational).value = newVal;
       console.log(
@@ -704,8 +698,10 @@ async function main() {
       const exec = await executeImport(cookie, buffer);
       assert(exec.success === true, "execute should succeed");
 
-      // Verify
-      const xrefs = await findCrossRefsByPartId(partId);
+      // Verify by SKU lookup
+      const part = await findPartBySku(partSku);
+      assert(part !== null, `${partSku} should exist in DB`);
+      const xrefs = await findCrossRefsByPartId(part!.id);
       const found = xrefs.find(
         (x: any) => x.competitor_sku === "STRESS-XREF-001"
       );
@@ -727,7 +723,7 @@ async function main() {
       const ws = getPartsSheet(wb);
 
       const colNational = findColumn(ws, "National");
-      const colId = findColumn(ws, "_id");
+      const colSku = findColumn(ws, "ACR SKU");
 
       // Find a row with National cross-refs containing at least 1 SKU
       let targetRow = 0;
@@ -748,7 +744,7 @@ async function main() {
       skus[0] = `[DELETE]${skuToDelete}`;
       const newVal = skus.join(";");
 
-      const partId = String(ws.getRow(targetRow).getCell(colId).value);
+      const partSku = String(ws.getRow(targetRow).getCell(colSku).value);
       ws.getRow(targetRow).getCell(colNational).value = newVal;
       console.log(`  Row ${targetRow}: National "${existingVal}" -> "${newVal}"`);
       console.log(`  Deleting SKU: ${skuToDelete}`);
@@ -770,8 +766,10 @@ async function main() {
       const exec = await executeImport(cookie, buffer);
       assert(exec.success === true, "execute should succeed");
 
-      // Verify SKU is gone
-      const xrefs = await findCrossRefsByPartId(partId);
+      // Verify SKU is gone (look up part by ACR SKU)
+      const part = await findPartBySku(partSku);
+      assert(part !== null, `${partSku} should exist in DB`);
+      const xrefs = await findCrossRefsByPartId(part!.id);
       const found = xrefs.find(
         (x: any) => x.competitor_sku === skuToDelete
       );
@@ -795,8 +793,7 @@ async function main() {
       const colSku = findColumn(ws, "ACR SKU");
       const colType = findColumn(ws, "Part Type");
       const colPosition = findColumn(ws, "Position");
-      const colAction = findColumn(ws, "_action");
-      const colId = findColumn(ws, "_id");
+      const colStatus = findColumn(ws, "Status");
       const colSpecs = findColumn(ws, "Specifications");
       const colNational = findColumn(ws, "National");
 
@@ -810,8 +807,8 @@ async function main() {
       // 2. Update row 4 specs
       ws.getRow(4).getCell(colSpecs).value = "STRESS-MIXED-UPDATE";
 
-      // 3. Delete row 5
-      ws.getRow(5).getCell(colAction).value = "DELETE";
+      // 3. Delete row 5 via Status="Eliminar"
+      ws.getRow(5).getCell(colStatus).value = "Eliminar";
 
       // 4. Add cross-ref to row 6
       const row6National = String(
@@ -899,12 +896,12 @@ async function main() {
     await runTest("9b. Bulk delete 50 parts", async () => {
       const wb = await loadWorkbook(baselineBuffer);
       const ws = getPartsSheet(wb);
-      const colAction = findColumn(ws, "_action");
+      const colStatus = findColumn(ws, "Status");
       const totalDataRows = dataRowCount(ws);
       const deleteCount = Math.min(50, totalDataRows);
 
       for (let i = 0; i < deleteCount; i++) {
-        ws.getRow(4 + i).getCell(colAction).value = "DELETE";
+        ws.getRow(4 + i).getCell(colStatus).value = "Eliminar";
       }
 
       const buffer = await saveWorkbook(wb);
@@ -991,7 +988,7 @@ async function main() {
       const colSku = findColumn(ws, "ACR SKU");
       const colType = findColumn(ws, "Part Type");
       const colPosition = findColumn(ws, "Position");
-      const colAction = findColumn(ws, "_action");
+      const colStatus = findColumn(ws, "Status");
       const colSpecs = findColumn(ws, "Specifications");
       const colNational = findColumn(ws, "National");
       const totalDataRows = dataRowCount(ws);
@@ -1003,7 +1000,7 @@ async function main() {
 
       // 25 deletes (rows 29-53)
       for (let i = 25; i < 50 && i < totalDataRows; i++) {
-        ws.getRow(4 + i).getCell(colAction).value = "DELETE";
+        ws.getRow(4 + i).getCell(colStatus).value = "Eliminar";
       }
 
       // 25 adds
