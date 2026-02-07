@@ -21,17 +21,11 @@ import { requireAuth } from '@/lib/api/auth-helpers';
  *   errors: ValidationIssue[],
  *   warnings: ValidationIssue[],
  *   diff: {
- *     summary: {
- *       totalAdds: number,
- *       totalUpdates: number,
- *       totalDeletes: number,
- *       totalUnchanged: number,
- *       totalChanges: number,
- *       changesBySheet: { parts: number, vehicleApplications: number, crossReferences: number }
- *     },
- *     parts: { adds: PartRow[], updates: PartRow[], deletes: string[] },
- *     vehicleApplications: { adds: VARow[], updates: VARow[], deletes: string[] },
- *     crossReferences: { adds: CRRow[], updates: CRRow[], deletes: string[] }
+ *     summary: { totalAdds, totalUpdates, totalDeletes, totalUnchanged, totalChanges, changesBySheet },
+ *     parts: SheetDiff<ExcelPartRow>,
+ *     vehicleApplications: SheetDiff<ExcelVehicleAppRow>,
+ *     crossReferences: { adds: CrossRefDiffItem[], deletes: CrossRefDiffItem[], summary },
+ *     aliases?: SheetDiff<ExcelAliasRow>
  *   }
  * }
  */
@@ -86,33 +80,7 @@ export async function POST(request: NextRequest) {
       valid: true,
       errors: validationResult.errors,
       warnings: validationResult.warnings,
-      diff: {
-        summary: diffResult.summary,
-        parts: {
-          sheetName: diffResult.parts.sheetName,
-          adds: diffResult.parts.adds,
-          updates: diffResult.parts.updates,
-          deletes: diffResult.parts.deletes,
-          unchanged: diffResult.parts.unchanged,
-          summary: diffResult.parts.summary,
-        },
-        vehicleApplications: {
-          sheetName: diffResult.vehicleApplications.sheetName,
-          adds: diffResult.vehicleApplications.adds,
-          updates: diffResult.vehicleApplications.updates,
-          deletes: diffResult.vehicleApplications.deletes,
-          unchanged: diffResult.vehicleApplications.unchanged,
-          summary: diffResult.vehicleApplications.summary,
-        },
-        crossReferences: {
-          sheetName: diffResult.crossReferences.sheetName,
-          adds: diffResult.crossReferences.adds,
-          updates: diffResult.crossReferences.updates,
-          deletes: diffResult.crossReferences.deletes,
-          unchanged: diffResult.crossReferences.unchanged,
-          summary: diffResult.crossReferences.summary,
-        },
-      },
+      diff: diffResult,
     });
 
   } catch (error: any) {

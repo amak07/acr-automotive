@@ -312,52 +312,30 @@ export class ImportService {
       };
     });
 
-    // Format cross references data
-    const crossRefsToAdd = diff.crossReferences.adds.map((d) => {
-      const row = d.row!;
-      return {
-        id: row._id || crypto.randomUUID(), // Generate UUID for new cross-refs without IDs
-        tenant_id: tenantId || null,
-        acr_part_id: row._acr_part_id,
-        competitor_brand: row.competitor_brand,
-        competitor_sku: row.competitor_sku,
-        updated_by: "import",
-      };
-    });
+    // Format cross references data (from CrossRefDiffItem — no row/before objects)
+    const crossRefsToAdd = diff.crossReferences.adds.map((d) => ({
+      id: crypto.randomUUID(),
+      tenant_id: tenantId || null,
+      acr_part_id: d.partId,
+      competitor_brand: d.brand,
+      competitor_sku: d.sku,
+      updated_by: "import",
+    }));
 
-    const crossRefsToUpdate = diff.crossReferences.updates.map((d) => {
-      const row = d.after!;
-      return {
-        id: row._id,
-        acr_part_id: row._acr_part_id,
-        competitor_brand: row.competitor_brand,
-        competitor_sku: row.competitor_sku,
-        updated_by: "import",
-      };
-    });
+    // No cross-ref updates (immutable — add/delete only)
+    const crossRefsToUpdate: any[] = [];
 
-    // Format delete payloads (extract IDs from 'before' records)
-    // Also include parts from updates that have status="Eliminar"
-    const partsMarkedForDeletion = diff.parts.updates
-      .filter((d) => {
-        const statusValue =
-          WORKFLOW_STATUS_MAP[d.after?.status?.toLowerCase() || ""] || "ACTIVE";
-        return statusValue === "DELETE" && d.after?._id;
-      })
-      .map((d) => ({ id: d.after!._id }));
-
-    const partsToDelete = [
-      ...diff.parts.deletes.map((d) => ({ id: d.before!._id })),
-      ...partsMarkedForDeletion,
-    ];
+    // Format delete payloads
+    const partsToDelete = diff.parts.deletes.map((d) => ({ id: d.before!._id }));
 
     const vehiclesToDelete = diff.vehicleApplications.deletes.map((d) => ({
       id: d.before!._id,
     }));
 
-    const crossRefsToDelete = diff.crossReferences.deletes.map((d) => ({
-      id: d.before!._id,
-    }));
+    // Cross-ref deletes use _id resolved by DiffEngine
+    const crossRefsToDelete = diff.crossReferences.deletes
+      .filter((d) => d._id)
+      .map((d) => ({ id: d._id }));
 
     console.log("[ImportService] Transaction payload:", {
       partsToAdd: partsToAdd.length,

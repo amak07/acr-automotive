@@ -55,6 +55,7 @@ export interface CrossRefDiffItem {
   brand: string;
   sku: string;
   operation: DiffOperation;
+  _id?: string; // DB UUID (for deletes — resolved from existing data)
 }
 
 /**
