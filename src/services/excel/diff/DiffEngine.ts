@@ -15,6 +15,7 @@ import {
   BRAND_COLUMN_MAP,
   DELETE_MARKER,
   splitCrossRefSkus,
+  WORKFLOW_STATUS_MAP,
 } from "../shared/constants";
 
 // Type for parsed brand column (adds and explicit deletes)
@@ -44,6 +45,28 @@ export class DiffEngine {
       return null;
     }
     return String(value);
+  }
+
+  /**
+   * Normalize workflow status from Excel display value or DB enum value.
+   * Excel uses "Activo"/"Inactivo"/"Eliminar", DB uses "ACTIVE"/"INACTIVE"/"DELETE".
+   * Returns normalized DB format or null.
+   */
+  private normalizeWorkflowStatus(
+    statusDisplay?: string,
+    workflowStatus?: string
+  ): string | null {
+    // Prefer explicit workflow_status if set
+    if (workflowStatus) {
+      return workflowStatus.toUpperCase();
+    }
+    // Convert display value to DB format
+    if (statusDisplay) {
+      const mapped =
+        WORKFLOW_STATUS_MAP[statusDisplay.toLowerCase()] ?? null;
+      return mapped;
+    }
+    return null;
   }
 
   /**
@@ -215,7 +238,8 @@ export class DiffEngine {
       }
 
       if (!part._id || part._id.trim() === "") {
-        // ADD: No ID = new row
+        // ADD: No ID = new row — assign UUID so cross-ref diff can reference it
+        part._id = crypto.randomUUID();
         adds.push({
           operation: DiffOperation.ADD,
           row: part,
@@ -292,14 +316,6 @@ export class DiffEngine {
     if (before.acr_sku !== after.acr_sku) changes.push("acr_sku");
     if (before.part_type !== after.part_type) changes.push("part_type");
 
-    // Status field: normalize for comparison (treat empty as default)
-    if (
-      this.normalizeOptional(before.status) !==
-      this.normalizeOptional(after.status)
-    ) {
-      changes.push("status");
-    }
-
     // Optional fields: normalize null/undefined/empty before comparison
     if (
       this.normalizeOptional(before.position_type) !==
@@ -332,11 +348,14 @@ export class DiffEngine {
       changes.push("specifications");
     }
 
-    // workflow_status field: normalize for comparison (ACTIVE/INACTIVE/DELETE)
-    if (
-      this.normalizeOptional(before.workflow_status) !==
-      this.normalizeOptional(after.workflow_status)
-    ) {
+    // Workflow status: Excel uses display values ("Activo"), DB uses enum ("ACTIVE").
+    // Normalize both sides to DB format before comparing.
+    const beforeWfStatus = this.normalizeOptional(before.workflow_status);
+    const afterWfStatus = this.normalizeWorkflowStatus(
+      after.status,
+      after.workflow_status
+    );
+    if (beforeWfStatus !== afterWfStatus) {
       changes.push("workflow_status");
     }
 
@@ -484,7 +503,7 @@ export class DiffEngine {
     // Process each part row
     for (const part of uploadedParts) {
       const partId = part._id;
-      if (!partId) continue; // Skip new parts (no ID yet)
+      if (!partId) continue; // Skip parts without any ID
 
       const existingForPart = existingByPart[partId] || {};
 

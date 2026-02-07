@@ -42,6 +42,7 @@ export async function fetchExistingData(): Promise<ExistingDatabaseData> {
           bolt_pattern: part.bolt_pattern,
           drive_type: part.drive_type,
           specifications: part.specifications,
+          workflow_status: part.workflow_status,
         });
         partSkus.add(part.acr_sku);
       });

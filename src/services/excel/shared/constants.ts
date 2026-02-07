@@ -405,11 +405,10 @@ export interface SplitCrossRefResult {
 
 /**
  * Split cross-reference SKUs from a cell value.
- * Handles both semicolon (new format) and space (legacy format) delimiters.
+ * Uses semicolon as the only delimiter.
  *
- * - Semicolon is the canonical delimiter for new data
- * - Space delimiter is supported for backwards compatibility with old data
- * - When spaces are detected, hadSpaceDelimiters is set to true for warnings
+ * SKU values may contain spaces (e.g., "713 6493 80" is a single SKU value).
+ * Only semicolons separate multiple SKUs in a cell.
  *
  * @param value - The raw cell value containing one or more SKUs
  * @returns Object with split SKUs and whether legacy space delimiters were found
@@ -423,31 +422,13 @@ export function splitCrossRefSkus(
 
   const trimmedValue = value.trim();
 
-  // Check if value contains semicolons - use semicolon delimiter only
-  if (trimmedValue.includes(";")) {
-    const skus = trimmedValue
-      .split(";")
-      .map((s) => s.trim())
-      .filter((s) => s !== "");
-    return { skus, hadSpaceDelimiters: false };
-  }
+  // Split on semicolons only — spaces within SKUs are preserved
+  const skus = trimmedValue
+    .split(";")
+    .map((s) => s.trim())
+    .filter((s) => s !== "");
 
-  // No semicolons - check if value contains spaces (legacy format)
-  // Only split on spaces if there are multiple words that look like SKUs
-  if (trimmedValue.includes(" ")) {
-    const parts = trimmedValue
-      .split(/\s+/)
-      .map((s) => s.trim())
-      .filter((s) => s !== "");
-
-    // Only treat as space-delimited if we get multiple parts
-    if (parts.length > 1) {
-      return { skus: parts, hadSpaceDelimiters: true };
-    }
-  }
-
-  // Single value (no delimiters)
-  return { skus: [trimmedValue], hadSpaceDelimiters: false };
+  return { skus, hadSpaceDelimiters: false };
 }
 
 // ----------------------------------------------------------------------------

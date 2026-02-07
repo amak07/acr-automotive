@@ -62,6 +62,17 @@ npx playwright test
 - **Port conflicts:** Worktree playwright.config.ts is set to port 3001. Don't change it back to 3000.
 - **Local Supabase required:** .env.local points to localhost:54321. Tests will fail without it.
 
+## E2E Testing (Playwright)
+
+- Auth setup: `tests/e2e/auth.setup.ts` logs in as admin, saves storageState
+- Test files use `test.describe.configure({ mode: "serial" })` when they share DB state
+- DB isolation: `createE2ESnapshot()` / `restoreE2ESnapshot()` in beforeAll/afterAll
+- Reset to clean state: `npm.cmd run db:import-seed`
+
+**Test IDs:** When E2E tests can't reliably find UI elements (ambiguous selectors, responsive duplicates), **ask the user before adding `data-testid` attributes** to production components. Don't spend time chasing fragile CSS/aria selectors — flag the issue, propose test IDs, and wait for approval.
+
+**Locator priority:** `getByTestId` > `getByRole` with name > `getByLabel` > CSS selectors. Never use `.first()` / `.nth()` as a permanent fix for ambiguous selectors.
+
 ## Pre-commit Hooks
 
 - lint-staged (ESLint + Prettier)
