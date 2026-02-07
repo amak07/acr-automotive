@@ -9,6 +9,7 @@ import { DiffEngine } from '@/services/excel/diff/DiffEngine';
 import { ImportService } from '@/services/excel/import';
 import { fetchExistingData } from '../_helpers';
 import { requireAuth } from '@/lib/api/auth-helpers';
+import { createAdminClient } from '@/lib/supabase/client';
 
 /**
  * POST /api/admin/import/execute
@@ -77,8 +78,8 @@ export async function POST(request: NextRequest) {
 
     console.log('[Import Execute] Diff:', diffResult.summary);
 
-    // Step 5: Execute import with snapshot
-    const importService = new ImportService();
+    // Step 5: Execute import with snapshot (service role bypasses RLS)
+    const importService = new ImportService(createAdminClient());
     const importResult = await importService.executeImport(
       parsed,
       diffResult,

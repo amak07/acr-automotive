@@ -46,6 +46,7 @@ export async function createE2ESnapshot(): Promise<string> {
     vehicle_applications: vehicleApps.data || [],
     cross_references: crossRefs.data || [],
     vehicle_aliases: aliases.data || [],
+    timestamp: new Date().toISOString(),
   };
 
   // Save to import_history with E2E marker
@@ -81,50 +82,64 @@ export async function restoreE2ESnapshot(snapshotId: string): Promise<void> {
     .eq("file_name", E2E_SNAPSHOT_MARKER);
 
   if (fetchError || !snapshots?.length) {
-    throw new Error("E2E snapshot not found");
+    console.warn("[E2E Restore] Snapshot not found (may have been cleaned up by another test file), skipping restore");
+    return;
   }
 
   const snap = snapshots[0].snapshot_data;
 
-  // Delete all (reverse FK order)
-  await supabase
+  // Delete all (reverse FK order) — check errors
+  const delCR = await supabase
     .from("cross_references")
     .delete()
     .neq("id", "00000000-0000-0000-0000-000000000000");
-  await supabase
+  if (delCR.error)
+    console.warn("[E2E Restore] cross_references delete warning:", delCR.error.message);
+
+  const delVA = await supabase
     .from("vehicle_applications")
     .delete()
     .neq("id", "00000000-0000-0000-0000-000000000000");
-  await supabase
+  if (delVA.error)
+    console.warn("[E2E Restore] vehicle_applications delete warning:", delVA.error.message);
+
+  const delAl = await supabase
     .from("vehicle_aliases")
     .delete()
     .neq("id", "00000000-0000-0000-0000-000000000000");
-  await supabase
+  if (delAl.error)
+    console.warn("[E2E Restore] vehicle_aliases delete warning:", delAl.error.message);
+
+  const delParts = await supabase
     .from("parts")
     .delete()
     .neq("id", "00000000-0000-0000-0000-000000000000");
+  if (delParts.error)
+    console.warn("[E2E Restore] parts delete warning:", delParts.error.message);
 
-  // Restore (FK order)
+  // Restore (FK order) — use upsert to handle parallel describe blocks
   if (snap.parts?.length) {
-    const { error } = await supabase.from("parts").insert(snap.parts);
+    const { error } = await supabase
+      .from("parts")
+      .upsert(snap.parts, { onConflict: "id" });
     if (error) throw new Error(`Failed to restore parts: ${error.message}`);
   }
   if (snap.vehicle_applications?.length) {
     const { error } = await supabase
       .from("vehicle_applications")
-      .insert(snap.vehicle_applications);
+      .upsert(snap.vehicle_applications, { onConflict: "id" });
     if (error) throw new Error(`Failed to restore VAs: ${error.message}`);
   }
   if (snap.cross_references?.length) {
     const { error } = await supabase
       .from("cross_references")
-      .insert(snap.cross_references);
+      .upsert(snap.cross_references, { onConflict: "id" });
     if (error) throw new Error(`Failed to restore CRs: ${error.message}`);
   }
   if (snap.vehicle_aliases?.length) {
     const { error } = await supabase
       .from("vehicle_aliases")
-      .insert(snap.vehicle_aliases);
+      .upsert(snap.vehicle_aliases, { onConflict: "id" });
     if (error)
       throw new Error(`Failed to restore aliases: ${error.message}`);
   }
@@ -140,15 +155,10 @@ export async function deleteE2ESnapshot(snapshotId: string): Promise<void> {
     .eq("file_name", E2E_SNAPSHOT_MARKER);
 }
 
-/** Also clean up any import_history entries created during E2E tests. */
+/** Clean up import_history entries created during E2E tests (not snapshots). */
 export async function cleanupE2EImports(): Promise<void> {
   const supabase = getE2EClient();
-  // Delete test snapshots
-  await supabase
-    .from("import_history")
-    .delete()
-    .eq("file_name", E2E_SNAPSHOT_MARKER);
-  // Delete imports from test files
+  // Only delete imports from test files — NOT snapshots (those are handled by deleteE2ESnapshot)
   await supabase
     .from("import_history")
     .delete()

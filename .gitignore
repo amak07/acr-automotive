@@ -92,6 +92,8 @@ supabase/config.toml  # May contain sensitive project-specific config
 junit.xml
 playwright-report/
 test-results/
+tests/e2e/.auth/
+tests/e2e/tmp/
 
 # Git worktrees
 .worktrees/
