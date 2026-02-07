@@ -4,10 +4,8 @@ import {
   SHEET_NAMES,
   PARTS_COLUMNS,
   VEHICLE_APPLICATIONS_COLUMNS,
-  CROSS_REFERENCES_COLUMNS, // @deprecated - kept for backward compatibility
   ALIASES_COLUMNS,
   BRAND_COLUMN_MAP,
-  IMAGE_VIEW_TYPE_MAP,
   WORKFLOW_STATUS_DISPLAY,
   ExportFilters,
   // Styling imports
@@ -33,31 +31,15 @@ type ImagesByPart = Map<string, Record<string, string>>;
 /**
  * ExcelExportService
  *
- * Handles Excel export of catalog data in standardized 2-sheet format (Phase 3).
- * Supports both full catalog export and filtered export based on search criteria.
- * Uses ExcelJS library for full Excel feature support including hidden columns.
+ * Exports catalog data to a 3-sheet Excel template:
+ * 1. Parts — with inline cross-ref brand columns, image URLs, Status, and Errors formula
+ * 2. Vehicle Applications — with Status column, Errors formula
+ * 3. Vehicle Aliases — with Status column, Errors formula
  *
- * Sheet Structure (Phase 3 - 2 sheets):
- * 1. Parts - All/filtered parts with cross-refs and images inline
- *    - Core: _id (hidden), ACR_SKU, Part_Type, Position_Type, ABS_Type, Bolt_Pattern, Drive_Type, Specifications
- *    - Cross-refs: National_SKUs, ATV_SKUs, SYD_SKUs, TMK_SKUs, GROB_SKUs, RACE_SKUs, OEM_SKUs, OEM_2_SKUs, GMB_SKUs, GSP_SKUs, FAG_SKUs
- *    - Images: Image_URL_Front, Image_URL_Back, Image_URL_Top, Image_URL_Other, 360_Viewer_Status
- *
- * 2. Vehicle Applications - Vehicle fitment data for exported parts
- *    Columns: _id (hidden), _part_id (hidden), ACR_SKU, Make, Model, Start_Year, End_Year
- *
- * Cross-Reference Format:
- * - Each brand column contains semicolon-separated SKUs (e.g., "TM-123;TM-456")
- * - Use [DELETE]SKU to mark a SKU for explicit deletion on import
- *
- * Image URL Format:
- * - URLs from Supabase Storage or external sources
- * - 360_Viewer_Status shows "Confirmed" if part has 360 viewer
- *
- * Export-Import Loop:
- * 1. User exports to get IDs (all data or filtered results)
- * 2. User edits data in Excel (using ACR_SKU for readability)
- * 3. User imports - system matches by hidden _id columns and applies changes
+ * No hidden columns. Records matched by business keys on re-import:
+ * - Parts: by acr_sku
+ * - VAs: by (acr_sku, make, model)
+ * - Aliases: by (alias, canonical_name)
  */
 export class ExcelExportService {
   /**
@@ -111,9 +93,6 @@ export class ExcelExportService {
 
   /**
    * Export all catalog data to Excel workbook
-   *
-   * Phase 3: 2-sheet format with inline cross-refs and images
-   *
    * @returns Excel file buffer ready for download
    */
   async exportAllData(): Promise<Buffer> {
@@ -138,10 +117,8 @@ export class ExcelExportService {
     // Add Vehicle Applications sheet
     this.addVehiclesSheet(workbook, vehicles);
 
-    // Add Vehicle Aliases sheet (Phase 4A)
+    // Add Vehicle Aliases sheet
     this.addAliasesSheet(workbook, aliases);
-
-    // Note: Cross References sheet removed in Phase 3 (now inline in Parts sheet)
 
     // Generate Excel file buffer
     const buffer = await workbook.xlsx.writeBuffer();
@@ -151,12 +128,6 @@ export class ExcelExportService {
 
   /**
    * Export filtered catalog data to Excel workbook
-   *
-   * Phase 3: 2-sheet format with inline cross-refs and images
-   *
-   * Filters parts based on search criteria, then includes all related
-   * vehicle applications for the filtered parts.
-   *
    * @param filters - Search filters to apply
    * @returns Excel file buffer ready for download
    */
@@ -200,8 +171,6 @@ export class ExcelExportService {
     this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart);
     this.addVehiclesSheet(workbook, vehicles);
     this.addAliasesSheet(workbook, aliases);
-
-    // Note: Cross References sheet removed in Phase 3 (now inline in Parts sheet)
 
     // Generate Excel file buffer
     const buffer = await workbook.xlsx.writeBuffer();
@@ -267,7 +236,7 @@ export class ExcelExportService {
   }
 
   /**
-   * Fetch all vehicle aliases (Phase 4A)
+   * Fetch all vehicle aliases
    */
   private async fetchAllAliases(): Promise<any[]> {
     const { data, error } = await supabase
@@ -586,14 +555,7 @@ export class ExcelExportService {
   }
 
   /**
-   * Add Parts sheet to workbook (Phase 3: with inline cross-refs and images)
-   * Styled with group headers, column headers, instructions row, and alternating data rows
-   *
-   * Row Structure:
-   * - Row 1: Group headers (merged cells for logical groupings)
-   * - Row 2: Column headers
-   * - Row 3: Instructions row (help text for each column)
-   * - Row 4+: Data rows with alternating colors
+   * Add Parts sheet with inline cross-refs, images, Status dropdown, and Errors formula
    */
   private addPartsSheet(
     workbook: ExcelJS.Workbook,
@@ -605,11 +567,10 @@ export class ExcelExportService {
   ): void {
     const worksheet = workbook.addWorksheet(SHEET_NAMES.PARTS);
 
-    // Define columns (widths and keys only - headers added manually for styling)
+    // Define columns (widths and keys only — headers added manually for styling)
     worksheet.columns = PARTS_COLUMNS.map((col) => ({
       key: col.key,
       width: col.width,
-      hidden: col.hidden,
     }));
 
     // Row 1: Group headers (merged cells for logical groupings)
@@ -644,8 +605,6 @@ export class ExcelExportService {
       }
 
       const row = worksheet.addRow({
-        // Core part fields
-        _id: part.id,
         acr_sku: part.acr_sku,
         status: WORKFLOW_STATUS_DISPLAY[part.workflow_status] || "Activo",
         part_type: part.part_type,
@@ -679,12 +638,25 @@ export class ExcelExportService {
       row.height = ROW_HEIGHTS.DATA_ROW;
     });
 
+    // Add Errors column formulas (SKU required, duplicate SKU check)
+    const errorsColIndex = PARTS_COLUMNS.findIndex((c) => c.key === "errors") + 1;
+    const skuColIndex = PARTS_COLUMNS.findIndex((c) => c.key === "acr_sku") + 1;
+    const lastDataRow = worksheet.rowCount;
+    if (errorsColIndex > 0 && skuColIndex > 0 && lastDataRow >= 4) {
+      const skuCol = String.fromCharCode(64 + skuColIndex); // 1→A, 2→B, etc.
+      for (let rowNum = 4; rowNum <= lastDataRow; rowNum++) {
+        const cell = worksheet.getCell(rowNum, errorsColIndex);
+        cell.value = {
+          formula: `IF(${skuCol}${rowNum}="","SKU requerido","")&IF(AND(${skuCol}${rowNum}<>"",COUNTIF(${skuCol}$4:${skuCol}$${lastDataRow},${skuCol}${rowNum})>1),"; SKU duplicado","")`,
+        };
+        cell.font = { color: { argb: "FFCC0000" }, italic: true, size: 9 };
+      }
+    }
+
     // Add data validation for Status column (dropdown: Activo, Inactivo, Eliminar)
     const statusColIndex =
       PARTS_COLUMNS.findIndex((col) => col.key === "status") + 1;
     if (statusColIndex > 0) {
-      const statusColumn = worksheet.getColumn(statusColIndex);
-      // Apply to data rows only (row 4+, skipping header and instruction rows)
       for (let rowNum = 4; rowNum <= worksheet.rowCount; rowNum++) {
         const cell = worksheet.getCell(rowNum, statusColIndex);
         cell.dataValidation = {
@@ -703,14 +675,7 @@ export class ExcelExportService {
   }
 
   /**
-   * Add Vehicle Applications sheet to workbook
-   * Styled with group headers, column headers, instructions row, and alternating data rows
-   *
-   * Row Structure:
-   * - Row 1: Group headers (merged cells for logical groupings)
-   * - Row 2: Column headers
-   * - Row 3: Instructions row (help text for each column)
-   * - Row 4+: Data rows with alternating colors
+   * Add Vehicle Applications sheet with Status dropdown and Errors formula
    */
   private addVehiclesSheet(
     workbook: ExcelJS.Workbook,
@@ -719,61 +684,80 @@ export class ExcelExportService {
   ): void {
     const worksheet = workbook.addWorksheet(SHEET_NAMES.VEHICLE_APPLICATIONS);
 
-    // Define columns (widths and keys only - headers added manually for styling)
     worksheet.columns = VEHICLE_APPLICATIONS_COLUMNS.map((col) => ({
       key: col.key,
       width: col.width,
-      hidden: col.hidden,
     }));
 
-    // Row 1: Group headers (merged cells for logical groupings)
     addGroupHeaderRow(
       worksheet,
       VEHICLE_APPLICATIONS_COLUMNS,
       VEHICLE_APPS_COLUMN_GROUPS
     );
-
-    // Row 2: Column headers with styling
     addColumnHeaderRow(worksheet, VEHICLE_APPLICATIONS_COLUMNS);
-
-    // Row 3: Instructions row with help text
     addInstructionsRow(
       worksheet,
       VEHICLE_APPLICATIONS_COLUMNS,
       VEHICLE_APPS_INSTRUCTIONS[locale]
     );
 
-    // Row 4+: Data rows with alternating colors
     vehicles.forEach((vehicle, rowIndex) => {
       const row = worksheet.addRow({
-        _id: vehicle.id, // Map database 'id' to Excel '_id' column key
-        _part_id: vehicle.part_id, // Map database 'part_id' to Excel '_part_id' column key
         acr_sku: vehicle.acr_sku || "",
+        status: "Activo",
         make: vehicle.make,
         model: vehicle.model,
         start_year: vehicle.start_year,
         end_year: vehicle.end_year,
       });
 
-      // Apply alternating row styling
       applyDataRowStyle(row, rowIndex, VEHICLE_APPLICATIONS_COLUMNS.length);
       row.height = ROW_HEIGHTS.DATA_ROW;
     });
 
-    // Freeze header rows (group headers + column headers + instructions)
+    // Errors column formulas (required fields + year range)
+    const vaErrorsColIndex = VEHICLE_APPLICATIONS_COLUMNS.findIndex((c) => c.key === "errors") + 1;
+    const vaSkuColIndex = VEHICLE_APPLICATIONS_COLUMNS.findIndex((c) => c.key === "acr_sku") + 1;
+    const vaMakeColIndex = VEHICLE_APPLICATIONS_COLUMNS.findIndex((c) => c.key === "make") + 1;
+    const vaModelColIndex = VEHICLE_APPLICATIONS_COLUMNS.findIndex((c) => c.key === "model") + 1;
+    const vaStartYearColIndex = VEHICLE_APPLICATIONS_COLUMNS.findIndex((c) => c.key === "start_year") + 1;
+    const vaEndYearColIndex = VEHICLE_APPLICATIONS_COLUMNS.findIndex((c) => c.key === "end_year") + 1;
+    const vaLastRow = worksheet.rowCount;
+    if (vaErrorsColIndex > 0 && vaLastRow >= 4) {
+      const sc = String.fromCharCode(64 + vaSkuColIndex);
+      const mc = String.fromCharCode(64 + vaMakeColIndex);
+      const oc = String.fromCharCode(64 + vaModelColIndex);
+      const sy = String.fromCharCode(64 + vaStartYearColIndex);
+      const ey = String.fromCharCode(64 + vaEndYearColIndex);
+      for (let rowNum = 4; rowNum <= vaLastRow; rowNum++) {
+        const cell = worksheet.getCell(rowNum, vaErrorsColIndex);
+        cell.value = {
+          formula: `IF(${sc}${rowNum}="","SKU requerido","")&IF(${mc}${rowNum}="","; Marca requerida","")&IF(${oc}${rowNum}="","; Modelo requerido","")&IF(AND(${sy}${rowNum}<>"",${ey}${rowNum}<>"",${sy}${rowNum}>${ey}${rowNum}),"; Rango de años inválido","")`,
+        };
+        cell.font = { color: { argb: "FFCC0000" }, italic: true, size: 9 };
+      }
+    }
+
+    // Status dropdown
+    const vaStatusColIndex = VEHICLE_APPLICATIONS_COLUMNS.findIndex((col) => col.key === "status") + 1;
+    if (vaStatusColIndex > 0) {
+      for (let rowNum = 4; rowNum <= worksheet.rowCount; rowNum++) {
+        worksheet.getCell(rowNum, vaStatusColIndex).dataValidation = {
+          type: "list",
+          allowBlank: true,
+          formulae: ['"Activo,Eliminar"'],
+          showErrorMessage: true,
+          errorTitle: "Invalid Status",
+          error: "Please select: Activo or Eliminar",
+        };
+      }
+    }
+
     worksheet.views = [{ state: "frozen", ySplit: 3 }];
   }
 
   /**
-   * Add Vehicle Aliases sheet to workbook (Phase 4A)
-   * Allows Humberto to manage vehicle nickname mappings via Excel
-   * Styled with group headers, column headers, instructions row, and alternating data rows
-   *
-   * Row Structure:
-   * - Row 1: Group headers (merged cells for logical groupings)
-   * - Row 2: Column headers
-   * - Row 3: Instructions row (help text for each column)
-   * - Row 4+: Data rows with alternating colors
+   * Add Vehicle Aliases sheet with Status dropdown and Errors formula
    */
   private addAliasesSheet(
     workbook: ExcelJS.Workbook,
@@ -782,81 +766,64 @@ export class ExcelExportService {
   ): void {
     const worksheet = workbook.addWorksheet(SHEET_NAMES.ALIASES);
 
-    // Define columns (widths and keys only - headers added manually for styling)
     worksheet.columns = ALIASES_COLUMNS.map((col) => ({
       key: col.key,
       width: col.width,
-      hidden: col.hidden,
     }));
 
-    // Row 1: Group headers (merged cells for logical groupings)
     addGroupHeaderRow(worksheet, ALIASES_COLUMNS, ALIASES_COLUMN_GROUPS);
-
-    // Row 2: Column headers with styling
     addColumnHeaderRow(worksheet, ALIASES_COLUMNS);
-
-    // Row 3: Instructions row with help text
     addInstructionsRow(
       worksheet,
       ALIASES_COLUMNS,
       ALIASES_INSTRUCTIONS[locale]
     );
 
-    // Row 4+: Data rows with alternating colors
     aliases.forEach((alias, rowIndex) => {
       const row = worksheet.addRow({
-        _id: alias.id,
         alias: alias.alias,
         canonical_name: alias.canonical_name,
         alias_type: alias.alias_type,
+        status: "Activo",
       });
 
-      // Apply alternating row styling
       applyDataRowStyle(row, rowIndex, ALIASES_COLUMNS.length);
       row.height = ROW_HEIGHTS.DATA_ROW;
     });
 
-    // Freeze header rows (group headers + column headers + instructions)
+    // Errors column formulas (required fields)
+    const aliasErrorsColIndex = ALIASES_COLUMNS.findIndex((c) => c.key === "errors") + 1;
+    const aliasColIndex = ALIASES_COLUMNS.findIndex((c) => c.key === "alias") + 1;
+    const canonColIndex = ALIASES_COLUMNS.findIndex((c) => c.key === "canonical_name") + 1;
+    const aliasLastRow = worksheet.rowCount;
+    if (aliasErrorsColIndex > 0 && aliasLastRow >= 4) {
+      const ac = String.fromCharCode(64 + aliasColIndex);
+      const cc = String.fromCharCode(64 + canonColIndex);
+      for (let rowNum = 4; rowNum <= aliasLastRow; rowNum++) {
+        const cell = worksheet.getCell(rowNum, aliasErrorsColIndex);
+        cell.value = {
+          formula: `IF(${ac}${rowNum}="","Alias requerido","")&IF(${cc}${rowNum}="","; Nombre canónico requerido","")`,
+        };
+        cell.font = { color: { argb: "FFCC0000" }, italic: true, size: 9 };
+      }
+    }
+
+    // Status dropdown
+    const aliasStatusColIndex = ALIASES_COLUMNS.findIndex((col) => col.key === "status") + 1;
+    if (aliasStatusColIndex > 0) {
+      for (let rowNum = 4; rowNum <= worksheet.rowCount; rowNum++) {
+        worksheet.getCell(rowNum, aliasStatusColIndex).dataValidation = {
+          type: "list",
+          allowBlank: true,
+          formulae: ['"Activo,Eliminar"'],
+          showErrorMessage: true,
+          errorTitle: "Invalid Status",
+          error: "Please select: Activo or Eliminar",
+        };
+      }
+    }
+
     worksheet.views = [{ state: "frozen", ySplit: 3 }];
-  }
-
-  /**
-   * Add Cross References sheet to workbook
-   * @deprecated Phase 3 moves cross-references to brand columns in Parts sheet.
-   * This method is kept for backward compatibility only.
-   */
-  private addCrossRefsSheet(
-    workbook: ExcelJS.Workbook,
-    crossRefs: any[]
-  ): void {
-    const worksheet = workbook.addWorksheet(SHEET_NAMES.CROSS_REFERENCES);
-
-    // Define columns (widths and keys only - headers added manually for styling)
-    worksheet.columns = CROSS_REFERENCES_COLUMNS.map((col) => ({
-      key: col.key,
-      width: col.width,
-      hidden: col.hidden,
-    }));
-
-    // Row 1: Simple header row (no group headers for deprecated sheet)
-    const headerRow = worksheet.getRow(1);
-    CROSS_REFERENCES_COLUMNS.forEach((col, idx) => {
-      headerRow.getCell(idx + 1).value = col.header;
-    });
-
-    // Add rows
-    crossRefs.forEach((crossRef) => {
-      worksheet.addRow({
-        _id: crossRef.id, // Map database 'id' to Excel '_id' column key
-        _acr_part_id: crossRef.acr_part_id, // Map database 'acr_part_id' to Excel '_acr_part_id' column key
-        acr_sku: crossRef.acr_sku || "",
-        competitor_brand: crossRef.competitor_brand || "",
-        competitor_sku: crossRef.competitor_sku,
-      });
-    });
-
-    // Freeze header row
-    worksheet.views = [{ state: "frozen", ySplit: 1 }];
   }
 
   /**
