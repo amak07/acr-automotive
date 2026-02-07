@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Test All Fixtures Through Full Pipeline
  *

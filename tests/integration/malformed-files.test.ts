@@ -174,19 +174,11 @@ describe('Malformed Files Test', () => {
           },
         ],
         rowCount: 1,
-        hasHiddenIds: true,
       },
       vehicleApplications: {
         sheetName: 'Vehicle Applications',
         data: [],
         rowCount: 0,
-        hasHiddenIds: true,
-      },
-      crossReferences: {
-        sheetName: 'Cross References',
-        data: [],
-        rowCount: 0,
-        hasHiddenIds: true,
       },
       metadata: {
         uploadedAt: new Date(),
@@ -200,6 +192,7 @@ describe('Malformed Files Test', () => {
       vehicleApplications: new Map(),
       crossReferences: new Map(),
       partSkus: new Set(),
+      aliases: new Map(),
     });
 
     // Should validate successfully (special chars are allowed in data)

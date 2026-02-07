@@ -98,27 +98,6 @@ describe("ValidationEngine", () => {
   });
 
   // ========================================================================
-  // Error Code Tests: E4 - Invalid UUID Format
-  // ========================================================================
-
-  describe("Error Code E4: Invalid UUID Format", () => {
-    it("should detect invalid UUID formats", async () => {
-      const file = loadFixture("error-invalid-formats.xlsx");
-      const parsed = await parser.parseFile(file);
-      const result = await validator.validate(parsed, emptyDbState());
-
-      expect(result.valid).toBe(false);
-
-      const uuidErrors = result.errors.filter(
-        (e) => e.code === ValidationErrorCode.E4_INVALID_UUID_FORMAT
-      );
-
-      expect(uuidErrors.length).toBeGreaterThan(0);
-      expect(uuidErrors[0].message).toContain("UUID");
-    });
-  });
-
-  // ========================================================================
   // Error Code Tests: E5 - Orphaned Foreign Key
   // ========================================================================
 
@@ -320,33 +299,6 @@ describe("ValidationEngine", () => {
   });
 
   // ========================================================================
-  // Error Code Tests: E1 - Missing Hidden Columns
-  // ========================================================================
-
-  describe("Error Code E1: Missing Hidden Columns", () => {
-    it("should detect files without hidden ID columns", async () => {
-      // Load a fixture that doesn't have hidden columns
-      const file = loadFixture("valid-add-new-parts.xlsx");
-      const parsed = await parser.parseFile(file);
-
-      // If this fixture doesn't have hidden IDs, it should trigger E1
-      if (!parsed.parts.hasHiddenIds) {
-        const result = await validator.validate(parsed, emptyDbState());
-
-        expect(result.valid).toBe(false);
-        const e1Errors = result.errors.filter(
-          (e) => e.code === ValidationErrorCode.E1_MISSING_HIDDEN_COLUMNS
-        );
-        expect(e1Errors.length).toBeGreaterThan(0);
-        expect(e1Errors[0].message).toContain("hidden ID columns");
-      } else {
-        // Skip if fixture has hidden IDs
-        expect(true).toBe(true);
-      }
-    });
-  });
-
-  // ========================================================================
   // Error Code Tests: E9 - Invalid Number Format
   // ========================================================================
 
@@ -382,9 +334,8 @@ describe("ValidationEngine", () => {
     it("should detect when all sheets are empty", async () => {
       // Create a mock parsed file with empty data
       const mockParsed = {
-        parts: { sheetName: "Parts", data: [], rowCount: 0, hasHiddenIds: true },
-        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0, hasHiddenIds: true },
-        crossReferences: { sheetName: "Cross References", data: [], rowCount: 0, hasHiddenIds: true },
+        parts: { sheetName: "Parts", data: [], rowCount: 0 },
+        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0 },
         metadata: { uploadedAt: new Date(), fileName: "empty.xlsx", fileSize: 1000 },
       };
 
@@ -414,10 +365,8 @@ describe("ValidationEngine", () => {
             { _id: "test-uuid-2", acr_sku: "XYZ-002", part_type: "Caliper" },
           ],
           rowCount: 2,
-          hasHiddenIds: true,
         },
-        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0, hasHiddenIds: true },
-        crossReferences: { sheetName: "Cross References", data: [], rowCount: 0, hasHiddenIds: true },
+        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0 },
         metadata: { uploadedAt: new Date(), fileName: "invalid-sku.xlsx", fileSize: 1000 },
       };
 
@@ -446,10 +395,8 @@ describe("ValidationEngine", () => {
             { _id: "test-uuid-2", acr_sku: "ACR-002", part_type: "Caliper" },
           ],
           rowCount: 2,
-          hasHiddenIds: true,
         },
-        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0, hasHiddenIds: true },
-        crossReferences: { sheetName: "Cross References", data: [], rowCount: 0, hasHiddenIds: true },
+        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0 },
         metadata: { uploadedAt: new Date(), fileName: "valid-sku.xlsx", fileSize: 1000 },
       };
 
@@ -466,77 +413,6 @@ describe("ValidationEngine", () => {
       );
 
       expect(e20Errors.length).toBe(0);
-    });
-  });
-
-  // ========================================================================
-  // Error Code Tests: E21 - Invalid Action Value
-  // ========================================================================
-
-  describe("Error Code E21: Invalid Action Value", () => {
-    it("should detect invalid _action values", async () => {
-      const mockParsed = {
-        parts: {
-          sheetName: "Parts",
-          data: [
-            { _id: "test-uuid-1", acr_sku: "ACR-001", part_type: "Rotor", _action: "REMOVE" },
-            { _id: "test-uuid-2", acr_sku: "ACR-002", part_type: "Caliper", _action: "invalid" },
-          ],
-          rowCount: 2,
-          hasHiddenIds: true,
-        },
-        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0, hasHiddenIds: true },
-        crossReferences: { sheetName: "Cross References", data: [], rowCount: 0, hasHiddenIds: true },
-        metadata: { uploadedAt: new Date(), fileName: "invalid-action.xlsx", fileSize: 1000 },
-      };
-
-      const result = await validator.validate(mockParsed as any, {
-        ...emptyDbState(),
-        parts: new Map([
-          ["test-uuid-1", { _id: "test-uuid-1", acr_sku: "ACR-001", part_type: "Rotor" }],
-          ["test-uuid-2", { _id: "test-uuid-2", acr_sku: "ACR-002", part_type: "Caliper" }],
-        ]),
-      });
-
-      const e21Errors = result.errors.filter(
-        (e) => e.code === ValidationErrorCode.E21_INVALID_ACTION_VALUE
-      );
-
-      expect(e21Errors.length).toBe(2);
-      expect(e21Errors[0].message).toContain("DELETE");
-    });
-
-    it("should accept valid _action values (DELETE or empty)", async () => {
-      const mockParsed = {
-        parts: {
-          sheetName: "Parts",
-          data: [
-            { _id: "test-uuid-1", acr_sku: "ACR-001", part_type: "Rotor", _action: "DELETE" },
-            { _id: "test-uuid-2", acr_sku: "ACR-002", part_type: "Caliper", _action: "" },
-            { _id: "test-uuid-3", acr_sku: "ACR-003", part_type: "Pad" }, // No _action
-          ],
-          rowCount: 3,
-          hasHiddenIds: true,
-        },
-        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0, hasHiddenIds: true },
-        crossReferences: { sheetName: "Cross References", data: [], rowCount: 0, hasHiddenIds: true },
-        metadata: { uploadedAt: new Date(), fileName: "valid-action.xlsx", fileSize: 1000 },
-      };
-
-      const result = await validator.validate(mockParsed as any, {
-        ...emptyDbState(),
-        parts: new Map([
-          ["test-uuid-1", { _id: "test-uuid-1", acr_sku: "ACR-001", part_type: "Rotor" }],
-          ["test-uuid-2", { _id: "test-uuid-2", acr_sku: "ACR-002", part_type: "Caliper" }],
-          ["test-uuid-3", { _id: "test-uuid-3", acr_sku: "ACR-003", part_type: "Pad" }],
-        ]),
-      });
-
-      const e21Errors = result.errors.filter(
-        (e) => e.code === ValidationErrorCode.E21_INVALID_ACTION_VALUE
-      );
-
-      expect(e21Errors.length).toBe(0);
     });
   });
 
@@ -559,10 +435,8 @@ describe("ValidationEngine", () => {
             },
           ],
           rowCount: 1,
-          hasHiddenIds: true,
         },
-        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0, hasHiddenIds: true },
-        crossReferences: { sheetName: "Cross References", data: [], rowCount: 0, hasHiddenIds: true },
+        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0 },
         metadata: { uploadedAt: new Date(), fileName: "invalid-url.xlsx", fileSize: 1000 },
       };
 
@@ -595,10 +469,8 @@ describe("ValidationEngine", () => {
             },
           ],
           rowCount: 1,
-          hasHiddenIds: true,
         },
-        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0, hasHiddenIds: true },
-        crossReferences: { sheetName: "Cross References", data: [], rowCount: 0, hasHiddenIds: true },
+        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0 },
         metadata: { uploadedAt: new Date(), fileName: "valid-url.xlsx", fileSize: 1000 },
       };
 
@@ -635,10 +507,8 @@ describe("ValidationEngine", () => {
             },
           ],
           rowCount: 1,
-          hasHiddenIds: true,
         },
-        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0, hasHiddenIds: true },
-        crossReferences: { sheetName: "Cross References", data: [], rowCount: 0, hasHiddenIds: true },
+        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0 },
         metadata: { uploadedAt: new Date(), fileName: "dup-brand.xlsx", fileSize: 1000 },
       };
 
@@ -676,10 +546,8 @@ describe("ValidationEngine", () => {
             },
           ],
           rowCount: 1,
-          hasHiddenIds: true,
         },
-        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0, hasHiddenIds: true },
-        crossReferences: { sheetName: "Cross References", data: [], rowCount: 0, hasHiddenIds: true },
+        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0 },
         metadata: { uploadedAt: new Date(), fileName: "space-delim.xlsx", fileSize: 1000 },
       };
 
@@ -711,10 +579,8 @@ describe("ValidationEngine", () => {
             },
           ],
           rowCount: 1,
-          hasHiddenIds: true,
         },
-        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0, hasHiddenIds: true },
-        crossReferences: { sheetName: "Cross References", data: [], rowCount: 0, hasHiddenIds: true },
+        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0 },
         metadata: { uploadedAt: new Date(), fileName: "semi-delim.xlsx", fileSize: 1000 },
       };
 
@@ -751,10 +617,8 @@ describe("ValidationEngine", () => {
             },
           ],
           rowCount: 1,
-          hasHiddenIds: true,
         },
-        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0, hasHiddenIds: true },
-        crossReferences: { sheetName: "Cross References", data: [], rowCount: 0, hasHiddenIds: true },
+        vehicleApplications: { sheetName: "Vehicle Applications", data: [], rowCount: 0 },
         metadata: { uploadedAt: new Date(), fileName: "delete-marker.xlsx", fileSize: 1000 },
       };
 

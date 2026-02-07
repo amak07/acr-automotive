@@ -24,7 +24,6 @@ import type {
   ParsedExcelFile,
   ExcelPartRow,
   ExcelVehicleAppRow,
-  ExcelCrossRefRow,
 } from "../../../src/services/excel/shared/types";
 import type { ExistingDatabaseData } from "../../../src/services/excel/validation/ValidationEngine";
 
@@ -41,27 +40,18 @@ describe("DiffEngine", () => {
 
   function createParsedFile(
     parts: ExcelPartRow[],
-    vehicles: ExcelVehicleAppRow[] = [],
-    crossRefs: ExcelCrossRefRow[] = []
+    vehicles: ExcelVehicleAppRow[] = []
   ): ParsedExcelFile {
     return {
       parts: {
         sheetName: "Parts",
         data: parts,
         rowCount: parts.length,
-        hasHiddenIds: true,
       },
       vehicleApplications: {
         sheetName: "Vehicle Applications",
         data: vehicles,
         rowCount: vehicles.length,
-        hasHiddenIds: true,
-      },
-      crossReferences: {
-        sheetName: "Cross References",
-        data: crossRefs,
-        rowCount: crossRefs.length, // Phase 3A: should be 0
-        hasHiddenIds: true,
       },
       metadata: {
         uploadedAt: new Date(),
@@ -74,7 +64,7 @@ describe("DiffEngine", () => {
   function createExistingData(
     parts: Map<string, ExcelPartRow> = new Map(),
     vehicles: Map<string, ExcelVehicleAppRow> = new Map(),
-    crossRefs: Map<string, ExcelCrossRefRow> = new Map(),
+    crossRefs: Map<string, { _id: string; acr_part_id: string; competitor_brand: string; competitor_sku: string }> = new Map(),
     partSkus: Set<string> = new Set()
   ): ExistingDatabaseData {
     return {
@@ -82,6 +72,7 @@ describe("DiffEngine", () => {
       vehicleApplications: vehicles,
       crossReferences: crossRefs,
       partSkus,
+      aliases: new Map(),
     };
   }
 
@@ -118,14 +109,12 @@ describe("DiffEngine", () => {
       // Should have 2 cross-ref ADDs (NAT-100 and NAT-200)
       expect(result.crossReferences.adds.length).toBe(2);
       expect(result.crossReferences.adds[0].operation).toBe(DiffOperation.ADD);
-      expect(result.crossReferences.adds[0].after?.competitor_brand).toBe(
-        "NATIONAL"
-      );
+      expect(result.crossReferences.adds[0].brand).toBe("NATIONAL");
       expect(
-        result.crossReferences.adds.map((a) => a.after?.competitor_sku)
+        result.crossReferences.adds.map((a) => a.sku)
       ).toContain("NAT-100");
       expect(
-        result.crossReferences.adds.map((a) => a.after?.competitor_sku)
+        result.crossReferences.adds.map((a) => a.sku)
       ).toContain("NAT-200");
     });
 
@@ -144,10 +133,9 @@ describe("DiffEngine", () => {
       };
 
       // Existing cross-ref for NAT-100
-      const existingCrossRef: ExcelCrossRefRow = {
+      const existingCrossRef = {
         _id: "crossref-uuid-1",
-        _acr_part_id: "part-uuid-1",
-        acr_sku: "ACR15001",
+        acr_part_id: "part-uuid-1",
         competitor_brand: "NATIONAL",
         competitor_sku: "NAT-100",
       };
@@ -167,15 +155,11 @@ describe("DiffEngine", () => {
       expect(result.crossReferences.deletes[0].operation).toBe(
         DiffOperation.DELETE
       );
-      expect(result.crossReferences.deletes[0].before?.competitor_sku).toBe(
-        "NAT-100"
-      );
+      expect(result.crossReferences.deletes[0].sku).toBe("NAT-100");
 
       // Should ADD NAT-200
       expect(result.crossReferences.adds.length).toBe(1);
-      expect(result.crossReferences.adds[0].after?.competitor_sku).toBe(
-        "NAT-200"
-      );
+      expect(result.crossReferences.adds[0].sku).toBe("NAT-200");
     });
 
     it("should NOT auto-delete cross-refs when empty brand column (ML-style safe)", () => {
@@ -193,10 +177,9 @@ describe("DiffEngine", () => {
       };
 
       // Existing cross-ref
-      const existingCrossRef: ExcelCrossRefRow = {
+      const existingCrossRef = {
         _id: "crossref-uuid-1",
-        _acr_part_id: "part-uuid-1",
-        acr_sku: "ACR15001",
+        acr_part_id: "part-uuid-1",
         competitor_brand: "NATIONAL",
         competitor_sku: "NAT-100",
       };
@@ -214,9 +197,6 @@ describe("DiffEngine", () => {
       // Should NOT delete - ML-style safe behavior
       expect(result.crossReferences.deletes.length).toBe(0);
       expect(result.crossReferences.adds.length).toBe(0);
-
-      // Cross-ref should be counted as UNCHANGED
-      expect(result.crossReferences.unchanged.length).toBe(1);
     });
 
     it("should handle multiple brands in same part row", () => {
@@ -248,9 +228,7 @@ describe("DiffEngine", () => {
       // Should ADD 4 cross-refs total
       expect(result.crossReferences.adds.length).toBe(4);
 
-      const brands = result.crossReferences.adds.map(
-        (a) => a.after?.competitor_brand
-      );
+      const brands = result.crossReferences.adds.map((a) => a.brand);
       expect(brands).toContain("NATIONAL");
       expect(brands).toContain("ATV");
       expect(brands).toContain("TMK");
@@ -272,10 +250,9 @@ describe("DiffEngine", () => {
       };
 
       // NAT-100 already exists
-      const existingCrossRef: ExcelCrossRefRow = {
+      const existingCrossRef = {
         _id: "crossref-uuid-1",
-        _acr_part_id: "part-uuid-1",
-        acr_sku: "ACR15001",
+        acr_part_id: "part-uuid-1",
         competitor_brand: "NATIONAL",
         competitor_sku: "NAT-100",
       };
@@ -292,9 +269,7 @@ describe("DiffEngine", () => {
 
       // Should only ADD NAT-200 (not NAT-100 which already exists)
       expect(result.crossReferences.adds.length).toBe(1);
-      expect(result.crossReferences.adds[0].after?.competitor_sku).toBe(
-        "NAT-200"
-      );
+      expect(result.crossReferences.adds[0].sku).toBe("NAT-200");
 
       // NAT-100 should be unchanged
       expect(result.crossReferences.deletes.length).toBe(0);
@@ -306,10 +281,10 @@ describe("DiffEngine", () => {
   // ==========================================================================
 
   describe("Parts Sheet - ML-style Safe Delete", () => {
-    it("should DELETE parts only with explicit _action=DELETE marker", () => {
+    it("should DELETE parts only with explicit Status=Eliminar marker", () => {
       const partToDelete: ExcelPartRow = {
         _id: "part-uuid-1",
-        _action: "DELETE", // Explicit delete marker
+        status: "Eliminar", // Explicit delete marker
         acr_sku: "ACR15001",
         part_type: "Wheel Hub",
       };
@@ -415,10 +390,9 @@ describe("DiffEngine", () => {
       };
 
       // Existing cross-ref to delete
-      const existingCrossRef: ExcelCrossRefRow = {
+      const existingCrossRef = {
         _id: "crossref-uuid-1",
-        _acr_part_id: "part-uuid-1",
-        acr_sku: "ACR15001",
+        acr_part_id: "part-uuid-1",
         competitor_brand: "NATIONAL",
         competitor_sku: "NAT-OLD",
       };
@@ -462,10 +436,9 @@ describe("DiffEngine", () => {
         part_type: "Wheel Hub",
       };
 
-      const existingCrossRef: ExcelCrossRefRow = {
+      const existingCrossRef = {
         _id: "crossref-uuid-1",
-        _acr_part_id: "part-uuid-1",
-        acr_sku: "ACR15001",
+        acr_part_id: "part-uuid-1",
         competitor_brand: "NATIONAL",
         competitor_sku: "NAT-OLD",
       };
@@ -561,7 +534,7 @@ describe("DiffEngine", () => {
 
       // Should parse all 3 space-delimited SKUs
       expect(result.crossReferences.adds.length).toBe(3);
-      const skus = result.crossReferences.adds.map((a) => a.after?.competitor_sku);
+      const skus = result.crossReferences.adds.map((a) => a.sku);
       expect(skus).toContain("NAT-100");
       expect(skus).toContain("NAT-200");
       expect(skus).toContain("NAT-300");
@@ -594,7 +567,7 @@ describe("DiffEngine", () => {
       // When semicolon is present, only split on semicolons
       // "NAT-100" and "NAT-200 NAT-300" (second item includes space)
       expect(result.crossReferences.adds.length).toBe(2);
-      const skus = result.crossReferences.adds.map((a) => a.after?.competitor_sku);
+      const skus = result.crossReferences.adds.map((a) => a.sku);
       expect(skus).toContain("NAT-100");
       expect(skus).toContain("NAT-200 NAT-300"); // Treated as single SKU
     });

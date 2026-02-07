@@ -163,36 +163,35 @@ test.describe("Round-Trip — No Modifications", () => {
     expect(summary.totalUnchanged).toBeGreaterThanOrEqual(EXPECTED_PARTS_COUNT);
   });
 
-  test("export preserves hidden ID columns", async ({ request }) => {
+  test("export preserves ACR SKU and Status columns", async ({ request }) => {
     const { workbook } = await exportCatalog(request);
     const partsSheet = workbook.getWorksheet(SHEET_NAMES.PARTS)!;
     expect(partsSheet).toBeDefined();
 
-    // Find _id and _action columns via header scan
-    const idCol = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ID);
-    const actionCol = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ACTION);
+    // Find ACR SKU and Status columns via header scan
+    const skuCol = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ACR_SKU);
+    const statusCol = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.STATUS);
 
-    expect(idCol).toBeGreaterThan(0);
-    expect(actionCol).toBeGreaterThan(0);
+    expect(skuCol).toBeGreaterThan(0);
+    expect(statusCol).toBeGreaterThan(0);
 
-    // Verify data rows (row 4+) contain UUID values in the _id column
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    // Verify data rows (row 4+) contain ACR SKU values
+    const skuRegex = /^ACR-/i;
 
-    let uuidCount = 0;
+    let skuCount = 0;
     const dataEnd = Math.min(partsSheet.rowCount, 20); // Spot-check first ~17 data rows
     for (let rowNum = 4; rowNum <= dataEnd; rowNum++) {
       const cellValue = partsSheet
         .getRow(rowNum)
-        .getCell(idCol)
+        .getCell(skuCol)
         .value?.toString();
-      if (cellValue && uuidRegex.test(cellValue)) {
-        uuidCount++;
+      if (cellValue && skuRegex.test(cellValue)) {
+        skuCount++;
       }
     }
 
-    // All checked data rows should have valid UUIDs
-    expect(uuidCount).toBe(dataEnd - 3); // dataEnd - 3 header rows
+    // All checked data rows should have valid ACR SKUs
+    expect(skuCount).toBe(dataEnd - 3); // dataEnd - 3 header rows
   });
 
   // BUG: acr-automotive-jm9 — ImportService duplicate cross-ref constraint on re-import
@@ -298,16 +297,16 @@ test.describe("Round-Trip — CRUD Modifications", () => {
     const { workbook } = await exportCatalog(request);
     const partsSheet = workbook.getWorksheet(SHEET_NAMES.PARTS)!;
 
-    const idCol = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ID);
+    const acrSkuCol = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ACR_SKU);
     const specsCol = findColByHeader(
       partsSheet,
       COLUMN_HEADERS.PARTS.SPECIFICATIONS
     );
 
-    // Pick the first data row (row 4) that has a valid _id
+    // Pick the first data row (row 4) that has an ACR SKU
     const targetRow = partsSheet.getRow(4);
-    const partId = targetRow.getCell(idCol).value?.toString();
-    expect(partId).toBeTruthy();
+    const partSku = targetRow.getCell(acrSkuCol).value?.toString();
+    expect(partSku).toBeTruthy();
 
     // Change the Specifications value to something unique
     const newSpec = `E2E-RT-MODIFIED-${Date.now()}`;
@@ -336,12 +335,12 @@ test.describe("Round-Trip — CRUD Modifications", () => {
     expect(execStatus).toBe(200);
     expect(execBody.success).toBe(true);
 
-    // Verify DB has the updated spec
+    // Verify DB has the updated spec (match by SKU)
     const supabase = getE2EClient();
     const { data: updatedPart } = await supabase
       .from("parts")
       .select("specifications")
-      .eq("id", partId!)
+      .eq("acr_sku", partSku!)
       .single();
 
     expect(updatedPart).not.toBeNull();
@@ -349,29 +348,26 @@ test.describe("Round-Trip — CRUD Modifications", () => {
   });
 
   // BUG: acr-automotive-jm9 — ImportService duplicate cross-ref constraint on full catalog re-import
-  test.fixme("delete part via _action column", async ({ request }) => {
+  test.fixme("delete part via Status column", async ({ request }) => {
     const { workbook } = await exportCatalog(request);
     const partsSheet = workbook.getWorksheet(SHEET_NAMES.PARTS)!;
 
-    const idCol = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ID);
-    const actionCol = findColByHeader(
-      partsSheet,
-      COLUMN_HEADERS.PARTS.ACTION
-    );
     const acrSkuCol = findColByHeader(
       partsSheet,
       COLUMN_HEADERS.PARTS.ACR_SKU
     );
+    const statusCol = findColByHeader(
+      partsSheet,
+      COLUMN_HEADERS.PARTS.STATUS
+    );
 
     // Pick the last data row to minimize side-effects on other tests
     const lastDataRow = partsSheet.getRow(partsSheet.rowCount);
-    const partId = lastDataRow.getCell(idCol).value?.toString();
     const partSku = lastDataRow.getCell(acrSkuCol).value?.toString();
-    expect(partId).toBeTruthy();
     expect(partSku).toBeTruthy();
 
-    // Mark the row for deletion
-    lastDataRow.getCell(actionCol).value = "DELETE";
+    // Mark the row for deletion via Status column
+    lastDataRow.getCell(statusCol).value = "Eliminar";
 
     const modifiedBuffer = await workbookToBuffer(workbook);
 
@@ -401,7 +397,7 @@ test.describe("Round-Trip — CRUD Modifications", () => {
     const { data: deletedPart } = await supabase
       .from("parts")
       .select("id")
-      .eq("id", partId!)
+      .eq("acr_sku", partSku!)
       .maybeSingle();
 
     expect(deletedPart).toBeNull();
@@ -412,16 +408,16 @@ test.describe("Round-Trip — CRUD Modifications", () => {
     const { workbook } = await exportCatalog(request);
     const partsSheet = workbook.getWorksheet(SHEET_NAMES.PARTS)!;
 
-    const idCol = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ID);
+    const acrSkuCol = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ACR_SKU);
     const nationalCol = findColByHeader(
       partsSheet,
       COLUMN_HEADERS.PARTS.NATIONAL_SKUS
     );
 
-    // Find a data row that has an _id (row 4)
+    // Find a data row that has an ACR SKU (row 4)
     const targetRow = partsSheet.getRow(4);
-    const partId = targetRow.getCell(idCol).value?.toString();
-    expect(partId).toBeTruthy();
+    const partSku = targetRow.getCell(acrSkuCol).value?.toString();
+    expect(partSku).toBeTruthy();
 
     // Append a new cross-ref SKU to the National column
     const existingNational =
@@ -455,12 +451,19 @@ test.describe("Round-Trip — CRUD Modifications", () => {
     expect(execStatus).toBe(200);
     expect(execBody.success).toBe(true);
 
-    // Verify the new cross-reference exists in the database
+    // Verify the new cross-reference exists in the database (look up part ID by SKU)
     const supabase = getE2EClient();
+    const { data: part } = await supabase
+      .from("parts")
+      .select("id")
+      .eq("acr_sku", partSku!)
+      .single();
+    expect(part).not.toBeNull();
+
     const { data: crossRefs } = await supabase
       .from("cross_references")
       .select("competitor_sku, competitor_brand")
-      .eq("acr_part_id", partId!)
+      .eq("acr_part_id", part!.id)
       .eq("competitor_brand", "NATIONAL")
       .eq("competitor_sku", newSku);
 
@@ -525,13 +528,12 @@ test.describe("Round-Trip — Database Verification", () => {
     // --- DELETE one part ---
     const { workbook: delWb } = await exportCatalog(request);
     const delSheet = delWb.getWorksheet(SHEET_NAMES.PARTS)!;
-    const delIdCol = findColByHeader(delSheet, COLUMN_HEADERS.PARTS.ID);
-    const delActionCol = findColByHeader(
+    const delStatusCol = findColByHeader(
       delSheet,
-      COLUMN_HEADERS.PARTS.ACTION
+      COLUMN_HEADERS.PARTS.STATUS
     );
 
-    // Delete the last data row (which is not the one we just added, to keep math simple)
+    // Delete a data row (which is not the one we just added, to keep math simple)
     // Find a row that is NOT "ACR-RT-COUNT-ADD"
     const delAcrSkuCol = findColByHeader(
       delSheet,
@@ -541,14 +543,13 @@ test.describe("Round-Trip — Database Verification", () => {
     for (let rowNum = 4; rowNum <= delSheet.rowCount; rowNum++) {
       const row = delSheet.getRow(rowNum);
       const sku = row.getCell(delAcrSkuCol).value?.toString() || "";
-      const id = row.getCell(delIdCol).value?.toString() || "";
-      if (id && sku !== "ACR-RT-COUNT-ADD") {
+      if (sku && sku !== "ACR-RT-COUNT-ADD") {
         targetDeleteRow = row;
         break;
       }
     }
     expect(targetDeleteRow).not.toBeNull();
-    targetDeleteRow!.getCell(delActionCol).value = "DELETE";
+    targetDeleteRow!.getCell(delStatusCol).value = "Eliminar";
 
     const delBuffer = await workbookToBuffer(delWb);
     const { status: delExecStatus, body: delExecBody } = await executeImport(

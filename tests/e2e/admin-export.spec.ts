@@ -31,7 +31,7 @@ test.describe("Admin Export — Template Structure", () => {
     expect(response.status()).toBe(200);
     const body = await response.body();
     workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(body);
+    await workbook.xlsx.load(body as unknown as ExcelJS.Buffer);
   });
 
   test("admin can download full catalog export", async ({ request }) => {
@@ -112,25 +112,23 @@ test.describe("Admin Export — Template Structure", () => {
     ).toBe(true);
   });
 
-  test("hidden columns _id and _action are present but hidden", () => {
+  test("Status column has data validation and Errors column exists", () => {
     const partsSheet = workbook.getWorksheet(SHEET_NAMES.PARTS)!;
 
-    // _id is the first column, _action is the second (from PARTS_COLUMNS)
-    const idColIdx = PARTS_COLUMNS.findIndex((col) => col.key === "_id") + 1;
-    const actionColIdx =
-      PARTS_COLUMNS.findIndex((col) => col.key === "_action") + 1;
+    // Status column exists
+    const statusColIdx =
+      PARTS_COLUMNS.findIndex((col) => col.key === "status") + 1;
+    expect(statusColIdx).toBeGreaterThan(0);
 
-    expect(idColIdx).toBeGreaterThan(0);
-    expect(actionColIdx).toBeGreaterThan(0);
+    // Errors column exists
+    const errorsColIdx =
+      PARTS_COLUMNS.findIndex((col) => col.key === "errors") + 1;
+    expect(errorsColIdx).toBeGreaterThan(0);
 
-    // Verify column headers are in Row 2
-    const headerRow = partsSheet.getRow(2);
-    expect(headerRow.getCell(idColIdx).value?.toString()).toBe("_id");
-    expect(headerRow.getCell(actionColIdx).value?.toString()).toBe("_action");
-
-    // Verify columns are hidden
-    expect(partsSheet.getColumn(idColIdx).hidden).toBe(true);
-    expect(partsSheet.getColumn(actionColIdx).hidden).toBe(true);
+    // Verify Status has data validation dropdown
+    const cell = partsSheet.getCell(4, statusColIdx);
+    expect(cell.dataValidation).toBeDefined();
+    expect(cell.dataValidation!.type).toBe("list");
   });
 
   test("data row count matches database", () => {
@@ -194,7 +192,7 @@ test.describe("Admin Export — Data Integrity", () => {
     expect(response.status()).toBe(200);
     const body = await response.body();
     workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(body);
+    await workbook.xlsx.load(body as unknown as ExcelJS.Buffer);
   });
 
   test("exported vehicle applications sheet has data rows", () => {

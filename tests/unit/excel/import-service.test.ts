@@ -34,7 +34,6 @@ describe("ExcelImportService", () => {
       expect(result).toBeDefined();
       expect(result.parts).toBeDefined();
       expect(result.vehicleApplications).toBeDefined();
-      expect(result.crossReferences).toBeDefined();
       expect(result.metadata).toBeDefined();
     });
 
@@ -75,8 +74,8 @@ describe("ExcelImportService", () => {
 
         // Check that headers are converted correctly
         // Note: Properties may be undefined if cell was empty
-        expect("acr_sku" in firstPart || firstPart.acr_sku).toBeTruthy();
-        expect("part_type" in firstPart || firstPart.part_type !== undefined);
+        expect(firstPart.acr_sku !== undefined || "acr_sku" in firstPart).toBeTruthy();
+        expect(firstPart.part_type !== undefined || "part_type" in firstPart).toBeTruthy();
       }
     });
 
@@ -102,7 +101,6 @@ describe("ExcelImportService", () => {
       // Even if sheets exist but are empty, data should be an array
       expect(Array.isArray(result.parts.data)).toBe(true);
       expect(Array.isArray(result.vehicleApplications.data)).toBe(true);
-      expect(Array.isArray(result.crossReferences.data)).toBe(true);
     });
 
     it("should throw error for missing required Parts sheet", async () => {
@@ -160,9 +158,9 @@ describe("ExcelImportService", () => {
 
       const result = await parser.parseFile(file);
 
-      // Should parse successfully with empty cross references
-      expect(result.crossReferences.data).toEqual([]);
-      expect(result.crossReferences.rowCount).toBe(0);
+      // Should parse successfully without Cross References sheet
+      expect(result.parts).toBeDefined();
+      expect(result.vehicleApplications).toBeDefined();
     });
   });
 
@@ -404,76 +402,6 @@ describe("ExcelImportService", () => {
       });
 
       expect(() => parser.validateFileFormat(file)).not.toThrow();
-    });
-  });
-
-  // ==========================================================================
-  // isExportedFile Tests
-  // ==========================================================================
-
-  describe("isExportedFile()", () => {
-    it("should return true for files with hidden ID columns", async () => {
-      // Load a fixture that was exported from the system (has hidden IDs)
-      const file = loadFixture("valid-update-existing.xlsx");
-      const parsed = await parser.parseFile(file);
-
-      // If this fixture has hidden IDs, it should return true
-      // Note: depends on fixture configuration
-      const result = parser.isExportedFile(parsed);
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("should return false for fresh files without hidden IDs", async () => {
-      // Create a workbook without hidden columns
-      const workbook = new ExcelJS.Workbook();
-      const partsSheet = workbook.addWorksheet("Parts");
-
-      partsSheet.columns = [
-        { header: "ACR_SKU", key: "acr_sku" },
-        { header: "Part_Type", key: "part_type" },
-      ];
-
-      partsSheet.addRow({ acr_sku: "NEW-001", part_type: "Rotor" });
-
-      const vehiclesSheet = workbook.addWorksheet("Vehicle Applications");
-      vehiclesSheet.columns = [{ header: "Make", key: "make" }];
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      const file = new File([buffer], "fresh.xlsx");
-      (file as any).arrayBuffer = async () => buffer;
-
-      const parsed = await parser.parseFile(file);
-
-      expect(parser.isExportedFile(parsed)).toBe(false);
-    });
-
-    it("should detect hidden _id column as exported file", async () => {
-      // Create workbook with hidden _id column
-      const workbook = new ExcelJS.Workbook();
-      const partsSheet = workbook.addWorksheet("Parts");
-
-      partsSheet.columns = [
-        { header: "_id", key: "_id", hidden: true },
-        { header: "ACR_SKU", key: "acr_sku" },
-        { header: "Part_Type", key: "part_type" },
-      ];
-
-      partsSheet.addRow({
-        _id: "test-uuid",
-        acr_sku: "EXP-001",
-        part_type: "Rotor",
-      });
-
-      const vehiclesSheet = workbook.addWorksheet("Vehicle Applications");
-      vehiclesSheet.columns = [{ header: "Make", key: "make" }];
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      const file = new File([buffer], "exported.xlsx");
-      (file as any).arrayBuffer = async () => buffer;
-
-      const parsed = await parser.parseFile(file);
-
-      expect(parser.isExportedFile(parsed)).toBe(true);
     });
   });
 
