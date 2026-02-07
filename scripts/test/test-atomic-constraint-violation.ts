@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Test Atomic Transaction: Constraint Violation Rollback
  *

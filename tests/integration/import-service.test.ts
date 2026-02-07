@@ -35,9 +35,8 @@ const supabase = getTestClient();
  */
 function createParsedFile(fileName: string, fileSize: number): ParsedExcelFile {
   return {
-    parts: { sheetName: 'Parts', data: [], rowCount: 0, hasHiddenIds: false },
-    vehicleApplications: { sheetName: 'Vehicle Applications', data: [], rowCount: 0, hasHiddenIds: false },
-    crossReferences: { sheetName: 'Cross References', data: [], rowCount: 0, hasHiddenIds: false },
+    parts: { sheetName: 'Parts', data: [], rowCount: 0 },
+    vehicleApplications: { sheetName: 'Vehicle Applications', data: [], rowCount: 0 },
     metadata: {
       fileName,
       fileSize,
@@ -97,16 +96,11 @@ function createDiffResult(params: {
       },
     },
     crossReferences: {
-      sheetName: 'Cross References',
       adds: [],
-      updates: [],
       deletes: [],
-      unchanged: [],
       summary: {
         totalAdds: 0,
-        totalUpdates: 0,
         totalDeletes: 0,
-        totalUnchanged: 0,
         totalChanges: 0,
       },
     },
@@ -120,6 +114,7 @@ function createDiffResult(params: {
         parts: adds,
         vehicleApplications: 0,
         crossReferences: 0,
+        aliases: 0,
       },
     },
   };
@@ -551,12 +546,9 @@ describe('Error Handling', () => {
         summary: { totalAdds: 0, totalUpdates: 0, totalDeletes: 0, totalUnchanged: 0, totalChanges: 0 },
       },
       crossReferences: {
-        sheetName: 'Cross References',
         adds: [],
-        updates: [],
         deletes: [],
-        unchanged: [],
-        summary: { totalAdds: 0, totalUpdates: 0, totalDeletes: 0, totalUnchanged: 0, totalChanges: 0 },
+        summary: { totalAdds: 0, totalDeletes: 0, totalChanges: 0 },
       },
       summary: {
         totalAdds: 1,
@@ -564,7 +556,7 @@ describe('Error Handling', () => {
         totalDeletes: 0,
         totalUnchanged: 0,
         totalChanges: 1,
-        changesBySheet: { parts: 1, vehicleApplications: 0, crossReferences: 0 },
+        changesBySheet: { parts: 1, vehicleApplications: 0, crossReferences: 0, aliases: 0 },
       },
     };
 

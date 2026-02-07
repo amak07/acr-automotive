@@ -56,7 +56,7 @@ describe("TestWorkbookBuilder", () => {
 
     const buffer = await builder.toBuffer();
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
+    await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
 
     const sheetNames = workbook.worksheets.map((ws) => ws.name);
     expect(sheetNames).toContain(SHEET_NAMES.PARTS);
@@ -70,7 +70,7 @@ describe("TestWorkbookBuilder", () => {
 
     const buffer = await builder.toBuffer();
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
+    await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
 
     const sheetNames = workbook.worksheets.map((ws) => ws.name);
     expect(sheetNames).not.toContain(SHEET_NAMES.ALIASES);
@@ -82,7 +82,7 @@ describe("TestWorkbookBuilder", () => {
 
     const buffer = await builder.toBuffer();
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
+    await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
     const partsSheet = workbook.getWorksheet(SHEET_NAMES.PARTS)!;
 
     // Row 1: Group headers (e.g., "Part Information")
@@ -119,23 +119,23 @@ describe("TestWorkbookBuilder", () => {
     expect(row4.getCell(acrSkuColNum).value).toBe("ACR-TEST-001");
   });
 
-  it("hidden columns (_id, _action) are marked hidden", async () => {
+  it("Status and Errors columns exist", async () => {
     const builder = new TestWorkbookBuilder();
     builder.addPart({
       acr_sku: "ACR-TEST-001",
       part_type: "MAZA",
-      _id: "00000000-0000-0000-0000-000000000001",
+      status: "Activo",
     });
 
     const buffer = await builder.toBuffer();
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
+    await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
     const partsSheet = workbook.getWorksheet(SHEET_NAMES.PARTS)!;
 
-    const idColNum = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ID);
-    const actionColNum = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ACTION);
-    expect(partsSheet.getColumn(idColNum).hidden).toBe(true);
-    expect(partsSheet.getColumn(actionColNum).hidden).toBe(true);
+    const statusColNum = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.STATUS);
+    const errorsColNum = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ERRORS);
+    expect(statusColNum).toBeGreaterThan(0);
+    expect(errorsColNum).toBeGreaterThan(0);
   });
 
   it("addPartWithCrossRefs populates brand columns", async () => {
@@ -147,7 +147,7 @@ describe("TestWorkbookBuilder", () => {
 
     const buffer = await builder.toBuffer();
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
+    await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
     const partsSheet = workbook.getWorksheet(SHEET_NAMES.PARTS)!;
 
     const row4 = partsSheet.getRow(4);
@@ -172,7 +172,7 @@ describe("TestWorkbookBuilder", () => {
 
     const buffer = await builder.toBuffer();
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
+    await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
     const vaSheet = workbook.getWorksheet(SHEET_NAMES.VEHICLE_APPLICATIONS)!;
 
     const row4 = vaSheet.getRow(4);
@@ -185,25 +185,20 @@ describe("TestWorkbookBuilder", () => {
     expect(row4.getCell(startCol).value).toBe(2020);
   });
 
-  it("setPartAction and setPartId modify existing rows", async () => {
+  it("setPartStatus modifies existing rows", async () => {
     const builder = new TestWorkbookBuilder();
     builder
       .addPart({ acr_sku: "ACR-TEST-001", part_type: "MAZA" })
-      .setPartId(0, "11111111-1111-1111-1111-111111111111")
-      .setPartAction(0, "DELETE");
+      .setPartStatus(0, "Eliminar");
 
     const buffer = await builder.toBuffer();
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
+    await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
     const partsSheet = workbook.getWorksheet(SHEET_NAMES.PARTS)!;
 
     const row4 = partsSheet.getRow(4);
-    const idColNum = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ID);
-    const actionColNum = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.ACTION);
-    expect(row4.getCell(idColNum).value).toBe(
-      "11111111-1111-1111-1111-111111111111"
-    );
-    expect(row4.getCell(actionColNum).value).toBe("DELETE");
+    const statusColNum = findColByHeader(partsSheet, COLUMN_HEADERS.PARTS.STATUS);
+    expect(row4.getCell(statusColNum).value).toBe("Eliminar");
   });
 
   it("is parseable by ExcelImportService", async () => {

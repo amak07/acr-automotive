@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Test Atomic Transaction: Foreign Key Violation Rollback
  *

@@ -90,6 +90,7 @@ export function emptyDbState() {
     vehicleApplications: new Map(),
     crossReferences: new Map(),
     partSkus: new Set<string>(),
+    aliases: new Map(),
   };
 }
 
@@ -197,5 +198,6 @@ export function seedDbState() {
       "ACR-SEED-003",
       "ACR-SEED-004",
     ]),
+    aliases: new Map(),
   };
 }

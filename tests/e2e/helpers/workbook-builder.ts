@@ -25,7 +25,9 @@ export { SHEET_NAMES, COLUMN_HEADERS };
  * Only acr_sku and part_type are required; everything else is optional.
  */
 export interface PartData {
+  /** @deprecated No longer exported to Excel. Kept for backward compat with existing tests. */
   _id?: string;
+  /** @deprecated Use `status` with "Eliminar" instead. Kept for backward compat. */
   _action?: string;
   acr_sku: string;
   status?: string;
@@ -56,8 +58,6 @@ export interface PartData {
 }
 
 export interface VehicleAppData {
-  _id?: string;
-  _part_id?: string;
   acr_sku: string;
   make: string;
   model: string;
@@ -66,7 +66,6 @@ export interface VehicleAppData {
 }
 
 export interface AliasData {
-  _id?: string;
   alias: string;
   canonical_name: string;
   alias_type: "make" | "model";
@@ -125,7 +124,18 @@ export class TestWorkbookBuilder {
     return this;
   }
 
-  /** Set the _action column on a previously added part (0-indexed). */
+  /** Set the Status column on a previously added part (0-indexed). */
+  setPartStatus(rowIndex: number, status: string): this {
+    if (this.parts[rowIndex]) {
+      this.parts[rowIndex].status = status;
+    }
+    return this;
+  }
+
+  /**
+   * @deprecated No-op. _action column was removed. Use setPartStatus with "Eliminar" instead.
+   * Kept for backward compat with existing tests in admin-import.spec.ts.
+   */
   setPartAction(rowIndex: number, action: string): this {
     if (this.parts[rowIndex]) {
       this.parts[rowIndex]._action = action;
@@ -133,7 +143,10 @@ export class TestWorkbookBuilder {
     return this;
   }
 
-  /** Set the hidden _id column on a previously added part (0-indexed). */
+  /**
+   * @deprecated No-op. _id column was removed. Parts are matched by ACR SKU.
+   * Kept for backward compat with existing tests in admin-import.spec.ts.
+   */
   setPartId(rowIndex: number, uuid: string): this {
     if (this.parts[rowIndex]) {
       this.parts[rowIndex]._id = uuid;
@@ -176,12 +189,11 @@ export class TestWorkbookBuilder {
   private buildPartsSheet(workbook: ExcelJS.Workbook): void {
     const ws = workbook.addWorksheet(SHEET_NAMES.PARTS);
 
-    // Set column definitions (keys, widths, hidden flags)
+    // Set column definitions (keys, widths)
     ws.columns = PARTS_COLUMNS.map((col) => ({
       header: col.header,
       key: col.key,
       width: col.width,
-      hidden: col.hidden ?? false,
     }));
 
     // Row 1: Group headers (merged)
@@ -213,7 +225,6 @@ export class TestWorkbookBuilder {
       header: col.header,
       key: col.key,
       width: col.width,
-      hidden: col.hidden ?? false,
     }));
 
     addGroupHeaderRow(ws, VEHICLE_APPLICATIONS_COLUMNS, VEHICLE_APPS_COLUMN_GROUPS);
@@ -239,7 +250,6 @@ export class TestWorkbookBuilder {
       header: col.header,
       key: col.key,
       width: col.width,
-      hidden: col.hidden ?? false,
     }));
 
     addGroupHeaderRow(ws, ALIASES_COLUMNS, ALIASES_COLUMN_GROUPS);

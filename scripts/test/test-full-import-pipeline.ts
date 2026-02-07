@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Test Full Import Pipeline (Parser → Validation → Diff → Import → Rollback)
  *

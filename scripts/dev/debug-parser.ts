@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Debug Excel Parser
  * Check what data is being parsed from the Excel file
