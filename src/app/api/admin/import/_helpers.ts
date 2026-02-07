@@ -61,7 +61,7 @@ export async function fetchExistingData(): Promise<ExistingDatabaseData> {
     }
   }
 
-  // Fetch all vehicle applications with pagination — keyed by composite "acr_sku::make::model"
+  // Fetch all vehicle applications with pagination — keyed by composite "acr_sku::make::model::start_year"
   const vehicleApplications = new Map<string, ExcelVehicleAppRow>();
 
   let vaPage = 0;
@@ -78,7 +78,7 @@ export async function fetchExistingData(): Promise<ExistingDatabaseData> {
       vaData.forEach((va) => {
         // Resolve acr_sku from part_id
         const acr_sku = partIdToSku.get(va.part_id) || '';
-        const compositeKey = `${acr_sku}::${va.make}::${va.model}`;
+        const compositeKey = `${acr_sku}::${va.make}::${va.model}::${va.start_year}`;
         vehicleApplications.set(compositeKey, {
           _id: va.id,
           _part_id: va.part_id,

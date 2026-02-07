@@ -369,7 +369,7 @@ async function main() {
             console.log(
               `  Part updates (unexpected): ${result.diff.parts.updates.length}`
             );
-            for (const upd of result.diff.parts.updates.slice(0, 3)) {
+            for (const upd of result.diff.parts.updates.slice(0, 10)) {
               console.log(
                 `    UPDATE: sku=${upd.row?.acr_sku ?? upd.after?.acr_sku} changes=${JSON.stringify(upd.changes)}`
               );
@@ -380,6 +380,18 @@ async function main() {
                   );
                 }
               }
+            }
+          }
+
+          // Log VA updates if unexpected
+          if (result.diff.vehicleApplications?.updates?.length > 0) {
+            console.log(
+              `  VA updates (unexpected): ${result.diff.vehicleApplications.updates.length}`
+            );
+            for (const upd of result.diff.vehicleApplications.updates.slice(0, 5)) {
+              console.log(
+                `    VA UPDATE: sku=${upd.row?.acr_sku ?? upd.after?.acr_sku} changes=${JSON.stringify(upd.changes)}`
+              );
             }
           }
 
