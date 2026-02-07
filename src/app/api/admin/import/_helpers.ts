@@ -7,7 +7,7 @@ import type { ExistingDatabaseData } from '@/services/excel/validation/Validatio
 import type {
   ExcelPartRow,
   ExcelVehicleAppRow,
-  ExcelCrossRefRow,
+  ExcelAliasRow,
 } from '@/services/excel/shared/types';
 
 const PAGE_SIZE = 1000;
@@ -15,11 +15,18 @@ const PAGE_SIZE = 1000;
 /**
  * Fetch all existing database data with pagination
  * Used by validation and diff engines
+ *
+ * Data is keyed by business keys for SKU-based matching:
+ * - Parts: keyed by acr_sku
+ * - Vehicle Applications: keyed by composite "acr_sku::make::model"
+ * - Aliases: keyed by composite "alias::canonical_name"
+ * - Cross References: keyed by part UUID (for brand column diffing)
  */
 export async function fetchExistingData(): Promise<ExistingDatabaseData> {
-  // Fetch all parts with pagination
+  // Fetch all parts with pagination — keyed by acr_sku
   const parts = new Map<string, ExcelPartRow>();
   const partSkus = new Set<string>();
+  const partIdToSku = new Map<string, string>(); // UUID → acr_sku (for VA join)
 
   let partsPage = 0;
   let hasMoreParts = true;
@@ -33,7 +40,7 @@ export async function fetchExistingData(): Promise<ExistingDatabaseData> {
 
     if (partsData && partsData.length > 0) {
       partsData.forEach((part) => {
-        parts.set(part.id, {
+        parts.set(part.acr_sku, {
           _id: part.id,
           acr_sku: part.acr_sku,
           part_type: part.part_type,
@@ -45,6 +52,7 @@ export async function fetchExistingData(): Promise<ExistingDatabaseData> {
           workflow_status: part.workflow_status,
         });
         partSkus.add(part.acr_sku);
+        partIdToSku.set(part.id, part.acr_sku);
       });
       hasMoreParts = partsData.length === PAGE_SIZE;
       partsPage++;
@@ -53,7 +61,7 @@ export async function fetchExistingData(): Promise<ExistingDatabaseData> {
     }
   }
 
-  // Fetch all vehicle applications with pagination
+  // Fetch all vehicle applications with pagination — keyed by composite "acr_sku::make::model"
   const vehicleApplications = new Map<string, ExcelVehicleAppRow>();
 
   let vaPage = 0;
@@ -68,10 +76,13 @@ export async function fetchExistingData(): Promise<ExistingDatabaseData> {
 
     if (vaData && vaData.length > 0) {
       vaData.forEach((va) => {
-        vehicleApplications.set(va.id, {
+        // Resolve acr_sku from part_id
+        const acr_sku = partIdToSku.get(va.part_id) || '';
+        const compositeKey = `${acr_sku}::${va.make}::${va.model}`;
+        vehicleApplications.set(compositeKey, {
           _id: va.id,
           _part_id: va.part_id,
-          acr_sku: '', // Not stored in DB, computed on export
+          acr_sku,
           make: va.make,
           model: va.model,
           start_year: va.start_year,
@@ -85,8 +96,8 @@ export async function fetchExistingData(): Promise<ExistingDatabaseData> {
     }
   }
 
-  // Fetch all cross references with pagination
-  const crossReferences = new Map<string, ExcelCrossRefRow>();
+  // Fetch all cross references with pagination — keyed by UUID (for brand column diffing)
+  const crossReferences = new Map<string, { _id: string; acr_part_id: string; competitor_brand: string; competitor_sku: string }>();
 
   let crPage = 0;
   let hasMoreCr = true;
@@ -102,8 +113,7 @@ export async function fetchExistingData(): Promise<ExistingDatabaseData> {
       crData.forEach((cr) => {
         crossReferences.set(cr.id, {
           _id: cr.id,
-          _acr_part_id: cr.acr_part_id,
-          acr_sku: '', // Not stored in DB, computed on export
+          acr_part_id: cr.acr_part_id,
           competitor_brand: cr.competitor_brand,
           competitor_sku: cr.competitor_sku,
         });
@@ -115,10 +125,32 @@ export async function fetchExistingData(): Promise<ExistingDatabaseData> {
     }
   }
 
+  // Fetch all vehicle aliases — keyed by composite "alias::canonical_name"
+  const aliases = new Map<string, ExcelAliasRow>();
+
+  const { data: aliasData, error: aliasError } = await supabase
+    .from('vehicle_aliases')
+    .select('id, alias, canonical_name, alias_type');
+
+  if (aliasError) throw aliasError;
+
+  if (aliasData) {
+    aliasData.forEach((a) => {
+      const compositeKey = `${a.alias.toLowerCase()}::${a.canonical_name.toUpperCase()}`;
+      aliases.set(compositeKey, {
+        _id: a.id,
+        alias: a.alias,
+        canonical_name: a.canonical_name,
+        alias_type: a.alias_type,
+      });
+    });
+  }
+
   return {
     parts,
     vehicleApplications,
     crossReferences,
     partSkus,
+    aliases,
   };
 }

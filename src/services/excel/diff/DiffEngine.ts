@@ -1,13 +1,19 @@
 // ============================================================================
-// Diff Engine - ID-Based Change Detection
+// Diff Engine - SKU-Based Change Detection
 // ============================================================================
 
-import { DiffOperation, DiffItem, SheetDiff, DiffResult } from "./types";
+import {
+  DiffOperation,
+  DiffItem,
+  SheetDiff,
+  CrossRefDiffItem,
+  DiffResult,
+} from "./types";
 import type {
   ParsedExcelFile,
   ExcelPartRow,
   ExcelVehicleAppRow,
-  ExcelCrossRefRow,
+  ExcelAliasRow,
 } from "../shared/types";
 import type { ExistingDatabaseData } from "../validation/ValidationEngine";
 import {
@@ -27,7 +33,7 @@ interface ParsedBrandColumn {
 // Type for cross-ref indexed by part_id and composite key (brand+sku)
 interface ExistingCrossRefByPart {
   [partId: string]: {
-    [compositeKey: string]: ExcelCrossRefRow;
+    [compositeKey: string]: { _id: string; acr_part_id: string; competitor_brand: string; competitor_sku: string };
   };
 }
 
@@ -72,25 +78,21 @@ export class DiffEngine {
   /**
    * Parse a brand column value into adds and explicit deletes
    * Format: "SKU1;SKU2;[DELETE]SKU3;SKU4" => { adds: ["SKU1", "SKU2", "SKU4"], deletes: ["SKU3"] }
-   * Also supports legacy space-delimited format for backwards compatibility
    */
   private parseBrandColumn(
     value: string | undefined | null
   ): ParsedBrandColumn {
     const result: ParsedBrandColumn = { adds: [], deletes: [] };
 
-    // Use shared helper to split on semicolon or space (legacy)
     const { skus } = splitCrossRefSkus(value);
 
     for (const sku of skus) {
       if (sku.startsWith(DELETE_MARKER)) {
-        // Explicit delete marker
         const deleteSku = sku.substring(DELETE_MARKER.length).trim();
         if (deleteSku) {
           result.deletes.push(deleteSku);
         }
       } else {
-        // Regular SKU to add/keep
         result.adds.push(sku);
       }
     }
@@ -102,12 +104,12 @@ export class DiffEngine {
    * Build a map of existing cross-refs indexed by part_id and composite key (brand+sku)
    */
   private buildExistingCrossRefMap(
-    existingCrossRefs: Map<string, ExcelCrossRefRow>
+    existingCrossRefs: Map<string, { _id: string; acr_part_id: string; competitor_brand: string; competitor_sku: string }>
   ): ExistingCrossRefByPart {
     const result: ExistingCrossRefByPart = {};
 
     existingCrossRefs.forEach((cr) => {
-      const partId = cr._acr_part_id || "";
+      const partId = cr.acr_part_id || "";
       const brand = (cr.competitor_brand || "").toUpperCase();
       const sku = cr.competitor_sku || "";
       const compositeKey = `${brand}::${sku}`;
@@ -124,89 +126,108 @@ export class DiffEngine {
   /**
    * Generate diff between uploaded file and existing database
    *
-   * Phase 3: Cross-references are now in Parts sheet brand columns.
+   * Matching strategy:
+   * - Parts: by acr_sku (immutable business key)
+   * - Vehicle Applications: by (acr_sku, make, model) composite key
+   * - Aliases: by (alias, canonical_name) composite key
+   * - Cross-References: from brand columns in Parts sheet (add/delete by SKU)
    *
-   * For Parts and Vehicle Applications:
-   * - ADD: Row has no _id or _id is empty
-   * - UPDATE: Row has _id that exists in database and data changed
-   * - DELETE: Database has _id that's not in uploaded file
-   * - UNCHANGED: Row has _id that exists and data is identical
-   *
-   * For Cross-References (from brand columns - ML-style safe delete):
-   * - ADD: SKU in brand column but not in database for that part+brand
-   * - DELETE: SKU prefixed with [DELETE] marker in brand column
-   * - UNCHANGED: SKU in database but not mentioned in brand column (SAFE - no auto-delete)
-   *
-   * @param parsed - Parsed Excel file
-   * @param existingData - Current database data
-   * @returns Complete diff result
+   * Delete mechanism: Status="Eliminar" on all sheets (explicit, no auto-delete)
+   * Missing rows: UNCHANGED (safe — no auto-delete from missing rows)
    */
   generateDiff(
     parsed: ParsedExcelFile,
     existingData: ExistingDatabaseData
   ): DiffResult {
+    // Step 1: Diff parts by acr_sku
     const partsDiff = this.diffParts(parsed.parts.data, existingData.parts);
+
+    // Step 2: Build partIdBySku map (needed by VA diff and cross-ref diff)
+    const partIdBySku = new Map<string, string>();
+    // From existing parts
+    for (const [sku, part] of existingData.parts) {
+      if (part._id) partIdBySku.set(sku, part._id);
+    }
+    // From new parts (UUIDs assigned in diffParts)
+    for (const add of partsDiff.adds) {
+      if (add.row?.acr_sku && add.row?._id) {
+        partIdBySku.set(add.row.acr_sku, add.row._id);
+      }
+    }
+
+    // Step 3: Diff vehicle applications by composite key
     const vehicleAppsDiff = this.diffVehicleApplications(
       parsed.vehicleApplications.data,
-      existingData.vehicleApplications
+      existingData.vehicleApplications,
+      partIdBySku
     );
 
-    // Phase 3: Extract cross-refs from Parts sheet brand columns
+    // Step 4: Diff aliases by composite key (if sheet present)
+    const aliasesDiff = parsed.aliases && parsed.aliases.data.length > 0
+      ? this.diffAliases(parsed.aliases.data, existingData.aliases || new Map())
+      : undefined;
+
+    // Step 5: Extract cross-refs from Parts sheet brand columns
     const crossRefsDiff = this.diffCrossRefsFromBrandColumns(
       parsed.parts.data,
-      existingData.crossReferences,
-      existingData.parts
+      existingData.crossReferences
     );
 
     // Calculate overall summary
+    const aliasChanges = aliasesDiff?.summary.totalChanges || 0;
     const summary = {
       totalAdds:
         partsDiff.summary.totalAdds +
         vehicleAppsDiff.summary.totalAdds +
-        crossRefsDiff.summary.totalAdds,
+        crossRefsDiff.summary.totalAdds +
+        (aliasesDiff?.summary.totalAdds || 0),
       totalUpdates:
         partsDiff.summary.totalUpdates +
         vehicleAppsDiff.summary.totalUpdates +
-        crossRefsDiff.summary.totalUpdates,
+        (aliasesDiff?.summary.totalUpdates || 0),
       totalDeletes:
         partsDiff.summary.totalDeletes +
         vehicleAppsDiff.summary.totalDeletes +
-        crossRefsDiff.summary.totalDeletes,
+        crossRefsDiff.summary.totalDeletes +
+        (aliasesDiff?.summary.totalDeletes || 0),
       totalUnchanged:
         partsDiff.summary.totalUnchanged +
         vehicleAppsDiff.summary.totalUnchanged +
-        crossRefsDiff.summary.totalUnchanged,
+        (aliasesDiff?.summary.totalUnchanged || 0),
       totalChanges:
         partsDiff.summary.totalChanges +
         vehicleAppsDiff.summary.totalChanges +
-        crossRefsDiff.summary.totalChanges,
+        crossRefsDiff.summary.totalChanges +
+        aliasChanges,
       changesBySheet: {
         parts: partsDiff.summary.totalChanges,
         vehicleApplications: vehicleAppsDiff.summary.totalChanges,
         crossReferences: crossRefsDiff.summary.totalChanges,
+        aliases: aliasChanges,
       },
     };
 
     return {
       parts: partsDiff,
       vehicleApplications: vehicleAppsDiff,
+      aliases: aliasesDiff,
       crossReferences: crossRefsDiff,
       summary,
     };
   }
 
   // --------------------------------------------------------------------------
-  // Parts Sheet Diff
+  // Parts Sheet Diff (SKU-based matching)
   // --------------------------------------------------------------------------
 
   /**
-   * Diff parts with ML-style safe delete behavior.
+   * Diff parts with SKU-based matching and ML-style safe delete behavior.
    *
-   * - ADD: Row has no _id or _id is empty
-   * - UPDATE: Row has _id that exists in database and data changed
-   * - DELETE: Row has _action === 'DELETE' (explicit delete only)
-   * - UNCHANGED: Row has _id that exists and data is identical,
-   *              OR existing part not in uploaded file (SAFE - no auto-delete)
+   * - ADD: ACR SKU not in database = new part
+   * - UPDATE: ACR SKU in database and data changed
+   * - DELETE: Status="Eliminar" (explicit delete, hard delete + CASCADE)
+   * - UNCHANGED: ACR SKU in database and data identical,
+   *              OR existing part not in uploaded file (safe — no auto-delete)
    */
   private diffParts(
     uploadedParts: ExcelPartRow[],
@@ -216,29 +237,35 @@ export class DiffEngine {
     const updates: DiffItem<ExcelPartRow>[] = [];
     const deletes: DiffItem<ExcelPartRow>[] = [];
     const unchanged: DiffItem<ExcelPartRow>[] = [];
-    const processedIds = new Set<string>();
+    const processedSkus = new Set<string>();
 
-    // Process uploaded rows
     uploadedParts.forEach((part) => {
-      // Check for explicit DELETE action (ML-style)
-      const isExplicitDelete = part._action?.toUpperCase() === "DELETE";
+      if (!part.acr_sku) return; // Skip rows without SKU
 
-      if (isExplicitDelete && part._id) {
-        // EXPLICIT DELETE: Row marked with _action = "DELETE"
-        const existing = existingParts.get(part._id);
+      processedSkus.add(part.acr_sku);
+
+      // Resolve status
+      const statusValue =
+        WORKFLOW_STATUS_MAP[part.status?.toLowerCase() || ""] || "ACTIVE";
+
+      // Look up by ACR SKU
+      const existing = existingParts.get(part.acr_sku);
+
+      if (statusValue === "DELETE") {
+        // EXPLICIT DELETE via Status="Eliminar"
         if (existing) {
-          processedIds.add(part._id);
+          part._id = existing._id; // Attach DB UUID for deletion
           deletes.push({
             operation: DiffOperation.DELETE,
             before: existing,
           });
         }
-        // If no existing record, ignore (can't delete what doesn't exist)
+        // If not in DB, ignore (can't delete what doesn't exist)
         return;
       }
 
-      if (!part._id || part._id.trim() === "") {
-        // ADD: No ID = new row — assign UUID so cross-ref diff can reference it
+      if (!existing) {
+        // ADD: SKU not in database = new part
         part._id = crypto.randomUUID();
         adds.push({
           operation: DiffOperation.ADD,
@@ -246,43 +273,30 @@ export class DiffEngine {
           after: part,
         });
       } else {
-        processedIds.add(part._id);
-        const existing = existingParts.get(part._id);
+        // Attach DB UUID for pipeline
+        part._id = existing._id;
+        const changes = this.detectPartChanges(existing, part);
 
-        if (!existing) {
-          // ADD: ID not in database = new row (shouldn't happen after validation)
-          adds.push({
-            operation: DiffOperation.ADD,
+        if (changes.length > 0) {
+          updates.push({
+            operation: DiffOperation.UPDATE,
             row: part,
+            before: existing,
             after: part,
+            changes,
           });
         } else {
-          // Check if data changed
-          const changes = this.detectPartChanges(existing, part);
-
-          if (changes.length > 0) {
-            // UPDATE: Data changed
-            updates.push({
-              operation: DiffOperation.UPDATE,
-              row: part,
-              before: existing,
-              after: part,
-              changes,
-            });
-          } else {
-            // UNCHANGED: Data identical
-            unchanged.push({
-              operation: DiffOperation.UNCHANGED,
-              row: part,
-            });
-          }
+          unchanged.push({
+            operation: DiffOperation.UNCHANGED,
+            row: part,
+          });
         }
       }
     });
 
-    // ML-style safe: Parts in database but not in file are UNCHANGED (no auto-delete)
-    existingParts.forEach((existing, id) => {
-      if (!processedIds.has(id)) {
+    // Existing parts NOT in uploaded file = UNCHANGED (safe, no auto-delete)
+    existingParts.forEach((existing, sku) => {
+      if (!processedSkus.has(sku)) {
         unchanged.push({
           operation: DiffOperation.UNCHANGED,
           row: existing,
@@ -313,7 +327,6 @@ export class DiffEngine {
     const changes: string[] = [];
 
     // Required fields: direct comparison
-    if (before.acr_sku !== after.acr_sku) changes.push("acr_sku");
     if (before.part_type !== after.part_type) changes.push("part_type");
 
     // Optional fields: normalize null/undefined/empty before comparison
@@ -363,75 +376,90 @@ export class DiffEngine {
   }
 
   // --------------------------------------------------------------------------
-  // Vehicle Applications Sheet Diff
+  // Vehicle Applications Diff (composite key matching)
   // --------------------------------------------------------------------------
 
   /**
-   * Diff vehicle applications with ML-style safe delete behavior.
+   * Diff vehicle applications by composite key (acr_sku, make, model).
    *
-   * - ADD: Row has no _id or _id is empty
-   * - UPDATE: Row has _id that exists in database and data changed
-   * - DELETE: No auto-delete - vehicle apps in DB but not in file are UNCHANGED
-   * - UNCHANGED: Row has _id that exists and data is identical,
-   *              OR existing vehicle app not in uploaded file (SAFE - no auto-delete)
-   *
-   * Note: Vehicle applications don't have an _action column. To delete a vehicle
-   * application, remove the row from the Excel file AND the associated part.
-   * Orphaned vehicle applications will be handled by database cascades.
+   * - ADD: Composite key not in database = new VA
+   * - UPDATE: Composite key in database and years changed
+   * - DELETE: Status="Eliminar" (explicit delete, scoped to this VA only)
+   * - UNCHANGED: Composite key in database and data identical,
+   *              OR existing VA not in uploaded file (safe — no auto-delete)
    */
   private diffVehicleApplications(
     uploadedVehicles: ExcelVehicleAppRow[],
-    existingVehicles: Map<string, ExcelVehicleAppRow>
+    existingVehicles: Map<string, ExcelVehicleAppRow>,
+    partIdBySku: Map<string, string>
   ): SheetDiff<ExcelVehicleAppRow> {
     const adds: DiffItem<ExcelVehicleAppRow>[] = [];
     const updates: DiffItem<ExcelVehicleAppRow>[] = [];
     const deletes: DiffItem<ExcelVehicleAppRow>[] = [];
     const unchanged: DiffItem<ExcelVehicleAppRow>[] = [];
-    const processedIds = new Set<string>();
+    const processedKeys = new Set<string>();
 
     uploadedVehicles.forEach((vehicle) => {
-      if (!vehicle._id || vehicle._id.trim() === "") {
-        // ADD: No ID = new row
+      if (!vehicle.acr_sku || !vehicle.make || !vehicle.model) return;
+
+      const compositeKey = `${vehicle.acr_sku}::${vehicle.make}::${vehicle.model}`;
+      processedKeys.add(compositeKey);
+
+      // Resolve _part_id from acr_sku
+      vehicle._part_id = partIdBySku.get(vehicle.acr_sku);
+
+      // Resolve status
+      const statusValue = vehicle.status?.toLowerCase() === "eliminar" ? "DELETE" : "ACTIVE";
+
+      const existing = existingVehicles.get(compositeKey);
+
+      if (statusValue === "DELETE") {
+        if (existing) {
+          vehicle._id = existing._id;
+          vehicle._part_id = existing._part_id;
+          deletes.push({
+            operation: DiffOperation.DELETE,
+            before: existing,
+          });
+        }
+        return;
+      }
+
+      if (!existing) {
+        // ADD: New vehicle application
+        vehicle._id = crypto.randomUUID();
         adds.push({
           operation: DiffOperation.ADD,
           row: vehicle,
           after: vehicle,
         });
       } else {
-        processedIds.add(vehicle._id);
-        const existing = existingVehicles.get(vehicle._id);
+        // Attach DB identifiers
+        vehicle._id = existing._id;
+        vehicle._part_id = existing._part_id;
 
-        if (!existing) {
-          // ADD: ID not in database
-          adds.push({
-            operation: DiffOperation.ADD,
+        const changes = this.detectVehicleAppChanges(existing, vehicle);
+
+        if (changes.length > 0) {
+          updates.push({
+            operation: DiffOperation.UPDATE,
             row: vehicle,
+            before: existing,
             after: vehicle,
+            changes,
           });
         } else {
-          const changes = this.detectVehicleAppChanges(existing, vehicle);
-
-          if (changes.length > 0) {
-            updates.push({
-              operation: DiffOperation.UPDATE,
-              row: vehicle,
-              before: existing,
-              after: vehicle,
-              changes,
-            });
-          } else {
-            unchanged.push({
-              operation: DiffOperation.UNCHANGED,
-              row: vehicle,
-            });
-          }
+          unchanged.push({
+            operation: DiffOperation.UNCHANGED,
+            row: vehicle,
+          });
         }
       }
     });
 
-    // ML-style safe: Vehicle apps in database but not in file are UNCHANGED (no auto-delete)
-    existingVehicles.forEach((existing, id) => {
-      if (!processedIds.has(id)) {
+    // Existing VAs NOT in uploaded file = UNCHANGED (safe, no auto-delete)
+    existingVehicles.forEach((existing, key) => {
+      if (!processedKeys.has(key)) {
         unchanged.push({
           operation: DiffOperation.UNCHANGED,
           row: existing,
@@ -461,18 +489,121 @@ export class DiffEngine {
   ): string[] {
     const changes: string[] = [];
 
-    if (before._part_id !== after._part_id) changes.push("_part_id");
-    // SKIP acr_sku - it's a computed display field (not stored in DB, always empty in 'before')
-    if (before.make !== after.make) changes.push("make");
-    if (before.model !== after.model) changes.push("model");
-    if (before.start_year !== after.start_year) changes.push("start_year");
-    if (before.end_year !== after.end_year) changes.push("end_year");
+    // Years are the updatable fields (make/model are part of the composite key)
+    const beforeStart = typeof before.start_year === 'string' ? parseInt(before.start_year) : before.start_year;
+    const afterStart = typeof after.start_year === 'string' ? parseInt(after.start_year) : after.start_year;
+    const beforeEnd = typeof before.end_year === 'string' ? parseInt(before.end_year) : before.end_year;
+    const afterEnd = typeof after.end_year === 'string' ? parseInt(after.end_year) : after.end_year;
+
+    if (beforeStart !== afterStart) changes.push("start_year");
+    if (beforeEnd !== afterEnd) changes.push("end_year");
 
     return changes;
   }
 
   // --------------------------------------------------------------------------
-  // Cross References from Brand Columns (Phase 3)
+  // Vehicle Aliases Diff (composite key matching)
+  // --------------------------------------------------------------------------
+
+  /**
+   * Diff aliases by composite key (alias, canonical_name).
+   *
+   * - ADD: Composite key not in database = new alias
+   * - UPDATE: Composite key in database and type changed
+   * - DELETE: Status="Eliminar" (explicit delete, scoped)
+   * - UNCHANGED: Same or not in uploaded file
+   */
+  private diffAliases(
+    uploadedAliases: ExcelAliasRow[],
+    existingAliases: Map<string, ExcelAliasRow>
+  ): SheetDiff<ExcelAliasRow> {
+    const adds: DiffItem<ExcelAliasRow>[] = [];
+    const updates: DiffItem<ExcelAliasRow>[] = [];
+    const deletes: DiffItem<ExcelAliasRow>[] = [];
+    const unchanged: DiffItem<ExcelAliasRow>[] = [];
+    const processedKeys = new Set<string>();
+
+    uploadedAliases.forEach((alias) => {
+      if (!alias.alias || !alias.canonical_name) return;
+
+      const compositeKey = `${alias.alias.toLowerCase()}::${alias.canonical_name.toUpperCase()}`;
+      processedKeys.add(compositeKey);
+
+      const statusValue = alias.status?.toLowerCase() === "eliminar" ? "DELETE" : "ACTIVE";
+      const existing = existingAliases.get(compositeKey);
+
+      if (statusValue === "DELETE") {
+        if (existing) {
+          alias._id = existing._id;
+          deletes.push({
+            operation: DiffOperation.DELETE,
+            before: existing,
+          });
+        }
+        return;
+      }
+
+      if (!existing) {
+        // ADD: New alias
+        adds.push({
+          operation: DiffOperation.ADD,
+          row: alias,
+          after: alias,
+        });
+      } else {
+        alias._id = existing._id;
+
+        // Check if alias_type changed
+        const changes: string[] = [];
+        if (this.normalizeOptional(existing.alias_type) !== this.normalizeOptional(alias.alias_type)) {
+          changes.push("alias_type");
+        }
+
+        if (changes.length > 0) {
+          updates.push({
+            operation: DiffOperation.UPDATE,
+            row: alias,
+            before: existing,
+            after: alias,
+            changes,
+          });
+        } else {
+          unchanged.push({
+            operation: DiffOperation.UNCHANGED,
+            row: alias,
+          });
+        }
+      }
+    });
+
+    // Existing aliases NOT in uploaded file = UNCHANGED
+    existingAliases.forEach((existing, key) => {
+      if (!processedKeys.has(key)) {
+        unchanged.push({
+          operation: DiffOperation.UNCHANGED,
+          row: existing,
+        });
+      }
+    });
+
+    return {
+      sheetName: SHEET_NAMES.ALIASES,
+      adds,
+      updates,
+      deletes,
+      unchanged,
+      summary: {
+        totalAdds: adds.length,
+        totalUpdates: updates.length,
+        totalDeletes: deletes.length,
+        totalUnchanged: unchanged.length,
+        totalChanges: adds.length + updates.length + deletes.length,
+      },
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // Cross References from Brand Columns
   // --------------------------------------------------------------------------
 
   /**
@@ -481,21 +612,22 @@ export class DiffEngine {
    * ML-style safe delete behavior:
    * - ADD: New SKU in brand column not in database
    * - DELETE: Only SKUs explicitly marked with [DELETE] prefix
-   * - UNCHANGED: Existing SKUs in DB not mentioned in Excel (SAFE - no auto-delete)
-   *
-   * @param uploadedParts - Parsed parts with brand columns
-   * @param existingCrossRefs - Existing cross-refs from database
-   * @param existingParts - Existing parts for ID lookup
+   * - UNCHANGED: Existing SKUs in DB not mentioned in Excel (safe — no auto-delete)
    */
   private diffCrossRefsFromBrandColumns(
     uploadedParts: ExcelPartRow[],
-    existingCrossRefs: Map<string, ExcelCrossRefRow>,
-    existingParts: Map<string, ExcelPartRow>
-  ): SheetDiff<ExcelCrossRefRow> {
-    const adds: DiffItem<ExcelCrossRefRow>[] = [];
-    const deletes: DiffItem<ExcelCrossRefRow>[] = [];
-    const unchanged: DiffItem<ExcelCrossRefRow>[] = [];
-    // Note: updates not used - cross-refs are add/delete only (immutable SKUs)
+    existingCrossRefs: Map<string, { _id: string; acr_part_id: string; competitor_brand: string; competitor_sku: string }>
+  ): {
+    adds: CrossRefDiffItem[];
+    deletes: CrossRefDiffItem[];
+    summary: {
+      totalAdds: number;
+      totalDeletes: number;
+      totalChanges: number;
+    };
+  } {
+    const adds: CrossRefDiffItem[] = [];
+    const deletes: CrossRefDiffItem[] = [];
 
     // Build index of existing cross-refs by part_id and brand+sku
     const existingByPart = this.buildExistingCrossRefMap(existingCrossRefs);
@@ -503,7 +635,7 @@ export class DiffEngine {
     // Process each part row
     for (const part of uploadedParts) {
       const partId = part._id;
-      if (!partId) continue; // Skip parts without any ID
+      if (!partId) continue;
 
       const existingForPart = existingByPart[partId] || {};
 
@@ -520,20 +652,13 @@ export class DiffEngine {
           const existing = existingForPart[compositeKey];
 
           if (!existing) {
-            // New cross-ref to add
-            const newCrossRef: ExcelCrossRefRow = {
-              _acr_part_id: partId,
-              acr_sku: part.acr_sku,
-              competitor_brand: brandName,
-              competitor_sku: sku,
-            };
             adds.push({
+              partId,
+              brand: brandName,
+              sku,
               operation: DiffOperation.ADD,
-              row: newCrossRef,
-              after: newCrossRef,
             });
           }
-          // If exists, it's unchanged (no update needed for cross-refs)
         }
 
         // Process explicit deletes: SKUs marked with [DELETE]
@@ -542,150 +667,26 @@ export class DiffEngine {
           const existing = existingForPart[compositeKey];
 
           if (existing) {
-            // Explicit delete
             deletes.push({
+              partId,
+              brand: brandName,
+              sku,
               operation: DiffOperation.DELETE,
-              before: existing,
+              _id: existing._id, // Carry DB UUID for deletion
             });
           }
-          // If not exists, ignore (can't delete what doesn't exist)
         }
       }
     }
 
-    // Count unchanged (existing cross-refs not in any delete list)
-    // This is informational only - ML-style means we DON'T delete these
-    const allDeletedIds = new Set(
-      deletes.map((d) => d.before?._id).filter(Boolean)
-    );
-    existingCrossRefs.forEach((cr, id) => {
-      if (!allDeletedIds.has(id)) {
-        // Check if this cross-ref's part is in the uploaded file
-        const partId = cr._acr_part_id || "";
-        const partInFile = uploadedParts.some((p) => p._id === partId);
-        if (partInFile) {
-          unchanged.push({
-            operation: DiffOperation.UNCHANGED,
-            row: cr,
-          });
-        }
-      }
-    });
-
     return {
-      sheetName: "Cross References (from brand columns)",
       adds,
-      updates: [], // Cross-refs don't have updates (immutable)
       deletes,
-      unchanged,
       summary: {
         totalAdds: adds.length,
-        totalUpdates: 0,
         totalDeletes: deletes.length,
-        totalUnchanged: unchanged.length,
         totalChanges: adds.length + deletes.length,
       },
     };
-  }
-
-  // --------------------------------------------------------------------------
-  // Cross References Sheet Diff (DEPRECATED)
-  // --------------------------------------------------------------------------
-
-  /**
-   * @deprecated Phase 3 uses brand columns in Parts sheet instead.
-   * Kept for reference only.
-   */
-  private diffCrossReferences(
-    uploadedCrossRefs: ExcelCrossRefRow[],
-    existingCrossRefs: Map<string, ExcelCrossRefRow>
-  ): SheetDiff<ExcelCrossRefRow> {
-    const adds: DiffItem<ExcelCrossRefRow>[] = [];
-    const updates: DiffItem<ExcelCrossRefRow>[] = [];
-    const unchanged: DiffItem<ExcelCrossRefRow>[] = [];
-    const processedIds = new Set<string>();
-
-    uploadedCrossRefs.forEach((crossRef) => {
-      if (!crossRef._id || crossRef._id.trim() === "") {
-        // ADD: No ID = new row
-        adds.push({
-          operation: DiffOperation.ADD,
-          row: crossRef,
-          after: crossRef,
-        });
-      } else {
-        processedIds.add(crossRef._id);
-        const existing = existingCrossRefs.get(crossRef._id);
-
-        if (!existing) {
-          // ADD: ID not in database
-          adds.push({
-            operation: DiffOperation.ADD,
-            row: crossRef,
-            after: crossRef,
-          });
-        } else {
-          const changes = this.detectCrossRefChanges(existing, crossRef);
-
-          if (changes.length > 0) {
-            updates.push({
-              operation: DiffOperation.UPDATE,
-              row: crossRef,
-              before: existing,
-              after: crossRef,
-              changes,
-            });
-          } else {
-            unchanged.push({
-              operation: DiffOperation.UNCHANGED,
-              row: crossRef,
-            });
-          }
-        }
-      }
-    });
-
-    // Find deletes
-    const deletes: DiffItem<ExcelCrossRefRow>[] = [];
-    existingCrossRefs.forEach((existing, id) => {
-      if (!processedIds.has(id)) {
-        deletes.push({
-          operation: DiffOperation.DELETE,
-          before: existing,
-        });
-      }
-    });
-
-    return {
-      sheetName: SHEET_NAMES.CROSS_REFERENCES,
-      adds,
-      updates,
-      deletes,
-      unchanged,
-      summary: {
-        totalAdds: adds.length,
-        totalUpdates: updates.length,
-        totalDeletes: deletes.length,
-        totalUnchanged: unchanged.length,
-        totalChanges: adds.length + updates.length + deletes.length,
-      },
-    };
-  }
-
-  private detectCrossRefChanges(
-    before: ExcelCrossRefRow,
-    after: ExcelCrossRefRow
-  ): string[] {
-    const changes: string[] = [];
-
-    if (before._acr_part_id !== after._acr_part_id)
-      changes.push("_acr_part_id");
-    // SKIP acr_sku - it's a computed display field (not stored in DB, always empty in 'before')
-    if (before.competitor_brand !== after.competitor_brand)
-      changes.push("competitor_brand");
-    if (before.competitor_sku !== after.competitor_sku)
-      changes.push("competitor_sku");
-
-    return changes;
   }
 }
