@@ -548,7 +548,7 @@ export class ValidationEngine {
       }
 
       // Warnings: Compare with existing data (matched by composite key)
-      const compositeKey = `${vehicle.acr_sku}::${vehicle.make}::${vehicle.model}`;
+      const compositeKey = `${vehicle.acr_sku}::${vehicle.make}::${vehicle.model}::${vehicle.start_year}`;
       if (existingData.vehicleApplications.has(compositeKey)) {
         const existing = existingData.vehicleApplications.get(compositeKey)!;
 

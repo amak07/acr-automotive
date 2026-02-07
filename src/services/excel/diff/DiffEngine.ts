@@ -402,7 +402,7 @@ export class DiffEngine {
     uploadedVehicles.forEach((vehicle) => {
       if (!vehicle.acr_sku || !vehicle.make || !vehicle.model) return;
 
-      const compositeKey = `${vehicle.acr_sku}::${vehicle.make}::${vehicle.model}`;
+      const compositeKey = `${vehicle.acr_sku}::${vehicle.make}::${vehicle.model}::${vehicle.start_year}`;
       processedKeys.add(compositeKey);
 
       // Resolve _part_id from acr_sku
@@ -489,13 +489,10 @@ export class DiffEngine {
   ): string[] {
     const changes: string[] = [];
 
-    // Years are the updatable fields (make/model are part of the composite key)
-    const beforeStart = typeof before.start_year === 'string' ? parseInt(before.start_year) : before.start_year;
-    const afterStart = typeof after.start_year === 'string' ? parseInt(after.start_year) : after.start_year;
+    // end_year is the only updatable field (acr_sku/make/model/start_year are the composite key)
     const beforeEnd = typeof before.end_year === 'string' ? parseInt(before.end_year) : before.end_year;
     const afterEnd = typeof after.end_year === 'string' ? parseInt(after.end_year) : after.end_year;
 
-    if (beforeStart !== afterStart) changes.push("start_year");
     if (beforeEnd !== afterEnd) changes.push("end_year");
 
     return changes;
