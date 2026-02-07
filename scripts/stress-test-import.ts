@@ -168,6 +168,40 @@ async function deleteStressTestParts(): Promise<number> {
   return data?.length ?? 0;
 }
 
+async function countAliases(): Promise<number> {
+  const { count } = await db
+    .from("vehicle_aliases")
+    .select("*", { count: "exact", head: true });
+  return count ?? 0;
+}
+
+async function findVehicleAppsByPartId(partId: string) {
+  const { data } = await db
+    .from("vehicle_applications")
+    .select("*")
+    .eq("part_id", partId);
+  return data ?? [];
+}
+
+async function findAlias(alias: string, canonicalName: string) {
+  const { data } = await db
+    .from("vehicle_aliases")
+    .select("*")
+    .eq("alias", alias.toLowerCase())
+    .eq("canonical_name", canonicalName.toUpperCase())
+    .maybeSingle();
+  return data;
+}
+
+async function deleteStressTestAliases(): Promise<number> {
+  const { data } = await db
+    .from("vehicle_aliases")
+    .delete()
+    .like("alias", "stress-%")
+    .select("id");
+  return data?.length ?? 0;
+}
+
 // ---------------------------------------------------------------------------
 // Workbook manipulation helpers
 // ---------------------------------------------------------------------------
@@ -196,6 +230,13 @@ function getPartsSheet(wb: ExcelJS.Workbook): ExcelJS.Worksheet {
 function getVehicleAppsSheet(wb: ExcelJS.Workbook): ExcelJS.Worksheet {
   const ws = wb.getWorksheet("Vehicle Applications");
   if (!ws) throw new Error("No Vehicle Applications worksheet found");
+  return ws;
+}
+
+/** Get the Vehicle Aliases worksheet */
+function getAliasesSheet(wb: ExcelJS.Workbook): ExcelJS.Worksheet {
+  const ws = wb.getWorksheet("Vehicle Aliases");
+  if (!ws) throw new Error("No Vehicle Aliases worksheet found");
   return ws;
 }
 
@@ -324,9 +365,10 @@ async function main() {
     parts: await countParts(),
     crossRefs: await countCrossRefs(),
     vehicleApps: await countVehicleApps(),
+    aliases: await countAliases(),
   };
   console.log(
-    `  DB baseline: ${baselineCounts.parts} parts, ${baselineCounts.crossRefs} cross-refs, ${baselineCounts.vehicleApps} vehicle apps\n`
+    `  DB baseline: ${baselineCounts.parts} parts, ${baselineCounts.crossRefs} cross-refs, ${baselineCounts.vehicleApps} vehicle apps, ${baselineCounts.aliases} aliases\n`
   );
 
   // Helper: restore baseline by re-importing the original export
@@ -336,9 +378,11 @@ async function main() {
     if (!result.success) {
       console.log("  WARNING: Baseline restore failed:", result);
     }
-    // Also clean up any stress test parts
+    // Also clean up any stress test parts and aliases
     const deleted = await deleteStressTestParts();
-    if (deleted > 0) console.log(`  Cleaned up ${deleted} stress test parts`);
+    if (deleted > 0) console.log(`    Cleaned up ${deleted} stress test parts`);
+    const deletedAliases = await deleteStressTestAliases();
+    if (deletedAliases > 0) console.log(`    Cleaned up ${deletedAliases} stress test aliases`);
   }
 
   // ====================================================================
@@ -1199,6 +1243,467 @@ async function main() {
         );
       }
     );
+  }
+
+  // ====================================================================
+  // Test 12: Vehicle Application CRUD
+  // ====================================================================
+
+  if (shouldRun(12)) {
+    console.log("--- Test 12a: Add New Vehicle Application ---");
+    await runTest("12a. Add VA to existing part", async () => {
+      const wb = await loadWorkbook(baselineBuffer);
+      const ws = getVehicleAppsSheet(wb);
+
+      const colSku = findColumn(ws, "ACR SKU");
+      const colStatus = findColumn(ws, "Status");
+      const colMake = findColumn(ws, "Make");
+      const colModel = findColumn(ws, "Model");
+      const colStartYear = findColumn(ws, "Start Year");
+      const colEndYear = findColumn(ws, "End Year");
+
+      // Pick an existing part SKU from the Parts sheet
+      const partsWs = getPartsSheet(wb);
+      const existingSku = String(
+        partsWs.getRow(4).getCell(findColumn(partsWs, "ACR SKU")).value
+      );
+
+      // Add new VA row after last data row
+      const newRow = dataRowCount(ws) + 4;
+      ws.getRow(newRow).getCell(colSku).value = existingSku;
+      ws.getRow(newRow).getCell(colStatus).value = "Activo";
+      ws.getRow(newRow).getCell(colMake).value = "STRESS-MAKE";
+      ws.getRow(newRow).getCell(colModel).value = "STRESS-MODEL";
+      ws.getRow(newRow).getCell(colStartYear).value = 2020;
+      ws.getRow(newRow).getCell(colEndYear).value = 2025;
+
+      console.log(
+        `  Adding VA: ${existingSku} STRESS-MAKE STRESS-MODEL 2020-2025`
+      );
+
+      const buffer = await saveWorkbook(wb);
+      const preview = await previewImport(cookie, buffer);
+      console.log(
+        `  Preview: valid=${preview.valid} VA adds=${preview.diff?.vehicleApplications?.adds?.length}`
+      );
+      assert(preview.valid === true, "should be valid");
+      assert(
+        preview.diff?.vehicleApplications?.adds?.length >= 1,
+        "should have VA add"
+      );
+
+      const exec = await executeImport(cookie, buffer);
+      assert(exec.success === true, "execute should succeed");
+
+      // Verify in DB
+      const part = await findPartBySku(existingSku);
+      assert(part !== null, `${existingSku} should exist`);
+      const vas = await findVehicleAppsByPartId(part!.id);
+      const found = vas.find(
+        (v: any) => v.make === "STRESS-MAKE" && v.model === "STRESS-MODEL"
+      );
+      assert(found !== undefined, "new VA should exist in DB");
+      assertEqual(found.start_year, 2020, "start_year");
+      assertEqual(found.end_year, 2025, "end_year");
+
+      await restoreBaseline();
+    });
+
+    console.log("--- Test 12b: Update VA End Year ---");
+    await runTest("12b. Update VA end_year", async () => {
+      const wb = await loadWorkbook(baselineBuffer);
+      const ws = getVehicleAppsSheet(wb);
+
+      const colEndYear = findColumn(ws, "End Year");
+      const colSku = findColumn(ws, "ACR SKU");
+      const colMake = findColumn(ws, "Make");
+      const colModel = findColumn(ws, "Model");
+      const colStartYear = findColumn(ws, "Start Year");
+
+      // Modify row 4 end_year
+      const origEndYear = ws.getRow(4).getCell(colEndYear).value;
+      const vaSku = String(ws.getRow(4).getCell(colSku).value);
+      const vaMake = String(ws.getRow(4).getCell(colMake).value);
+      const vaModel = String(ws.getRow(4).getCell(colModel).value);
+      const vaStartYear = Number(ws.getRow(4).getCell(colStartYear).value);
+      const newEndYear = 2099;
+      ws.getRow(4).getCell(colEndYear).value = newEndYear;
+
+      console.log(
+        `  Modifying VA row 4: end_year ${origEndYear} -> ${newEndYear}`
+      );
+
+      const buffer = await saveWorkbook(wb);
+      const preview = await previewImport(cookie, buffer);
+      console.log(
+        `  Preview: valid=${preview.valid} VA updates=${preview.diff?.vehicleApplications?.updates?.length}`
+      );
+      assert(preview.valid === true, "should be valid");
+      assert(
+        preview.diff?.vehicleApplications?.updates?.length >= 1,
+        "should have VA update"
+      );
+
+      const exec = await executeImport(cookie, buffer);
+      assert(exec.success === true, "execute should succeed");
+
+      // Verify in DB
+      const part = await findPartBySku(vaSku);
+      const vas = await findVehicleAppsByPartId(part!.id);
+      const found = vas.find(
+        (v: any) =>
+          v.make === vaMake &&
+          v.model === vaModel &&
+          v.start_year === vaStartYear
+      );
+      assert(found !== undefined, "VA should exist");
+      assertEqual(found.end_year, newEndYear, "end_year in DB");
+
+      await restoreBaseline();
+    });
+
+    console.log("--- Test 12c: Delete VA via Status=Eliminar ---");
+    await runTest("12c. Delete VA via Status=Eliminar", async () => {
+      const wb = await loadWorkbook(baselineBuffer);
+      const ws = getVehicleAppsSheet(wb);
+
+      const colStatus = findColumn(ws, "Status");
+      const colSku = findColumn(ws, "ACR SKU");
+      const colMake = findColumn(ws, "Make");
+      const colModel = findColumn(ws, "Model");
+
+      const vaCountBefore = await countVehicleApps();
+      const vaSku = String(ws.getRow(4).getCell(colSku).value);
+      const vaMake = String(ws.getRow(4).getCell(colMake).value);
+      const vaModel = String(ws.getRow(4).getCell(colModel).value);
+
+      ws.getRow(4).getCell(colStatus).value = "Eliminar";
+      console.log(
+        `  Marking VA for deletion: ${vaSku} ${vaMake} ${vaModel}`
+      );
+
+      const buffer = await saveWorkbook(wb);
+      const preview = await previewImport(cookie, buffer);
+      console.log(
+        `  Preview: valid=${preview.valid} VA deletes=${preview.diff?.vehicleApplications?.deletes?.length}`
+      );
+      assert(preview.valid === true, "should be valid");
+      assert(
+        preview.diff?.vehicleApplications?.deletes?.length >= 1,
+        "should have VA delete"
+      );
+
+      const exec = await executeImport(cookie, buffer);
+      assert(exec.success === true, "execute should succeed");
+
+      const vaCountAfter = await countVehicleApps();
+      assert(
+        vaCountAfter < vaCountBefore,
+        `VA count should decrease (${vaCountBefore} -> ${vaCountAfter})`
+      );
+
+      await restoreBaseline();
+    });
+
+    console.log("--- Test 12d: Add VA for New Part in Same Import ---");
+    await runTest("12d. Add VA referencing new part", async () => {
+      const wb = await loadWorkbook(baselineBuffer);
+      const partsWs = getPartsSheet(wb);
+      const vaWs = getVehicleAppsSheet(wb);
+
+      // Add new part to Parts sheet
+      const pColSku = findColumn(partsWs, "ACR SKU");
+      const pColType = findColumn(partsWs, "Part Type");
+      const newPartRow = dataRowCount(partsWs) + 4;
+      partsWs.getRow(newPartRow).getCell(pColSku).value = "ACR-STRESS-VA-NEW";
+      partsWs.getRow(newPartRow).getCell(pColType).value = "Brake Rotor";
+
+      // Add VA referencing the new part
+      const vColSku = findColumn(vaWs, "ACR SKU");
+      const vColMake = findColumn(vaWs, "Make");
+      const vColModel = findColumn(vaWs, "Model");
+      const vColStartYear = findColumn(vaWs, "Start Year");
+      const vColEndYear = findColumn(vaWs, "End Year");
+      const newVaRow = dataRowCount(vaWs) + 4;
+      vaWs.getRow(newVaRow).getCell(vColSku).value = "ACR-STRESS-VA-NEW";
+      vaWs.getRow(newVaRow).getCell(vColMake).value = "STRESS-CROSS";
+      vaWs.getRow(newVaRow).getCell(vColModel).value = "STRESS-CROSS-MODEL";
+      vaWs.getRow(newVaRow).getCell(vColStartYear).value = 2023;
+      vaWs.getRow(newVaRow).getCell(vColEndYear).value = 2026;
+
+      console.log(
+        "  Adding new part ACR-STRESS-VA-NEW + VA in same import"
+      );
+
+      const buffer = await saveWorkbook(wb);
+      const preview = await previewImport(cookie, buffer);
+      assert(preview.valid === true, "should be valid");
+      assert(
+        preview.diff?.parts?.adds?.length >= 1,
+        "should have part add"
+      );
+      assert(
+        preview.diff?.vehicleApplications?.adds?.length >= 1,
+        "should have VA add"
+      );
+
+      const exec = await executeImport(cookie, buffer);
+      assert(exec.success === true, "execute should succeed");
+
+      // Verify both exist in DB
+      const part = await findPartBySku("ACR-STRESS-VA-NEW");
+      assert(part !== null, "new part should exist");
+      const vas = await findVehicleAppsByPartId(part!.id);
+      const found = vas.find((v: any) => v.make === "STRESS-CROSS");
+      assert(found !== undefined, "VA for new part should exist");
+
+      await restoreBaseline();
+    });
+  }
+
+  // ====================================================================
+  // Test 13: Vehicle Alias CRUD
+  // ====================================================================
+
+  if (shouldRun(13)) {
+    console.log("--- Test 13a: Add New Alias ---");
+    await runTest("13a. Add new alias", async () => {
+      const wb = await loadWorkbook(baselineBuffer);
+      const ws = getAliasesSheet(wb);
+
+      const colAlias = findColumn(ws, "Alias");
+      const colCanonical = findColumn(ws, "Canonical Name");
+      const colType = findColumn(ws, "Type");
+      const colStatus = findColumn(ws, "Status");
+
+      // Add new alias row
+      const newRow = dataRowCount(ws) + 4;
+      ws.getRow(newRow).getCell(colAlias).value = "STRESS-NewAlias";
+      ws.getRow(newRow).getCell(colCanonical).value = "stress-canonical";
+      ws.getRow(newRow).getCell(colType).value = "make";
+      ws.getRow(newRow).getCell(colStatus).value = "Activo";
+
+      console.log(
+        '  Adding alias: "STRESS-NewAlias" -> "stress-canonical" (make)'
+      );
+
+      const buffer = await saveWorkbook(wb);
+      const preview = await previewImport(cookie, buffer);
+      console.log(
+        `  Preview: valid=${preview.valid} alias adds=${preview.diff?.aliases?.adds?.length}`
+      );
+      assert(preview.valid === true, "should be valid");
+      assert(
+        preview.diff?.aliases?.adds?.length >= 1,
+        "should have alias add"
+      );
+
+      const exec = await executeImport(cookie, buffer);
+      assert(exec.success === true, "execute should succeed");
+
+      // Verify in DB — alias should be lowercase, canonical should be uppercase
+      const alias = await findAlias("stress-newalias", "STRESS-CANONICAL");
+      assert(alias !== null, "alias should exist in DB");
+      assertEqual(alias.alias, "stress-newalias", "alias is lowercase");
+      assertEqual(
+        alias.canonical_name,
+        "STRESS-CANONICAL",
+        "canonical is uppercase"
+      );
+      assertEqual(alias.alias_type, "make", "alias_type");
+
+      await restoreBaseline();
+    });
+
+    console.log("--- Test 13b: Update Alias Type ---");
+    await runTest("13b. Update alias type", async () => {
+      const wb = await loadWorkbook(baselineBuffer);
+      const ws = getAliasesSheet(wb);
+
+      const colAlias = findColumn(ws, "Alias");
+      const colCanonical = findColumn(ws, "Canonical Name");
+      const colType = findColumn(ws, "Type");
+
+      // Read existing alias from row 4
+      const aliasVal = String(ws.getRow(4).getCell(colAlias).value);
+      const canonicalVal = String(ws.getRow(4).getCell(colCanonical).value);
+      const origType = String(ws.getRow(4).getCell(colType).value);
+      const newType = origType === "make" ? "model" : "make";
+
+      ws.getRow(4).getCell(colType).value = newType;
+      console.log(
+        `  Updating alias "${aliasVal}": type "${origType}" -> "${newType}"`
+      );
+
+      const buffer = await saveWorkbook(wb);
+      const preview = await previewImport(cookie, buffer);
+      console.log(
+        `  Preview: valid=${preview.valid} alias updates=${preview.diff?.aliases?.updates?.length}`
+      );
+      assert(preview.valid === true, "should be valid");
+      assert(
+        preview.diff?.aliases?.updates?.length >= 1,
+        "should have alias update"
+      );
+
+      const exec = await executeImport(cookie, buffer);
+      assert(exec.success === true, "execute should succeed");
+
+      // Verify in DB
+      const alias = await findAlias(aliasVal, canonicalVal);
+      assert(alias !== null, "alias should exist");
+      assertEqual(alias.alias_type, newType, "alias_type in DB");
+
+      await restoreBaseline();
+    });
+
+    console.log("--- Test 13c: Delete Alias via Status=Eliminar ---");
+    await runTest("13c. Delete alias via Status=Eliminar", async () => {
+      const wb = await loadWorkbook(baselineBuffer);
+      const ws = getAliasesSheet(wb);
+
+      const colStatus = findColumn(ws, "Status");
+      const colAlias = findColumn(ws, "Alias");
+
+      const aliasCountBefore = await countAliases();
+      const aliasVal = String(ws.getRow(4).getCell(colAlias).value);
+
+      ws.getRow(4).getCell(colStatus).value = "Eliminar";
+      console.log(`  Marking alias for deletion: "${aliasVal}"`);
+
+      const buffer = await saveWorkbook(wb);
+      const preview = await previewImport(cookie, buffer);
+      console.log(
+        `  Preview: valid=${preview.valid} alias deletes=${preview.diff?.aliases?.deletes?.length}`
+      );
+      assert(preview.valid === true, "should be valid");
+      assert(
+        preview.diff?.aliases?.deletes?.length >= 1,
+        "should have alias delete"
+      );
+
+      const exec = await executeImport(cookie, buffer);
+      assert(exec.success === true, "execute should succeed");
+
+      const aliasCountAfter = await countAliases();
+      assert(
+        aliasCountAfter < aliasCountBefore,
+        `Alias count should decrease (${aliasCountBefore} -> ${aliasCountAfter})`
+      );
+
+      await restoreBaseline();
+    });
+  }
+
+  // ====================================================================
+  // Test 14: Cascading Deletes
+  // ====================================================================
+
+  if (shouldRun(14)) {
+    console.log("--- Test 14a: Cascade Delete — Part with VAs ---");
+    await runTest("14a. Part delete cascades to VAs", async () => {
+      const wb = await loadWorkbook(baselineBuffer);
+      const partsWs = getPartsSheet(wb);
+
+      const colSku = findColumn(partsWs, "ACR SKU");
+      const colStatus = findColumn(partsWs, "Status");
+
+      // Find a part that has VAs by checking the VA sheet
+      const vaWs = getVehicleAppsSheet(wb);
+      const vaColSku = findColumn(vaWs, "ACR SKU");
+
+      // Get SKU from first VA row
+      const targetSku = String(vaWs.getRow(4).getCell(vaColSku).value);
+      console.log(`  Target SKU with VAs: ${targetSku}`);
+
+      // Find this SKU in the Parts sheet and mark for deletion
+      let targetPartRow = 0;
+      for (let r = 4; r <= dataRowCount(partsWs) + 3; r++) {
+        if (String(partsWs.getRow(r).getCell(colSku).value) === targetSku) {
+          targetPartRow = r;
+          break;
+        }
+      }
+      assert(targetPartRow > 0, `should find ${targetSku} in Parts sheet`);
+      partsWs.getRow(targetPartRow).getCell(colStatus).value = "Eliminar";
+
+      // Count VAs for this part before
+      const partBefore = await findPartBySku(targetSku);
+      const vasBefore = await findVehicleAppsByPartId(partBefore!.id);
+      console.log(
+        `  Part ${targetSku} has ${vasBefore.length} VAs before delete`
+      );
+      assert(vasBefore.length > 0, "part should have VAs");
+
+      const buffer = await saveWorkbook(wb);
+      const exec = await executeImport(cookie, buffer);
+      assert(exec.success === true, "execute should succeed");
+
+      // Part should be gone
+      const partAfter = await findPartBySku(targetSku);
+      assert(partAfter === null, "part should be deleted");
+
+      // VAs should be cascade-deleted
+      const vaCountAfter = await countVehicleApps();
+      assert(
+        vaCountAfter < baselineCounts.vehicleApps,
+        `VA count should decrease (${baselineCounts.vehicleApps} -> ${vaCountAfter})`
+      );
+
+      await restoreBaseline();
+    });
+
+    console.log("--- Test 14b: Cascade Delete — Part with Cross-Refs ---");
+    await runTest("14b. Part delete cascades to cross-refs", async () => {
+      const wb = await loadWorkbook(baselineBuffer);
+      const partsWs = getPartsSheet(wb);
+
+      const colSku = findColumn(partsWs, "ACR SKU");
+      const colStatus = findColumn(partsWs, "Status");
+      const colNational = findColumn(partsWs, "National");
+
+      // Find a part with cross-refs (non-empty National column)
+      let targetRow = 0;
+      let targetSku = "";
+      for (let r = 4; r <= dataRowCount(partsWs) + 3; r++) {
+        const natVal = String(
+          partsWs.getRow(r).getCell(colNational).value ?? ""
+        );
+        if (natVal.length > 0) {
+          targetRow = r;
+          targetSku = String(partsWs.getRow(r).getCell(colSku).value);
+          break;
+        }
+      }
+      assert(targetRow > 0, "should find a part with cross-refs");
+
+      // Count cross-refs for this part before
+      const partBefore = await findPartBySku(targetSku);
+      const xrefsBefore = await findCrossRefsByPartId(partBefore!.id);
+      console.log(
+        `  Part ${targetSku} has ${xrefsBefore.length} cross-refs before delete`
+      );
+      assert(xrefsBefore.length > 0, "part should have cross-refs");
+
+      partsWs.getRow(targetRow).getCell(colStatus).value = "Eliminar";
+
+      const buffer = await saveWorkbook(wb);
+      const exec = await executeImport(cookie, buffer);
+      assert(exec.success === true, "execute should succeed");
+
+      // Part should be gone
+      const partAfter = await findPartBySku(targetSku);
+      assert(partAfter === null, "part should be deleted");
+
+      // Cross-refs should be cascade-deleted
+      const xrefCountAfter = await countCrossRefs();
+      assert(
+        xrefCountAfter < baselineCounts.crossRefs,
+        `Cross-ref count should decrease (${baselineCounts.crossRefs} -> ${xrefCountAfter})`
+      );
+
+      await restoreBaseline();
+    });
   }
 
   // ====================================================================
