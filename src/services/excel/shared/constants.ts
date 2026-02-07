@@ -4,15 +4,10 @@
 
 /**
  * Excel sheet names (must match exactly between export and import)
- * Note: As of Phase 3, exports only produce 2 sheets (Parts, Vehicle Applications).
- * Cross-references are now inline in Parts sheet as brand columns.
  */
 export const SHEET_NAMES = {
   PARTS: "Parts",
   VEHICLE_APPLICATIONS: "Vehicle Applications",
-  /** @deprecated Cross-references now in Parts sheet brand columns */
-  CROSS_REFERENCES: "Cross References",
-  /** Vehicle aliases for keyword search (Phase 4A) */
   ALIASES: "Vehicle Aliases",
 } as const;
 
@@ -23,17 +18,15 @@ export const SHEET_NAMES = {
 export const COLUMN_HEADERS = {
   // Parts sheet
   PARTS: {
-    ID: "_id",
-    ACTION: "_action", // ML-style: set to "DELETE" to explicitly delete a part
     ACR_SKU: "ACR SKU",
-    STATUS: "Status", // Workflow status (Activo/Inactivo/Eliminar)
+    STATUS: "Status",
     PART_TYPE: "Part Type",
     POSITION_TYPE: "Position",
     ABS_TYPE: "ABS Type",
     BOLT_PATTERN: "Bolt Pattern",
     DRIVE_TYPE: "Drive Type",
     SPECIFICATIONS: "Specifications",
-    // Cross-reference brand columns (Phase 3A) - just brand names
+    // Cross-reference brand columns — just brand names
     NATIONAL_SKUS: "National",
     ATV_SKUS: "ATV",
     SYD_SKUS: "SYD",
@@ -45,40 +38,34 @@ export const COLUMN_HEADERS = {
     GMB_SKUS: "GMB",
     GSP_SKUS: "GSP",
     FAG_SKUS: "FAG",
-    // Image URL columns (Phase 3B) - friendly names
+    // Image URL columns
     IMAGE_URL_FRONT: "Image URL Front",
     IMAGE_URL_BACK: "Image URL Back",
     IMAGE_URL_TOP: "Image URL Top",
     IMAGE_URL_OTHER: "Image URL Other",
     VIEWER_360_STATUS: "360 Viewer",
+    // Formula-driven validation
+    ERRORS: "Errors",
   },
 
   // Vehicle Applications sheet
   VEHICLE_APPLICATIONS: {
-    ID: "_id",
-    PART_ID: "_part_id",
     ACR_SKU: "ACR SKU",
+    STATUS: "Status",
     MAKE: "Make",
     MODEL: "Model",
     START_YEAR: "Start Year",
     END_YEAR: "End Year",
+    ERRORS: "Errors",
   },
 
-  // Cross References sheet
-  CROSS_REFERENCES: {
-    ID: "_id",
-    ACR_PART_ID: "_acr_part_id",
-    ACR_SKU: "ACR_SKU",
-    COMPETITOR_BRAND: "Competitor_Brand",
-    COMPETITOR_SKU: "Competitor_SKU",
-  },
-
-  // Vehicle Aliases sheet (Phase 4A)
+  // Vehicle Aliases sheet
   ALIASES: {
-    ID: "_id",
     ALIAS: "Alias",
     CANONICAL_NAME: "Canonical Name",
     ALIAS_TYPE: "Type",
+    STATUS: "Status",
+    ERRORS: "Errors",
   },
 } as const;
 
@@ -89,17 +76,15 @@ export const COLUMN_HEADERS = {
 export const PROPERTY_NAMES = {
   // Parts
   PARTS: {
-    ID: "_id",
-    ACTION: "_action", // ML-style: set to "DELETE" to explicitly delete a part
     ACR_SKU: "acr_sku",
-    STATUS: "status", // Workflow status
+    STATUS: "status",
     PART_TYPE: "part_type",
     POSITION_TYPE: "position_type",
     ABS_TYPE: "abs_type",
     BOLT_PATTERN: "bolt_pattern",
     DRIVE_TYPE: "drive_type",
     SPECIFICATIONS: "specifications",
-    // Cross-reference brand columns (Phase 3A)
+    // Cross-reference brand columns
     NATIONAL_SKUS: "national_skus",
     ATV_SKUS: "atv_skus",
     SYD_SKUS: "syd_skus",
@@ -111,40 +96,33 @@ export const PROPERTY_NAMES = {
     GMB_SKUS: "gmb_skus",
     GSP_SKUS: "gsp_skus",
     FAG_SKUS: "fag_skus",
-    // Image URL columns (Phase 3B)
+    // Image URL columns
     IMAGE_URL_FRONT: "image_url_front",
     IMAGE_URL_BACK: "image_url_back",
     IMAGE_URL_TOP: "image_url_top",
     IMAGE_URL_OTHER: "image_url_other",
     VIEWER_360_STATUS: "viewer_360_status",
+    ERRORS: "errors",
   },
 
   // Vehicle Applications
   VEHICLE_APPLICATIONS: {
-    ID: "_id",
-    PART_ID: "_part_id",
     ACR_SKU: "acr_sku",
+    STATUS: "status",
     MAKE: "make",
     MODEL: "model",
     START_YEAR: "start_year",
     END_YEAR: "end_year",
+    ERRORS: "errors",
   },
 
-  // Cross References
-  CROSS_REFERENCES: {
-    ID: "_id",
-    ACR_PART_ID: "_acr_part_id",
-    ACR_SKU: "acr_sku",
-    COMPETITOR_BRAND: "competitor_brand",
-    COMPETITOR_SKU: "competitor_sku",
-  },
-
-  // Vehicle Aliases (Phase 4A)
+  // Vehicle Aliases
   ALIASES: {
-    ID: "_id",
     ALIAS: "alias",
     CANONICAL_NAME: "canonical_name",
     ALIAS_TYPE: "alias_type",
+    STATUS: "status",
+    ERRORS: "errors",
   },
 } as const;
 
@@ -154,17 +132,14 @@ export const PROPERTY_NAMES = {
 export const COLUMN_WIDTHS = {
   // Parts sheet
   PARTS: {
-    ID: 36,
-    ACTION: 10, // For "DELETE" marker
     ACR_SKU: 15,
-    STATUS: 12, // Workflow status (Activo/Inactivo/Eliminar)
+    STATUS: 12,
     PART_TYPE: 20,
     POSITION_TYPE: 15,
     ABS_TYPE: 15,
     BOLT_PATTERN: 15,
     DRIVE_TYPE: 15,
     SPECIFICATIONS: 40,
-    // Cross-reference brand columns (Phase 3A)
     NATIONAL_SKUS: 25,
     ATV_SKUS: 25,
     SYD_SKUS: 25,
@@ -176,53 +151,37 @@ export const COLUMN_WIDTHS = {
     GMB_SKUS: 25,
     GSP_SKUS: 25,
     FAG_SKUS: 25,
-    // Image URL columns (Phase 3B)
     IMAGE_URL_FRONT: 50,
     IMAGE_URL_BACK: 50,
     IMAGE_URL_TOP: 50,
     IMAGE_URL_OTHER: 50,
     VIEWER_360_STATUS: 18,
+    ERRORS: 30,
   },
 
   // Vehicle Applications sheet
   VEHICLE_APPLICATIONS: {
-    ID: 36,
-    PART_ID: 36,
     ACR_SKU: 15,
+    STATUS: 12,
     MAKE: 15,
     MODEL: 20,
     START_YEAR: 12,
     END_YEAR: 12,
+    ERRORS: 30,
   },
 
-  // Cross References sheet
-  CROSS_REFERENCES: {
-    ID: 36,
-    ACR_PART_ID: 36,
-    ACR_SKU: 15,
-    COMPETITOR_BRAND: 20,
-    COMPETITOR_SKU: 20,
-  },
-
-  // Vehicle Aliases sheet (Phase 4A)
+  // Vehicle Aliases sheet
   ALIASES: {
-    ID: 36,
     ALIAS: 20,
     CANONICAL_NAME: 25,
     ALIAS_TYPE: 12,
+    STATUS: 12,
+    ERRORS: 30,
   },
 } as const;
 
 /**
- * Hidden ID column names
- * These columns are hidden in Excel but critical for import matching
- */
-export const HIDDEN_ID_COLUMNS = ["_id", "_part_id", "_acr_part_id"] as const;
-
-/**
- * Hidden computed columns
- * These columns are auto-generated by database triggers and should NOT be exported
- * They will be regenerated on import by database triggers
+ * Computed columns auto-generated by database triggers — NOT exported to Excel
  */
 export const HIDDEN_COMPUTED_COLUMNS = [
   "acr_sku_normalized",
@@ -245,7 +204,7 @@ export const FILE_VALIDATION = {
 } as const;
 
 // ============================================================================
-// Phase 3 Constants: Cross-Reference Brand Columns & Image URLs
+// Cross-Reference Brand Columns & Image URLs
 // ============================================================================
 
 /**
@@ -336,6 +295,8 @@ const FRIENDLY_HEADER_TO_PROPERTY: Record<string, string> = {
   // Aliases (friendly → property)
   "canonical name": "canonical_name",
   type: "alias_type",
+  // Shared columns
+  errors: "errors",
 };
 
 /**
@@ -348,12 +309,6 @@ const FRIENDLY_HEADER_TO_PROPERTY: Record<string, string> = {
  * - Brand: "National" → "national_skus"
  */
 export function headerToPropertyName(header: string): string {
-  // Hidden ID columns: keep as-is (lowercase)
-  if (HIDDEN_ID_COLUMNS.includes(header as any)) {
-    return header.toLowerCase();
-  }
-
-  // Normalize: lowercase and convert underscores to spaces for lookup
   const lowercased = header.toLowerCase();
 
   // Check friendly header mapping first (headers with spaces)
@@ -361,13 +316,12 @@ export function headerToPropertyName(header: string): string {
     return FRIENDLY_HEADER_TO_PROPERTY[lowercased];
   }
 
-  // Check if this is a simplified brand column header (e.g., "National" → "national_skus")
+  // Check simplified brand column headers (e.g., "National" → "national_skus")
   if (BRAND_HEADER_TO_PROPERTY[lowercased]) {
     return BRAND_HEADER_TO_PROPERTY[lowercased];
   }
 
-  // Fallback: convert underscores to property format
-  // Excel headers with underscores: just lowercase and collapse double underscores
+  // Fallback: lowercase and normalize separators
   return lowercased.replace(/\s+/g, "_").replace(/_+/g, "_");
 }
 
@@ -376,12 +330,6 @@ export function headerToPropertyName(header: string): string {
  * Example: "acr_sku" → "ACR_SKU", "part_type" → "Part_Type"
  */
 export function propertyNameToHeader(propertyName: string): string {
-  // Hidden ID columns: keep as-is
-  if (HIDDEN_ID_COLUMNS.includes(propertyName as any)) {
-    return propertyName;
-  }
-
-  // Regular properties: convert to PascalCase with underscores
   return propertyName
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -442,19 +390,6 @@ export function splitCrossRefSkus(
  * Note: Not using 'as const' because ExcelJS expects mutable arrays
  */
 export const PARTS_COLUMNS = [
-  // Core part fields
-  {
-    header: COLUMN_HEADERS.PARTS.ID,
-    key: PROPERTY_NAMES.PARTS.ID,
-    width: COLUMN_WIDTHS.PARTS.ID,
-    hidden: true,
-  },
-  {
-    header: COLUMN_HEADERS.PARTS.ACTION,
-    key: PROPERTY_NAMES.PARTS.ACTION,
-    width: COLUMN_WIDTHS.PARTS.ACTION,
-    hidden: true,
-  },
   {
     header: COLUMN_HEADERS.PARTS.ACR_SKU,
     key: PROPERTY_NAMES.PARTS.ACR_SKU,
@@ -495,7 +430,7 @@ export const PARTS_COLUMNS = [
     key: PROPERTY_NAMES.PARTS.SPECIFICATIONS,
     width: COLUMN_WIDTHS.PARTS.SPECIFICATIONS,
   },
-  // Cross-reference brand columns (Phase 3A) - semicolon-separated SKUs
+  // Cross-reference brand columns — semicolon-separated SKUs
   {
     header: COLUMN_HEADERS.PARTS.NATIONAL_SKUS,
     key: PROPERTY_NAMES.PARTS.NATIONAL_SKUS,
@@ -551,7 +486,7 @@ export const PARTS_COLUMNS = [
     key: PROPERTY_NAMES.PARTS.FAG_SKUS,
     width: COLUMN_WIDTHS.PARTS.FAG_SKUS,
   },
-  // Image URL columns (Phase 3B)
+  // Image URL columns
   {
     header: COLUMN_HEADERS.PARTS.IMAGE_URL_FRONT,
     key: PROPERTY_NAMES.PARTS.IMAGE_URL_FRONT,
@@ -577,29 +512,27 @@ export const PARTS_COLUMNS = [
     key: PROPERTY_NAMES.PARTS.VIEWER_360_STATUS,
     width: COLUMN_WIDTHS.PARTS.VIEWER_360_STATUS,
   },
+  // Errors column (formula-driven validation, last column)
+  {
+    header: COLUMN_HEADERS.PARTS.ERRORS,
+    key: PROPERTY_NAMES.PARTS.ERRORS,
+    width: COLUMN_WIDTHS.PARTS.ERRORS,
+  },
 ];
 
 /**
  * Vehicle Applications sheet column definitions
- * Single source of truth for column structure
  */
 export const VEHICLE_APPLICATIONS_COLUMNS = [
-  {
-    header: COLUMN_HEADERS.VEHICLE_APPLICATIONS.ID,
-    key: PROPERTY_NAMES.VEHICLE_APPLICATIONS.ID,
-    width: COLUMN_WIDTHS.VEHICLE_APPLICATIONS.ID,
-    hidden: true,
-  },
-  {
-    header: COLUMN_HEADERS.VEHICLE_APPLICATIONS.PART_ID,
-    key: PROPERTY_NAMES.VEHICLE_APPLICATIONS.PART_ID,
-    width: COLUMN_WIDTHS.VEHICLE_APPLICATIONS.PART_ID,
-    hidden: true,
-  },
   {
     header: COLUMN_HEADERS.VEHICLE_APPLICATIONS.ACR_SKU,
     key: PROPERTY_NAMES.VEHICLE_APPLICATIONS.ACR_SKU,
     width: COLUMN_WIDTHS.VEHICLE_APPLICATIONS.ACR_SKU,
+  },
+  {
+    header: COLUMN_HEADERS.VEHICLE_APPLICATIONS.STATUS,
+    key: PROPERTY_NAMES.VEHICLE_APPLICATIONS.STATUS,
+    width: COLUMN_WIDTHS.VEHICLE_APPLICATIONS.STATUS,
   },
   {
     header: COLUMN_HEADERS.VEHICLE_APPLICATIONS.MAKE,
@@ -621,54 +554,17 @@ export const VEHICLE_APPLICATIONS_COLUMNS = [
     key: PROPERTY_NAMES.VEHICLE_APPLICATIONS.END_YEAR,
     width: COLUMN_WIDTHS.VEHICLE_APPLICATIONS.END_YEAR,
   },
-];
-
-/**
- * Cross References sheet column definitions
- * @deprecated Phase 3 moves cross-references to brand columns in Parts sheet.
- * This sheet is no longer exported. Kept for backward compatibility with old imports.
- */
-export const CROSS_REFERENCES_COLUMNS = [
   {
-    header: COLUMN_HEADERS.CROSS_REFERENCES.ID,
-    key: PROPERTY_NAMES.CROSS_REFERENCES.ID,
-    width: COLUMN_WIDTHS.CROSS_REFERENCES.ID,
-    hidden: true,
-  },
-  {
-    header: COLUMN_HEADERS.CROSS_REFERENCES.ACR_PART_ID,
-    key: PROPERTY_NAMES.CROSS_REFERENCES.ACR_PART_ID,
-    width: COLUMN_WIDTHS.CROSS_REFERENCES.ACR_PART_ID,
-    hidden: true,
-  },
-  {
-    header: COLUMN_HEADERS.CROSS_REFERENCES.ACR_SKU,
-    key: PROPERTY_NAMES.CROSS_REFERENCES.ACR_SKU,
-    width: COLUMN_WIDTHS.CROSS_REFERENCES.ACR_SKU,
-  },
-  {
-    header: COLUMN_HEADERS.CROSS_REFERENCES.COMPETITOR_BRAND,
-    key: PROPERTY_NAMES.CROSS_REFERENCES.COMPETITOR_BRAND,
-    width: COLUMN_WIDTHS.CROSS_REFERENCES.COMPETITOR_BRAND,
-  },
-  {
-    header: COLUMN_HEADERS.CROSS_REFERENCES.COMPETITOR_SKU,
-    key: PROPERTY_NAMES.CROSS_REFERENCES.COMPETITOR_SKU,
-    width: COLUMN_WIDTHS.CROSS_REFERENCES.COMPETITOR_SKU,
+    header: COLUMN_HEADERS.VEHICLE_APPLICATIONS.ERRORS,
+    key: PROPERTY_NAMES.VEHICLE_APPLICATIONS.ERRORS,
+    width: COLUMN_WIDTHS.VEHICLE_APPLICATIONS.ERRORS,
   },
 ];
 
 /**
- * Vehicle Aliases sheet column definitions (Phase 4A)
- * Allows Humberto to manage vehicle nickname mappings via Excel
+ * Vehicle Aliases sheet column definitions
  */
 export const ALIASES_COLUMNS = [
-  {
-    header: COLUMN_HEADERS.ALIASES.ID,
-    key: PROPERTY_NAMES.ALIASES.ID,
-    width: COLUMN_WIDTHS.ALIASES.ID,
-    hidden: true,
-  },
   {
     header: COLUMN_HEADERS.ALIASES.ALIAS,
     key: PROPERTY_NAMES.ALIASES.ALIAS,
@@ -684,10 +580,20 @@ export const ALIASES_COLUMNS = [
     key: PROPERTY_NAMES.ALIASES.ALIAS_TYPE,
     width: COLUMN_WIDTHS.ALIASES.ALIAS_TYPE,
   },
+  {
+    header: COLUMN_HEADERS.ALIASES.STATUS,
+    key: PROPERTY_NAMES.ALIASES.STATUS,
+    width: COLUMN_WIDTHS.ALIASES.STATUS,
+  },
+  {
+    header: COLUMN_HEADERS.ALIASES.ERRORS,
+    key: PROPERTY_NAMES.ALIASES.ERRORS,
+    width: COLUMN_WIDTHS.ALIASES.ERRORS,
+  },
 ];
 
 // ----------------------------------------------------------------------------
-// Workflow Status Mappings (Phase 5)
+// Workflow Status Mappings
 // ----------------------------------------------------------------------------
 
 /**
