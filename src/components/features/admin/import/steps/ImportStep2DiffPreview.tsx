@@ -29,10 +29,23 @@ interface SheetDiff<T = any> {
   };
 }
 
+interface CrossRefDiffItem {
+  partId: string;
+  acrSku: string;
+  brand: string;
+  sku: string;
+  operation: string;
+  _id?: string;
+}
+
 interface DiffResult {
   parts: SheetDiff;
   vehicleApplications: SheetDiff;
-  crossReferences: SheetDiff;
+  crossReferences: {
+    adds: CrossRefDiffItem[];
+    deletes: CrossRefDiffItem[];
+    summary: { totalAdds: number; totalDeletes: number; totalChanges: number };
+  };
   aliases?: SheetDiff;
   summary: {
     totalAdds: number;
@@ -133,7 +146,7 @@ export function ImportStep2DiffPreview({
   }
 
   const hasDeletes = diffResult.summary.totalDeletes > 0;
-  const systemUpdateCount = diffResult.vehicleApplications.summary.totalUpdates + diffResult.crossReferences.summary.totalUpdates;
+  const systemUpdateCount = diffResult.vehicleApplications.summary.totalUpdates;
 
   // Change counts per entity type
   const partChangeCount = diffResult.parts.summary.totalAdds + diffResult.parts.summary.totalUpdates + diffResult.parts.summary.totalDeletes;
@@ -647,7 +660,7 @@ export function ImportStep2DiffPreview({
             {showSystemUpdates && (
               <div className="mt-4 text-xs text-acr-gray-600 space-y-2">
                 <p>• {t("admin.import.preview.vaMetadata").replace("{count}", diffResult.vehicleApplications.summary.totalUpdates.toString())}</p>
-                <p>• {t("admin.import.preview.crMetadata").replace("{count}", diffResult.crossReferences.summary.totalUpdates.toString())}</p>
+                <p>• {t("admin.import.preview.crMetadata").replace("{count}", diffResult.crossReferences.summary.totalChanges.toString())}</p>
                 <p className="italic pt-2">{t("admin.import.preview.routineMaintenance")}</p>
               </div>
             )}
@@ -788,7 +801,7 @@ function PartUpdateItem({ item }: { item: DiffItem }) {
 
   // Only show fields that actually changed
   const changes: { field: string; before: any; after: any }[] = [];
-  const fieldsToCheck = ['part_type', 'position_type', 'abs_type', 'bolt_pattern', 'drive_type', 'specifications'];
+  const fieldsToCheck = ['part_type', 'position_type', 'abs_type', 'bolt_pattern', 'drive_type', 'specifications', 'workflow_status'];
 
   fieldsToCheck.forEach(field => {
     const beforeValue = normalizeValue(before[field]);
@@ -944,21 +957,18 @@ function VehicleAppItem({ item, operation }: { item: DiffItem; operation: "add" 
   );
 }
 
-function CrossRefItem({ item, operation }: { item: DiffItem; operation: "add" | "delete" }) {
+function CrossRefItem({ item, operation }: { item: CrossRefDiffItem; operation: "add" | "delete" }) {
   const icon = operation === "add" ? <PlusCircle className="w-4 h-4 text-green-600" /> :
                <Trash2 className="w-4 h-4 text-red-600" />;
   const borderColor = operation === "add" ? "border-green-200" : "border-red-200";
-
-  // Cross-ref items may be wrapped in DiffItem or be flat objects
-  const cr = item.row || item;
 
   return (
     <div className={cn("flex items-start gap-3 p-3 bg-white rounded border", borderColor)}>
       {icon}
       <div className="flex-1 min-w-0">
-        <div className="font-mono font-medium text-acr-gray-900 text-sm">{cr.acr_sku || cr.ACR_SKU}</div>
+        <div className="font-mono font-medium text-acr-gray-900 text-sm">{item.acrSku}</div>
         <div className="text-sm text-acr-gray-600 mt-0.5">
-          {cr.brand || cr.Brand} → <span className="font-mono">{cr.brand_sku || cr.Brand_SKU}</span>
+          {item.brand} → <span className="font-mono">{item.sku}</span>
         </div>
       </div>
     </div>

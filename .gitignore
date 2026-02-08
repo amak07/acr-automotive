@@ -116,6 +116,9 @@ uploads/
 # Exception: Keep test fixtures (tracked in git)
 !tests/fixtures/excel/**/*.xlsx
 
+# Stress test generated workbooks (not tracked — regenerate with --save-files)
+tests/fixtures/import-workbooks/
+
 # Generated types
 /generated/
 

@@ -43,23 +43,20 @@ export default defineConfig({
     { name: "setup", testMatch: /.*\.setup\.ts/ },
     {
       name: "chromium",
+      testIgnore: /auth-boundary\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         storageState: "tests/e2e/.auth/admin.json",
       },
       dependencies: ["setup"],
     },
-    // Uncomment for cross-browser testing
-    // {
-    //   name: "firefox",
-    //   use: { ...devices["Desktop Firefox"], storageState: "tests/e2e/.auth/admin.json" },
-    //   dependencies: ["setup"],
-    // },
-    // {
-    //   name: "webkit",
-    //   use: { ...devices["Desktop Safari"], storageState: "tests/e2e/.auth/admin.json" },
-    //   dependencies: ["setup"],
-    // },
+    // Auth boundary tests: runs WITHOUT storageState (unauthenticated)
+    {
+      name: "auth-tests",
+      testMatch: /auth-boundary\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"], // Needs setup to create data_manager auth state
+    },
   ],
 
   /* Run your local dev server before starting the tests */

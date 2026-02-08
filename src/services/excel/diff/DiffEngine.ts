@@ -56,23 +56,22 @@ export class DiffEngine {
   /**
    * Normalize workflow status from Excel display value or DB enum value.
    * Excel uses "Activo"/"Inactivo"/"Eliminar", DB uses "ACTIVE"/"INACTIVE"/"DELETE".
-   * Returns normalized DB format or null.
+   * Returns normalized DB format. Defaults to "ACTIVE" when missing (matches ImportService).
    */
   private normalizeWorkflowStatus(
     statusDisplay?: string,
     workflowStatus?: string
-  ): string | null {
+  ): string {
     // Prefer explicit workflow_status if set
     if (workflowStatus) {
       return workflowStatus.toUpperCase();
     }
     // Convert display value to DB format
     if (statusDisplay) {
-      const mapped =
-        WORKFLOW_STATUS_MAP[statusDisplay.toLowerCase()] ?? null;
-      return mapped;
+      return WORKFLOW_STATUS_MAP[statusDisplay.toLowerCase()] ?? "ACTIVE";
     }
-    return null;
+    // Default: missing status means active (matches ImportService line 242)
+    return "ACTIVE";
   }
 
   /**
@@ -363,7 +362,10 @@ export class DiffEngine {
 
     // Workflow status: Excel uses display values ("Activo"), DB uses enum ("ACTIVE").
     // Normalize both sides to DB format before comparing.
-    const beforeWfStatus = this.normalizeOptional(before.workflow_status);
+    const beforeWfStatus = this.normalizeWorkflowStatus(
+      before.status,
+      before.workflow_status
+    );
     const afterWfStatus = this.normalizeWorkflowStatus(
       after.status,
       after.workflow_status
@@ -651,6 +653,7 @@ export class DiffEngine {
           if (!existing) {
             adds.push({
               partId,
+              acrSku: part.acr_sku,
               brand: brandName,
               sku,
               operation: DiffOperation.ADD,
@@ -666,6 +669,7 @@ export class DiffEngine {
           if (existing) {
             deletes.push({
               partId,
+              acrSku: part.acr_sku,
               brand: brandName,
               sku,
               operation: DiffOperation.DELETE,
