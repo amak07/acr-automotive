@@ -202,13 +202,15 @@ export function ImportWizard() {
       setState((prev) => ({
         ...prev,
         validationResult,
-        isProcessing: false,
-        processingPhase: 'diffing',
+        isProcessing: validationResult.valid,
+        processingPhase: validationResult.valid ? 'diffing' : null,
       }));
 
-      // Always generate diff (even if there are errors, for preview)
-      // But only advance to step 2 after diff is complete
-      await handleGenerateDiff(file);
+      // Only generate diff if validation passed — skip preview on errors
+      // to avoid double-request and potential hang on malformed data
+      if (validationResult.valid || validationResult.errors.length === 0) {
+        await handleGenerateDiff(file);
+      }
     } catch (error) {
       setState((prev) => ({
         ...prev,

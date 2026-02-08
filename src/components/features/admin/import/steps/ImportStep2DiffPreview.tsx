@@ -777,6 +777,17 @@ function PartAddItem({ item }: { item: DiffItem }) {
   );
 }
 
+// Human-readable labels for DiffEngine field names
+const FIELD_LABELS: Record<string, string> = {
+  part_type: "Part Type",
+  position_type: "Position",
+  abs_type: "ABS Type",
+  bolt_pattern: "Bolt Pattern",
+  drive_type: "Drive Type",
+  specifications: "Specifications",
+  workflow_status: "Status",
+};
+
 function PartUpdateItem({ item }: { item: DiffItem }) {
   const { t } = useLocale();
   const before = item.before;
@@ -791,7 +802,6 @@ function PartUpdateItem({ item }: { item: DiffItem }) {
     after.drive_type,
   ].filter(Boolean).join(' · ');
 
-  // Normalize values for comparison (treat null, undefined, empty string as equivalent)
   const normalizeValue = (value: any): string | null => {
     if (value === null || value === undefined || value === '') {
       return null;
@@ -799,17 +809,13 @@ function PartUpdateItem({ item }: { item: DiffItem }) {
     return String(value).trim();
   };
 
-  // Only show fields that actually changed
-  const changes: { field: string; before: any; after: any }[] = [];
-  const fieldsToCheck = ['part_type', 'position_type', 'abs_type', 'bolt_pattern', 'drive_type', 'specifications', 'workflow_status'];
-
-  fieldsToCheck.forEach(field => {
-    const beforeValue = normalizeValue(before[field]);
-    const afterValue = normalizeValue(after[field]);
-    if (beforeValue !== afterValue) {
-      changes.push({ field, before: beforeValue, after: afterValue });
-    }
-  });
+  // Use DiffEngine's authoritative changes list instead of recalculating
+  const changes = (item.changes || []).map(field => ({
+    field,
+    label: FIELD_LABELS[field] || field.replace(/_/g, ' '),
+    before: normalizeValue(before[field]),
+    after: normalizeValue(after[field]),
+  }));
 
   return (
     <div className="flex items-start gap-3 p-3 bg-white rounded border border-blue-200">
@@ -821,14 +827,13 @@ function PartUpdateItem({ item }: { item: DiffItem }) {
         )}
         <div className="mt-2 space-y-2">
           {changes.map((change, idx) => {
-            const fieldName = change.field.replace(/_/g, ' ');
             const wasEmpty = change.before === null;
             const isNowEmpty = change.after === null;
 
             return (
               <div key={idx} className="text-xs bg-blue-50 p-2 rounded">
-                <div className="font-medium text-acr-gray-900 capitalize mb-1">
-                  {fieldName}:
+                <div className="font-medium text-acr-gray-900 mb-1">
+                  {change.label}:
                 </div>
                 {wasEmpty && !isNowEmpty && (
                   <div className="text-acr-gray-700">
