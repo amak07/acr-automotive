@@ -1208,6 +1208,14 @@ export const translations: Record<
     en: "What's next?",
     es: "¿Qué sigue?",
   },
+  "admin.import.success.inlineSummary": {
+    en: "{adds} added, {updates} updated, {deletes} deleted in {time}s",
+    es: "{adds} agregados, {updates} actualizados, {deletes} eliminados en {time}s",
+  },
+  "admin.import.success.rollbackHint": {
+    en: "A snapshot was saved — you can rollback if needed.",
+    es: "Se guardó una instantánea — puedes revertir si es necesario.",
+  },
 
   // Import History Panel — inline labels
   "admin.import.history.added": {

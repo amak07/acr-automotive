@@ -23,12 +23,9 @@ export function ImportStepIndicator({ currentStep, onStepClick, isImportComplete
   ] as const;
 
   const getStepStatus = (stepNumber: number): "complete" | "current" | "pending" => {
+    if (isImportComplete) return "complete";
     if (stepNumber < currentStep) return "complete";
-    if (stepNumber === currentStep) {
-      // If we're on step 3 and import is complete, show it as complete
-      if (stepNumber === 3 && isImportComplete) return "complete";
-      return "current";
-    }
+    if (stepNumber === currentStep) return "current";
     return "pending";
   };
 
