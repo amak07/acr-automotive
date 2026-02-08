@@ -306,142 +306,7 @@ export function ImportStep1Upload({
         aria-label="File upload"
       />
 
-      {/* Pre-Upload Guidance Panel — shown before file is uploaded */}
-      {!uploadedFile && (
-        <>
-          {/* Two-card guidance row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Download Current Catalog */}
-            <AcrCard
-              variant="interactive"
-              padding="default"
-              className={cn("acr-animate-fade-up", getStaggerClass(0))}
-              onClick={handleDownloadCatalog}
-            >
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-12 h-12 bg-acr-red-50 rounded-full flex items-center justify-center">
-                  <Download className="w-6 h-6 text-acr-red-600" />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-acr-gray-900">
-                    {t("admin.import.upload.downloadCatalog")}
-                  </h3>
-                  <p className="text-sm text-acr-gray-600 mt-1">
-                    {t("admin.import.upload.downloadCatalogDesc")}
-                  </p>
-                </div>
-                <AcrButton
-                  variant="secondary"
-                  size="default"
-                  disabled={isDownloading}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDownloadCatalog();
-                  }}
-                  className="min-h-11"
-                >
-                  {isDownloading ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4 mr-2" />
-                  )}
-                  {isDownloading
-                    ? t("admin.import.upload.downloadingCatalog")
-                    : t("admin.import.upload.downloadCatalog")}
-                </AcrButton>
-              </div>
-            </AcrCard>
-
-            {/* Format Guide */}
-            <AcrCard
-              variant="outlined"
-              padding="default"
-              className={cn("acr-animate-fade-up", getStaggerClass(1))}
-            >
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-12 h-12 bg-acr-gray-100 rounded-full flex items-center justify-center">
-                  <FileSpreadsheet className="w-6 h-6 text-acr-gray-600" />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-acr-gray-900">
-                    {t("admin.import.upload.formatGuide")}
-                  </h3>
-                </div>
-                <ul className="text-sm text-acr-gray-700 text-left space-y-1.5 w-full">
-                  <li className="flex items-start gap-2">
-                    <span className="text-acr-gray-400 mt-0.5">&#8226;</span>
-                    <span>{t("admin.import.upload.reqFileFormat")}</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-acr-gray-400 mt-0.5">&#8226;</span>
-                    <span>
-                      {t("admin.import.upload.reqMaxSize").replace(
-                        "{maxSize}",
-                        MAX_FILE_SIZE_MB.toString()
-                      )}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-acr-gray-400 mt-0.5">&#8226;</span>
-                    <span>
-                      {t("admin.import.upload.requiredSheets")}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-acr-gray-400 mt-0.5">&#8226;</span>
-                    <span>
-                      {t("admin.import.upload.optionalSheets")}
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            </AcrCard>
-          </div>
-
-          {/* Last Import mini-banner */}
-          {lastImport && (
-            <div
-              className={cn(
-                "flex items-center gap-2 px-4 py-2.5 bg-acr-gray-50 rounded-lg text-sm text-acr-gray-600",
-                "acr-animate-fade-up",
-                getStaggerClass(2)
-              )}
-            >
-              <Clock className="w-4 h-4 text-acr-gray-400 shrink-0" />
-              <span className="truncate">
-                {t("admin.import.upload.lastImport")}:{" "}
-                <span className="font-medium text-acr-gray-900">
-                  {lastImport.fileName}
-                </span>
-                {" \u2014 "}
-                {formatRelativeTime(lastImport.createdAt, t, locale)}
-                {lastImport.importSummary && (
-                  <>
-                    {" \u2014 "}
-                    <span className="text-green-700">
-                      +{lastImport.importSummary.adds}
-                    </span>
-                    {" "}
-                    <span className="text-acr-gray-400">/</span>
-                    {" "}
-                    <span className="text-blue-700">
-                      ~{lastImport.importSummary.updates}
-                    </span>
-                    {" "}
-                    <span className="text-acr-gray-400">/</span>
-                    {" "}
-                    <span className="text-red-700">
-                      -{lastImport.importSummary.deletes}
-                    </span>
-                  </>
-                )}
-              </span>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* File Upload Zone */}
+      {/* File Upload Zone — with integrated download + last import info */}
       {!uploadedFile && (
         <div
           onDragEnter={handleDragEnter}
@@ -454,11 +319,10 @@ export function ImportStep1Upload({
             isDragOver && "border-acr-red-600 bg-acr-red-50",
             !isDragOver && "border-acr-gray-300 bg-white",
             error && "border-red-500 bg-red-50",
-            "acr-animate-fade-up",
-            getStaggerClass(3)
+            "acr-animate-fade-up"
           )}
         >
-          <div className="p-12 text-center">
+          <div className="p-10 sm:p-12 text-center">
             <div className="flex justify-center mb-4">
               <div className="w-16 h-16 bg-acr-red-100 rounded-full flex items-center justify-center">
                 <Upload className="w-8 h-8 text-acr-red-600" />
@@ -486,6 +350,53 @@ export function ImportStep1Upload({
             <p className="text-xs text-acr-gray-500 mt-4">
               {t("admin.import.upload.accepted")}
             </p>
+          </div>
+
+          {/* Inline actions bar at bottom of drop zone */}
+          <div className="border-t border-dashed border-acr-gray-300 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm">
+            <AcrButton
+              variant="link"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownloadCatalog();
+              }}
+              disabled={isDownloading}
+              className="text-acr-gray-600 hover:text-acr-red-600"
+            >
+              {isDownloading ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              ) : (
+                <Download className="w-3.5 h-3.5 mr-1.5" />
+              )}
+              {isDownloading
+                ? t("admin.import.upload.downloadingCatalog")
+                : t("admin.import.upload.downloadCatalogDesc")}
+            </AcrButton>
+
+            {lastImport && (
+              <span className="text-xs text-acr-gray-500 flex items-center gap-1.5 truncate max-w-full">
+                <Clock className="w-3.5 h-3.5 text-acr-gray-400 shrink-0" />
+                <span className="truncate">
+                  {t("admin.import.upload.lastImport")}:{" "}
+                  <span className="font-medium text-acr-gray-700">
+                    {lastImport.fileName}
+                  </span>
+                  {" \u2014 "}
+                  {formatRelativeTime(lastImport.createdAt, t, locale)}
+                  {lastImport.importSummary && (
+                    <>
+                      {" \u2014 "}
+                      <span className="text-green-700">+{lastImport.importSummary.adds}</span>
+                      <span className="text-acr-gray-400">/</span>
+                      <span className="text-blue-700">~{lastImport.importSummary.updates}</span>
+                      <span className="text-acr-gray-400">/</span>
+                      <span className="text-red-700">-{lastImport.importSummary.deletes}</span>
+                    </>
+                  )}
+                </span>
+              </span>
+            )}
           </div>
         </div>
       )}
