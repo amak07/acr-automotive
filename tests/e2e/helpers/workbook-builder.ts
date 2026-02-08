@@ -25,10 +25,6 @@ export { SHEET_NAMES, COLUMN_HEADERS };
  * Only acr_sku and part_type are required; everything else is optional.
  */
 export interface PartData {
-  /** @deprecated No longer exported to Excel. Kept for backward compat with existing tests. */
-  _id?: string;
-  /** @deprecated Use `status` with "Eliminar" instead. Kept for backward compat. */
-  _action?: string;
   acr_sku: string;
   status?: string;
   part_type: string;
@@ -132,27 +128,6 @@ export class TestWorkbookBuilder {
     return this;
   }
 
-  /**
-   * @deprecated No-op. _action column was removed. Use setPartStatus with "Eliminar" instead.
-   * Kept for backward compat with existing tests in admin-import.spec.ts.
-   */
-  setPartAction(rowIndex: number, action: string): this {
-    if (this.parts[rowIndex]) {
-      this.parts[rowIndex]._action = action;
-    }
-    return this;
-  }
-
-  /**
-   * @deprecated No-op. _id column was removed. Parts are matched by ACR SKU.
-   * Kept for backward compat with existing tests in admin-import.spec.ts.
-   */
-  setPartId(rowIndex: number, uuid: string): this {
-    if (this.parts[rowIndex]) {
-      this.parts[rowIndex]._id = uuid;
-    }
-    return this;
-  }
 
   // -- Output ----------------------------------------------------------------
 
