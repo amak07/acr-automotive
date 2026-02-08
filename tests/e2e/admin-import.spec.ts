@@ -162,7 +162,10 @@ test.describe("Admin Import/Export", () => {
     await expect(page.getByText("Import Successful!")).toBeVisible({
       timeout: 30_000,
     });
-    await expect(page.getByText(/1 added/i)).toBeVisible();
+    // Match the timing summary line (unique — toast/notification lack "in Xs")
+    await expect(
+      page.getByText(/1 added, 0 updated, 0 deleted in \d/i)
+    ).toBeVisible();
 
     // Verify Rollback button visible
     await expect(page.getByText(/Rollback Import/i)).toBeVisible();
