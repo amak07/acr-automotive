@@ -259,15 +259,15 @@ async function main() {
       );
       console.log("");
 
-      // Stress tests (27 functional acceptance tests — requires dev server on port 3000)
-      console.log(`${COLORS.blue}🔗 Integration Tests${COLORS.reset}`);
+      // Import pipeline tests (27 functional acceptance tests — requires dev server on port 3000)
+      console.log(`${COLORS.blue}🔗 Import Pipeline Tests${COLORS.reset}`);
       currentTest++;
       const devServerCheck = await fetch("http://localhost:3000").catch(() => null);
       if (!devServerCheck) {
-        console.log(`${COLORS.yellow}⚠️  Dev server not running on port 3000 — skipping stress tests${COLORS.reset}`);
+        console.log(`${COLORS.yellow}⚠️  Dev server not running on port 3000 — skipping import pipeline tests${COLORS.reset}`);
         console.log(`   Start with: npm.cmd run dev`);
         results.push({
-          name: `${getProgressPrefix()} Stress Tests (27 tests)`,
+          name: `${getProgressPrefix()} Import Pipeline Tests (27 tests)`,
           passed: false,
           duration: 0,
           output: "Dev server not running on port 3000",
@@ -276,7 +276,7 @@ async function main() {
         results.push(
           await runCommandWithProgress(
             "tsx scripts/stress-test-import.ts",
-            `${getProgressPrefix()} Stress Tests (27 tests)`,
+            `${getProgressPrefix()} Import Pipeline Tests (27 tests)`,
             true
           )
         );
@@ -372,8 +372,8 @@ function generateReport(results: TestResult[], totalDuration: number) {
   console.log("");
 
   // Service-level summary with enhanced formatting
-  const stressTestsPassed =
-    results.find((r) => r.name.includes("Stress Tests"))?.passed ?? false;
+  const importPipelinePassed =
+    results.find((r) => r.name.includes("Import Pipeline Tests"))?.passed ?? false;
   const unitTestsPassed =
     results.find((r) => r.name.includes("Jest Unit Tests"))?.passed ?? false;
   const e2ePassed =
@@ -382,10 +382,10 @@ function generateReport(results: TestResult[], totalDuration: number) {
   console.log(`${COLORS.blue}📦 Service Health:${COLORS.reset}`);
   console.log(
     "   Import Pipeline:       " +
-      (stressTestsPassed
+      (importPipelinePassed
         ? `${COLORS.green}✅ PASS${COLORS.reset}`
         : `${COLORS.yellow}❌ FAIL${COLORS.reset}`) +
-      ` ${COLORS.dim}(27 stress tests)${COLORS.reset}`
+      ` ${COLORS.dim}(27 import tests)${COLORS.reset}`
   );
   console.log(
     "   Public Search (E2E):   " +
