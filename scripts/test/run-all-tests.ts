@@ -203,7 +203,7 @@ async function main() {
   }
 
   // Define all tests upfront for progress tracking
-  const totalTests = 5; // snapshot + type-check + jest + stress + restore
+  const totalTests = 6; // snapshot + type-check + jest + stress + e2e + restore
   let currentTest = 0;
 
   function getProgressPrefix(): string {
@@ -281,6 +281,18 @@ async function main() {
           )
         );
       }
+      console.log("");
+
+      // E2E tests (Playwright — public search, admin smoke tests)
+      console.log(`${COLORS.blue}🌐 E2E Tests${COLORS.reset}`);
+      currentTest++;
+      results.push(
+        await runCommandWithProgress(
+          "npx playwright test",
+          `${getProgressPrefix()} Playwright E2E Tests`,
+          true
+        )
+      );
       console.log("");
 
       // Generate report
@@ -364,6 +376,8 @@ function generateReport(results: TestResult[], totalDuration: number) {
     results.find((r) => r.name.includes("Stress Tests"))?.passed ?? false;
   const unitTestsPassed =
     results.find((r) => r.name.includes("Jest Unit Tests"))?.passed ?? false;
+  const e2ePassed =
+    results.find((r) => r.name.includes("Playwright"))?.passed ?? false;
 
   console.log(`${COLORS.blue}📦 Service Health:${COLORS.reset}`);
   console.log(
@@ -372,6 +386,13 @@ function generateReport(results: TestResult[], totalDuration: number) {
         ? `${COLORS.green}✅ PASS${COLORS.reset}`
         : `${COLORS.yellow}❌ FAIL${COLORS.reset}`) +
       ` ${COLORS.dim}(27 stress tests)${COLORS.reset}`
+  );
+  console.log(
+    "   Public Search (E2E):   " +
+      (e2ePassed
+        ? `${COLORS.green}✅ PASS${COLORS.reset}`
+        : `${COLORS.yellow}❌ FAIL${COLORS.reset}`) +
+      ` ${COLORS.dim}(Playwright)${COLORS.reset}`
   );
   console.log(
     "   Unit Tests:            " +
