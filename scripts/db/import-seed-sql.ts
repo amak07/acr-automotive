@@ -71,6 +71,23 @@ async function importSeedData() {
 
     console.log("✅ Data imported successfully!");
 
+    // Mark specific parts as INACTIVE for E2E testing of workflow_status filtering
+    // These parts were chosen for their cross-ref and vehicle app relationships
+    const inactiveSkus = [
+      "ACR512220", // MC2133-S (ATV) cross-ref target
+      "ACR512136", // MC2136-S (ATV), TM512136 (TMK) target + CHRYSLER/DODGE vehicle apps
+      "ACR513125", // 22 BMW vehicle apps, MW7318-S (ATV) cross-ref target
+      "ACR512305", // 10 AUDI vehicle apps, TM512305 (TMK) cross-ref target
+      "ACR513014", // Plain SKU for direct search exclusion test
+    ];
+    const inactiveResult = await client.query(
+      `UPDATE parts SET workflow_status = 'INACTIVE' WHERE acr_sku = ANY($1) RETURNING acr_sku`,
+      [inactiveSkus]
+    );
+    console.log(
+      `\n🔒 Marked ${inactiveResult.rowCount} parts as INACTIVE for E2E testing`
+    );
+
     // Get counts
     const partsResult = await client.query("SELECT COUNT(*) FROM parts");
     const vehiclesResult = await client.query(

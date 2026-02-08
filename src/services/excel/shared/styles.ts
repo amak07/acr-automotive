@@ -13,7 +13,7 @@ export const EXCEL_COLORS = {
   PASTEL_PEACH: "FFFCE4D6", // Part Information (soft salmon)
   PASTEL_MINT: "FFE2EFDA", // Cross-References (soft green)
   PASTEL_SKY: "FFDDEBF7", // Images (soft blue)
-  PASTEL_GRAY: "FFF2F2F2", // System columns (hidden)
+  PASTEL_LAVENDER: "FFE8E0F0", // Vehicle reference (soft purple)
 
   // Utility colors
   WHITE: "FFFFFFFF",
@@ -46,16 +46,10 @@ export interface ColumnGroup {
 }
 
 /**
- * Parts sheet column groups (4 logical sections)
- * Soft pastel colors for professional, easy-to-scan appearance
+ * Parts sheet column groups (3 logical sections)
+ * Errors column sits outside groups intentionally
  */
 export const PARTS_COLUMN_GROUPS: ColumnGroup[] = [
-  {
-    name: "System",
-    startCol: "_id",
-    endCol: "_action",
-    backgroundColor: EXCEL_COLORS.PASTEL_GRAY,
-  },
   {
     name: "Part Information",
     startCol: "ACR SKU",
@@ -77,19 +71,13 @@ export const PARTS_COLUMN_GROUPS: ColumnGroup[] = [
 ];
 
 /**
- * Vehicle Applications sheet column groups (3 logical sections)
+ * Vehicle Applications sheet column groups (2 logical sections)
  */
 export const VEHICLE_APPS_COLUMN_GROUPS: ColumnGroup[] = [
   {
-    name: "System",
-    startCol: "_id",
-    endCol: "_part_id",
-    backgroundColor: EXCEL_COLORS.PASTEL_GRAY,
-  },
-  {
     name: "Part Reference",
     startCol: "ACR SKU",
-    endCol: "ACR SKU",
+    endCol: "Status",
     backgroundColor: EXCEL_COLORS.PASTEL_PEACH,
   },
   {
@@ -101,19 +89,13 @@ export const VEHICLE_APPS_COLUMN_GROUPS: ColumnGroup[] = [
 ];
 
 /**
- * Vehicle Aliases sheet column groups (2 logical sections)
+ * Vehicle Aliases sheet column groups (1 logical section)
  */
 export const ALIASES_COLUMN_GROUPS: ColumnGroup[] = [
   {
-    name: "System",
-    startCol: "_id",
-    endCol: "_id",
-    backgroundColor: EXCEL_COLORS.PASTEL_GRAY,
-  },
-  {
     name: "Alias Configuration",
     startCol: "Alias",
-    endCol: "Type",
+    endCol: "Status",
     backgroundColor: EXCEL_COLORS.PASTEL_PEACH,
   },
 ];
@@ -312,10 +294,6 @@ export const PARTS_INSTRUCTIONS: Record<
   Record<string, InstructionContent>
 > = {
   en: {
-    // System columns (hidden, no instructions needed)
-    _id: "",
-    _action: "",
-
     // Part Information
     "ACR SKU": "Unique ID. Do not modify.",
     Status: "Activo, Inactivo, or Eliminar",
@@ -357,12 +335,9 @@ export const PARTS_INSTRUCTIONS: Record<
       link: "/admin/upload-images",
     },
     "360 Viewer": "Auto-set when frames uploaded",
+    Errors: "Do not modify (auto formula)",
   },
   es: {
-    // System columns (hidden, no instructions needed)
-    _id: "",
-    _action: "",
-
     // Part Information
     "ACR SKU": "ID único. No modificar.",
     Status: "Activo, Inactivo o Eliminar",
@@ -404,6 +379,7 @@ export const PARTS_INSTRUCTIONS: Record<
       link: "/admin/upload-images",
     },
     "360 Viewer": "Se establece cuando se suben frames",
+    Errors: "No modificar (fórmula automática)",
   },
 };
 
@@ -415,22 +391,22 @@ export const VEHICLE_APPS_INSTRUCTIONS: Record<
   Record<string, InstructionContent>
 > = {
   en: {
-    _id: "",
-    _part_id: "",
     "ACR SKU": "Part identifier",
+    Status: "Activo or Eliminar",
     Make: "e.g., CHEVROLET, FORD",
     Model: "e.g., SILVERADO, F-150",
     "Start Year": "First year of fitment",
     "End Year": "Last year of fitment",
+    Errors: "Do not modify (auto formula)",
   },
   es: {
-    _id: "",
-    _part_id: "",
     "ACR SKU": "Identificador de parte",
+    Status: "Activo o Eliminar",
     Make: "ej., CHEVROLET, FORD",
     Model: "ej., SILVERADO, F-150",
     "Start Year": "Primer año de aplicación",
     "End Year": "Último año de aplicación",
+    Errors: "No modificar (fórmula automática)",
   },
 };
 
@@ -442,16 +418,18 @@ export const ALIASES_INSTRUCTIONS: Record<
   Record<string, InstructionContent>
 > = {
   en: {
-    _id: "",
     Alias: "Nickname or alternate name",
     "Canonical Name": "Official name to map to",
     Type: "make or model",
+    Status: "Activo or Eliminar",
+    Errors: "Do not modify (auto formula)",
   },
   es: {
-    _id: "",
     Alias: "Apodo o nombre alternativo",
     "Canonical Name": "Nombre oficial a mapear",
     Type: "make o model",
+    Status: "Activo o Eliminar",
+    Errors: "No modificar (fórmula automática)",
   },
 };
 

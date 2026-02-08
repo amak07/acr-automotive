@@ -4,7 +4,7 @@
 
 import { supabase as defaultSupabase } from "@/lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { DiffResult } from "../diff/types";
+import type { DiffResult, SheetDiff } from "../diff/types";
 import type {
   ParsedExcelFile,
   ExcelPartRow,
@@ -76,9 +76,9 @@ export class ImportService {
       );
       console.log("[ImportService] Image URLs processed:", imageStats);
 
-      // Step 4: Process vehicle aliases if sheet is present (Phase 4A)
-      if (parsed.aliases && parsed.aliases.data.length > 0) {
-        const aliasStats = await this.processAliases(parsed.aliases.data);
+      // Step 4: Process vehicle aliases if diff present
+      if (diff.aliases) {
+        const aliasStats = await this.processAliases(diff.aliases);
         console.log("[ImportService] Vehicle aliases processed:", aliasStats);
       }
 
@@ -312,52 +312,30 @@ export class ImportService {
       };
     });
 
-    // Format cross references data
-    const crossRefsToAdd = diff.crossReferences.adds.map((d) => {
-      const row = d.row!;
-      return {
-        id: row._id || crypto.randomUUID(), // Generate UUID for new cross-refs without IDs
-        tenant_id: tenantId || null,
-        acr_part_id: row._acr_part_id,
-        competitor_brand: row.competitor_brand,
-        competitor_sku: row.competitor_sku,
-        updated_by: "import",
-      };
-    });
+    // Format cross references data (from CrossRefDiffItem — no row/before objects)
+    const crossRefsToAdd = diff.crossReferences.adds.map((d) => ({
+      id: crypto.randomUUID(),
+      tenant_id: tenantId || null,
+      acr_part_id: d.partId,
+      competitor_brand: d.brand,
+      competitor_sku: d.sku,
+      updated_by: "import",
+    }));
 
-    const crossRefsToUpdate = diff.crossReferences.updates.map((d) => {
-      const row = d.after!;
-      return {
-        id: row._id,
-        acr_part_id: row._acr_part_id,
-        competitor_brand: row.competitor_brand,
-        competitor_sku: row.competitor_sku,
-        updated_by: "import",
-      };
-    });
+    // No cross-ref updates (immutable — add/delete only)
+    const crossRefsToUpdate: any[] = [];
 
-    // Format delete payloads (extract IDs from 'before' records)
-    // Also include parts from updates that have status="Eliminar"
-    const partsMarkedForDeletion = diff.parts.updates
-      .filter((d) => {
-        const statusValue =
-          WORKFLOW_STATUS_MAP[d.after?.status?.toLowerCase() || ""] || "ACTIVE";
-        return statusValue === "DELETE" && d.after?._id;
-      })
-      .map((d) => ({ id: d.after!._id }));
-
-    const partsToDelete = [
-      ...diff.parts.deletes.map((d) => ({ id: d.before!._id })),
-      ...partsMarkedForDeletion,
-    ];
+    // Format delete payloads
+    const partsToDelete = diff.parts.deletes.map((d) => ({ id: d.before!._id }));
 
     const vehiclesToDelete = diff.vehicleApplications.deletes.map((d) => ({
       id: d.before!._id,
     }));
 
-    const crossRefsToDelete = diff.crossReferences.deletes.map((d) => ({
-      id: d.before!._id,
-    }));
+    // Cross-ref deletes use _id resolved by DiffEngine
+    const crossRefsToDelete = diff.crossReferences.deletes
+      .filter((d) => d._id)
+      .map((d) => ({ id: d._id }));
 
     console.log("[ImportService] Transaction payload:", {
       partsToAdd: partsToAdd.length,
@@ -559,107 +537,96 @@ export class ImportService {
   }
 
   // --------------------------------------------------------------------------
-  // Vehicle Aliases Processing (Phase 4A)
+  // Vehicle Aliases Processing
   // --------------------------------------------------------------------------
 
   /**
-   * Process vehicle aliases from Excel sheet
+   * Process vehicle aliases using DiffEngine-produced diff
    *
-   * Strategy: Full replace when sheet is present
-   * - Delete all existing aliases without _id
-   * - Upsert all aliases from Excel
+   * Strategy: Use diff result directly (adds/updates/deletes with resolved _ids)
+   * - Adds: insert new aliases
+   * - Updates: upsert existing aliases by _id
+   * - Deletes: delete by _id (Status="Eliminar")
    *
-   * This allows Humberto to manage aliases via Excel export/import.
-   *
-   * @param aliases - Parsed alias rows from Excel
+   * @param aliasDiff - Diff result from DiffEngine.diffAliases()
    * @returns Statistics of alias operations
    */
   private async processAliases(
-    aliases: ExcelAliasRow[]
+    aliasDiff: SheetDiff<ExcelAliasRow>
   ): Promise<{ added: number; updated: number; deleted: number }> {
     const stats = { added: 0, updated: 0, deleted: 0 };
 
-    if (aliases.length === 0) {
-      console.log("[ImportService] No aliases to process");
+    const totalOps = aliasDiff.adds.length + aliasDiff.updates.length + aliasDiff.deletes.length;
+    if (totalOps === 0) {
+      console.log("[ImportService] No alias changes to process");
       return stats;
     }
 
     console.log(
-      `[ImportService] Processing ${aliases.length} vehicle aliases...`
+      `[ImportService] Processing alias changes: ${aliasDiff.adds.length} adds, ${aliasDiff.updates.length} updates, ${aliasDiff.deletes.length} deletes`
     );
 
-    // Separate aliases with IDs (updates) from those without (adds)
-    const aliasesWithIds = aliases.filter((a) => a._id);
-    const aliasesWithoutIds = aliases.filter((a) => !a._id);
+    // Delete aliases marked with Status="Eliminar"
+    if (aliasDiff.deletes.length > 0) {
+      const deleteIds = aliasDiff.deletes
+        .map((d) => d.before?._id)
+        .filter((id): id is string => !!id);
 
-    // Get existing aliases to identify deletes
-    const { data: existingAliases, error: fetchError } = await this.supabase
-      .from("vehicle_aliases")
-      .select("id");
+      if (deleteIds.length > 0) {
+        const { error: deleteError } = await this.supabase
+          .from("vehicle_aliases")
+          .delete()
+          .in("id", deleteIds);
 
-    if (fetchError) {
-      throw new Error(
-        `Failed to fetch existing aliases: ${fetchError.message}`
-      );
-    }
-
-    // Find aliases to delete (in DB but not in Excel)
-    const excelIds = new Set(aliasesWithIds.map((a) => a._id));
-    const aliasesToDelete = (existingAliases || []).filter(
-      (a) => !excelIds.has(a.id)
-    );
-
-    // Delete aliases not in Excel (only if we have Excel IDs to compare)
-    if (aliasesToDelete.length > 0 && aliasesWithIds.length > 0) {
-      const deleteIds = aliasesToDelete.map((a) => a.id);
-      const { error: deleteError } = await this.supabase
-        .from("vehicle_aliases")
-        .delete()
-        .in("id", deleteIds);
-
-      if (deleteError) {
-        throw new Error(`Failed to delete aliases: ${deleteError.message}`);
+        if (deleteError) {
+          throw new Error(`Failed to delete aliases: ${deleteError.message}`);
+        }
+        stats.deleted = deleteIds.length;
       }
-      stats.deleted = deleteIds.length;
-      console.log(`[ImportService] Deleted ${stats.deleted} aliases`);
     }
 
-    // Upsert aliases with IDs
-    if (aliasesWithIds.length > 0) {
-      const { error: upsertError } = await this.supabase
-        .from("vehicle_aliases")
-        .upsert(
-          aliasesWithIds.map((a) => ({
-            id: a._id,
-            alias: a.alias.toLowerCase(),
-            canonical_name: a.canonical_name.toUpperCase(),
-            alias_type: a.alias_type,
-          })),
-          { onConflict: "id" }
-        );
-
-      if (upsertError) {
-        throw new Error(`Failed to upsert aliases: ${upsertError.message}`);
-      }
-      stats.updated = aliasesWithIds.length;
-    }
-
-    // Insert new aliases without IDs
-    if (aliasesWithoutIds.length > 0) {
+    // Insert new aliases
+    if (aliasDiff.adds.length > 0) {
       const { error: insertError } = await this.supabase
         .from("vehicle_aliases")
         .insert(
-          aliasesWithoutIds.map((a) => ({
-            alias: a.alias.toLowerCase(),
-            canonical_name: a.canonical_name.toUpperCase(),
-            alias_type: a.alias_type,
-          }))
+          aliasDiff.adds.map((d) => {
+            const row = d.row!;
+            return {
+              alias: row.alias.toLowerCase(),
+              canonical_name: row.canonical_name.toUpperCase(),
+              alias_type: row.alias_type,
+            };
+          })
         );
 
       if (insertError) {
         throw new Error(`Failed to insert new aliases: ${insertError.message}`);
       }
-      stats.added = aliasesWithoutIds.length;
+      stats.added = aliasDiff.adds.length;
+    }
+
+    // Update existing aliases (type changed)
+    if (aliasDiff.updates.length > 0) {
+      const { error: upsertError } = await this.supabase
+        .from("vehicle_aliases")
+        .upsert(
+          aliasDiff.updates.map((d) => {
+            const row = d.after!;
+            return {
+              id: row._id,
+              alias: row.alias.toLowerCase(),
+              canonical_name: row.canonical_name.toUpperCase(),
+              alias_type: row.alias_type,
+            };
+          }),
+          { onConflict: "id" }
+        );
+
+      if (upsertError) {
+        throw new Error(`Failed to update aliases: ${upsertError.message}`);
+      }
+      stats.updated = aliasDiff.updates.length;
     }
 
     return stats;

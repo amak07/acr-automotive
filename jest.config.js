@@ -21,6 +21,7 @@ const customJestConfig = {
   ],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
+    '<rootDir>/tests/e2e/',
     '/__mocks__/'
   ],
   collectCoverageFrom: [

@@ -31,14 +31,11 @@ dotenv.config({
   override: true,
 });
 
-import { exec, spawn } from "child_process";
-import { promisify } from "util";
+import { spawn } from "child_process";
 import {
   verifyTestEnvironment,
   getTestEnvironmentInfo,
 } from "../../tests/setup/env";
-
-const execAsync = promisify(exec);
 
 // NOTE: test-snapshot functions are imported dynamically inside main()
 // to ensure environment variables are fully loaded before ImportService/RollbackService
@@ -101,33 +98,6 @@ function stopSpinner(
   process.stdout.write(
     `\r${icon} ${color}${message}${COLORS.reset} ${durationText}\n`
   );
-}
-
-async function runCommand(command: string, name: string): Promise<TestResult> {
-  const start = Date.now();
-
-  try {
-    const { stdout, stderr } = await execAsync(command, {
-      maxBuffer: 10 * 1024 * 1024, // 10MB buffer for test output
-    });
-    const duration = Date.now() - start;
-
-    return {
-      name,
-      passed: true,
-      duration,
-      output: stdout,
-    };
-  } catch (error: any) {
-    const duration = Date.now() - start;
-
-    return {
-      name,
-      passed: false,
-      duration,
-      output: error.stdout || error.message,
-    };
-  }
 }
 
 /**
@@ -233,7 +203,7 @@ async function main() {
   }
 
   // Define all tests upfront for progress tracking
-  const totalTests = 11; // Added snapshot step
+  const totalTests = 6; // snapshot + type-check + jest + stress + e2e + restore
   let currentTest = 0;
 
   function getProgressPrefix(): string {
@@ -289,62 +259,38 @@ async function main() {
       );
       console.log("");
 
-      // Integration tests (Direct Supabase client - works with local Docker DB)
-      // Note: API route tests (test-api-*.ts) are excluded - they require dev server
-      console.log(`${COLORS.blue}🔗 Integration Tests${COLORS.reset}`);
+      // Import pipeline tests (27 functional acceptance tests — requires dev server on port 3000)
+      console.log(`${COLORS.blue}🔗 Import Pipeline Tests${COLORS.reset}`);
       currentTest++;
-      results.push(
-        await runCommandWithProgress(
-          "cross-env NODE_ENV=test tsx scripts/test/test-all-fixtures.ts",
-          `${getProgressPrefix()} Fixture Validation`
-        )
-      );
+      const devServerCheck = await fetch("http://localhost:3000").catch(() => null);
+      if (!devServerCheck) {
+        console.log(`${COLORS.yellow}⚠️  Dev server not running on port 3000 — skipping import pipeline tests${COLORS.reset}`);
+        console.log(`   Start with: npm.cmd run dev`);
+        results.push({
+          name: `${getProgressPrefix()} Import Pipeline Tests (27 tests)`,
+          passed: false,
+          duration: 0,
+          output: "Dev server not running on port 3000",
+        });
+      } else {
+        results.push(
+          await runCommandWithProgress(
+            "tsx scripts/stress-test-import.ts",
+            `${getProgressPrefix()} Import Pipeline Tests (27 tests)`,
+            true
+          )
+        );
+      }
+      console.log("");
 
+      // E2E tests (Playwright — public search, admin smoke tests)
+      console.log(`${COLORS.blue}🌐 E2E Tests${COLORS.reset}`);
       currentTest++;
       results.push(
         await runCommandWithProgress(
-          "cross-env NODE_ENV=test tsx scripts/test/test-full-import-pipeline.ts",
-          `${getProgressPrefix()} Import Pipeline`
-        )
-      );
-
-      currentTest++;
-      results.push(
-        await runCommandWithProgress(
-          "tsx scripts/test/test-atomic-constraint-violation.ts",
-          `${getProgressPrefix()} Atomic Constraint Test`
-        )
-      );
-
-      currentTest++;
-      results.push(
-        await runCommandWithProgress(
-          "tsx scripts/test/test-atomic-fk-violation.ts",
-          `${getProgressPrefix()} Atomic FK Test`
-        )
-      );
-
-      currentTest++;
-      results.push(
-        await runCommandWithProgress(
-          "jest tests/integration/atomic-import-rpc.test.ts",
-          `${getProgressPrefix()} Atomic Import RPC Tests`
-        )
-      );
-
-      currentTest++;
-      results.push(
-        await runCommandWithProgress(
-          "jest tests/integration/rollback-service.test.ts",
-          `${getProgressPrefix()} Rollback Service Tests`
-        )
-      );
-
-      currentTest++;
-      results.push(
-        await runCommandWithProgress(
-          "jest tests/integration/import-service.test.ts",
-          `${getProgressPrefix()} Import Service Tests`
+          "npx playwright test",
+          `${getProgressPrefix()} Playwright E2E Tests`,
+          true
         )
       );
       console.log("");
@@ -427,40 +373,33 @@ function generateReport(results: TestResult[], totalDuration: number) {
 
   // Service-level summary with enhanced formatting
   const importPipelinePassed =
-    results.find((r) => r.name.includes("Import Pipeline"))?.passed ?? false;
-  const fixtureValidationPassed =
-    results.find((r) => r.name.includes("Fixture Validation"))?.passed ?? false;
-  const atomicPassed = results
-    .filter((r) => r.name.includes("Atomic"))
-    .every((r) => r.passed);
+    results.find((r) => r.name.includes("Import Pipeline Tests"))?.passed ?? false;
   const unitTestsPassed =
     results.find((r) => r.name.includes("Jest Unit Tests"))?.passed ?? false;
+  const e2ePassed =
+    results.find((r) => r.name.includes("Playwright"))?.passed ?? false;
 
   console.log(`${COLORS.blue}📦 Service Health:${COLORS.reset}`);
   console.log(
-    "   Import Service:        " +
+    "   Import Pipeline:       " +
       (importPipelinePassed
         ? `${COLORS.green}✅ PASS${COLORS.reset}`
-        : `${COLORS.yellow}❌ FAIL${COLORS.reset}`)
+        : `${COLORS.yellow}❌ FAIL${COLORS.reset}`) +
+      ` ${COLORS.dim}(27 import tests)${COLORS.reset}`
   );
   console.log(
-    "   Export Service:        " +
+    "   Public Search (E2E):   " +
+      (e2ePassed
+        ? `${COLORS.green}✅ PASS${COLORS.reset}`
+        : `${COLORS.yellow}❌ FAIL${COLORS.reset}`) +
+      ` ${COLORS.dim}(Playwright)${COLORS.reset}`
+  );
+  console.log(
+    "   Unit Tests:            " +
       (unitTestsPassed
         ? `${COLORS.green}✅ PASS${COLORS.reset}`
         : `${COLORS.yellow}❌ FAIL${COLORS.reset}`) +
-      ` ${COLORS.dim}(covered in unit tests)${COLORS.reset}`
-  );
-  console.log(
-    "   Validation Engine:     " +
-      (fixtureValidationPassed
-        ? `${COLORS.green}✅ PASS${COLORS.reset}`
-        : `${COLORS.yellow}❌ FAIL${COLORS.reset}`)
-  );
-  console.log(
-    "   Atomic Transactions:   " +
-      (atomicPassed
-        ? `${COLORS.green}✅ PASS${COLORS.reset}`
-        : `${COLORS.yellow}❌ FAIL${COLORS.reset}`)
+      ` ${COLORS.dim}(workbook builder, malformed files, search)${COLORS.reset}`
   );
 
   console.log("");

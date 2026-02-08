@@ -19,7 +19,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
       NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
       DATABASE_URL: postgresql://postgres:postgres@localhost:54322/postgres
-      ADMIN_PASSWORD: ci_test_password
+      SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
 
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: Type check
         run: npm run type-check
 
@@ -41,22 +44,36 @@ jobs:
       - name: Start Supabase
         run: npx supabase start
 
-      - name: Seed database
+      - name: Seed database and create admin user
         run: |
           # Wait for database to be ready
           for i in {1..30}; do
-            if psql $DATABASE_URL -c '\q' 2>/dev/null; then
+            if pg_isready -h localhost -p 54322 2>/dev/null; then
               echo "Database is ready!"
               break
             fi
             echo "Waiting for database... ($i/30)"
             sleep 2
           done
-          # Seed with test data from fixtures
-          psql $DATABASE_URL < tests/fixtures/seed-data.sql
+          # Seed data + mark INACTIVE parts + create admin user
+          npx tsx scripts/db/import-seed-sql.ts
 
       - name: Generate baseline export
         run: npx tsx scripts/test/generate-baseline.ts
+
+      - name: Start dev server
+        run: npm run dev &
+
+      - name: Wait for dev server
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:3000 > /dev/null 2>&1; then
+              echo "Dev server is ready!"
+              break
+            fi
+            echo "Waiting for dev server... ($i/30)"
+            sleep 2
+          done
 
       - name: Run tests
         run: npm test

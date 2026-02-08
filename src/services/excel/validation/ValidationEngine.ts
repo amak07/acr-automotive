@@ -13,11 +13,10 @@ import type {
   ParsedExcelFile,
   ExcelPartRow,
   ExcelVehicleAppRow,
-  ExcelCrossRefRow,
+  ExcelAliasRow,
 } from "../shared/types";
 import {
   SHEET_NAMES,
-  HIDDEN_ID_COLUMNS,
   BRAND_COLUMN_MAP,
   IMAGE_VIEW_TYPE_MAP,
   DELETE_MARKER,
@@ -39,23 +38,19 @@ const MAX_LENGTHS = {
   MODEL: 100,
   COMPETITOR_BRAND: 50,
   COMPETITOR_SKU: 50,
-  // Phase 3: Image URLs and brand column SKUs
   IMAGE_URL: 2000,
-  BRAND_SKU: 50, // Individual SKU within brand column
+  BRAND_SKU: 50,
 } as const;
-
-/**
- * Valid values for the _action column (Part deletion)
- */
-const VALID_ACTION_VALUES = ["DELETE", ""] as const;
 
 const YEAR_RANGE = {
   MIN: 1900,
   MAX: new Date().getFullYear() + 2, // Allow next year's models
 } as const;
 
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Valid Status values for each sheet type
+const VALID_PART_STATUS = ["activo", "inactivo", "eliminar"] as const;
+const VALID_VA_STATUS = ["activo", "eliminar"] as const;
+const VALID_ALIAS_STATUS = ["activo", "eliminar"] as const;
 
 // ----------------------------------------------------------------------------
 // Database Data (for comparison)
@@ -63,13 +58,19 @@ const UUID_REGEX =
 
 /**
  * Existing database data for validation
- * This would be fetched from Supabase before validation
+ *
+ * Keys use business identifiers:
+ * - parts: keyed by acr_sku
+ * - vehicleApplications: keyed by composite "acr_sku::make::model"
+ * - crossReferences: keyed by UUID (for brand column diffing)
+ * - aliases: keyed by composite "alias::canonical_name"
  */
 export interface ExistingDatabaseData {
-  parts: Map<string, ExcelPartRow>; // Keyed by _id
-  vehicleApplications: Map<string, ExcelVehicleAppRow>; // Keyed by _id
-  crossReferences: Map<string, ExcelCrossRefRow>; // Keyed by _id
+  parts: Map<string, ExcelPartRow>; // Keyed by acr_sku
+  vehicleApplications: Map<string, ExcelVehicleAppRow>; // Keyed by "acr_sku::make::model"
+  crossReferences: Map<string, { _id: string; acr_part_id: string; competitor_brand: string; competitor_sku: string }>; // Keyed by UUID
   partSkus: Set<string>; // All existing ACR SKUs
+  aliases: Map<string, ExcelAliasRow>; // Keyed by "alias::canonical_name"
 }
 
 // ----------------------------------------------------------------------------
@@ -94,10 +95,12 @@ export class ValidationEngine {
   /**
    * Validate parsed Excel file
    *
-   * Phase 3 Format:
-   * - 2-sheet format: Parts (with brand columns + image URLs), Vehicle Applications
-   * - Cross-references are inline in Parts sheet as brand columns (National_SKUs, etc.)
-   * - Old 3-sheet files (with separate Cross References sheet) are not supported
+   * Format: 2-sheet (Parts + Vehicle Applications) or 3-sheet (+ Vehicle Aliases)
+   * - Parts matched by acr_sku
+   * - VAs matched by (acr_sku, make, model)
+   * - Aliases matched by (alias, canonical_name)
+   * - No hidden columns — all matching by business keys
+   * - Errors column with Excel formulas blocks import if non-empty (E23)
    *
    * @param parsed - Parsed Excel file
    * @param existingData - Current database data for comparison
@@ -110,7 +113,7 @@ export class ValidationEngine {
     this.errors = [];
     this.warnings = [];
 
-    // File-level validations (E1, E10, E13)
+    // File-level validations (E10, E13)
     this.validateFileStructure(parsed);
 
     // Sheet-level validations
@@ -121,16 +124,9 @@ export class ValidationEngine {
       existingData
     );
 
-    // Phase 3: Cross-references are now in Parts sheet brand columns
-    // If old 3-sheet file with separate Cross References sheet is detected, warn
-    if (parsed.crossReferences.rowCount > 0) {
-      this.addWarning(
-        ValidationWarningCode.W5_CROSS_REFERENCE_DELETED,
-        `Found ${parsed.crossReferences.rowCount} rows in deprecated Cross References sheet. ` +
-          `Cross-references should now be in Parts sheet brand columns (National_SKUs, ATV_SKUs, etc.). ` +
-          `Please re-export from the system to get the new format.`,
-        SHEET_NAMES.CROSS_REFERENCES
-      );
+    // Validate aliases if present
+    if (parsed.aliases && parsed.aliases.data.length > 0) {
+      this.validateAliasesSheet(parsed.aliases.data, existingData);
     }
 
     // Generate summary
@@ -149,25 +145,14 @@ export class ValidationEngine {
   // --------------------------------------------------------------------------
 
   /**
-   * E1: Missing hidden ID columns
    * E10: Required sheet missing
    * E13: Invalid sheet name
    */
   private validateFileStructure(parsed: ParsedExcelFile): void {
-    // E1: Check for hidden ID columns
-    if (!parsed.parts.hasHiddenIds) {
-      this.addError(
-        ValidationErrorCode.E1_MISSING_HIDDEN_COLUMNS,
-        "File does not contain hidden ID columns. Please export from the system first before importing.",
-        SHEET_NAMES.PARTS
-      );
-    }
-
     // E10: Required sheets present (already validated by parser, but double-check)
     if (
       parsed.parts.rowCount === 0 &&
-      parsed.vehicleApplications.rowCount === 0 &&
-      parsed.crossReferences.rowCount === 0
+      parsed.vehicleApplications.rowCount === 0
     ) {
       this.addError(
         ValidationErrorCode.E10_REQUIRED_SHEET_MISSING,
@@ -188,7 +173,19 @@ export class ValidationEngine {
     const skusInFile = new Set<string>();
 
     parts.forEach((part, index) => {
-      const rowNumber = index + 2; // +2 for header and 0-index
+      const rowNumber = index + 4; // +4 for 3 header rows + 1-index
+
+      // E23: Errors column not empty (Excel formula detected errors)
+      if (part.errors && part.errors.toString().trim() !== "") {
+        this.addError(
+          ValidationErrorCode.E23_ERRORS_COLUMN_NOT_EMPTY,
+          `Excel validation error in row ${rowNumber}: ${part.errors}`,
+          SHEET_NAMES.PARTS,
+          rowNumber,
+          "Errors",
+          part.errors
+        );
+      }
 
       // E3: Empty required fields
       if (
@@ -197,10 +194,10 @@ export class ValidationEngine {
       ) {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
-          "ACR_SKU is required",
+          "ACR SKU is required",
           SHEET_NAMES.PARTS,
           rowNumber,
-          "ACR_SKU"
+          "ACR SKU"
         );
       }
 
@@ -210,101 +207,73 @@ export class ValidationEngine {
       ) {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
-          "Part_Type is required",
+          "Part Type is required",
           SHEET_NAMES.PARTS,
           rowNumber,
-          "Part_Type"
+          "Part Type"
         );
       }
 
-      // E2: Duplicate ACR_SKU within file
+      // E2: Duplicate ACR SKU within file
       if (part.acr_sku) {
         if (skusInFile.has(part.acr_sku)) {
           this.addError(
             ValidationErrorCode.E2_DUPLICATE_ACR_SKU,
-            `Duplicate ACR_SKU "${part.acr_sku}" found in file`,
+            `Duplicate ACR SKU "${part.acr_sku}" found in file`,
             SHEET_NAMES.PARTS,
             rowNumber,
-            "ACR_SKU",
+            "ACR SKU",
             part.acr_sku
           );
         }
         skusInFile.add(part.acr_sku);
       }
 
-      // E4: Invalid UUID format (if _id is present)
-      if (part._id && !UUID_REGEX.test(part._id)) {
-        this.addError(
-          ValidationErrorCode.E4_INVALID_UUID_FORMAT,
-          `Invalid UUID format: "${part._id}"`,
-          SHEET_NAMES.PARTS,
-          rowNumber,
-          "_id",
-          part._id
-        );
-      }
-
-      // E19: UUID not in database (if _id is present and valid format)
-      if (
-        part._id &&
-        UUID_REGEX.test(part._id) &&
-        !existingData.parts.has(part._id)
-      ) {
-        this.addError(
-          ValidationErrorCode.E19_UUID_NOT_IN_DATABASE,
-          `Part with _id "${part._id}" does not exist in database`,
-          SHEET_NAMES.PARTS,
-          rowNumber,
-          "_id",
-          part._id
-        );
-      }
-
       // E7: String exceeds max length
       this.validateMaxLength(
         part.acr_sku,
         MAX_LENGTHS.ACR_SKU,
-        "ACR_SKU",
+        "ACR SKU",
         SHEET_NAMES.PARTS,
         rowNumber
       );
       this.validateMaxLength(
         part.part_type,
         MAX_LENGTHS.PART_TYPE,
-        "Part_Type",
+        "Part Type",
         SHEET_NAMES.PARTS,
         rowNumber
       );
       this.validateMaxLength(
         part.position_type,
         MAX_LENGTHS.POSITION_TYPE,
-        "Position_Type",
+        "Position",
         SHEET_NAMES.PARTS,
         rowNumber
       );
       this.validateMaxLength(
         part.abs_type,
         MAX_LENGTHS.ABS_TYPE,
-        "ABS_Type",
+        "ABS Type",
         SHEET_NAMES.PARTS,
         rowNumber
       );
       this.validateMaxLength(
         part.bolt_pattern,
         MAX_LENGTHS.BOLT_PATTERN,
-        "Bolt_Pattern",
+        "Bolt Pattern",
         SHEET_NAMES.PARTS,
         rowNumber
       );
       this.validateMaxLength(
         part.drive_type,
         MAX_LENGTHS.DRIVE_TYPE,
-        "Drive_Type",
+        "Drive Type",
         SHEET_NAMES.PARTS,
         rowNumber
       );
 
-      // E20: ACR_SKU must start with "ACR" prefix (only check if acr_sku exists)
+      // E20: ACR SKU must start with "ACR" prefix
       if (
         part.acr_sku &&
         typeof part.acr_sku === "string" &&
@@ -312,66 +281,53 @@ export class ValidationEngine {
       ) {
         this.addError(
           ValidationErrorCode.E20_INVALID_ACR_SKU_FORMAT,
-          `ACR_SKU must start with "ACR" prefix. Found: "${part.acr_sku}". Please update the Excel file with the correct format (e.g., "ACR15002").`,
+          `ACR SKU must start with "ACR" prefix. Found: "${part.acr_sku}".`,
           SHEET_NAMES.PARTS,
           rowNumber,
-          "ACR_SKU",
+          "ACR SKU",
           part.acr_sku
         );
       }
 
-      // E21: Invalid _action value (must be "DELETE" or empty)
-      if (part._action && part._action.trim() !== "") {
-        const actionValue = part._action.trim().toUpperCase();
-        if (actionValue !== "DELETE") {
+      // Validate Status if present
+      if (part.status && part.status.trim() !== "") {
+        const statusLower = part.status.trim().toLowerCase();
+        if (!VALID_PART_STATUS.includes(statusLower as any)) {
           this.addError(
-            ValidationErrorCode.E21_INVALID_ACTION_VALUE,
-            `Invalid _action value: "${part._action}". Must be "DELETE" or empty.`,
+            ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
+            `Invalid Status value: "${part.status}". Must be Activo, Inactivo, or Eliminar.`,
             SHEET_NAMES.PARTS,
             rowNumber,
-            "_action",
-            part._action
+            "Status",
+            part.status
           );
         }
       }
 
-      // Validate brand columns (Phase 3A)
+      // Validate brand columns
       this.validateBrandColumns(part, rowNumber);
 
-      // Validate image URL columns (Phase 3B)
+      // Validate image URL columns
       this.validateImageUrlColumns(part, rowNumber);
 
-      // Warnings: Compare with existing data
-      if (part._id && existingData.parts.has(part._id)) {
-        const existing = existingData.parts.get(part._id)!;
+      // Warnings: Compare with existing data (matched by acr_sku)
+      if (part.acr_sku && existingData.parts.has(part.acr_sku)) {
+        const existing = existingData.parts.get(part.acr_sku)!;
 
-        // W1: ACR_SKU changed
-        if (existing.acr_sku !== part.acr_sku) {
-          this.addWarning(
-            ValidationWarningCode.W1_ACR_SKU_CHANGED,
-            `ACR_SKU changed from "${existing.acr_sku}" to "${part.acr_sku}"`,
-            SHEET_NAMES.PARTS,
-            rowNumber,
-            "ACR_SKU",
-            part.acr_sku,
-            existing.acr_sku
-          );
-        }
-
-        // W3: Part_Type changed
+        // W3: Part Type changed
         if (existing.part_type !== part.part_type) {
           this.addWarning(
             ValidationWarningCode.W3_PART_TYPE_CHANGED,
-            `Part_Type changed from "${existing.part_type}" to "${part.part_type}"`,
+            `Part Type changed from "${existing.part_type}" to "${part.part_type}"`,
             SHEET_NAMES.PARTS,
             rowNumber,
-            "Part_Type",
+            "Part Type",
             part.part_type,
             existing.part_type
           );
         }
 
-        // W4: Position_Type changed (only warn on actual changes, not null vs undefined)
+        // W4: Position Type changed
         const normalizedExistingPosition = this.normalizeOptional(
           existing.position_type
         );
@@ -381,10 +337,10 @@ export class ValidationEngine {
         if (normalizedExistingPosition !== normalizedNewPosition) {
           this.addWarning(
             ValidationWarningCode.W4_POSITION_TYPE_CHANGED,
-            `Position_Type changed from "${existing.position_type}" to "${part.position_type}"`,
+            `Position changed from "${existing.position_type}" to "${part.position_type}"`,
             SHEET_NAMES.PARTS,
             rowNumber,
-            "Position_Type",
+            "Position",
             part.position_type,
             existing.position_type
           );
@@ -417,17 +373,26 @@ export class ValidationEngine {
     parts: ExcelPartRow[],
     existingData: ExistingDatabaseData
   ): void {
-    // Build part ID set from uploaded file (for _part_id references)
-    const partIdsInFile = new Set(parts.map((p) => p._id).filter(Boolean));
-
-    // Build ACR_SKU set from uploaded file (for acr_sku references)
+    // Build ACR SKU set from uploaded file (for acr_sku references)
     const partSkusInFile = new Set(parts.map((p) => p.acr_sku).filter(Boolean));
 
     // Combine with existing SKUs from database
     const allKnownSkus = new Set([...partSkusInFile, ...existingData.partSkus]);
 
     vehicles.forEach((vehicle, index) => {
-      const rowNumber = index + 2;
+      const rowNumber = index + 4; // +4 for 3 header rows + 1-index
+
+      // E23: Errors column not empty
+      if (vehicle.errors && vehicle.errors.toString().trim() !== "") {
+        this.addError(
+          ValidationErrorCode.E23_ERRORS_COLUMN_NOT_EMPTY,
+          `Excel validation error in row ${rowNumber}: ${vehicle.errors}`,
+          SHEET_NAMES.VEHICLE_APPLICATIONS,
+          rowNumber,
+          "Errors",
+          vehicle.errors
+        );
+      }
 
       // E3: Empty required fields
       if (
@@ -436,10 +401,10 @@ export class ValidationEngine {
       ) {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
-          "ACR_SKU is required",
+          "ACR SKU is required",
           SHEET_NAMES.VEHICLE_APPLICATIONS,
           rowNumber,
-          "ACR_SKU"
+          "ACR SKU"
         );
       }
 
@@ -469,117 +434,84 @@ export class ValidationEngine {
         );
       }
 
-      // E4: Invalid UUID format
-      if (vehicle._id && !UUID_REGEX.test(vehicle._id)) {
-        this.addError(
-          ValidationErrorCode.E4_INVALID_UUID_FORMAT,
-          `Invalid UUID format: "${vehicle._id}"`,
-          SHEET_NAMES.VEHICLE_APPLICATIONS,
-          rowNumber,
-          "_id",
-          vehicle._id
-        );
-      }
-
-      if (vehicle._part_id && !UUID_REGEX.test(vehicle._part_id)) {
-        this.addError(
-          ValidationErrorCode.E4_INVALID_UUID_FORMAT,
-          `Invalid UUID format for _part_id: "${vehicle._part_id}"`,
-          SHEET_NAMES.VEHICLE_APPLICATIONS,
-          rowNumber,
-          "_part_id",
-          vehicle._part_id
-        );
-      }
-
-      // E5: Orphaned foreign key (ACR_SKU must reference a part in file or database)
+      // E5: Orphaned foreign key (ACR SKU must reference a part in file or database)
       if (vehicle.acr_sku && !allKnownSkus.has(vehicle.acr_sku)) {
         this.addError(
           ValidationErrorCode.E5_ORPHANED_FOREIGN_KEY,
-          `ACR_SKU "${vehicle.acr_sku}" does not reference any existing part`,
+          `ACR SKU "${vehicle.acr_sku}" does not reference any existing part`,
           SHEET_NAMES.VEHICLE_APPLICATIONS,
           rowNumber,
-          "ACR_SKU",
+          "ACR SKU",
           vehicle.acr_sku
         );
       }
 
-      // E5: Orphaned foreign key (_part_id must reference a part in file) - only for updates
-      if (vehicle._part_id && !partIdsInFile.has(vehicle._part_id)) {
-        this.addError(
-          ValidationErrorCode.E5_ORPHANED_FOREIGN_KEY,
-          `_part_id "${vehicle._part_id}" does not reference any part in the Parts sheet`,
-          SHEET_NAMES.VEHICLE_APPLICATIONS,
-          rowNumber,
-          "_part_id",
-          vehicle._part_id
-        );
-      }
-
       // E6: Invalid year range
+      const startYear = typeof vehicle.start_year === 'string' ? parseInt(vehicle.start_year) : vehicle.start_year;
+      const endYear = typeof vehicle.end_year === 'string' ? parseInt(vehicle.end_year) : vehicle.end_year;
+
       if (
-        vehicle.start_year &&
-        vehicle.end_year &&
-        vehicle.end_year < vehicle.start_year
+        startYear &&
+        endYear &&
+        endYear < startYear
       ) {
         this.addError(
           ValidationErrorCode.E6_INVALID_YEAR_RANGE,
-          `End_Year (${vehicle.end_year}) cannot be before Start_Year (${vehicle.start_year})`,
+          `End Year (${endYear}) cannot be before Start Year (${startYear})`,
           SHEET_NAMES.VEHICLE_APPLICATIONS,
           rowNumber,
-          "End_Year"
+          "End Year"
         );
       }
 
       // E8: Year out of range
       if (
-        vehicle.start_year &&
-        (vehicle.start_year < YEAR_RANGE.MIN ||
-          vehicle.start_year > YEAR_RANGE.MAX)
+        startYear &&
+        (startYear < YEAR_RANGE.MIN || startYear > YEAR_RANGE.MAX)
       ) {
         this.addError(
           ValidationErrorCode.E8_YEAR_OUT_OF_RANGE,
-          `Start_Year ${vehicle.start_year} is out of valid range (${YEAR_RANGE.MIN}-${YEAR_RANGE.MAX})`,
+          `Start Year ${startYear} is out of valid range (${YEAR_RANGE.MIN}-${YEAR_RANGE.MAX})`,
           SHEET_NAMES.VEHICLE_APPLICATIONS,
           rowNumber,
-          "Start_Year",
-          vehicle.start_year
+          "Start Year",
+          startYear
         );
       }
 
       if (
-        vehicle.end_year &&
-        (vehicle.end_year < YEAR_RANGE.MIN || vehicle.end_year > YEAR_RANGE.MAX)
+        endYear &&
+        (endYear < YEAR_RANGE.MIN || endYear > YEAR_RANGE.MAX)
       ) {
         this.addError(
           ValidationErrorCode.E8_YEAR_OUT_OF_RANGE,
-          `End_Year ${vehicle.end_year} is out of valid range (${YEAR_RANGE.MIN}-${YEAR_RANGE.MAX})`,
+          `End Year ${endYear} is out of valid range (${YEAR_RANGE.MIN}-${YEAR_RANGE.MAX})`,
           SHEET_NAMES.VEHICLE_APPLICATIONS,
           rowNumber,
-          "End_Year",
-          vehicle.end_year
+          "End Year",
+          endYear
         );
       }
 
       // E9: Invalid number format (years must be integers)
-      if (vehicle.start_year && !Number.isInteger(vehicle.start_year)) {
+      if (startYear && !Number.isInteger(startYear)) {
         this.addError(
           ValidationErrorCode.E9_INVALID_NUMBER_FORMAT,
-          `Start_Year must be an integer, got: ${vehicle.start_year}`,
+          `Start Year must be an integer, got: ${vehicle.start_year}`,
           SHEET_NAMES.VEHICLE_APPLICATIONS,
           rowNumber,
-          "Start_Year",
+          "Start Year",
           vehicle.start_year
         );
       }
 
-      if (vehicle.end_year && !Number.isInteger(vehicle.end_year)) {
+      if (endYear && !Number.isInteger(endYear)) {
         this.addError(
           ValidationErrorCode.E9_INVALID_NUMBER_FORMAT,
-          `End_Year must be an integer, got: ${vehicle.end_year}`,
+          `End Year must be an integer, got: ${vehicle.end_year}`,
           SHEET_NAMES.VEHICLE_APPLICATIONS,
           rowNumber,
-          "End_Year",
+          "End Year",
           vehicle.end_year
         );
       }
@@ -600,209 +532,112 @@ export class ValidationEngine {
         rowNumber
       );
 
-      // Warnings: Compare with existing data
-      if (vehicle._id && existingData.vehicleApplications.has(vehicle._id)) {
-        const existing = existingData.vehicleApplications.get(vehicle._id)!;
-
-        // W2: Year range narrowed
-        if (
-          existing.start_year < vehicle.start_year ||
-          existing.end_year > vehicle.end_year
-        ) {
-          this.addWarning(
-            ValidationWarningCode.W2_YEAR_RANGE_NARROWED,
-            `Year range narrowed from ${existing.start_year}-${existing.end_year} to ${vehicle.start_year}-${vehicle.end_year}`,
+      // Validate Status if present
+      if (vehicle.status && vehicle.status.trim() !== "") {
+        const statusLower = vehicle.status.trim().toLowerCase();
+        if (!VALID_VA_STATUS.includes(statusLower as any)) {
+          this.addError(
+            ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
+            `Invalid Status value: "${vehicle.status}". Must be Activo or Eliminar.`,
             SHEET_NAMES.VEHICLE_APPLICATIONS,
             rowNumber,
-            "Start_Year / End_Year"
-          );
-        }
-
-        // W8: Make changed
-        if (existing.make !== vehicle.make) {
-          this.addWarning(
-            ValidationWarningCode.W8_VEHICLE_MAKE_CHANGED,
-            `Make changed from "${existing.make}" to "${vehicle.make}"`,
-            SHEET_NAMES.VEHICLE_APPLICATIONS,
-            rowNumber,
-            "Make",
-            vehicle.make,
-            existing.make
-          );
-        }
-
-        // W9: Model changed
-        if (existing.model !== vehicle.model) {
-          this.addWarning(
-            ValidationWarningCode.W9_VEHICLE_MODEL_CHANGED,
-            `Model changed from "${existing.model}" to "${vehicle.model}"`,
-            SHEET_NAMES.VEHICLE_APPLICATIONS,
-            rowNumber,
-            "Model",
-            vehicle.model,
-            existing.model
+            "Status",
+            vehicle.status
           );
         }
       }
-    });
 
-    // W6: Check for deleted vehicle applications
-    existingData.vehicleApplications.forEach((existing, id) => {
-      const stillExists = vehicles.some((v) => v._id === id);
-      if (!stillExists) {
-        this.addWarning(
-          ValidationWarningCode.W6_VEHICLE_APPLICATION_DELETED,
-          `Vehicle application deleted: ${existing.make} ${existing.model} ${existing.start_year}-${existing.end_year} (${existing.acr_sku})`,
-          SHEET_NAMES.VEHICLE_APPLICATIONS
-        );
+      // Warnings: Compare with existing data (matched by composite key)
+      const compositeKey = `${vehicle.acr_sku}::${vehicle.make}::${vehicle.model}::${vehicle.start_year}`;
+      if (existingData.vehicleApplications.has(compositeKey)) {
+        const existing = existingData.vehicleApplications.get(compositeKey)!;
+
+        // W2: Year range narrowed
+        const existingStartYear = typeof existing.start_year === 'string' ? parseInt(existing.start_year) : existing.start_year;
+        const existingEndYear = typeof existing.end_year === 'string' ? parseInt(existing.end_year) : existing.end_year;
+        if (
+          existingStartYear < startYear ||
+          existingEndYear > endYear
+        ) {
+          this.addWarning(
+            ValidationWarningCode.W2_YEAR_RANGE_NARROWED,
+            `Year range narrowed from ${existing.start_year}-${existing.end_year} to ${startYear}-${endYear}`,
+            SHEET_NAMES.VEHICLE_APPLICATIONS,
+            rowNumber,
+            "Start Year / End Year"
+          );
+        }
       }
     });
   }
 
   // --------------------------------------------------------------------------
-  // Cross References Sheet Validations (DEPRECATED)
+  // Vehicle Aliases Sheet Validations
   // --------------------------------------------------------------------------
 
-  /**
-   * @deprecated Phase 3 moved cross-references to Parts sheet brand columns.
-   * This method is kept for reference only and is no longer called.
-   */
-  private validateCrossReferencesSheet(
-    crossRefs: ExcelCrossRefRow[],
-    parts: ExcelPartRow[],
+  private validateAliasesSheet(
+    aliases: ExcelAliasRow[],
     existingData: ExistingDatabaseData
   ): void {
-    // Build part ID set from uploaded file (for _acr_part_id references)
-    const partIdsInFile = new Set(parts.map((p) => p._id).filter(Boolean));
+    aliases.forEach((alias, index) => {
+      const rowNumber = index + 4; // +4 for 3 header rows + 1-index
 
-    // Build ACR_SKU set from uploaded file (for acr_sku references)
-    const partSkusInFile = new Set(parts.map((p) => p.acr_sku).filter(Boolean));
-
-    // Combine with existing SKUs from database
-    const allKnownSkus = new Set([...partSkusInFile, ...existingData.partSkus]);
-
-    crossRefs.forEach((crossRef, index) => {
-      const rowNumber = index + 2;
+      // E23: Errors column not empty
+      if (alias.errors && alias.errors.toString().trim() !== "") {
+        this.addError(
+          ValidationErrorCode.E23_ERRORS_COLUMN_NOT_EMPTY,
+          `Excel validation error in row ${rowNumber}: ${alias.errors}`,
+          SHEET_NAMES.ALIASES,
+          rowNumber,
+          "Errors",
+          alias.errors
+        );
+      }
 
       // E3: Empty required fields
-      if (
-        !crossRef.acr_sku ||
-        (typeof crossRef.acr_sku === "string" && crossRef.acr_sku.trim() === "")
-      ) {
+      if (!alias.alias || alias.alias.trim() === "") {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
-          "ACR_SKU is required",
-          SHEET_NAMES.CROSS_REFERENCES,
+          "Alias is required",
+          SHEET_NAMES.ALIASES,
           rowNumber,
-          "ACR_SKU"
+          "Alias"
         );
       }
 
-      if (
-        !crossRef.competitor_sku ||
-        (typeof crossRef.competitor_sku === "string" &&
-          crossRef.competitor_sku.trim() === "")
-      ) {
+      if (!alias.canonical_name || alias.canonical_name.trim() === "") {
         this.addError(
           ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
-          "Competitor_SKU is required",
-          SHEET_NAMES.CROSS_REFERENCES,
+          "Canonical Name is required",
+          SHEET_NAMES.ALIASES,
           rowNumber,
-          "Competitor_SKU"
+          "Canonical Name"
         );
       }
 
-      // E4: Invalid UUID format
-      if (crossRef._id && !UUID_REGEX.test(crossRef._id)) {
+      if (!alias.alias_type || alias.alias_type.trim() === "") {
         this.addError(
-          ValidationErrorCode.E4_INVALID_UUID_FORMAT,
-          `Invalid UUID format: "${crossRef._id}"`,
-          SHEET_NAMES.CROSS_REFERENCES,
+          ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
+          "Type is required",
+          SHEET_NAMES.ALIASES,
           rowNumber,
-          "_id",
-          crossRef._id
+          "Type"
         );
       }
 
-      if (crossRef._acr_part_id && !UUID_REGEX.test(crossRef._acr_part_id)) {
-        this.addError(
-          ValidationErrorCode.E4_INVALID_UUID_FORMAT,
-          `Invalid UUID format for _acr_part_id: "${crossRef._acr_part_id}"`,
-          SHEET_NAMES.CROSS_REFERENCES,
-          rowNumber,
-          "_acr_part_id",
-          crossRef._acr_part_id
-        );
-      }
-
-      // E5: Orphaned foreign key (ACR_SKU must reference a part in file or database)
-      if (crossRef.acr_sku && !allKnownSkus.has(crossRef.acr_sku)) {
-        this.addError(
-          ValidationErrorCode.E5_ORPHANED_FOREIGN_KEY,
-          `ACR_SKU "${crossRef.acr_sku}" does not reference any existing part`,
-          SHEET_NAMES.CROSS_REFERENCES,
-          rowNumber,
-          "ACR_SKU",
-          crossRef.acr_sku
-        );
-      }
-
-      // E5: Orphaned foreign key (_acr_part_id must reference a part in file) - only for updates
-      if (crossRef._acr_part_id && !partIdsInFile.has(crossRef._acr_part_id)) {
-        this.addError(
-          ValidationErrorCode.E5_ORPHANED_FOREIGN_KEY,
-          `_acr_part_id "${crossRef._acr_part_id}" does not reference any part in the Parts sheet`,
-          SHEET_NAMES.CROSS_REFERENCES,
-          rowNumber,
-          "_acr_part_id",
-          crossRef._acr_part_id
-        );
-      }
-
-      // E7: String exceeds max length
-      this.validateMaxLength(
-        crossRef.competitor_brand,
-        MAX_LENGTHS.COMPETITOR_BRAND,
-        "Competitor_Brand",
-        SHEET_NAMES.CROSS_REFERENCES,
-        rowNumber
-      );
-      this.validateMaxLength(
-        crossRef.competitor_sku,
-        MAX_LENGTHS.COMPETITOR_SKU,
-        "Competitor_SKU",
-        SHEET_NAMES.CROSS_REFERENCES,
-        rowNumber
-      );
-
-      // Warnings: Compare with existing data
-      if (crossRef._id && existingData.crossReferences.has(crossRef._id)) {
-        const existing = existingData.crossReferences.get(crossRef._id)!;
-
-        // W10: Competitor brand changed
-        if (existing.competitor_brand !== crossRef.competitor_brand) {
-          this.addWarning(
-            ValidationWarningCode.W10_COMPETITOR_BRAND_CHANGED,
-            `Competitor_Brand changed from "${existing.competitor_brand}" to "${crossRef.competitor_brand}"`,
-            SHEET_NAMES.CROSS_REFERENCES,
+      // Validate Status if present
+      if (alias.status && alias.status.trim() !== "") {
+        const statusLower = alias.status.trim().toLowerCase();
+        if (!VALID_ALIAS_STATUS.includes(statusLower as any)) {
+          this.addError(
+            ValidationErrorCode.E3_EMPTY_REQUIRED_FIELD,
+            `Invalid Status value: "${alias.status}". Must be Activo or Eliminar.`,
+            SHEET_NAMES.ALIASES,
             rowNumber,
-            "Competitor_Brand",
-            crossRef.competitor_brand,
-            existing.competitor_brand
+            "Status",
+            alias.status
           );
         }
-      }
-    });
-
-    // W5: Check for deleted cross references
-    existingData.crossReferences.forEach((existing, id) => {
-      const stillExists = crossRefs.some((cr) => cr._id === id);
-      if (!stillExists) {
-        this.addWarning(
-          ValidationWarningCode.W5_CROSS_REFERENCE_DELETED,
-          `Cross-reference deleted: ${existing.acr_sku} → ${existing.competitor_brand} ${existing.competitor_sku}`,
-          SHEET_NAMES.CROSS_REFERENCES
-        );
       }
     });
   }
@@ -831,7 +666,7 @@ export class ValidationEngine {
   }
 
   // --------------------------------------------------------------------------
-  // Phase 3A: Brand Column Validations
+  // Brand Column Validations
   // --------------------------------------------------------------------------
 
   /**
@@ -916,7 +751,7 @@ export class ValidationEngine {
   }
 
   // --------------------------------------------------------------------------
-  // Phase 3B: Image URL Validations
+  // Image URL Validations
   // --------------------------------------------------------------------------
 
   /**

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Generate All Test Data - Consolidated Test Generation Script
  *

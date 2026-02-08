@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RollbackService } from '@/services/excel/rollback/RollbackService';
 import { requireAuth } from '@/lib/api/auth-helpers';
+import { createAdminClient } from '@/lib/supabase/client';
 
 /**
  * POST /api/admin/import/rollback
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     console.log('[Import Rollback] Import ID:', importId);
 
     // Execute rollback
-    const rollbackService = new RollbackService();
+    const rollbackService = new RollbackService(createAdminClient());
     const result = await rollbackService.rollbackToImport(importId);
 
     const totalTime = Date.now() - startTime;
@@ -151,7 +152,7 @@ export async function GET(request: NextRequest) {
   try {
     console.log('[Import Rollback] Fetching available snapshots...');
 
-    const rollbackService = new RollbackService();
+    const rollbackService = new RollbackService(createAdminClient());
     const snapshots = await rollbackService.listAvailableSnapshots();
 
     console.log('[Import Rollback] Found snapshots:', snapshots.length);

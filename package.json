@@ -9,6 +9,9 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "tsx scripts/test/run-all-tests.ts",
+    "test:e2e": "npx playwright test",
+    "test:e2e:headed": "npx playwright test --headed",
+    "test:e2e:ui": "npx playwright test --ui",
     "//": "",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
@@ -122,6 +125,7 @@
   "devDependencies": {
     "@commitlint/cli": "^20.2.0",
     "@commitlint/config-conventional": "^20.2.0",
+    "@playwright/test": "^1.58.1",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
