@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { PlusCircle, Edit, Trash2, AlertTriangle, ChevronDown, ChevronRight, Info } from "lucide-react";
+import { PlusCircle, Edit, Trash2, AlertTriangle, ChevronDown, ChevronRight, Info, CheckCircle } from "lucide-react";
 import { AcrCard, AcrButton } from "@/components/acr";
 import { AcrTabs, AcrTabsList, AcrTabsTrigger, AcrTabsContent } from "@/components/acr/Tabs";
 import { cn } from "@/lib/utils";
@@ -142,6 +142,23 @@ export function ImportStep2DiffPreview({
   const hasAliases = diffResult.aliases && (diffResult.aliases.summary?.totalAdds > 0 || diffResult.aliases.summary?.totalUpdates > 0 || diffResult.aliases.summary?.totalDeletes > 0);
   const aliasChangeCount = hasAliases ? diffResult.aliases!.summary.totalAdds + diffResult.aliases!.summary.totalUpdates + diffResult.aliases!.summary.totalDeletes : 0;
 
+  const totalChanges = diffResult.summary.totalChanges || (diffResult.summary.totalAdds + diffResult.summary.totalUpdates + diffResult.summary.totalDeletes);
+
+  // No changes — show a single compact message instead of the full tab structure
+  if (totalChanges === 0 && systemUpdateCount === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <CheckCircle className="w-12 h-12 text-green-500 mb-3" />
+        <h3 className="text-lg font-semibold text-acr-gray-900 mb-1">
+          {t("admin.import.preview.noChanges")}
+        </h3>
+        <p className="text-sm text-acr-gray-600 max-w-md">
+          {t("admin.import.preview.noChangesDesc")}
+        </p>
+      </div>
+    );
+  }
+
   // Group cascade delete warnings by part
   const cascadeWarnings = validationWarnings.filter(w =>
     w.code === 'W6_VEHICLE_APPLICATION_DELETED' || w.code === 'W5_CROSS_REFERENCE_DELETED'
@@ -153,21 +170,27 @@ export function ImportStep2DiffPreview({
     <div className="space-y-6">
       {/* Mobile Summary Bar (2x2 grid) */}
       <div className="sm:hidden grid grid-cols-2 gap-3">
-        <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
-          <PlusCircle className="w-4 h-4 text-green-600" />
-          <span className="text-lg font-bold text-green-700">{diffResult.summary.totalAdds}</span>
-          <span className="text-xs text-green-600">{t("admin.import.preview.new")}</span>
-        </div>
-        <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <Edit className="w-4 h-4 text-blue-600" />
-          <span className="text-lg font-bold text-blue-700">{diffResult.summary.totalUpdates}</span>
-          <span className="text-xs text-blue-600">{t("admin.import.preview.updated")}</span>
-        </div>
-        <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg border border-red-200">
-          <Trash2 className="w-4 h-4 text-red-600" />
-          <span className="text-lg font-bold text-red-700">{diffResult.summary.totalDeletes}</span>
-          <span className="text-xs text-red-600">{t("admin.import.preview.deleted")}</span>
-        </div>
+        {diffResult.summary.totalAdds > 0 && (
+          <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+            <PlusCircle className="w-4 h-4 text-green-600" />
+            <span className="text-lg font-bold text-green-700">{diffResult.summary.totalAdds}</span>
+            <span className="text-xs text-green-600">{t("admin.import.preview.newRecords")}</span>
+          </div>
+        )}
+        {diffResult.summary.totalUpdates > 0 && (
+          <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <Edit className="w-4 h-4 text-blue-600" />
+            <span className="text-lg font-bold text-blue-700">{diffResult.summary.totalUpdates}</span>
+            <span className="text-xs text-blue-600">{t("admin.import.preview.toUpdate")}</span>
+          </div>
+        )}
+        {diffResult.summary.totalDeletes > 0 && (
+          <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg border border-red-200">
+            <Trash2 className="w-4 h-4 text-red-600" />
+            <span className="text-lg font-bold text-red-700">{diffResult.summary.totalDeletes}</span>
+            <span className="text-xs text-red-600">{t("admin.import.preview.toDelete")}</span>
+          </div>
+        )}
         {systemUpdateCount > 0 && (
           <div className="flex items-center gap-2 p-3 bg-acr-gray-50 rounded-lg border border-acr-gray-200">
             <Info className="w-4 h-4 text-acr-gray-500" />
@@ -182,23 +205,42 @@ export function ImportStep2DiffPreview({
         <AcrCard variant="outlined" className="border-acr-gray-300">
           <div className="p-4">
             <div className="flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <PlusCircle className="w-4 h-4 text-green-600" />
-                <span className="font-semibold text-acr-gray-900">{diffResult.summary.totalAdds}</span>
-                <span className="text-acr-gray-600">{t("admin.import.preview.new")}</span>
-              </div>
-              <div className="w-px h-6 bg-acr-gray-300" />
-              <div className="flex items-center gap-2">
-                <Edit className="w-4 h-4 text-blue-600" />
-                <span className="font-semibold text-acr-gray-900">{diffResult.summary.totalUpdates}</span>
-                <span className="text-acr-gray-600">{t("admin.import.preview.updated").toLowerCase()}</span>
-              </div>
-              <div className="w-px h-6 bg-acr-gray-300" />
-              <div className="flex items-center gap-2">
-                <Trash2 className="w-4 h-4 text-red-600" />
-                <span className="font-semibold text-acr-gray-900">{diffResult.summary.totalDeletes}</span>
-                <span className="text-acr-gray-600">{t("admin.import.preview.deleted").toLowerCase()}</span>
-              </div>
+              {diffResult.summary.totalAdds > 0 && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <PlusCircle className="w-4 h-4 text-green-600" />
+                    <span className="font-semibold text-green-700">{diffResult.summary.totalAdds}</span>
+                    <span className="text-acr-gray-600">{t("admin.import.preview.newRecords")}</span>
+                  </div>
+                  <div className="w-px h-6 bg-acr-gray-300" />
+                </>
+              )}
+              {diffResult.summary.totalUpdates > 0 && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Edit className="w-4 h-4 text-blue-600" />
+                    <span className="font-semibold text-blue-700">{diffResult.summary.totalUpdates}</span>
+                    <span className="text-acr-gray-600">{t("admin.import.preview.toUpdate")}</span>
+                  </div>
+                  <div className="w-px h-6 bg-acr-gray-300" />
+                </>
+              )}
+              {diffResult.summary.totalDeletes > 0 && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Trash2 className="w-4 h-4 text-red-600" />
+                    <span className="font-semibold text-red-700">{diffResult.summary.totalDeletes}</span>
+                    <span className="text-acr-gray-600">{t("admin.import.preview.toDelete")}</span>
+                  </div>
+                  <div className="w-px h-6 bg-acr-gray-300" />
+                </>
+              )}
+              {diffResult.summary.totalUnchanged > 0 && (
+                <div className="flex items-center gap-2 text-acr-gray-500">
+                  <span className="font-semibold">{diffResult.summary.totalUnchanged.toLocaleString()}</span>
+                  <span>{t("admin.import.preview.unchangedRecords")}</span>
+                </div>
+              )}
               {systemUpdateCount > 0 && (
                 <>
                   <div className="w-px h-6 bg-acr-gray-300" />

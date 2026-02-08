@@ -291,6 +291,11 @@ export interface TranslationKeys {
   "admin.import.preview.newCrossRefs": string;
   "admin.import.preview.deletedCrossRefs": string;
   "admin.import.preview.noChanges": string;
+  "admin.import.preview.noChangesDesc": string;
+  "admin.import.preview.newRecords": string;
+  "admin.import.preview.toUpdate": string;
+  "admin.import.preview.toDelete": string;
+  "admin.import.preview.unchangedRecords": string;
   "admin.import.preview.changes": string;
 
   // Import History Panel
