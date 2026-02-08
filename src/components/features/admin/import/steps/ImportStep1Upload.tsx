@@ -306,63 +306,61 @@ export function ImportStep1Upload({
         aria-label="File upload"
       />
 
-      {/* File Upload Zone — with integrated download + last import info */}
+      {/* File Upload Zone */}
       {!uploadedFile && (
-        <div
-          onDragEnter={handleDragEnter}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          className={cn(
-            "relative border-2 border-dashed rounded-lg transition-all",
-            "hover:border-acr-red-400 hover:bg-acr-red-50/50",
-            isDragOver && "border-acr-red-600 bg-acr-red-50",
-            !isDragOver && "border-acr-gray-300 bg-white",
-            error && "border-red-500 bg-red-50",
-            "acr-animate-fade-up"
-          )}
-        >
-          <div className="p-10 sm:p-12 text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-acr-red-100 rounded-full flex items-center justify-center">
-                <Upload className="w-8 h-8 text-acr-red-600" />
+        <>
+          <div
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={cn(
+              "relative border-2 border-dashed rounded-lg transition-all",
+              "hover:border-acr-red-400 hover:bg-acr-red-50/50",
+              isDragOver && "border-acr-red-600 bg-acr-red-50",
+              !isDragOver && "border-acr-gray-300 bg-white",
+              error && "border-red-500 bg-red-50",
+              "acr-animate-fade-up"
+            )}
+          >
+            <div className="p-10 sm:p-12 text-center">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-acr-red-100 rounded-full flex items-center justify-center">
+                  <Upload className="w-8 h-8 text-acr-red-600" />
+                </div>
               </div>
+
+              <h3 className="text-lg font-semibold text-acr-gray-900 mb-2">
+                {t("admin.import.upload.dragDrop")}
+              </h3>
+              <p className="text-sm text-acr-gray-600 mb-4">
+                {t("admin.import.upload.orClickBrowse")}
+              </p>
+
+              <AcrButton
+                variant="primary"
+                size="default"
+                onClick={handleBrowseClick}
+                disabled={isProcessing}
+                className="min-h-11"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {t("admin.import.upload.chooseFile")}
+              </AcrButton>
+
+              <p className="text-xs text-acr-gray-500 mt-4">
+                {t("admin.import.upload.accepted")}
+              </p>
             </div>
-
-            <h3 className="text-lg font-semibold text-acr-gray-900 mb-2">
-              {t("admin.import.upload.dragDrop")}
-            </h3>
-            <p className="text-sm text-acr-gray-600 mb-4">
-              {t("admin.import.upload.orClickBrowse")}
-            </p>
-
-            <AcrButton
-              variant="primary"
-              size="default"
-              onClick={handleBrowseClick}
-              disabled={isProcessing}
-              className="min-h-11"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              {t("admin.import.upload.chooseFile")}
-            </AcrButton>
-
-            <p className="text-xs text-acr-gray-500 mt-4">
-              {t("admin.import.upload.accepted")}
-            </p>
           </div>
 
-          {/* Inline actions bar at bottom of drop zone */}
-          <div className="border-t border-dashed border-acr-gray-300 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm">
-            <AcrButton
-              variant="link"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDownloadCatalog();
-              }}
+          {/* Download catalog + last import context */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-1">
+            <button
+              type="button"
+              onClick={handleDownloadCatalog}
               disabled={isDownloading}
-              className="text-acr-gray-600 hover:text-acr-red-600"
+              className="inline-flex items-center text-xs text-acr-gray-500 hover:text-acr-red-600 transition-colors disabled:opacity-50 cursor-pointer"
             >
               {isDownloading ? (
                 <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
@@ -372,7 +370,7 @@ export function ImportStep1Upload({
               {isDownloading
                 ? t("admin.import.upload.downloadingCatalog")
                 : t("admin.import.upload.downloadCatalogDesc")}
-            </AcrButton>
+            </button>
 
             {lastImport && (
               <span className="text-xs text-acr-gray-500 flex items-center gap-1.5 truncate max-w-full">
@@ -398,7 +396,7 @@ export function ImportStep1Upload({
               </span>
             )}
           </div>
-        </div>
+        </>
       )}
 
       {/* Error Display */}
