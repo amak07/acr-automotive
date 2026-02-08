@@ -17,14 +17,23 @@ import pg from "pg";
 
 const { Client } = pg;
 
-// Default admin user for local development
-const ADMIN_USER = {
-  email: "abel.mak@acr.com",
-  password: "acr2026admin",
-  fullName: "Abel Mak",
-  role: "admin",
-  isOwner: true,
-};
+// Default users for local development and testing
+const SEED_USERS = [
+  {
+    email: "abel.mak@acr.com",
+    password: "acr2026admin",
+    fullName: "Abel Mak",
+    role: "admin",
+    isOwner: true,
+  },
+  {
+    email: "carlos.data@acr.com",
+    password: "acr2026data",
+    fullName: "Carlos Data",
+    role: "data_manager",
+    isOwner: false,
+  },
+];
 
 async function importSeedData() {
   const sqlPath = path.join(
@@ -105,9 +114,11 @@ async function importSeedData() {
       `   Total Records: ${parseInt(partsResult.rows[0].count) + parseInt(vehiclesResult.rows[0].count) + parseInt(crossRefsResult.rows[0].count)}`
     );
 
-    // Create admin user
-    console.log("\n👤 Creating admin user...");
-    await createAdminUser(client);
+    // Create seed users (admin + data_manager)
+    console.log("\n👤 Creating seed users...");
+    for (const user of SEED_USERS) {
+      await createUser(client, user);
+    }
 
     console.log(
       '\n💡 Tip: Run "npm run db:save-snapshot" to save this as your baseline'
@@ -121,11 +132,14 @@ async function importSeedData() {
 }
 
 /**
- * Creates the default admin user for local development.
- * This ensures a consistent login for testing purposes.
+ * Creates a user for local development/testing.
+ * Handles both new creation and updates to existing users.
  */
-async function createAdminUser(client: pg.Client) {
-  const { email, password, fullName, role, isOwner } = ADMIN_USER;
+async function createUser(
+  client: pg.Client,
+  user: { email: string; password: string; fullName: string; role: string; isOwner: boolean }
+) {
+  const { email, password, fullName, role, isOwner } = user;
 
   // Check if user already exists
   const existingUser = await client.query(
@@ -171,7 +185,7 @@ async function createAdminUser(client: pg.Client) {
       );
     }
 
-    console.log(`   ✅ Admin user updated: ${email}`);
+    console.log(`   ✅ User updated: ${email} (${role})`);
     return;
   }
 
@@ -262,10 +276,7 @@ async function createAdminUser(client: pg.Client) {
     [role, isOwner, fullName, newUserId]
   );
 
-  console.log(`   ✅ Admin user created: ${email}`);
-  console.log(`   📧 Email: ${email}`);
-  console.log(`   🔑 Password: ${password}`);
-  console.log(`   👑 Role: ${role} (owner: ${isOwner})`);
+  console.log(`   ✅ User created: ${email} (${role}${isOwner ? ", owner" : ""})`);
 }
 
 // Run the import
