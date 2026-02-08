@@ -6,6 +6,12 @@ import {
   fillSearchInput,
   quickSearch,
 } from "./helpers/test-helpers";
+import {
+  createE2ESnapshot,
+  restoreE2ESnapshot,
+  deleteE2ESnapshot,
+  getE2EClient,
+} from "./helpers/db-helpers";
 
 /**
  * SKU Search E2E Tests
@@ -145,5 +151,50 @@ test.describe("SKU Search", () => {
     await expect(page.locator("body")).toContainText("ACR2302006");
     // Verify it's filtered results, not the full catalog
     await expect(page.locator("body")).toContainText("1 part");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// INACTIVE part visibility — regression test for workflow_status filter
+// ---------------------------------------------------------------------------
+test.describe("INACTIVE part visibility", () => {
+  let snapshotId: string;
+
+  test.beforeAll(async () => {
+    snapshotId = await createE2ESnapshot();
+  });
+
+  test.afterAll(async () => {
+    if (snapshotId) {
+      await restoreE2ESnapshot(snapshotId);
+      await deleteE2ESnapshot(snapshotId);
+    }
+  });
+
+  test("INACTIVE part is not returned by public detail API", async ({
+    page,
+  }) => {
+    const client = getE2EClient();
+    // Get a known active part
+    const { data } = await client
+      .from("parts")
+      .select("acr_sku")
+      .eq("workflow_status", "ACTIVE")
+      .limit(1)
+      .single();
+    const sku = data!.acr_sku;
+
+    // Mark it INACTIVE
+    await client
+      .from("parts")
+      .update({ workflow_status: "INACTIVE" })
+      .eq("acr_sku", sku);
+
+    // Direct API lookup should return 404
+    const response = await page.request.get(`/api/public/parts?sku=${sku}`);
+    expect(response.status()).toBe(404);
+    const json = await response.json();
+    expect(json.success).toBe(false);
+    expect(json.error).toBe("Part not found");
   });
 });
