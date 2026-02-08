@@ -121,6 +121,7 @@ export const AcrComboBox = React.forwardRef<
             ref={ref}
             type="button"
             role="combobox"
+            aria-label={placeholder}
             aria-expanded={open}
             aria-controls={listboxId}
             onKeyDown={handleKeyDown}

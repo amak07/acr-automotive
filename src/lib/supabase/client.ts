@@ -41,3 +41,17 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     },
   },
 });
+
+/**
+ * Service role client for admin operations that need to bypass RLS.
+ * Only use in server-side API routes that are already gated by requireAuth().
+ */
+export function createAdminClient() {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY not configured");
+  }
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}

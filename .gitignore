@@ -90,6 +90,13 @@ supabase/config.toml  # May contain sensitive project-specific config
 # Testing
 .nyc_output
 junit.xml
+playwright-report/
+test-results/
+tests/e2e/.auth/
+tests/e2e/tmp/
+
+# Git worktrees
+.worktrees/
 
 # Database snapshots (local dev backups)
 .snapshots/
@@ -99,6 +106,7 @@ storybook-static/
 
 # Misc
 *.orig
+api-test.json
 
 # Excel uploads
 uploads/
@@ -121,3 +129,6 @@ public/CTK*/
 
 # Product images (served locally, not tracked in git)
 public/product-images/
+
+# SWC compiler cache
+.swc

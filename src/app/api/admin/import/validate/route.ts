@@ -21,12 +21,12 @@ import { requireAuth } from '@/lib/api/auth-helpers';
  *   summary: {
  *     totalErrors: number,
  *     totalWarnings: number,
- *     errorsBySheet: { parts: number, vehicleApplications: number, crossReferences: number }
+ *     errorsBySheet: { parts: number, vehicleApplications: number, aliases: number }
  *   },
  *   parsed: {
  *     parts: number,
  *     vehicleApplications: number,
- *     crossReferences: number
+ *     aliases: number
  *   }
  * }
  */
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     console.log('[Import Validate] Parsed:', {
       parts: parsed.parts.rowCount,
       vehicleApplications: parsed.vehicleApplications.rowCount,
-      crossReferences: parsed.crossReferences.rowCount,
+      aliases: parsed.aliases?.rowCount ?? 0,
     });
 
     // Step 2: Fetch existing database data
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       parsed: {
         parts: parsed.parts.rowCount,
         vehicleApplications: parsed.vehicleApplications.rowCount,
-        crossReferences: parsed.crossReferences.rowCount,
+        aliases: parsed.aliases?.rowCount ?? 0,
       },
     });
 

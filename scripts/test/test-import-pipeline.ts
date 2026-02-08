@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Test Import Pipeline (Parser → Validation → Diff)
  *

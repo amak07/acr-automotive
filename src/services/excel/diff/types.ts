@@ -5,17 +5,17 @@
 import type {
   ExcelPartRow,
   ExcelVehicleAppRow,
-  ExcelCrossRefRow,
+  ExcelAliasRow,
 } from '../shared/types';
 
 /**
  * Operation type for diff
  */
 export enum DiffOperation {
-  ADD = 'ADD', // New row (no _id or _id not in database)
-  UPDATE = 'UPDATE', // Existing row modified
-  DELETE = 'DELETE', // Row in database but not in file
-  UNCHANGED = 'UNCHANGED', // Row exists in both with no changes
+  ADD = 'ADD', // New record (not in database)
+  UPDATE = 'UPDATE', // Existing record modified
+  DELETE = 'DELETE', // Explicit delete via Status="Eliminar"
+  UNCHANGED = 'UNCHANGED', // Record exists in both with no changes
 }
 
 /**
@@ -48,12 +48,32 @@ export interface SheetDiff<T> {
 }
 
 /**
+ * Cross-reference diff result (extracted from brand columns in Parts sheet)
+ */
+export interface CrossRefDiffItem {
+  partId: string;
+  brand: string;
+  sku: string;
+  operation: DiffOperation;
+  _id?: string; // DB UUID (for deletes — resolved from existing data)
+}
+
+/**
  * Complete diff result for all sheets
  */
 export interface DiffResult {
   parts: SheetDiff<ExcelPartRow>;
   vehicleApplications: SheetDiff<ExcelVehicleAppRow>;
-  crossReferences: SheetDiff<ExcelCrossRefRow>;
+  aliases?: SheetDiff<ExcelAliasRow>;
+  crossReferences: {
+    adds: CrossRefDiffItem[];
+    deletes: CrossRefDiffItem[];
+    summary: {
+      totalAdds: number;
+      totalDeletes: number;
+      totalChanges: number;
+    };
+  };
   summary: {
     totalAdds: number;
     totalUpdates: number;
@@ -64,6 +84,7 @@ export interface DiffResult {
       parts: number;
       vehicleApplications: number;
       crossReferences: number;
+      aliases: number;
     };
   };
 }
