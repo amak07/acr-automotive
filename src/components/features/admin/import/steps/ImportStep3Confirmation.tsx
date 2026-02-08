@@ -559,13 +559,16 @@ export function ImportStep3Confirmation({
         )}
 
         {/* Action Buttons - Enhanced */}
-        <div className="flex gap-4 justify-center pt-6">
+        <p className="text-center text-sm font-medium text-acr-gray-500 uppercase tracking-wide">
+          {t("admin.import.success.whatNext")}
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-6">
           <AcrButton
             variant="secondary"
             size="default"
             onClick={() => router.push("/admin")}
             disabled={isRollingBack || showRollbackConfirm}
-            className="px-6 h-11 text-sm font-semibold"
+            className="w-full sm:w-auto px-6 h-11 text-sm font-semibold"
           >
             {t("admin.import.buttons.returnToDashboard")}
           </AcrButton>
@@ -575,22 +578,31 @@ export function ImportStep3Confirmation({
               size="default"
               onClick={() => setShowRollbackConfirm(true)}
               disabled={isRollingBack}
-              className="border-2 border-amber-500 text-amber-700 hover:bg-amber-50 hover:border-amber-600 px-6 h-11 text-sm font-semibold transition-all"
+              className="w-full sm:w-auto border-2 border-amber-500 text-amber-700 hover:bg-amber-50 hover:border-amber-600 px-6 h-11 text-sm font-semibold transition-all"
             >
               {isRollingBack ? t("admin.import.rollback.inProgress") : t("admin.import.rollback.button")}
             </AcrButton>
           )}
           {onStartNewImport && !showRollbackConfirm && (
             <AcrButton
-              variant="primary"
+              variant="secondary"
               size="default"
               onClick={onStartNewImport}
               disabled={isRollingBack}
-              className="px-8 h-11 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
+              className="w-full sm:w-auto px-8 h-11 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
             >
               {t("admin.import.buttons.startNew")}
             </AcrButton>
           )}
+          <AcrButton
+            variant="primary"
+            size="default"
+            onClick={() => router.push("/admin/parts")}
+            disabled={isRollingBack || showRollbackConfirm}
+            className="w-full sm:w-auto px-8 h-11 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
+          >
+            {t("admin.import.success.viewParts")}
+          </AcrButton>
         </div>
       </div>
     );

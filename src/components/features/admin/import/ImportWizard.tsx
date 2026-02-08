@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { Upload } from "lucide-react";
 import { AcrCard, AcrButton } from "@/components/acr";
@@ -13,6 +13,7 @@ import { ImportStep1Upload } from "./steps/ImportStep1Upload";
 import { ImportStep2Validation } from "./steps/ImportStep2Validation";
 import { ImportStep2DiffPreview } from "./steps/ImportStep2DiffPreview";
 import { ImportStep3Confirmation } from "./steps/ImportStep3Confirmation";
+import { ImportHistoryPanel } from "./ImportHistoryPanel";
 
 // Type imports (these match the backend types)
 interface ValidationResult {
@@ -42,6 +43,11 @@ interface ValidationResult {
     totalWarnings: number;
     errorsBySheet: Record<string, number>;
     warningsBySheet: Record<string, number>;
+  };
+  parsed?: {
+    parts: number;
+    vehicleApplications: number;
+    aliases: number;
   };
 }
 
@@ -75,6 +81,19 @@ interface ImportResult {
   executionTime: number;
 }
 
+interface ImportHistoryItem {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  rowsImported: number;
+  importSummary: {
+    adds: number;
+    updates: number;
+    deletes: number;
+  } | null;
+  createdAt: string;
+}
+
 interface WizardState {
   currentStep: 1 | 2 | 3;
   file: File | null;
@@ -85,6 +104,7 @@ interface WizardState {
   isProcessing: boolean;
   isRollingBack: boolean;
   error: string | null;
+  processingPhase: 'uploading' | 'validating' | 'diffing' | null;
 }
 
 export function ImportWizard() {
@@ -103,7 +123,28 @@ export function ImportWizard() {
     isProcessing: false,
     isRollingBack: false,
     error: null,
+    processingPhase: null,
   });
+
+  const [importHistory, setImportHistory] = useState<ImportHistoryItem[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch('/api/admin/import/history?limit=5');
+        if (response.ok) {
+          const data = await response.json();
+          setImportHistory(data.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch import history:', error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+    fetchHistory();
+  }, []);
 
   // Determine if user can proceed to next step
   const canProceedToNext = useMemo(() => {
@@ -137,6 +178,7 @@ export function ImportWizard() {
       ...prev,
       file,
       isProcessing: true,
+      processingPhase: 'uploading',
       error: null,
       validationResult: null,
       diffResult: null,
@@ -146,6 +188,9 @@ export function ImportWizard() {
       // Call validation API
       const formData = new FormData();
       formData.append("file", file);
+
+      // Transition to validating phase once upload is prepared
+      setState((prev) => ({ ...prev, processingPhase: 'validating' }));
 
       const validationResponse = await fetch("/api/admin/import/validate", {
         method: "POST",
@@ -162,6 +207,7 @@ export function ImportWizard() {
         ...prev,
         validationResult,
         isProcessing: false,
+        processingPhase: 'diffing',
       }));
 
       // Always generate diff (even if there are errors, for preview)
@@ -171,11 +217,12 @@ export function ImportWizard() {
       setState((prev) => ({
         ...prev,
         isProcessing: false,
+        processingPhase: null,
         error: error instanceof Error ? error.message : "Failed to validate file",
       }));
       toast({
-        title: "Validation Error",
-        description: "Failed to validate the uploaded file. Please try again.",
+        title: t("admin.import.toast.validationErrorTitle"),
+        description: t("admin.import.toast.validationErrorDesc"),
         variant: "destructive",
       });
     }
@@ -204,17 +251,19 @@ export function ImportWizard() {
         ...prev,
         diffResult,
         isProcessing: false,
+        processingPhase: null,
         currentStep: 2, // Advance to Review step after diff is generated
       }));
     } catch (error) {
       setState((prev) => ({
         ...prev,
         isProcessing: false,
+        processingPhase: null,
         error: error instanceof Error ? error.message : "Failed to generate preview",
       }));
       toast({
-        title: "Preview Error",
-        description: "Failed to generate change preview. Please try again.",
+        title: t("admin.import.toast.previewErrorTitle"),
+        description: t("admin.import.toast.previewErrorDesc"),
         variant: "destructive",
       });
     }
@@ -278,9 +327,20 @@ export function ImportWizard() {
       // Invalidate parts cache so dashboard refreshes
       queryClient.invalidateQueries({ queryKey: queryKeys.parts.all });
 
+      // Refresh import history
+      const historyResponse = await fetch('/api/admin/import/history?limit=5');
+      if (historyResponse.ok) {
+        const historyData = await historyResponse.json();
+        setImportHistory(historyData.data || []);
+      }
+
       toast({
-        title: "Import Successful",
-        description: `Imported ${importResult.summary.totalChanges} changes successfully: ${importResult.summary.totalAdds} added, ${importResult.summary.totalUpdates} updated, ${importResult.summary.totalDeletes} deleted`,
+        title: t("admin.import.toast.importSuccessTitle"),
+        description: t("admin.import.toast.importSuccessDesc")
+          .replace("{totalChanges}", String(importResult.summary.totalChanges))
+          .replace("{adds}", String(importResult.summary.totalAdds))
+          .replace("{updates}", String(importResult.summary.totalUpdates))
+          .replace("{deletes}", String(importResult.summary.totalDeletes)),
         className: "bg-green-50 border-green-200",
       });
     } catch (error) {
@@ -290,8 +350,8 @@ export function ImportWizard() {
         error: error instanceof Error ? error.message : "Failed to execute import",
       }));
       toast({
-        title: "Import Failed",
-        description: error instanceof Error ? error.message : "Failed to execute import. Please try again.",
+        title: t("admin.import.toast.importFailedTitle"),
+        description: error instanceof Error ? error.message : t("admin.import.toast.importFailedDesc"),
         variant: "destructive",
       });
     }
@@ -308,6 +368,7 @@ export function ImportWizard() {
       isProcessing: false,
       isRollingBack: false,
       error: null,
+      processingPhase: null,
     });
   };
 
@@ -328,8 +389,11 @@ export function ImportWizard() {
       }
 
       toast({
-        title: "Rollback Successful",
-        description: `Restored ${result.restoredCounts.parts} parts, ${result.restoredCounts.vehicleApplications} vehicle applications, and ${result.restoredCounts.crossReferences} cross-references`,
+        title: t("admin.import.toast.rollbackSuccessTitle"),
+        description: t("admin.import.toast.rollbackSuccessDesc")
+          .replace("{parts}", String(result.restoredCounts.parts))
+          .replace("{vehicleApplications}", String(result.restoredCounts.vehicleApplications))
+          .replace("{crossReferences}", String(result.restoredCounts.crossReferences)),
         className: "bg-green-50 border-green-200",
       });
 
@@ -347,6 +411,7 @@ export function ImportWizard() {
         isProcessing: false,
         isRollingBack: false,
         error: null,
+        processingPhase: null,
       });
 
       // Navigate back to admin dashboard
@@ -358,8 +423,8 @@ export function ImportWizard() {
         error: error instanceof Error ? error.message : "Failed to rollback import",
       }));
       toast({
-        title: "Rollback Failed",
-        description: error instanceof Error ? error.message : "Failed to rollback import. Please try again.",
+        title: t("admin.import.toast.rollbackFailedTitle"),
+        description: error instanceof Error ? error.message : t("admin.import.toast.rollbackFailedDesc"),
         variant: "destructive",
       });
     }
@@ -411,11 +476,13 @@ export function ImportWizard() {
               isProcessing={state.isProcessing}
               uploadedFile={state.file}
               validationResult={state.validationResult}
+              processingPhase={state.processingPhase}
+              lastImport={importHistory[0] || null}
               parseProgress={{
                 isParsing: state.isProcessing,
                 rowCount: state.validationResult
                   ? {
-                      parts: 0, // We'll need to add this to validation result
+                      parts: 0,
                       vehicleApplications: 0,
                       crossReferences: 0,
                     }
@@ -480,6 +547,12 @@ export function ImportWizard() {
           </AcrButton>
         </div>
       )}
+
+      {/* Import History */}
+      <ImportHistoryPanel
+        history={importHistory}
+        isLoading={isLoadingHistory}
+      />
     </div>
   );
 }
