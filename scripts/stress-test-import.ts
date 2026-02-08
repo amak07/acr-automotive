@@ -202,6 +202,24 @@ async function deleteStressTestAliases(): Promise<number> {
   return data?.length ?? 0;
 }
 
+async function deleteStressTestVehicleApps(): Promise<number> {
+  const { data } = await db
+    .from("vehicle_applications")
+    .delete()
+    .like("make", "STRESS-%")
+    .select("id");
+  return data?.length ?? 0;
+}
+
+async function deleteStressTestCrossRefs(): Promise<number> {
+  const { data } = await db
+    .from("cross_references")
+    .delete()
+    .like("competitor_sku", "STRESS-%")
+    .select("id");
+  return data?.length ?? 0;
+}
+
 // ---------------------------------------------------------------------------
 // Workbook manipulation helpers
 // ---------------------------------------------------------------------------
@@ -378,7 +396,11 @@ async function main() {
     if (!result.success) {
       console.log("  WARNING: Baseline restore failed:", result);
     }
-    // Also clean up any stress test parts and aliases
+    // Also clean up any stress test data (VAs/cross-refs before parts to avoid FK issues)
+    const deletedVAs = await deleteStressTestVehicleApps();
+    if (deletedVAs > 0) console.log(`    Cleaned up ${deletedVAs} stress test VAs`);
+    const deletedXrefs = await deleteStressTestCrossRefs();
+    if (deletedXrefs > 0) console.log(`    Cleaned up ${deletedXrefs} stress test cross-refs`);
     const deleted = await deleteStressTestParts();
     if (deleted > 0) console.log(`    Cleaned up ${deleted} stress test parts`);
     const deletedAliases = await deleteStressTestAliases();
@@ -1326,7 +1348,7 @@ async function main() {
       const vaMake = String(ws.getRow(4).getCell(colMake).value);
       const vaModel = String(ws.getRow(4).getCell(colModel).value);
       const vaStartYear = Number(ws.getRow(4).getCell(colStartYear).value);
-      const newEndYear = 2099;
+      const newEndYear = 2027;
       ws.getRow(4).getCell(colEndYear).value = newEndYear;
 
       console.log(
@@ -1630,8 +1652,9 @@ async function main() {
       // Count VAs for this part before
       const partBefore = await findPartBySku(targetSku);
       const vasBefore = await findVehicleAppsByPartId(partBefore!.id);
+      const vaCountBefore = await countVehicleApps();
       console.log(
-        `  Part ${targetSku} has ${vasBefore.length} VAs before delete`
+        `  Part ${targetSku} has ${vasBefore.length} VAs before delete (total VAs: ${vaCountBefore})`
       );
       assert(vasBefore.length > 0, "part should have VAs");
 
@@ -1643,11 +1666,12 @@ async function main() {
       const partAfter = await findPartBySku(targetSku);
       assert(partAfter === null, "part should be deleted");
 
-      // VAs should be cascade-deleted
+      // VAs should be cascade-deleted (use local snapshot, not baselineCounts)
       const vaCountAfter = await countVehicleApps();
+      console.log(`  VA count: ${vaCountBefore} -> ${vaCountAfter}`);
       assert(
-        vaCountAfter < baselineCounts.vehicleApps,
-        `VA count should decrease (${baselineCounts.vehicleApps} -> ${vaCountAfter})`
+        vaCountAfter < vaCountBefore,
+        `VA count should decrease (${vaCountBefore} -> ${vaCountAfter})`
       );
 
       await restoreBaseline();
@@ -1680,8 +1704,9 @@ async function main() {
       // Count cross-refs for this part before
       const partBefore = await findPartBySku(targetSku);
       const xrefsBefore = await findCrossRefsByPartId(partBefore!.id);
+      const xrefCountBefore = await countCrossRefs();
       console.log(
-        `  Part ${targetSku} has ${xrefsBefore.length} cross-refs before delete`
+        `  Part ${targetSku} has ${xrefsBefore.length} cross-refs before delete (total: ${xrefCountBefore})`
       );
       assert(xrefsBefore.length > 0, "part should have cross-refs");
 
@@ -1695,11 +1720,12 @@ async function main() {
       const partAfter = await findPartBySku(targetSku);
       assert(partAfter === null, "part should be deleted");
 
-      // Cross-refs should be cascade-deleted
+      // Cross-refs should be cascade-deleted (use local snapshot)
       const xrefCountAfter = await countCrossRefs();
+      console.log(`  Cross-ref count: ${xrefCountBefore} -> ${xrefCountAfter}`);
       assert(
-        xrefCountAfter < baselineCounts.crossRefs,
-        `Cross-ref count should decrease (${baselineCounts.crossRefs} -> ${xrefCountAfter})`
+        xrefCountAfter < xrefCountBefore,
+        `Cross-ref count should decrease (${xrefCountBefore} -> ${xrefCountAfter})`
       );
 
       await restoreBaseline();
