@@ -303,6 +303,8 @@ export interface TranslationKeys {
   // Import Success Enhancements
   "admin.import.success.viewParts": string;
   "admin.import.success.whatNext": string;
+  "admin.import.success.inlineSummary": string;
+  "admin.import.success.rollbackHint": string;
 
   // Import History Panel — inline labels
   "admin.import.history.added": string;

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { Upload } from "lucide-react";
+import { Upload, CheckCircle, AlertCircle, RotateCcw, Loader2 } from "lucide-react";
 import { AcrCard, AcrButton } from "@/components/acr";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/common/use-toast";
@@ -12,7 +12,6 @@ import { ImportStepIndicator } from "./ImportStepIndicator";
 import { ImportStep1Upload } from "./steps/ImportStep1Upload";
 import { ImportStep2Validation } from "./steps/ImportStep2Validation";
 import { ImportStep2DiffPreview } from "./steps/ImportStep2DiffPreview";
-import { ImportStep3Confirmation } from "./steps/ImportStep3Confirmation";
 import { ImportHistoryPanel } from "./ImportHistoryPanel";
 
 // Type imports (these match the backend types)
@@ -275,9 +274,7 @@ export function ImportWizard() {
 
   const handleNext = async () => {
     if (state.currentStep === 2) {
-      // Step 2 (Review) -> Step 3 (Execute)
-      setState((prev) => ({ ...prev, currentStep: 3 }));
-      // Execute import immediately when entering step 3
+      // Execute import inline — stay on Step 2
       await handleExecuteImport();
     } else if (canProceedToNext) {
       setState((prev) => ({ ...prev, currentStep: (prev.currentStep + 1) as any }));
@@ -493,8 +490,30 @@ export function ImportWizard() {
 
           {state.currentStep === 2 && (
             <div className="space-y-6">
-              {/* Show errors (blocking) if they exist */}
-              {state.validationResult && state.validationResult.errors.length > 0 && (
+              {/* Import success banner */}
+              {state.importResult && (
+                <ImportResultBanner
+                  importResult={state.importResult}
+                  error={null}
+                  isRollingBack={state.isRollingBack}
+                  onRollback={handleRollback}
+                  onStartNewImport={handleStartNewImport}
+                />
+              )}
+
+              {/* Import error banner */}
+              {!state.importResult && state.error && !state.isProcessing && (
+                <ImportResultBanner
+                  importResult={null}
+                  error={state.error}
+                  isRollingBack={false}
+                  onRollback={handleRollback}
+                  onStartNewImport={handleStartNewImport}
+                />
+              )}
+
+              {/* Show validation errors (blocking) if they exist */}
+              {!state.importResult && state.validationResult && state.validationResult.errors.length > 0 && (
                 <ImportStep2Validation
                   validationResult={state.validationResult}
                   isValidating={false}
@@ -503,33 +522,39 @@ export function ImportWizard() {
                 />
               )}
 
-              {/* Diff Preview Section (includes cascade warnings contextually) */}
+              {/* Diff Preview Section */}
               <ImportStep2DiffPreview
                 diffResult={state.diffResult}
-                isGeneratingDiff={state.isProcessing}
+                isGeneratingDiff={state.isProcessing && !state.importResult}
                 validationWarnings={state.validationResult?.warnings || []}
                 onAcknowledgeWarnings={handleAcknowledgeWarnings}
                 warningsAcknowledged={state.warningsAcknowledged}
               />
             </div>
           )}
-
-          {state.currentStep === 3 && (
-            <ImportStep3Confirmation
-              isExecuting={state.isProcessing}
-              importResult={state.importResult}
-              diffResult={state.diffResult}
-              error={state.error}
-              onStartNewImport={handleStartNewImport}
-              onRollback={handleRollback}
-              isRollingBack={state.isRollingBack}
-            />
-          )}
         </div>
       </AcrCard>
 
-      {/* Navigation Buttons - Hide on step 3 success */}
-      {!(state.currentStep === 3 && state.importResult) && (
+      {/* Navigation Buttons */}
+      {state.importResult ? (
+        // Post-import: show dashboard / view parts actions
+        <div className="flex flex-col sm:flex-row justify-center gap-3">
+          <AcrButton
+            variant="secondary"
+            onClick={() => router.push("/admin")}
+            disabled={state.isRollingBack}
+          >
+            {t("admin.import.buttons.returnToDashboard")}
+          </AcrButton>
+          <AcrButton
+            variant="primary"
+            onClick={() => router.push("/admin/parts")}
+            disabled={state.isRollingBack}
+          >
+            {t("admin.import.success.viewParts")}
+          </AcrButton>
+        </div>
+      ) : (
         <div className="flex justify-between">
           <AcrButton
             variant="secondary"
@@ -541,7 +566,7 @@ export function ImportWizard() {
           <AcrButton
             variant="primary"
             onClick={handleNext}
-            disabled={!canProceedToNext || state.isProcessing || state.currentStep === 3}
+            disabled={!canProceedToNext || state.isProcessing}
           >
             {state.isProcessing ? t("admin.import.processing") : getNextButtonLabel()}
           </AcrButton>
@@ -555,4 +580,127 @@ export function ImportWizard() {
       />
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Inline result banner — shown at the top of Step 2 after import executes
+// ---------------------------------------------------------------------------
+
+function ImportResultBanner({
+  importResult,
+  error,
+  isRollingBack,
+  onRollback,
+  onStartNewImport,
+}: {
+  importResult: ImportResult | null;
+  error: string | null;
+  isRollingBack: boolean;
+  onRollback: (importId: string) => void;
+  onStartNewImport: () => void;
+}) {
+  const { t } = useLocale();
+  const [showRollbackConfirm, setShowRollbackConfirm] = useState(false);
+
+  // Success banner
+  if (importResult) {
+    const summary = t("admin.import.success.inlineSummary")
+      .replace("{adds}", String(importResult.summary.totalAdds))
+      .replace("{updates}", String(importResult.summary.totalUpdates))
+      .replace("{deletes}", String(importResult.summary.totalDeletes))
+      .replace("{time}", (importResult.executionTime / 1000).toFixed(1));
+
+    return (
+      <div className="space-y-3">
+        {/* Success bar */}
+        <div className="flex items-start gap-3 rounded-lg border border-green-300 bg-green-50 p-4">
+          <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-green-900">
+              {t("admin.import.success.title")}
+            </p>
+            <p className="text-sm text-green-800 mt-0.5">
+              {summary}
+            </p>
+            <p className="text-xs text-green-700 mt-1">
+              {t("admin.import.success.rollbackHint")}
+            </p>
+          </div>
+          {!showRollbackConfirm && (
+            <button
+              type="button"
+              onClick={() => setShowRollbackConfirm(true)}
+              disabled={isRollingBack}
+              className="inline-flex items-center text-xs text-green-700 hover:text-amber-700 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+            >
+              <RotateCcw className="w-3.5 h-3.5 mr-1" />
+              {t("admin.import.rollback.button")}
+            </button>
+          )}
+        </div>
+
+        {/* Rollback confirmation (inline) */}
+        {showRollbackConfirm && (
+          <div className="flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4">
+            <RotateCcw className="w-5 h-5 text-amber-600 shrink-0" />
+            <p className="text-sm text-amber-900 flex-1">
+              {t("admin.import.rollback.confirm")}
+            </p>
+            <div className="flex gap-2 shrink-0">
+              <AcrButton
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowRollbackConfirm(false)}
+                disabled={isRollingBack}
+              >
+                {t("admin.import.rollback.cancel")}
+              </AcrButton>
+              <AcrButton
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  setShowRollbackConfirm(false);
+                  onRollback(importResult.importId);
+                }}
+                disabled={isRollingBack}
+              >
+                {isRollingBack ? (
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                )}
+                {isRollingBack ? t("admin.import.rollback.inProgress") : t("admin.import.rollback.confirm.button")}
+              </AcrButton>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Error banner
+  if (error) {
+    return (
+      <div className="flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 p-4">
+        <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-red-900">
+            {t("admin.import.error.generic")}
+          </p>
+          <p className="text-sm text-red-800 mt-0.5">
+            {error}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onStartNewImport}
+          className="inline-flex items-center text-xs font-medium text-red-700 hover:text-red-900 transition-colors shrink-0 cursor-pointer"
+        >
+          {t("admin.import.error.tryAgain")}
+        </button>
+      </div>
+    );
+  }
+
+  return null;
 }
