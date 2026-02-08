@@ -8,9 +8,9 @@ import { CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ImportStepIndicatorProps {
-  currentStep: 1 | 2 | 3;
-  onStepClick?: (step: 1 | 2 | 3) => void;
-  isImportComplete?: boolean; // When true, Step 3 will show as complete (green)
+  currentStep: 1 | 2;
+  onStepClick?: (step: 1 | 2) => void;
+  isImportComplete?: boolean;
 }
 
 export function ImportStepIndicator({ currentStep, onStepClick, isImportComplete }: ImportStepIndicatorProps) {
@@ -19,7 +19,6 @@ export function ImportStepIndicator({ currentStep, onStepClick, isImportComplete
   const steps = [
     { number: 1, label: t("admin.import.steps.upload") },
     { number: 2, label: t("admin.import.steps.reviewChanges") },
-    { number: 3, label: t("admin.import.steps.confirm") },
   ] as const;
 
   const getStepStatus = (stepNumber: number): "complete" | "current" | "pending" => {
@@ -188,8 +187,8 @@ export function ImportStepIndicator({ currentStep, onStepClick, isImportComplete
         role="progressbar"
         aria-valuenow={currentStep}
         aria-valuemin={1}
-        aria-valuemax={3}
-        aria-label={`Step ${currentStep} of 3: ${steps.find((s) => s.number === currentStep)?.label}`}
+        aria-valuemax={2}
+        aria-label={`Step ${currentStep} of 2: ${steps.find((s) => s.number === currentStep)?.label}`}
         className="sr-only"
       />
     </div>

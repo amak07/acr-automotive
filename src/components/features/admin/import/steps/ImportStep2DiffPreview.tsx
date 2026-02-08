@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { PlusCircle, Edit, Trash2, AlertTriangle, ChevronDown, ChevronRight, Info, CheckCircle } from "lucide-react";
-import { AcrCard, AcrButton } from "@/components/acr";
+import { AcrCard } from "@/components/acr";
 import { AcrTabs, AcrTabsList, AcrTabsTrigger, AcrTabsContent } from "@/components/acr/Tabs";
 import { cn } from "@/lib/utils";
 
@@ -145,7 +145,7 @@ export function ImportStep2DiffPreview({
   const totalChanges = diffResult.summary.totalChanges || (diffResult.summary.totalAdds + diffResult.summary.totalUpdates + diffResult.summary.totalDeletes);
 
   // No changes — show a single compact message instead of the full tab structure
-  if (totalChanges === 0 && systemUpdateCount === 0) {
+  if (totalChanges === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <CheckCircle className="w-12 h-12 text-green-500 mb-3" />
@@ -256,19 +256,25 @@ export function ImportStep2DiffPreview({
         </AcrCard>
       </div>
 
-      {/* Entity Change Tabs */}
-      <AcrTabs defaultValue="parts">
+      {/* Entity Change Tabs — only show tabs with actual changes */}
+      <AcrTabs defaultValue={partChangeCount > 0 ? "parts" : vaChangeCount > 0 ? "vehicleApps" : crChangeCount > 0 ? "crossRefs" : "aliases"}>
         <AcrTabsList>
-          <AcrTabsTrigger value="parts">
-            {t("admin.import.preview.partChanges")} ({partChangeCount})
-          </AcrTabsTrigger>
-          <AcrTabsTrigger value="vehicleApps">
-            {t("admin.import.preview.vehicleAppChanges")} ({vaChangeCount})
-          </AcrTabsTrigger>
-          <AcrTabsTrigger value="crossRefs">
-            {t("admin.import.preview.crossRefChanges")} ({crChangeCount})
-          </AcrTabsTrigger>
-          {hasAliases && (
+          {partChangeCount > 0 && (
+            <AcrTabsTrigger value="parts">
+              {t("admin.import.preview.partChanges")} ({partChangeCount})
+            </AcrTabsTrigger>
+          )}
+          {vaChangeCount > 0 && (
+            <AcrTabsTrigger value="vehicleApps">
+              {t("admin.import.preview.vehicleAppChanges")} ({vaChangeCount})
+            </AcrTabsTrigger>
+          )}
+          {crChangeCount > 0 && (
+            <AcrTabsTrigger value="crossRefs">
+              {t("admin.import.preview.crossRefChanges")} ({crChangeCount})
+            </AcrTabsTrigger>
+          )}
+          {hasAliases && aliasChangeCount > 0 && (
             <AcrTabsTrigger value="aliases">
               {t("admin.import.preview.aliasChanges")} ({aliasChangeCount})
             </AcrTabsTrigger>
@@ -276,440 +282,276 @@ export function ImportStep2DiffPreview({
         </AcrTabsList>
 
         {/* Parts Tab */}
-        <AcrTabsContent value="parts">
-          {partChangeCount === 0 ? (
-            <p className="text-center text-acr-gray-500 py-8">{t("admin.import.preview.noChanges")}</p>
-          ) : (
-            <div className="space-y-4">
-              {/* New Parts */}
+        {partChangeCount > 0 && (
+          <AcrTabsContent value="parts">
+            <div className="space-y-2">
               {diffResult.parts.summary.totalAdds > 0 && (
                 <ChangeSection
                   title={t("admin.import.preview.newParts")}
                   count={diffResult.parts.summary.totalAdds}
-                  icon={<PlusCircle className="w-5 h-5 text-green-600" />}
-                  colorClass="border-green-300 bg-green-50"
+                  icon={<PlusCircle className="w-4 h-4 text-green-600" />}
+                  accentColor="green"
                   isExpanded={expandedSections.adds}
                   onToggle={() => toggleSection('adds')}
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {diffResult.parts.adds.slice(0, visibleCounts.adds).map((item, idx) => (
                       <PartAddItem key={idx} item={item} />
                     ))}
-                    {diffResult.parts.adds.length > visibleCounts.adds && (
-                      <div className="flex gap-2 pt-2">
-                        <AcrButton
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => loadMore('adds')}
-                        >
-                          {t("admin.import.preview.loadMore")}
-                        </AcrButton>
-                        <AcrButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => showAll('adds', diffResult.parts.adds.length)}
-                        >
-                          {t("admin.import.preview.showAll").replace("{count}", diffResult.parts.adds.length.toString())}
-                        </AcrButton>
-                      </div>
-                    )}
+                    <PaginationControls
+                      visible={visibleCounts.adds}
+                      total={diffResult.parts.adds.length}
+                      onLoadMore={() => loadMore('adds')}
+                      onShowAll={() => showAll('adds', diffResult.parts.adds.length)}
+                    />
                   </div>
                 </ChangeSection>
               )}
-
-              {/* Updated Parts */}
               {diffResult.parts.summary.totalUpdates > 0 && (
                 <ChangeSection
                   title={t("admin.import.preview.updatedParts")}
                   count={diffResult.parts.summary.totalUpdates}
-                  icon={<Edit className="w-5 h-5 text-blue-600" />}
-                  colorClass="border-blue-300 bg-blue-50"
+                  icon={<Edit className="w-4 h-4 text-blue-600" />}
+                  accentColor="blue"
                   isExpanded={expandedSections.updates}
                   onToggle={() => toggleSection('updates')}
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {diffResult.parts.updates.slice(0, visibleCounts.updates).map((item, idx) => (
                       <PartUpdateItem key={idx} item={item} />
                     ))}
-                    {diffResult.parts.updates.length > visibleCounts.updates && (
-                      <div className="flex gap-2 pt-2">
-                        <AcrButton
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => loadMore('updates')}
-                        >
-                          {t("admin.import.preview.loadMore")}
-                        </AcrButton>
-                        <AcrButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => showAll('updates', diffResult.parts.updates.length)}
-                        >
-                          {t("admin.import.preview.showAll").replace("{count}", diffResult.parts.updates.length.toString())}
-                        </AcrButton>
-                      </div>
-                    )}
+                    <PaginationControls
+                      visible={visibleCounts.updates}
+                      total={diffResult.parts.updates.length}
+                      onLoadMore={() => loadMore('updates')}
+                      onShowAll={() => showAll('updates', diffResult.parts.updates.length)}
+                    />
                   </div>
                 </ChangeSection>
               )}
-
-              {/* Deleted Parts */}
               {diffResult.parts.summary.totalDeletes > 0 && (
                 <ChangeSection
                   title={t("admin.import.preview.deletedParts")}
                   count={diffResult.parts.summary.totalDeletes}
-                  icon={<Trash2 className="w-5 h-5 text-red-600" />}
-                  colorClass="border-red-300 bg-red-50"
+                  icon={<Trash2 className="w-4 h-4 text-red-600" />}
+                  accentColor="red"
                   isExpanded={expandedSections.deletes}
                   onToggle={() => toggleSection('deletes')}
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {diffResult.parts.deletes.slice(0, visibleCounts.deletes).map((item, idx) => (
-                      <PartDeleteItem
-                        key={idx}
-                        item={item}
-                        cascadeWarnings={cascadeWarnings}
-                      />
+                      <PartDeleteItem key={idx} item={item} cascadeWarnings={cascadeWarnings} />
                     ))}
-                    {diffResult.parts.deletes.length > visibleCounts.deletes && (
-                      <div className="flex gap-2 pt-2">
-                        <AcrButton
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => loadMore('deletes')}
-                        >
-                          {t("admin.import.preview.loadMore")}
-                        </AcrButton>
-                        <AcrButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => showAll('deletes', diffResult.parts.deletes.length)}
-                        >
-                          {t("admin.import.preview.showAll").replace("{count}", diffResult.parts.deletes.length.toString())}
-                        </AcrButton>
-                      </div>
-                    )}
+                    <PaginationControls
+                      visible={visibleCounts.deletes}
+                      total={diffResult.parts.deletes.length}
+                      onLoadMore={() => loadMore('deletes')}
+                      onShowAll={() => showAll('deletes', diffResult.parts.deletes.length)}
+                    />
                   </div>
                 </ChangeSection>
               )}
             </div>
-          )}
-        </AcrTabsContent>
+          </AcrTabsContent>
+        )}
 
         {/* Vehicle Applications Tab */}
-        <AcrTabsContent value="vehicleApps">
-          {vaChangeCount === 0 ? (
-            <p className="text-center text-acr-gray-500 py-8">{t("admin.import.preview.noChanges")}</p>
-          ) : (
-            <div className="space-y-4">
-              {/* New Vehicle Apps */}
+        {vaChangeCount > 0 && (
+          <AcrTabsContent value="vehicleApps">
+            <div className="space-y-2">
               {diffResult.vehicleApplications.summary.totalAdds > 0 && (
                 <ChangeSection
                   title={t("admin.import.preview.newVehicleApps")}
                   count={diffResult.vehicleApplications.summary.totalAdds}
-                  icon={<PlusCircle className="w-5 h-5 text-green-600" />}
-                  colorClass="border-green-300 bg-green-50"
+                  icon={<PlusCircle className="w-4 h-4 text-green-600" />}
+                  accentColor="green"
                   isExpanded={expandedSections.vaAdds}
                   onToggle={() => toggleSection('vaAdds')}
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {diffResult.vehicleApplications.adds.slice(0, visibleCounts.vaAdds).map((item, idx) => (
                       <VehicleAppItem key={idx} item={item} operation="add" />
                     ))}
-                    {diffResult.vehicleApplications.adds.length > visibleCounts.vaAdds && (
-                      <div className="flex gap-2 pt-2">
-                        <AcrButton
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => loadMore('vaAdds')}
-                        >
-                          {t("admin.import.preview.loadMore")}
-                        </AcrButton>
-                        <AcrButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => showAll('vaAdds', diffResult.vehicleApplications.adds.length)}
-                        >
-                          {t("admin.import.preview.showAll").replace("{count}", diffResult.vehicleApplications.adds.length.toString())}
-                        </AcrButton>
-                      </div>
-                    )}
+                    <PaginationControls
+                      visible={visibleCounts.vaAdds}
+                      total={diffResult.vehicleApplications.adds.length}
+                      onLoadMore={() => loadMore('vaAdds')}
+                      onShowAll={() => showAll('vaAdds', diffResult.vehicleApplications.adds.length)}
+                    />
                   </div>
                 </ChangeSection>
               )}
-
-              {/* Updated Vehicle Apps */}
               {diffResult.vehicleApplications.summary.totalUpdates > 0 && (
                 <ChangeSection
                   title={t("admin.import.preview.updatedVehicleApps")}
                   count={diffResult.vehicleApplications.summary.totalUpdates}
-                  icon={<Edit className="w-5 h-5 text-blue-600" />}
-                  colorClass="border-blue-300 bg-blue-50"
+                  icon={<Edit className="w-4 h-4 text-blue-600" />}
+                  accentColor="blue"
                   isExpanded={expandedSections.vaUpdates}
                   onToggle={() => toggleSection('vaUpdates')}
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {diffResult.vehicleApplications.updates.slice(0, visibleCounts.vaUpdates).map((item, idx) => (
                       <VehicleAppItem key={idx} item={item} operation="update" />
                     ))}
-                    {diffResult.vehicleApplications.updates.length > visibleCounts.vaUpdates && (
-                      <div className="flex gap-2 pt-2">
-                        <AcrButton
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => loadMore('vaUpdates')}
-                        >
-                          {t("admin.import.preview.loadMore")}
-                        </AcrButton>
-                        <AcrButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => showAll('vaUpdates', diffResult.vehicleApplications.updates.length)}
-                        >
-                          {t("admin.import.preview.showAll").replace("{count}", diffResult.vehicleApplications.updates.length.toString())}
-                        </AcrButton>
-                      </div>
-                    )}
+                    <PaginationControls
+                      visible={visibleCounts.vaUpdates}
+                      total={diffResult.vehicleApplications.updates.length}
+                      onLoadMore={() => loadMore('vaUpdates')}
+                      onShowAll={() => showAll('vaUpdates', diffResult.vehicleApplications.updates.length)}
+                    />
                   </div>
                 </ChangeSection>
               )}
-
-              {/* Deleted Vehicle Apps */}
               {diffResult.vehicleApplications.summary.totalDeletes > 0 && (
                 <ChangeSection
                   title={t("admin.import.preview.deletedVehicleApps")}
                   count={diffResult.vehicleApplications.summary.totalDeletes}
-                  icon={<Trash2 className="w-5 h-5 text-red-600" />}
-                  colorClass="border-red-300 bg-red-50"
+                  icon={<Trash2 className="w-4 h-4 text-red-600" />}
+                  accentColor="red"
                   isExpanded={expandedSections.vaDeletes}
                   onToggle={() => toggleSection('vaDeletes')}
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {diffResult.vehicleApplications.deletes.slice(0, visibleCounts.vaDeletes).map((item, idx) => (
                       <VehicleAppItem key={idx} item={item} operation="delete" />
                     ))}
-                    {diffResult.vehicleApplications.deletes.length > visibleCounts.vaDeletes && (
-                      <div className="flex gap-2 pt-2">
-                        <AcrButton
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => loadMore('vaDeletes')}
-                        >
-                          {t("admin.import.preview.loadMore")}
-                        </AcrButton>
-                        <AcrButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => showAll('vaDeletes', diffResult.vehicleApplications.deletes.length)}
-                        >
-                          {t("admin.import.preview.showAll").replace("{count}", diffResult.vehicleApplications.deletes.length.toString())}
-                        </AcrButton>
-                      </div>
-                    )}
+                    <PaginationControls
+                      visible={visibleCounts.vaDeletes}
+                      total={diffResult.vehicleApplications.deletes.length}
+                      onLoadMore={() => loadMore('vaDeletes')}
+                      onShowAll={() => showAll('vaDeletes', diffResult.vehicleApplications.deletes.length)}
+                    />
                   </div>
                 </ChangeSection>
               )}
             </div>
-          )}
-        </AcrTabsContent>
+          </AcrTabsContent>
+        )}
 
         {/* Cross-References Tab */}
-        <AcrTabsContent value="crossRefs">
-          {crChangeCount === 0 ? (
-            <p className="text-center text-acr-gray-500 py-8">{t("admin.import.preview.noChanges")}</p>
-          ) : (
-            <div className="space-y-4">
-              {/* New Cross-Refs */}
+        {crChangeCount > 0 && (
+          <AcrTabsContent value="crossRefs">
+            <div className="space-y-2">
               {(diffResult.crossReferences.adds?.length || 0) > 0 && (
                 <ChangeSection
                   title={t("admin.import.preview.newCrossRefs")}
                   count={diffResult.crossReferences.adds.length}
-                  icon={<PlusCircle className="w-5 h-5 text-green-600" />}
-                  colorClass="border-green-300 bg-green-50"
+                  icon={<PlusCircle className="w-4 h-4 text-green-600" />}
+                  accentColor="green"
                   isExpanded={expandedSections.crAdds}
                   onToggle={() => toggleSection('crAdds')}
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {diffResult.crossReferences.adds.slice(0, visibleCounts.crAdds).map((item, idx) => (
                       <CrossRefItem key={idx} item={item} operation="add" />
                     ))}
-                    {diffResult.crossReferences.adds.length > visibleCounts.crAdds && (
-                      <div className="flex gap-2 pt-2">
-                        <AcrButton
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => loadMore('crAdds')}
-                        >
-                          {t("admin.import.preview.loadMore")}
-                        </AcrButton>
-                        <AcrButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => showAll('crAdds', diffResult.crossReferences.adds.length)}
-                        >
-                          {t("admin.import.preview.showAll").replace("{count}", diffResult.crossReferences.adds.length.toString())}
-                        </AcrButton>
-                      </div>
-                    )}
+                    <PaginationControls
+                      visible={visibleCounts.crAdds}
+                      total={diffResult.crossReferences.adds.length}
+                      onLoadMore={() => loadMore('crAdds')}
+                      onShowAll={() => showAll('crAdds', diffResult.crossReferences.adds.length)}
+                    />
                   </div>
                 </ChangeSection>
               )}
-
-              {/* Deleted Cross-Refs */}
               {(diffResult.crossReferences.deletes?.length || 0) > 0 && (
                 <ChangeSection
                   title={t("admin.import.preview.deletedCrossRefs")}
                   count={diffResult.crossReferences.deletes.length}
-                  icon={<Trash2 className="w-5 h-5 text-red-600" />}
-                  colorClass="border-red-300 bg-red-50"
+                  icon={<Trash2 className="w-4 h-4 text-red-600" />}
+                  accentColor="red"
                   isExpanded={expandedSections.crDeletes}
                   onToggle={() => toggleSection('crDeletes')}
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {diffResult.crossReferences.deletes.slice(0, visibleCounts.crDeletes).map((item, idx) => (
                       <CrossRefItem key={idx} item={item} operation="delete" />
                     ))}
-                    {diffResult.crossReferences.deletes.length > visibleCounts.crDeletes && (
-                      <div className="flex gap-2 pt-2">
-                        <AcrButton
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => loadMore('crDeletes')}
-                        >
-                          {t("admin.import.preview.loadMore")}
-                        </AcrButton>
-                        <AcrButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => showAll('crDeletes', diffResult.crossReferences.deletes.length)}
-                        >
-                          {t("admin.import.preview.showAll").replace("{count}", diffResult.crossReferences.deletes.length.toString())}
-                        </AcrButton>
-                      </div>
-                    )}
+                    <PaginationControls
+                      visible={visibleCounts.crDeletes}
+                      total={diffResult.crossReferences.deletes.length}
+                      onLoadMore={() => loadMore('crDeletes')}
+                      onShowAll={() => showAll('crDeletes', diffResult.crossReferences.deletes.length)}
+                    />
                   </div>
                 </ChangeSection>
               )}
             </div>
-          )}
-        </AcrTabsContent>
+          </AcrTabsContent>
+        )}
 
-        {/* Aliases Tab (conditional) */}
-        {hasAliases && (
+        {/* Aliases Tab */}
+        {hasAliases && aliasChangeCount > 0 && (
           <AcrTabsContent value="aliases">
-            {aliasChangeCount === 0 ? (
-              <p className="text-center text-acr-gray-500 py-8">{t("admin.import.preview.noChanges")}</p>
-            ) : (
-              <div className="space-y-4">
-                {/* New Aliases */}
-                {diffResult.aliases!.summary.totalAdds > 0 && (
-                  <ChangeSection
-                    title={`${t("admin.import.preview.new")} ${t("admin.import.preview.aliasChanges")}`}
-                    count={diffResult.aliases!.summary.totalAdds}
-                    icon={<PlusCircle className="w-5 h-5 text-green-600" />}
-                    colorClass="border-green-300 bg-green-50"
-                    isExpanded={expandedSections.aliasAdds}
-                    onToggle={() => toggleSection('aliasAdds')}
-                  >
-                    <div className="space-y-3">
-                      {diffResult.aliases!.adds.slice(0, visibleCounts.aliasAdds).map((item, idx) => (
-                        <AliasItem key={idx} item={item} operation="add" />
-                      ))}
-                      {diffResult.aliases!.adds.length > visibleCounts.aliasAdds && (
-                        <div className="flex gap-2 pt-2">
-                          <AcrButton
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => loadMore('aliasAdds')}
-                          >
-                            {t("admin.import.preview.loadMore")}
-                          </AcrButton>
-                          <AcrButton
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => showAll('aliasAdds', diffResult.aliases!.adds.length)}
-                          >
-                            {t("admin.import.preview.showAll").replace("{count}", diffResult.aliases!.adds.length.toString())}
-                          </AcrButton>
-                        </div>
-                      )}
-                    </div>
-                  </ChangeSection>
-                )}
-
-                {/* Updated Aliases */}
-                {diffResult.aliases!.summary.totalUpdates > 0 && (
-                  <ChangeSection
-                    title={`${t("admin.import.preview.updated")} ${t("admin.import.preview.aliasChanges")}`}
-                    count={diffResult.aliases!.summary.totalUpdates}
-                    icon={<Edit className="w-5 h-5 text-blue-600" />}
-                    colorClass="border-blue-300 bg-blue-50"
-                    isExpanded={expandedSections.aliasUpdates}
-                    onToggle={() => toggleSection('aliasUpdates')}
-                  >
-                    <div className="space-y-3">
-                      {diffResult.aliases!.updates.slice(0, visibleCounts.aliasUpdates).map((item, idx) => (
-                        <AliasItem key={idx} item={item} operation="update" />
-                      ))}
-                      {diffResult.aliases!.updates.length > visibleCounts.aliasUpdates && (
-                        <div className="flex gap-2 pt-2">
-                          <AcrButton
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => loadMore('aliasUpdates')}
-                          >
-                            {t("admin.import.preview.loadMore")}
-                          </AcrButton>
-                          <AcrButton
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => showAll('aliasUpdates', diffResult.aliases!.updates.length)}
-                          >
-                            {t("admin.import.preview.showAll").replace("{count}", diffResult.aliases!.updates.length.toString())}
-                          </AcrButton>
-                        </div>
-                      )}
-                    </div>
-                  </ChangeSection>
-                )}
-
-                {/* Deleted Aliases */}
-                {diffResult.aliases!.summary.totalDeletes > 0 && (
-                  <ChangeSection
-                    title={`${t("admin.import.preview.deleted")} ${t("admin.import.preview.aliasChanges")}`}
-                    count={diffResult.aliases!.summary.totalDeletes}
-                    icon={<Trash2 className="w-5 h-5 text-red-600" />}
-                    colorClass="border-red-300 bg-red-50"
-                    isExpanded={expandedSections.aliasDeletes}
-                    onToggle={() => toggleSection('aliasDeletes')}
-                  >
-                    <div className="space-y-3">
-                      {diffResult.aliases!.deletes.slice(0, visibleCounts.aliasDeletes).map((item, idx) => (
-                        <AliasItem key={idx} item={item} operation="delete" />
-                      ))}
-                      {diffResult.aliases!.deletes.length > visibleCounts.aliasDeletes && (
-                        <div className="flex gap-2 pt-2">
-                          <AcrButton
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => loadMore('aliasDeletes')}
-                          >
-                            {t("admin.import.preview.loadMore")}
-                          </AcrButton>
-                          <AcrButton
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => showAll('aliasDeletes', diffResult.aliases!.deletes.length)}
-                          >
-                            {t("admin.import.preview.showAll").replace("{count}", diffResult.aliases!.deletes.length.toString())}
-                          </AcrButton>
-                        </div>
-                      )}
-                    </div>
-                  </ChangeSection>
-                )}
-              </div>
-            )}
+            <div className="space-y-2">
+              {diffResult.aliases!.summary.totalAdds > 0 && (
+                <ChangeSection
+                  title={`${t("admin.import.preview.new")} ${t("admin.import.preview.aliasChanges")}`}
+                  count={diffResult.aliases!.summary.totalAdds}
+                  icon={<PlusCircle className="w-4 h-4 text-green-600" />}
+                  accentColor="green"
+                  isExpanded={expandedSections.aliasAdds}
+                  onToggle={() => toggleSection('aliasAdds')}
+                >
+                  <div className="space-y-1">
+                    {diffResult.aliases!.adds.slice(0, visibleCounts.aliasAdds).map((item, idx) => (
+                      <AliasItem key={idx} item={item} operation="add" />
+                    ))}
+                    <PaginationControls
+                      visible={visibleCounts.aliasAdds}
+                      total={diffResult.aliases!.adds.length}
+                      onLoadMore={() => loadMore('aliasAdds')}
+                      onShowAll={() => showAll('aliasAdds', diffResult.aliases!.adds.length)}
+                    />
+                  </div>
+                </ChangeSection>
+              )}
+              {diffResult.aliases!.summary.totalUpdates > 0 && (
+                <ChangeSection
+                  title={`${t("admin.import.preview.updated")} ${t("admin.import.preview.aliasChanges")}`}
+                  count={diffResult.aliases!.summary.totalUpdates}
+                  icon={<Edit className="w-4 h-4 text-blue-600" />}
+                  accentColor="blue"
+                  isExpanded={expandedSections.aliasUpdates}
+                  onToggle={() => toggleSection('aliasUpdates')}
+                >
+                  <div className="space-y-1">
+                    {diffResult.aliases!.updates.slice(0, visibleCounts.aliasUpdates).map((item, idx) => (
+                      <AliasItem key={idx} item={item} operation="update" />
+                    ))}
+                    <PaginationControls
+                      visible={visibleCounts.aliasUpdates}
+                      total={diffResult.aliases!.updates.length}
+                      onLoadMore={() => loadMore('aliasUpdates')}
+                      onShowAll={() => showAll('aliasUpdates', diffResult.aliases!.updates.length)}
+                    />
+                  </div>
+                </ChangeSection>
+              )}
+              {diffResult.aliases!.summary.totalDeletes > 0 && (
+                <ChangeSection
+                  title={`${t("admin.import.preview.deleted")} ${t("admin.import.preview.aliasChanges")}`}
+                  count={diffResult.aliases!.summary.totalDeletes}
+                  icon={<Trash2 className="w-4 h-4 text-red-600" />}
+                  accentColor="red"
+                  isExpanded={expandedSections.aliasDeletes}
+                  onToggle={() => toggleSection('aliasDeletes')}
+                >
+                  <div className="space-y-1">
+                    {diffResult.aliases!.deletes.slice(0, visibleCounts.aliasDeletes).map((item, idx) => (
+                      <AliasItem key={idx} item={item} operation="delete" />
+                    ))}
+                    <PaginationControls
+                      visible={visibleCounts.aliasDeletes}
+                      total={diffResult.aliases!.deletes.length}
+                      onLoadMore={() => loadMore('aliasDeletes')}
+                      onShowAll={() => showAll('aliasDeletes', diffResult.aliases!.deletes.length)}
+                    />
+                  </div>
+                </ChangeSection>
+              )}
+            </div>
           </AcrTabsContent>
         )}
       </AcrTabs>
@@ -820,11 +662,17 @@ export function ImportStep2DiffPreview({
 // Helper Components
 // ============================================================================
 
+const accentColors = {
+  green: "border-l-green-500",
+  blue: "border-l-blue-500",
+  red: "border-l-red-500",
+} as const;
+
 interface ChangeSectionProps {
   title: string;
   count: number;
   icon: React.ReactNode;
-  colorClass: string;
+  accentColor: keyof typeof accentColors;
   isExpanded: boolean;
   onToggle: () => void;
   children: React.ReactNode;
@@ -834,37 +682,55 @@ function ChangeSection({
   title,
   count,
   icon,
-  colorClass,
+  accentColor,
   isExpanded,
   onToggle,
   children,
 }: ChangeSectionProps) {
   return (
-    <AcrCard variant="outlined" className={cn("border-2", colorClass)}>
-      <div>
-        <button
-          onClick={onToggle}
-          className="flex items-center justify-between w-full p-4 text-left hover:opacity-80 transition-opacity"
-        >
-          <div className="flex items-center gap-3">
-            {icon}
-            <span className="font-medium text-acr-gray-900">
-              {title} ({count})
-            </span>
-          </div>
-          {isExpanded ? (
-            <ChevronDown className="w-5 h-5 text-acr-gray-600" />
-          ) : (
-            <ChevronRight className="w-5 h-5 text-acr-gray-600" />
-          )}
-        </button>
-        {isExpanded && (
-          <div className="px-4 pb-4 border-t border-current/10">
-            <div className="pt-4">{children}</div>
-          </div>
+    <div className={cn("border border-acr-gray-200 rounded-md border-l-[3px] bg-white", accentColors[accentColor])}>
+      <button
+        onClick={onToggle}
+        className="flex items-center justify-between w-full px-3 py-2.5 text-left hover:bg-acr-gray-50/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className="text-sm font-medium text-acr-gray-900">{title}</span>
+          <span className="text-xs text-acr-gray-500">({count})</span>
+        </div>
+        {isExpanded ? (
+          <ChevronDown className="w-4 h-4 text-acr-gray-400" />
+        ) : (
+          <ChevronRight className="w-4 h-4 text-acr-gray-400" />
         )}
-      </div>
-    </AcrCard>
+      </button>
+      {isExpanded && (
+        <div className="px-3 pb-3 border-t border-acr-gray-100">
+          <div className="pt-3">{children}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PaginationControls({ visible, total, onLoadMore, onShowAll }: {
+  visible: number;
+  total: number;
+  onLoadMore: () => void;
+  onShowAll: () => void;
+}) {
+  const { t } = useLocale();
+  if (total <= visible) return null;
+  return (
+    <div className="flex gap-2 pt-2">
+      <button onClick={onLoadMore} className="text-xs text-acr-gray-500 hover:text-acr-gray-700 transition-colors cursor-pointer">
+        {t("admin.import.preview.loadMore")}
+      </button>
+      <span className="text-xs text-acr-gray-300">|</span>
+      <button onClick={onShowAll} className="text-xs text-acr-gray-500 hover:text-acr-gray-700 transition-colors cursor-pointer">
+        {t("admin.import.preview.showAll").replace("{count}", total.toString())}
+      </button>
+    </div>
   );
 }
 

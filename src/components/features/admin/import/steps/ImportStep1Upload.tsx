@@ -731,7 +731,6 @@ export function ImportStep1Upload({
 
 /**
  * Progress stage indicator for the upload/validate/preview phases.
- * Mirrors the ProgressStage pattern from ImportStep3Confirmation.
  */
 function UploadProgressStage({
   label,
