@@ -548,7 +548,7 @@ export function ImportWizard() {
           </AcrButton>
           <AcrButton
             variant="primary"
-            onClick={() => router.push("/admin/parts")}
+            onClick={() => router.push("/")}
             disabled={state.isRollingBack}
           >
             {t("admin.import.success.viewParts")}

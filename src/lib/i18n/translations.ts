@@ -1172,6 +1172,26 @@ export const translations: Record<
     en: "No changes detected",
     es: "No se detectaron cambios",
   },
+  "admin.import.preview.noChangesDesc": {
+    en: "Your file matches the current catalog exactly. There are no additions, updates, or deletions to apply.",
+    es: "Tu archivo coincide exactamente con el catálogo actual. No hay adiciones, actualizaciones ni eliminaciones que aplicar.",
+  },
+  "admin.import.preview.newRecords": {
+    en: "new records to add",
+    es: "registros nuevos",
+  },
+  "admin.import.preview.toUpdate": {
+    en: "records to update",
+    es: "registros a actualizar",
+  },
+  "admin.import.preview.toDelete": {
+    en: "records to remove",
+    es: "registros a eliminar",
+  },
+  "admin.import.preview.unchangedRecords": {
+    en: "unchanged",
+    es: "sin cambios",
+  },
   "admin.import.preview.changes": {
     en: "{count} changes",
     es: "{count} cambios",
