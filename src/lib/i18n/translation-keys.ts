@@ -253,6 +253,92 @@ export interface TranslationKeys {
   "admin.import.rollback.records": string;
   "admin.import.processing": string;
 
+  // Import Upload — Guidance Panel & Upload Improvements
+  "admin.import.upload.downloadCatalog": string;
+  "admin.import.upload.downloadCatalogDesc": string;
+  "admin.import.upload.downloadingCatalog": string;
+  "admin.import.upload.formatGuide": string;
+  "admin.import.upload.requiredSheets": string;
+  "admin.import.upload.optionalSheets": string;
+  "admin.import.upload.lastImport": string;
+  "admin.import.upload.lastImportAgo": string;
+  "admin.import.upload.fileContents": string;
+  "admin.import.upload.partsRows": string;
+  "admin.import.upload.vehicleAppRows": string;
+  "admin.import.upload.crossRefRows": string;
+  "admin.import.upload.aliasRows": string;
+  "admin.import.upload.rows": string;
+
+  // Import Upload — Multi-Phase Progress
+  "admin.import.upload.phaseUploading": string;
+  "admin.import.upload.phaseValidating": string;
+  "admin.import.upload.phasePreview": string;
+
+  // Import Upload — Error Report Download
+  "admin.import.upload.downloadErrors": string;
+  "admin.import.upload.downloadErrorsDesc": string;
+  "admin.import.upload.errorsBySheet": string;
+  "admin.import.upload.showAllErrors": string;
+  "admin.import.upload.showLessErrors": string;
+
+  // Import Preview — Entity Change Preview Tabs
+  "admin.import.preview.vehicleAppChanges": string;
+  "admin.import.preview.crossRefChanges": string;
+  "admin.import.preview.aliasChanges": string;
+  "admin.import.preview.newVehicleApps": string;
+  "admin.import.preview.deletedVehicleApps": string;
+  "admin.import.preview.updatedVehicleApps": string;
+  "admin.import.preview.newCrossRefs": string;
+  "admin.import.preview.deletedCrossRefs": string;
+  "admin.import.preview.noChanges": string;
+  "admin.import.preview.changes": string;
+
+  // Import History Panel
+  "admin.import.history.recentImports": string;
+  "admin.import.history.viewAll": string;
+  "admin.import.history.noHistory": string;
+  "admin.import.history.showHistory": string;
+  "admin.import.history.hideHistory": string;
+
+  // Import Success Enhancements
+  "admin.import.success.viewParts": string;
+  "admin.import.success.whatNext": string;
+
+  // Import History Panel — inline labels
+  "admin.import.history.added": string;
+  "admin.import.history.updated": string;
+  "admin.import.history.deleted": string;
+  "admin.import.history.noChanges": string;
+
+  // Import Upload — inline labels
+  "admin.import.upload.row": string;
+  "admin.import.upload.value": string;
+  "admin.import.upload.justNow": string;
+  "admin.import.upload.minutesAgo": string;
+  "admin.import.upload.hoursAgo": string;
+  "admin.import.upload.daysAgo": string;
+
+  // Import Preview — diff labels
+  "admin.import.preview.fieldAdded": string;
+  "admin.import.preview.fieldRemoved": string;
+  "admin.import.preview.fieldWas": string;
+  "admin.import.preview.fieldNow": string;
+  "admin.import.preview.row": string;
+
+  // Import Toast Messages
+  "admin.import.toast.validationErrorTitle": string;
+  "admin.import.toast.validationErrorDesc": string;
+  "admin.import.toast.previewErrorTitle": string;
+  "admin.import.toast.previewErrorDesc": string;
+  "admin.import.toast.importSuccessTitle": string;
+  "admin.import.toast.importSuccessDesc": string;
+  "admin.import.toast.importFailedTitle": string;
+  "admin.import.toast.importFailedDesc": string;
+  "admin.import.toast.rollbackSuccessTitle": string;
+  "admin.import.toast.rollbackSuccessDesc": string;
+  "admin.import.toast.rollbackFailedTitle": string;
+  "admin.import.toast.rollbackFailedDesc": string;
+
   // Admin Dashboard Quick Actions
   "admin.dashboard.quickActions": string;
   "admin.dashboard.quickActionsDescription": string;
