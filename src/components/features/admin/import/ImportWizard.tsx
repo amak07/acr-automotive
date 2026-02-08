@@ -94,7 +94,7 @@ interface ImportHistoryItem {
 }
 
 interface WizardState {
-  currentStep: 1 | 2 | 3;
+  currentStep: 1 | 2;
   file: File | null;
   validationResult: ValidationResult | null;
   diffResult: DiffResult | null;
@@ -152,20 +152,17 @@ export function ImportWizard() {
         // Step 1 (Upload): Can proceed when file is uploaded and validated
         return state.file !== null && state.validationResult !== null && state.diffResult !== null;
       case 2:
-        // Step 2 (Review): Can proceed if no errors and warnings acknowledged
+        // Step 2 (Review & Import): Can proceed if no errors and warnings acknowledged
         if (!state.validationResult) return false;
         if (state.validationResult.errors.length > 0) return false;
         if (state.validationResult.warnings.length > 0 && !state.warningsAcknowledged) return false;
         return state.diffResult !== null;
-      case 3:
-        // Step 3 (Execute): No next step
-        return false;
       default:
         return false;
     }
   }, [state]);
 
-  const handleStepClick = (step: 1 | 2 | 3) => {
+  const handleStepClick = (step: 1 | 2) => {
     // Only allow navigation to previous completed steps
     if (step < state.currentStep) {
       setState((prev) => ({ ...prev, currentStep: step }));
@@ -433,8 +430,6 @@ export function ImportWizard() {
         return t("admin.import.buttons.next");
       case 2:
         return t("admin.import.buttons.import");
-      case 3:
-        return t("admin.import.buttons.done");
       default:
         return t("admin.import.buttons.next");
     }
