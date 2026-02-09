@@ -1041,6 +1041,318 @@ export const translations: Record<
     es: "Procesando...",
   },
 
+  // Import Upload — Guidance Panel & Upload Improvements
+  "admin.import.upload.downloadCatalog": {
+    en: "Download Current Catalog",
+    es: "Descargar Catálogo Actual",
+  },
+  "admin.import.upload.downloadCatalogDesc": {
+    en: "Get the latest catalog as an Excel template to make your changes",
+    es: "Obtén el catálogo más reciente como plantilla Excel para hacer tus cambios",
+  },
+  "admin.import.upload.downloadingCatalog": {
+    en: "Downloading...",
+    es: "Descargando...",
+  },
+  "admin.import.upload.formatGuide": {
+    en: "Format Guide",
+    es: "Guía de Formato",
+  },
+  "admin.import.upload.requiredSheets": {
+    en: "Required: Parts, Vehicle_Applications",
+    es: "Requeridas: Parts, Vehicle_Applications",
+  },
+  "admin.import.upload.optionalSheets": {
+    en: "Optional: Vehicle_Aliases",
+    es: "Opcional: Vehicle_Aliases",
+  },
+  "admin.import.upload.lastImport": {
+    en: "Last Import",
+    es: "Última Importación",
+  },
+  "admin.import.upload.lastImportAgo": {
+    en: "{time} ago — {adds} added, {updates} updated, {deletes} deleted",
+    es: "Hace {time} — {adds} agregadas, {updates} actualizadas, {deletes} eliminadas",
+  },
+  "admin.import.upload.fileContents": {
+    en: "File Contents",
+    es: "Contenido del Archivo",
+  },
+  "admin.import.upload.partsRows": {
+    en: "Parts",
+    es: "Piezas",
+  },
+  "admin.import.upload.vehicleAppRows": {
+    en: "Vehicle Apps",
+    es: "Aplicaciones",
+  },
+  "admin.import.upload.crossRefRows": {
+    en: "Cross-References",
+    es: "Referencias Cruzadas",
+  },
+  "admin.import.upload.aliasRows": {
+    en: "Aliases",
+    es: "Alias",
+  },
+  "admin.import.upload.rows": {
+    en: "rows",
+    es: "filas",
+  },
+
+  // Import Upload — Multi-Phase Progress
+  "admin.import.upload.phaseUploading": {
+    en: "Uploading file",
+    es: "Subiendo archivo",
+  },
+  "admin.import.upload.phaseValidating": {
+    en: "Validating data",
+    es: "Validando datos",
+  },
+  "admin.import.upload.phasePreview": {
+    en: "Generating change preview",
+    es: "Generando vista previa de cambios",
+  },
+
+  // Import Upload — Error Report Download
+  "admin.import.upload.downloadErrors": {
+    en: "Download Error Report",
+    es: "Descargar Reporte de Errores",
+  },
+  "admin.import.upload.downloadErrorsDesc": {
+    en: "Export errors to Excel with row numbers for easy correction",
+    es: "Exportar errores a Excel con números de fila para fácil corrección",
+  },
+  "admin.import.upload.errorsBySheet": {
+    en: "errors in {sheet}",
+    es: "errores en {sheet}",
+  },
+  "admin.import.upload.showAllErrors": {
+    en: "Show all {count} errors",
+    es: "Mostrar los {count} errores",
+  },
+  "admin.import.upload.showLessErrors": {
+    en: "Show less",
+    es: "Mostrar menos",
+  },
+
+  // Import Preview — Entity Change Preview Tabs
+  "admin.import.preview.vehicleAppChanges": {
+    en: "Vehicle Apps",
+    es: "Aplicaciones",
+  },
+  "admin.import.preview.crossRefChanges": {
+    en: "Cross-References",
+    es: "Ref. Cruzadas",
+  },
+  "admin.import.preview.aliasChanges": {
+    en: "Aliases",
+    es: "Alias",
+  },
+  "admin.import.preview.newVehicleApps": {
+    en: "New Vehicle Applications",
+    es: "Nuevas Aplicaciones Vehiculares",
+  },
+  "admin.import.preview.deletedVehicleApps": {
+    en: "Deleted Vehicle Applications",
+    es: "Aplicaciones Vehiculares Eliminadas",
+  },
+  "admin.import.preview.updatedVehicleApps": {
+    en: "Updated Vehicle Applications",
+    es: "Aplicaciones Vehiculares Actualizadas",
+  },
+  "admin.import.preview.newCrossRefs": {
+    en: "New Cross-References",
+    es: "Nuevas Referencias Cruzadas",
+  },
+  "admin.import.preview.deletedCrossRefs": {
+    en: "Deleted Cross-References",
+    es: "Referencias Cruzadas Eliminadas",
+  },
+  "admin.import.preview.noChanges": {
+    en: "No changes detected",
+    es: "No se detectaron cambios",
+  },
+  "admin.import.preview.noChangesDesc": {
+    en: "Your file matches the current catalog exactly. There are no additions, updates, or deletions to apply.",
+    es: "Tu archivo coincide exactamente con el catálogo actual. No hay adiciones, actualizaciones ni eliminaciones que aplicar.",
+  },
+  "admin.import.preview.newRecords": {
+    en: "new records to add",
+    es: "registros nuevos",
+  },
+  "admin.import.preview.toUpdate": {
+    en: "records to update",
+    es: "registros a actualizar",
+  },
+  "admin.import.preview.toDelete": {
+    en: "records to remove",
+    es: "registros a eliminar",
+  },
+  "admin.import.preview.unchangedRecords": {
+    en: "unchanged",
+    es: "sin cambios",
+  },
+  "admin.import.preview.changes": {
+    en: "{count} changes",
+    es: "{count} cambios",
+  },
+
+  // Import History Panel
+  "admin.import.history.recentImports": {
+    en: "Recent Imports",
+    es: "Importaciones Recientes",
+  },
+  "admin.import.history.viewAll": {
+    en: "View Full History",
+    es: "Ver Historial Completo",
+  },
+  "admin.import.history.noHistory": {
+    en: "No import history yet",
+    es: "Sin historial de importaciones",
+  },
+  "admin.import.history.showHistory": {
+    en: "Show Import History",
+    es: "Mostrar Historial",
+  },
+  "admin.import.history.hideHistory": {
+    en: "Hide Import History",
+    es: "Ocultar Historial",
+  },
+
+  // Import Success Enhancements
+  "admin.import.success.viewParts": {
+    en: "View Updated Parts",
+    es: "Ver Piezas Actualizadas",
+  },
+  "admin.import.success.whatNext": {
+    en: "What's next?",
+    es: "¿Qué sigue?",
+  },
+  "admin.import.success.inlineSummary": {
+    en: "{adds} added, {updates} updated, {deletes} deleted in {time}s",
+    es: "{adds} agregados, {updates} actualizados, {deletes} eliminados en {time}s",
+  },
+  "admin.import.success.rollbackHint": {
+    en: "A snapshot was saved — you can rollback if needed.",
+    es: "Se guardó una instantánea — puedes revertir si es necesario.",
+  },
+
+  // Import History Panel — inline labels
+  "admin.import.history.added": {
+    en: "added",
+    es: "agregados",
+  },
+  "admin.import.history.updated": {
+    en: "updated",
+    es: "actualizados",
+  },
+  "admin.import.history.deleted": {
+    en: "deleted",
+    es: "eliminados",
+  },
+  "admin.import.history.noChanges": {
+    en: "No changes",
+    es: "Sin cambios",
+  },
+
+  // Import Upload — inline labels
+  "admin.import.upload.row": {
+    en: "Row",
+    es: "Fila",
+  },
+  "admin.import.upload.value": {
+    en: "Value",
+    es: "Valor",
+  },
+  "admin.import.upload.justNow": {
+    en: "just now",
+    es: "ahora mismo",
+  },
+  "admin.import.upload.minutesAgo": {
+    en: "{count}m ago",
+    es: "hace {count}m",
+  },
+  "admin.import.upload.hoursAgo": {
+    en: "{count}h ago",
+    es: "hace {count}h",
+  },
+  "admin.import.upload.daysAgo": {
+    en: "{count}d ago",
+    es: "hace {count}d",
+  },
+
+  // Import Preview — diff labels
+  "admin.import.preview.fieldAdded": {
+    en: "Added:",
+    es: "Agregado:",
+  },
+  "admin.import.preview.fieldRemoved": {
+    en: "Removed:",
+    es: "Eliminado:",
+  },
+  "admin.import.preview.fieldWas": {
+    en: "Was:",
+    es: "Antes:",
+  },
+  "admin.import.preview.fieldNow": {
+    en: "Now:",
+    es: "Ahora:",
+  },
+  "admin.import.preview.row": {
+    en: "Row",
+    es: "Fila",
+  },
+
+  // Import Toast Messages
+  "admin.import.toast.validationErrorTitle": {
+    en: "Validation Error",
+    es: "Error de Validación",
+  },
+  "admin.import.toast.validationErrorDesc": {
+    en: "Failed to validate the uploaded file. Please try again.",
+    es: "No se pudo validar el archivo subido. Por favor intente de nuevo.",
+  },
+  "admin.import.toast.previewErrorTitle": {
+    en: "Preview Error",
+    es: "Error de Vista Previa",
+  },
+  "admin.import.toast.previewErrorDesc": {
+    en: "Failed to generate change preview. Please try again.",
+    es: "No se pudo generar la vista previa de cambios. Por favor intente de nuevo.",
+  },
+  "admin.import.toast.importSuccessTitle": {
+    en: "Import Successful",
+    es: "Importación Exitosa",
+  },
+  "admin.import.toast.importSuccessDesc": {
+    en: "Imported {totalChanges} changes: {adds} added, {updates} updated, {deletes} deleted",
+    es: "Se importaron {totalChanges} cambios: {adds} agregados, {updates} actualizados, {deletes} eliminados",
+  },
+  "admin.import.toast.importFailedTitle": {
+    en: "Import Failed",
+    es: "Importación Fallida",
+  },
+  "admin.import.toast.importFailedDesc": {
+    en: "Failed to execute import. Please try again.",
+    es: "No se pudo ejecutar la importación. Por favor intente de nuevo.",
+  },
+  "admin.import.toast.rollbackSuccessTitle": {
+    en: "Rollback Successful",
+    es: "Reversión Exitosa",
+  },
+  "admin.import.toast.rollbackSuccessDesc": {
+    en: "Restored {parts} parts, {vehicleApplications} vehicle applications, and {crossReferences} cross-references",
+    es: "Se restauraron {parts} piezas, {vehicleApplications} aplicaciones vehiculares y {crossReferences} referencias cruzadas",
+  },
+  "admin.import.toast.rollbackFailedTitle": {
+    en: "Rollback Failed",
+    es: "Reversión Fallida",
+  },
+  "admin.import.toast.rollbackFailedDesc": {
+    en: "Failed to rollback import. Please try again.",
+    es: "No se pudo revertir la importación. Por favor intente de nuevo.",
+  },
+
   // Admin Search & Filters
   "admin.search.placeholder": {
     en: "Search by ACR SKU...",

@@ -40,8 +40,13 @@ function LoginForm() {
         // Data managers always go to data-portal
         redirect = '/data-portal';
       } else {
-        // Admins can go to requested redirect or default to /admin
-        redirect = requestedRedirect || '/admin';
+        // Sanitize redirect: must be a relative path, not a login page or external URL
+        const isSafeRedirect = requestedRedirect
+          && requestedRedirect.startsWith('/')
+          && !requestedRedirect.startsWith('//')
+          && !requestedRedirect.endsWith('/login')
+          && requestedRedirect !== '/login';
+        redirect = isSafeRedirect ? requestedRedirect : '/admin';
       }
 
       router.push(redirect);

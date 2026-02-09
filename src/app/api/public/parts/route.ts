@@ -95,6 +95,7 @@ export async function GET(request: NextRequest) {
         .from("parts")
         .select("*")
         .eq(lookupField, lookupValue)
+        .eq("workflow_status", "ACTIVE")
         .single();
 
       if (partError) {

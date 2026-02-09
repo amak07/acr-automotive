@@ -52,6 +52,7 @@ export interface SheetDiff<T> {
  */
 export interface CrossRefDiffItem {
   partId: string;
+  acrSku: string; // Human-readable ACR part SKU (for display)
   brand: string;
   sku: string;
   operation: DiffOperation;
