@@ -40,9 +40,13 @@ function LoginForm() {
         // Data managers always go to data-portal
         redirect = '/data-portal';
       } else {
-        // Don't redirect back to login pages (they 404 for authenticated users)
-        const isLoginRedirect = !requestedRedirect || requestedRedirect === '/login' || requestedRedirect.endsWith('/login');
-        redirect = isLoginRedirect ? '/admin' : requestedRedirect;
+        // Sanitize redirect: must be a relative path, not a login page or external URL
+        const isSafeRedirect = requestedRedirect
+          && requestedRedirect.startsWith('/')
+          && !requestedRedirect.startsWith('//')
+          && !requestedRedirect.endsWith('/login')
+          && requestedRedirect !== '/login';
+        redirect = isSafeRedirect ? requestedRedirect : '/admin';
       }
 
       router.push(redirect);
