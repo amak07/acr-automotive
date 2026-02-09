@@ -232,10 +232,13 @@ CREATE POLICY "Admin write" ON cross_references FOR ALL USING (true);
 -- ============================================================================
 
 -- Create storage bucket for part images
-INSERT INTO storage.buckets (id, name, public) VALUES ('acr-part-images', 'acr-part-images', true);
+INSERT INTO storage.buckets (id, name, public) VALUES ('acr-part-images', 'acr-part-images', true)
+ON CONFLICT (id) DO NOTHING;
 
 -- Create storage policies
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'acr-part-images');
+DROP POLICY IF EXISTS "Admin Upload" ON storage.objects;
 CREATE POLICY "Admin Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'acr-part-images');
 
 

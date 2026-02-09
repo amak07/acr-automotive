@@ -101,6 +101,9 @@ tests/e2e/tmp/
 # Database snapshots (local dev backups)
 .snapshots/
 
+# Production database snapshots (JSON exports)
+supabase/production-snapshot/*.json
+
 # Storybook build outputs
 storybook-static/
 

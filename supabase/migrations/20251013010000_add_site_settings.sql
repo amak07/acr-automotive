@@ -81,18 +81,22 @@ VALUES ('acr-site-assets', 'acr-site-assets', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Create storage policies for site assets
+DROP POLICY IF EXISTS "Public Access Site Assets" ON storage.objects;
 CREATE POLICY "Public Access Site Assets"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'acr-site-assets');
 
+DROP POLICY IF EXISTS "Admin Upload Site Assets" ON storage.objects;
 CREATE POLICY "Admin Upload Site Assets"
 ON storage.objects FOR INSERT
 WITH CHECK (bucket_id = 'acr-site-assets');
 
+DROP POLICY IF EXISTS "Admin Update Site Assets" ON storage.objects;
 CREATE POLICY "Admin Update Site Assets"
 ON storage.objects FOR UPDATE
 USING (bucket_id = 'acr-site-assets');
 
+DROP POLICY IF EXISTS "Admin Delete Site Assets" ON storage.objects;
 CREATE POLICY "Admin Delete Site Assets"
 ON storage.objects FOR DELETE
 USING (bucket_id = 'acr-site-assets');
