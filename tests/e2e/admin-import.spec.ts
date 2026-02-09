@@ -349,17 +349,58 @@ test.describe("Import UI edge cases", () => {
   test("bulk import (100+ changes) renders preview correctly", async ({
     page,
   }) => {
-    await page.goto("/admin/import");
+    const client = getE2EClient();
 
-    // Upload the pre-built bulk fixture (25 adds + 25 updates + 25 deletes + xref changes)
-    await page.locator('input[type="file"]').setInputFiles(
-      "tests/fixtures/import-workbooks/09d-bulk-mixed-100.xlsx"
-    );
+    // Grab existing parts for updates and deletes
+    const { data: existingParts } = await client
+      .from("parts")
+      .select("acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type")
+      .eq("workflow_status", "ACTIVE")
+      .order("acr_sku")
+      .limit(50);
 
-    // Wait for Step 2 — large file may take longer to parse + diff
-    await expect(
-      page.getByRole("button", { name: /Execute Import/i })
-    ).toBeVisible({ timeout: 60_000 });
+    const builder = new TestWorkbookBuilder();
+
+    // 25 NEW parts (SKUs not in DB)
+    for (let i = 0; i < 25; i++) {
+      builder.addPart({
+        acr_sku: `ACR-BULK-NEW-${String(i + 1).padStart(3, "0")}`,
+        part_type: "MAZA",
+        status: "Activo",
+      });
+    }
+
+    // 25 UPDATES (existing parts with changed specifications)
+    const updateSlice = existingParts!.slice(0, 25);
+    for (const part of updateSlice) {
+      builder.addPart({
+        acr_sku: part.acr_sku,
+        part_type: part.part_type,
+        position_type: part.position_type ?? undefined,
+        abs_type: part.abs_type ?? undefined,
+        bolt_pattern: part.bolt_pattern ?? undefined,
+        drive_type: part.drive_type ?? undefined,
+        specifications: "BULK-UPDATE-SPECS",
+        status: "Activo",
+      });
+    }
+
+    // 25 DELETES (existing parts marked for removal)
+    const deleteSlice = existingParts!.slice(25, 50);
+    for (const part of deleteSlice) {
+      builder.addPart({
+        acr_sku: part.acr_sku,
+        part_type: part.part_type,
+        position_type: part.position_type ?? undefined,
+        abs_type: part.abs_type ?? undefined,
+        bolt_pattern: part.bolt_pattern ?? undefined,
+        drive_type: part.drive_type ?? undefined,
+        status: "Eliminar",
+      });
+    }
+
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-bulk-mixed-100.xlsx");
 
     // Part Changes tab should show all 3 diff sections
     await expect(page.getByText(/New Parts/i)).toBeVisible();
@@ -374,12 +415,21 @@ test.describe("Import UI edge cases", () => {
   // Test 8: Processing phases shown during upload
   // ---------------------------------------------------------------------------
   test("processing phases shown during upload", async ({ page }) => {
-    await page.goto("/admin/import");
+    const builder = new TestWorkbookBuilder();
+    builder.addPart({
+      acr_sku: "ACR-E2E-PHASE-001",
+      part_type: "Brake Rotor",
+      status: "Activo",
+    });
+    const buffer = await builder.toBuffer();
 
-    // Upload a small fixture
-    await page.locator('input[type="file"]').setInputFiles(
-      "tests/fixtures/import-workbooks/02-add-new-part.xlsx"
-    );
+    await page.goto("/admin/import");
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "test-phases.xlsx",
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      buffer,
+    });
 
     // All 3 processing phases are shown simultaneously (completed/active/pending)
     // Verify each phase label is rendered
