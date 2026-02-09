@@ -17,6 +17,26 @@ import {
  * These tests validate the UI renders correctly — the 28 stress tests cover
  * API/pipeline correctness.
  */
+
+/** Helper: upload a workbook buffer and wait for Step 2 (Execute Import visible) */
+async function uploadAndWaitForPreview(
+  page: import("@playwright/test").Page,
+  buffer: Buffer,
+  fileName: string
+) {
+  await page.goto("/admin/import");
+  await page.locator('input[type="file"]').setInputFiles({
+    name: fileName,
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer,
+  });
+  // "Execute Import" button is unique to Step 2 — reliable wait signal
+  await expect(
+    page.getByRole("button", { name: /Execute Import/i })
+  ).toBeVisible({ timeout: 30_000 });
+}
+
 test.describe("Admin Import/Export", () => {
   test.describe.configure({ mode: "serial" });
 
@@ -59,25 +79,6 @@ test.describe("Admin Import/Export", () => {
       await deleteE2ESnapshot(snapshotId);
     }
   });
-
-  /** Helper: upload a workbook buffer and wait for Step 2 (Execute Import visible) */
-  async function uploadAndWaitForPreview(
-    page: import("@playwright/test").Page,
-    buffer: Buffer,
-    fileName: string
-  ) {
-    await page.goto("/admin/import");
-    await page.locator('input[type="file"]').setInputFiles({
-      name: fileName,
-      mimeType:
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      buffer,
-    });
-    // "Execute Import" button is unique to Step 2 — reliable wait signal
-    await expect(
-      page.getByRole("button", { name: /Execute Import/i })
-    ).toBeVisible({ timeout: 30_000 });
-  }
 
   // ---------------------------------------------------------------------------
   // Test 1: Complex mixed CRUD diff preview
@@ -268,5 +269,127 @@ test.describe("Admin Import/Export", () => {
     await expect(page.getByText(/No changes detected/i)).toBeVisible({
       timeout: 30_000,
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Import UI edge cases — warning gate, bulk rendering, processing state
+// ---------------------------------------------------------------------------
+test.describe("Import UI edge cases", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let snapshotId: string;
+
+  test.beforeAll(async () => {
+    snapshotId = await createE2ESnapshot();
+  });
+
+  test.afterAll(async () => {
+    if (snapshotId) {
+      await restoreE2ESnapshot(snapshotId);
+      await deleteE2ESnapshot(snapshotId);
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 6: Data change warning checkbox gates Execute Import
+  // ---------------------------------------------------------------------------
+  test("data change warning checkbox gates Execute Import", async ({ page }) => {
+    const client = getE2EClient();
+
+    // Find an existing part — changing its part_type triggers W3_PART_TYPE_CHANGED
+    const { data } = await client
+      .from("parts")
+      .select("acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type")
+      .eq("workflow_status", "ACTIVE")
+      .limit(1)
+      .single();
+
+    const part = data!;
+    // Change part_type to a different value to trigger W3 warning
+    const newPartType = part.part_type === "Brake Rotor" ? "Brake Pad" : "Brake Rotor";
+    const builder = new TestWorkbookBuilder();
+    builder.addPart({
+      acr_sku: part.acr_sku,
+      part_type: newPartType,
+      position_type: part.position_type ?? undefined,
+      abs_type: part.abs_type ?? undefined,
+      bolt_pattern: part.bolt_pattern ?? undefined,
+      drive_type: part.drive_type ?? undefined,
+      status: "Activo",
+    });
+
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-data-warning.xlsx");
+
+    // Execute Import should be DISABLED (warnings not acknowledged)
+    await expect(
+      page.getByRole("button", { name: /Execute Import/i })
+    ).toBeDisabled();
+
+    // Warning checkbox should be visible with acknowledgment text
+    const checkbox = page.locator('input[type="checkbox"]');
+    await expect(checkbox).toBeVisible();
+    await expect(
+      page.getByText(/I understand these changes and want to proceed/i)
+    ).toBeVisible();
+
+    // Check the acknowledgment checkbox
+    await checkbox.check();
+
+    // Now Execute Import should be ENABLED
+    await expect(
+      page.getByRole("button", { name: /Execute Import/i })
+    ).toBeEnabled();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 7: Bulk import (100+ changes) renders preview correctly
+  // ---------------------------------------------------------------------------
+  test("bulk import (100+ changes) renders preview correctly", async ({
+    page,
+  }) => {
+    await page.goto("/admin/import");
+
+    // Upload the pre-built bulk fixture (25 adds + 25 updates + 25 deletes + xref changes)
+    await page.locator('input[type="file"]').setInputFiles(
+      "tests/fixtures/import-workbooks/09d-bulk-mixed-100.xlsx"
+    );
+
+    // Wait for Step 2 — large file may take longer to parse + diff
+    await expect(
+      page.getByRole("button", { name: /Execute Import/i })
+    ).toBeVisible({ timeout: 60_000 });
+
+    // Part Changes tab should show all 3 diff sections
+    await expect(page.getByText(/New Parts/i)).toBeVisible();
+    await expect(page.getByText(/Updated Parts/i)).toBeVisible();
+    await expect(page.getByText(/Deleted Parts/i)).toBeVisible();
+
+    // Tab header shows total count
+    await expect(page.getByText(/Part Changes/i)).toBeVisible();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 8: Processing phases shown during upload
+  // ---------------------------------------------------------------------------
+  test("processing phases shown during upload", async ({ page }) => {
+    await page.goto("/admin/import");
+
+    // Upload a small fixture
+    await page.locator('input[type="file"]').setInputFiles(
+      "tests/fixtures/import-workbooks/02-add-new-part.xlsx"
+    );
+
+    // All 3 processing phases are shown simultaneously (completed/active/pending)
+    // Verify each phase label is rendered
+    await expect(page.getByText("Uploading file")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Validating data")).toBeVisible();
+    await expect(page.getByText("Generating change preview")).toBeVisible();
+
+    // Wait for preview to complete
+    await expect(
+      page.getByRole("button", { name: /Execute Import/i })
+    ).toBeVisible({ timeout: 30_000 });
   });
 });
