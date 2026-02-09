@@ -40,8 +40,9 @@ function LoginForm() {
         // Data managers always go to data-portal
         redirect = '/data-portal';
       } else {
-        // Admins can go to requested redirect or default to /admin
-        redirect = requestedRedirect || '/admin';
+        // Don't redirect back to login pages (they 404 for authenticated users)
+        const isLoginRedirect = !requestedRedirect || requestedRedirect === '/login' || requestedRedirect.endsWith('/login');
+        redirect = isLoginRedirect ? '/admin' : requestedRedirect;
       }
 
       router.push(redirect);
