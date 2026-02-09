@@ -8,6 +8,10 @@ on:
       - 'supabase/migrations/**'
   workflow_dispatch:
 
+concurrency:
+  group: deploy-migrations-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
