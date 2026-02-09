@@ -15,8 +15,6 @@ describe('Malformed Files Test', () => {
   });
 
   it('should reject completely empty file', async () => {
-    console.log('\n=== EMPTY FILE TEST ===\n');
-
     const emptyBuffer = Buffer.alloc(0);
     const file = new File([emptyBuffer], 'empty.xlsx', {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -27,12 +25,9 @@ describe('Malformed Files Test', () => {
     };
 
     await expect(excelService.parseFile(file)).rejects.toThrow();
-    console.log('✅ Empty file rejected as expected');
   });
 
   it('should reject non-Excel file (plain text)', async () => {
-    console.log('\n=== PLAIN TEXT FILE TEST ===\n');
-
     const textContent = 'This is not an Excel file';
     const textBuffer = Buffer.from(textContent, 'utf-8');
     const file = new File([textBuffer], 'not-excel.xlsx', {
@@ -49,12 +44,9 @@ describe('Malformed Files Test', () => {
     };
 
     await expect(excelService.parseFile(file)).rejects.toThrow(/Failed to parse/i);
-    console.log('✅ Plain text file rejected as expected');
   });
 
   it('should reject CSV file with .xlsx extension', async () => {
-    console.log('\n=== CSV FILE TEST ===\n');
-
     const csvContent = 'ACR_SKU,Part_Type,Position_Type\nACR-001,Rotor,Front\nACR-002,Caliper,Rear';
     const csvBuffer = Buffer.from(csvContent, 'utf-8');
     const file = new File([csvBuffer], 'fake.xlsx', {
@@ -71,12 +63,9 @@ describe('Malformed Files Test', () => {
     };
 
     await expect(excelService.parseFile(file)).rejects.toThrow(/Failed to parse/i);
-    console.log('✅ CSV file rejected as expected');
   });
 
   it('should reject corrupted Excel file', async () => {
-    console.log('\n=== CORRUPTED EXCEL FILE TEST ===\n');
-
     // Create a buffer that starts like ZIP (Excel files are ZIP archives)
     // but is corrupted midway
     const corruptedBuffer = Buffer.alloc(1000);
@@ -100,23 +89,9 @@ describe('Malformed Files Test', () => {
     };
 
     await expect(excelService.parseFile(file)).rejects.toThrow(/Failed to parse/i);
-    console.log('✅ Corrupted Excel file rejected as expected');
-  });
-
-  it('should handle file with missing required sheets', async () => {
-    console.log('\n=== MISSING SHEETS TEST ===\n');
-
-    // This test would require creating a valid Excel file with only 1 sheet
-    // For now, we test that the parser throws an appropriate error
-    // The actual validation happens in ExcelImportService.parseFile()
-
-    // When a file is parsed successfully but missing sheets, it throws during sheet access
-    console.log('✅ Missing sheets validation tested (implementation validated)');
   });
 
   it('should handle extremely large file names', async () => {
-    console.log('\n=== LARGE FILENAME TEST ===\n');
-
     const longFilename = 'a'.repeat(500) + '.xlsx';
     const emptyBuffer = Buffer.alloc(0);
     const file = new File([emptyBuffer], longFilename, {
@@ -129,12 +104,9 @@ describe('Malformed Files Test', () => {
 
     // Should still fail parsing (empty file), but not crash on filename
     await expect(excelService.parseFile(file)).rejects.toThrow();
-    console.log('✅ Long filename handled gracefully');
   });
 
   it('should handle Unicode characters in filename', async () => {
-    console.log('\n=== UNICODE FILENAME TEST ===\n');
-
     const unicodeFilename = '测试文件_العربية_🚗.xlsx';
     const emptyBuffer = Buffer.alloc(0);
     const file = new File([emptyBuffer], unicodeFilename, {
@@ -148,14 +120,9 @@ describe('Malformed Files Test', () => {
     // Should still fail parsing (empty file), but not crash on Unicode
     await expect(excelService.parseFile(file)).rejects.toThrow();
     expect(file.name).toBe(unicodeFilename);
-    console.log('✅ Unicode filename handled correctly');
   });
 
   it('should handle special characters in part data', async () => {
-    console.log('\n=== SPECIAL CHARACTERS IN DATA TEST ===\n');
-
-    // This tests validation of data with special characters
-    // Not malformed file, but edge case data
     const validationEngine = new ValidationEngine();
 
     const parsedData = {
@@ -195,22 +162,12 @@ describe('Malformed Files Test', () => {
       aliases: new Map(),
     });
 
-    // Should validate successfully (special chars are allowed in data)
-    // Validation focuses on business rules, not sanitization
-    console.log(`   Validation result: ${result.valid ? 'Valid' : 'Invalid'}`);
-    console.log(`   Errors: ${result.errors.length}`);
-    console.log(`   Warnings: ${result.warnings.length}`);
-
     // The data is technically valid (has required fields, unique SKU, etc.)
     // Sanitization happens at database/display layer, not validation
     expect(result.errors.some((e) => e.code === 'E3_EMPTY_REQUIRED_FIELD')).toBe(false);
-
-    console.log('✅ Special characters in data handled (validation layer)');
   });
 
   it('should reject file with wrong MIME type', async () => {
-    console.log('\n=== WRONG MIME TYPE TEST ===\n');
-
     const textBuffer = Buffer.from('Not an Excel file', 'utf-8');
     const file = new File([textBuffer], 'document.xlsx', {
       type: 'text/plain', // Wrong MIME type
@@ -228,12 +185,9 @@ describe('Malformed Files Test', () => {
     // Parser doesn't check MIME type, only content
     // But it should still fail on invalid content
     await expect(excelService.parseFile(file)).rejects.toThrow(/Failed to parse/i);
-    console.log('✅ Wrong MIME type handled (content-based validation)');
   });
 
   it('should handle zero-byte file', async () => {
-    console.log('\n=== ZERO-BYTE FILE TEST ===\n');
-
     const file = new File([], 'zero-byte.xlsx', {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     }) as any;
@@ -243,8 +197,5 @@ describe('Malformed Files Test', () => {
     };
 
     await expect(excelService.parseFile(file)).rejects.toThrow();
-    console.log('✅ Zero-byte file rejected as expected');
   });
-
-  console.log('\n✅ ALL MALFORMED FILE TESTS COMPLETED\n');
 });

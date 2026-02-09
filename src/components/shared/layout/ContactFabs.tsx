@@ -70,7 +70,7 @@ export function ContactFabs() {
 
   return (
     <div
-      className="fixed z-50 flex-col gap-3 hidden lg:flex bottom-20 left-4 lg:left-8 xl:left-60"
+      className="fixed z-50 flex-col gap-3 hidden 2xl:flex bottom-20 left-[calc((100vw-72rem)/2-5rem)]"
       role="complementary"
       aria-label={t("contactFabs.ariaLabel")}
     >

@@ -12,10 +12,13 @@
  * Usage:
  *   npx.cmd tsx scripts/stress-test-import.ts
  *   npx.cmd tsx scripts/stress-test-import.ts --test=1    # run single test
+ *   npx.cmd tsx scripts/stress-test-import.ts --save-files # save workbooks to disk
  */
 
 import * as ExcelJS from "exceljs";
 import { createClient } from "@supabase/supabase-js";
+import * as fs from "fs";
+import * as path from "path";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -231,10 +234,30 @@ async function loadWorkbook(buffer: Buffer): Promise<ExcelJS.Workbook> {
   return wb;
 }
 
-/** Save an ExcelJS workbook to a buffer */
-async function saveWorkbook(wb: ExcelJS.Workbook): Promise<Buffer> {
+// --save-files support: persist workbooks to tests/fixtures/import-workbooks/
+const SAVE_FILES = process.argv.includes("--save-files");
+const WORKBOOK_DIR = path.join(
+  process.cwd(),
+  "tests",
+  "fixtures",
+  "import-workbooks"
+);
+let savedFileCount = 0;
+
+/** Save an ExcelJS workbook to a buffer. If --save-files and filename given, also write to disk. */
+async function saveWorkbook(
+  wb: ExcelJS.Workbook,
+  filename?: string
+): Promise<Buffer> {
   const arrayBuffer = await wb.xlsx.writeBuffer();
-  return Buffer.from(arrayBuffer);
+  const buffer = Buffer.from(arrayBuffer);
+  if (SAVE_FILES && filename) {
+    fs.mkdirSync(WORKBOOK_DIR, { recursive: true });
+    fs.writeFileSync(path.join(WORKBOOK_DIR, filename), buffer);
+    savedFileCount++;
+    console.log(`  Saved: ${filename}`);
+  }
+  return buffer;
 }
 
 /** Get the Parts worksheet (first sheet) */
@@ -337,6 +360,10 @@ async function main() {
   const testArg = process.argv.find((a) => a.startsWith("--test="));
   const onlyTest = testArg ? parseInt(testArg.split("=")[1], 10) : null;
 
+  if (SAVE_FILES) {
+    console.log(`  Save files: ON (output: tests/fixtures/import-workbooks/)`);
+  }
+
   // ---- Prerequisites ----
   console.log("Checking prerequisites...");
   try {
@@ -377,6 +404,15 @@ async function main() {
   console.log(
     `  Baseline: ${baselineDataRows} data rows, ${baselineBuffer.length} bytes\n`
   );
+  if (SAVE_FILES) {
+    fs.mkdirSync(WORKBOOK_DIR, { recursive: true });
+    fs.writeFileSync(
+      path.join(WORKBOOK_DIR, "00-baseline-export.xlsx"),
+      baselineBuffer
+    );
+    savedFileCount++;
+    console.log("  Saved: 00-baseline-export.xlsx");
+  }
 
   // Capture baseline counts
   const baselineCounts = {
@@ -525,7 +561,7 @@ async function main() {
       ws.getRow(newRow).getCell(colType).value = "Brake Rotor";
       ws.getRow(newRow).getCell(colPosition).value = "Front";
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "02-add-new-part.xlsx");
 
       // Preview
       const preview = await previewImport(cookie, buffer);
@@ -587,7 +623,7 @@ async function main() {
       ws.getRow(newRow).getCell(colNational).value = "STRESS-NAT-001";
       ws.getRow(newRow).getCell(colFag).value = "STRESS-FAG-001";
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "03-add-part-with-crossrefs.xlsx");
 
       // Preview
       const preview = await previewImport(cookie, buffer);
@@ -648,7 +684,7 @@ async function main() {
         `  Modifying row 4 (${partSku}): specs "${origSpecs}" -> "${newSpecs}"`
       );
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "04-update-part.xlsx");
 
       // Preview
       const preview = await previewImport(cookie, buffer);
@@ -694,7 +730,7 @@ async function main() {
 
       console.log(`  Marking row 4 for deletion: ${partSku}`);
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "05-delete-part.xlsx");
 
       // Preview
       const preview = await previewImport(cookie, buffer);
@@ -759,7 +795,7 @@ async function main() {
         `  Row ${targetRow}: National "${existingVal}" -> "${newVal}"`
       );
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "06-add-crossref.xlsx");
 
       // Preview
       const preview = await previewImport(cookie, buffer);
@@ -827,7 +863,7 @@ async function main() {
       console.log(`  Row ${targetRow}: National "${existingVal}" -> "${newVal}"`);
       console.log(`  Deleting SKU: ${skuToDelete}`);
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "07-delete-crossref.xlsx");
 
       // Preview
       const preview = await previewImport(cookie, buffer);
@@ -908,7 +944,7 @@ async function main() {
         }
       }
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "08-mixed-crud.xlsx");
 
       // Preview
       const preview = await previewImport(cookie, buffer);
@@ -948,7 +984,7 @@ async function main() {
         ws.getRow(4 + i).getCell(colSpecs).value = `BULK-UPDATE-${i + 1}`;
       }
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "09a-bulk-update-50.xlsx");
       const preview = await previewImport(cookie, buffer);
       console.log(
         `  Preview: updates=${preview.diff?.summary?.totalUpdates}`
@@ -982,7 +1018,7 @@ async function main() {
         ws.getRow(4 + i).getCell(colStatus).value = "Eliminar";
       }
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "09b-bulk-delete-50.xlsx");
       const preview = await previewImport(cookie, buffer);
       console.log(
         `  Preview: deletes=${preview.diff?.summary?.totalDeletes}`
@@ -1030,7 +1066,7 @@ async function main() {
         row.getCell(colNational).value = `STRESS-BULK-NAT-${i + 1}`;
       }
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "09c-bulk-add-50.xlsx");
       const preview = await previewImport(cookie, buffer);
       console.log(
         `  Preview: adds=${preview.diff?.summary?.totalAdds}`
@@ -1102,7 +1138,7 @@ async function main() {
         ws.getRow(4 + i).getCell(colNational).value = newVal;
       }
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "09d-bulk-mixed-100.xlsx");
       const preview = await previewImport(cookie, buffer);
       const s = preview.diff?.summary;
       console.log(
@@ -1140,7 +1176,7 @@ async function main() {
         ws.getRow(4 + i).getCell(colSpecs).value = `ROLLBACK-TEST-${i + 1}`;
       }
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "10-rollback-update.xlsx");
       const exec = await executeImport(cookie, buffer);
       assert(exec.success === true, "import should succeed");
       assert(exec.importId, "should have importId");
@@ -1171,7 +1207,7 @@ async function main() {
     await runTest("11a. No Parts sheet -> validation error", async () => {
       const wb = new ExcelJS.Workbook();
       wb.addWorksheet("Not Parts");
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "11a-no-parts-sheet.xlsx");
       const result = await previewImport(cookie, buffer);
       console.log(`  valid=${result.valid} errors=${result.errors?.length}`);
       assert(result.valid === false || result.error, "should fail validation");
@@ -1190,7 +1226,7 @@ async function main() {
       ws.getRow(newRow).getCell(findColumn(ws, "Part Type")).value =
         "Brake Rotor";
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "11b-duplicate-skus.xlsx");
       const result = await previewImport(cookie, buffer);
       console.log(`  valid=${result.valid} errors=${result.errors?.length}`);
       assert(result.valid === false, "should fail with duplicate SKU");
@@ -1219,7 +1255,7 @@ async function main() {
         vaSheet.getRow(4).getCell(colEnd).value = 2020;
       }
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "11c-invalid-year-range.xlsx");
       const result = await previewImport(cookie, buffer);
       console.log(`  valid=${result.valid} errors=${result.errors?.length}`);
       // This may be a warning or error depending on implementation
@@ -1233,7 +1269,7 @@ async function main() {
     // 11f: Empty workbook
     await runTest("11f. Empty workbook -> graceful error", async () => {
       const wb = new ExcelJS.Workbook();
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "11f-empty-workbook.xlsx");
       const result = await previewImport(cookie, buffer);
       console.log(`  valid=${result.valid} error=${result.error}`);
       assert(
@@ -1255,7 +1291,7 @@ async function main() {
           ws.spliceRows(r, 1);
         }
 
-        const buffer = await saveWorkbook(wb);
+        const buffer = await saveWorkbook(wb, "11g-zero-data-rows.xlsx");
         const result = await previewImport(cookie, buffer);
         console.log(`  valid=${result.valid} error=${result.error}`);
         // Could be valid with 0 changes or an error — both are graceful
@@ -1303,7 +1339,7 @@ async function main() {
         `  Adding VA: ${existingSku} STRESS-MAKE STRESS-MODEL 2020-2025`
       );
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "12a-add-vehicle-app.xlsx");
       const preview = await previewImport(cookie, buffer);
       console.log(
         `  Preview: valid=${preview.valid} VA adds=${preview.diff?.vehicleApplications?.adds?.length}`
@@ -1355,7 +1391,7 @@ async function main() {
         `  Modifying VA row 4: end_year ${origEndYear} -> ${newEndYear}`
       );
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "12b-update-vehicle-app.xlsx");
       const preview = await previewImport(cookie, buffer);
       console.log(
         `  Preview: valid=${preview.valid} VA updates=${preview.diff?.vehicleApplications?.updates?.length}`
@@ -1404,7 +1440,7 @@ async function main() {
         `  Marking VA for deletion: ${vaSku} ${vaMake} ${vaModel}`
       );
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "12c-delete-vehicle-app.xlsx");
       const preview = await previewImport(cookie, buffer);
       console.log(
         `  Preview: valid=${preview.valid} VA deletes=${preview.diff?.vehicleApplications?.deletes?.length}`
@@ -1457,7 +1493,7 @@ async function main() {
         "  Adding new part ACR-STRESS-VA-NEW + VA in same import"
       );
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "12d-add-va-new-part.xlsx");
       const preview = await previewImport(cookie, buffer);
       assert(preview.valid === true, "should be valid");
       assert(
@@ -1509,7 +1545,7 @@ async function main() {
         '  Adding alias: "STRESS-NewAlias" -> "stress-canonical" (make)'
       );
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "13a-add-alias.xlsx");
       const preview = await previewImport(cookie, buffer);
       console.log(
         `  Preview: valid=${preview.valid} alias adds=${preview.diff?.aliases?.adds?.length}`
@@ -1557,7 +1593,7 @@ async function main() {
         `  Updating alias "${aliasVal}": type "${origType}" -> "${newType}"`
       );
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "13b-update-alias.xlsx");
       const preview = await previewImport(cookie, buffer);
       console.log(
         `  Preview: valid=${preview.valid} alias updates=${preview.diff?.aliases?.updates?.length}`
@@ -1593,7 +1629,7 @@ async function main() {
       ws.getRow(4).getCell(colStatus).value = "Eliminar";
       console.log(`  Marking alias for deletion: "${aliasVal}"`);
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "13c-delete-alias.xlsx");
       const preview = await previewImport(cookie, buffer);
       console.log(
         `  Preview: valid=${preview.valid} alias deletes=${preview.diff?.aliases?.deletes?.length}`
@@ -1658,7 +1694,7 @@ async function main() {
       );
       assert(vasBefore.length > 0, "part should have VAs");
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "14a-cascade-delete-vas.xlsx");
       const exec = await executeImport(cookie, buffer);
       assert(exec.success === true, "execute should succeed");
 
@@ -1712,7 +1748,7 @@ async function main() {
 
       partsWs.getRow(targetRow).getCell(colStatus).value = "Eliminar";
 
-      const buffer = await saveWorkbook(wb);
+      const buffer = await saveWorkbook(wb, "14b-cascade-delete-crossrefs.xlsx");
       const exec = await executeImport(cookie, buffer);
       assert(exec.success === true, "execute should succeed");
 
@@ -1733,10 +1769,70 @@ async function main() {
   }
 
   // ====================================================================
+  // Test 15: Idempotent Re-Upload
+  // ====================================================================
+
+  if (shouldRun(15)) {
+    console.log("--- Test 15: Idempotent Re-Upload ---");
+    await runTest(
+      "15. Re-upload after execute shows 0 changes",
+      async () => {
+        // 1. Add a new part with explicit Status and execute
+        const wb = await loadWorkbook(baselineBuffer);
+        const ws = getPartsSheet(wb);
+        const colSku = findColumn(ws, "ACR SKU");
+        const colType = findColumn(ws, "Part Type");
+        const colStatus = findColumn(ws, "Status");
+        const newRow = dataRowCount(ws) + 4;
+        ws.getRow(newRow).getCell(colSku).value = "ACR-STRESS-IDEM-001";
+        ws.getRow(newRow).getCell(colType).value = "Brake Rotor";
+        ws.getRow(newRow).getCell(colStatus).value = "Activo";
+
+        const buffer = await saveWorkbook(wb, "15-idempotent-reupload.xlsx");
+        const exec1 = await executeImport(cookie, buffer);
+        assert(exec1.success === true, "first import should succeed");
+
+        // 2. Re-upload same workbook — preview should show 0 changes
+        const preview2 = await previewImport(cookie, buffer);
+        const s = preview2.diff?.summary;
+        console.log(
+          `  Re-upload preview: adds=${s?.totalAdds} updates=${s?.totalUpdates} deletes=${s?.totalDeletes} unchanged=${s?.totalUnchanged}`
+        );
+
+        // Log any unexpected updates for debugging
+        if (preview2.diff?.parts?.updates?.length > 0) {
+          for (const upd of preview2.diff.parts.updates.slice(0, 5)) {
+            console.log(
+              `    Unexpected update: sku=${upd.row?.acr_sku ?? upd.after?.acr_sku} changes=${JSON.stringify(upd.changes)}`
+            );
+          }
+        }
+
+        const failures: string[] = [];
+        if (s?.totalAdds !== 0)
+          failures.push(`totalAdds: expected 0, got ${s?.totalAdds}`);
+        if (s?.totalUpdates !== 0)
+          failures.push(`totalUpdates: expected 0, got ${s?.totalUpdates}`);
+        if (s?.totalDeletes !== 0)
+          failures.push(`totalDeletes: expected 0, got ${s?.totalDeletes}`);
+        if (failures.length > 0) throw new Error(failures.join("; "));
+
+        await restoreBaseline();
+      }
+    );
+  }
+
+  // ====================================================================
   // Summary
   // ====================================================================
 
   printSummary();
+
+  if (SAVE_FILES) {
+    console.log(
+      `\n  Workbooks saved: ${savedFileCount} files in tests/fixtures/import-workbooks/`
+    );
+  }
 }
 
 function printSummary() {
