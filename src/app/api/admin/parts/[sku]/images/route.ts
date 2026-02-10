@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase/client";
+import { supabase, createAdminClient } from "@/lib/supabase/client";
 import { Tables } from "@/lib/supabase/types";
 import { normalizeSku } from "@/lib/utils/sku";
 import { requireAuth } from "@/lib/api/auth-helpers";
@@ -133,8 +133,11 @@ export async function POST(
     const fileExt = file.name.split(".").pop();
     const fileName = `${partId}_${viewType}_${timestamp}_${randomSuffix}.${fileExt}`;
 
+    // Use admin client for storage operations (route is already auth-gated)
+    const adminClient = createAdminClient();
+
     // Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await adminClient.storage
       .from("acr-part-images")
       .upload(fileName, file, {
         cacheControl: "3600",
@@ -152,7 +155,7 @@ export async function POST(
     // Get public URL
     const {
       data: { publicUrl },
-    } = supabase.storage.from("acr-part-images").getPublicUrl(fileName);
+    } = adminClient.storage.from("acr-part-images").getPublicUrl(fileName);
 
     // Display order maps: front=0, back=1, top=2, other=3
     const displayOrderMap: Record<string, number> = {
@@ -168,10 +171,12 @@ export async function POST(
       // Replace existing: delete old file from storage, update DB record
       const oldStoragePath = extractStoragePath(existingImage.image_url);
       if (oldStoragePath) {
-        await supabase.storage.from("acr-part-images").remove([oldStoragePath]);
+        await adminClient.storage
+          .from("acr-part-images")
+          .remove([oldStoragePath]);
       }
 
-      const { data: updated, error: updateError } = await supabase
+      const { data: updated, error: updateError } = await adminClient
         .from("part_images")
         .update({
           image_url: publicUrl,
@@ -184,14 +189,14 @@ export async function POST(
 
       if (updateError) {
         // Clean up uploaded file on DB error
-        await supabase.storage.from("acr-part-images").remove([fileName]);
+        await adminClient.storage.from("acr-part-images").remove([fileName]);
         throw updateError;
       }
 
       imageRecord = updated;
     } else {
       // Create new record
-      const { data: inserted, error: insertError } = await supabase
+      const { data: inserted, error: insertError } = await adminClient
         .from("part_images")
         .insert({
           part_id: partId,
@@ -206,7 +211,7 @@ export async function POST(
 
       if (insertError) {
         // Clean up uploaded file on DB error
-        await supabase.storage.from("acr-part-images").remove([fileName]);
+        await adminClient.storage.from("acr-part-images").remove([fileName]);
         throw insertError;
       }
 

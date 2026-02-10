@@ -42,11 +42,11 @@ export default defineConfig({
     // Auth setup: logs in as admin, saves storageState for reuse
     { name: "setup", testMatch: /.*\.setup\.ts/ },
 
-    // DB-mutating tests: run first, before read-only specs.
-    // admin-import uses destructive snapshot restores (DELETE ALL + UPSERT),
-    // so it must complete before any other spec reads the DB.
+    // DB-mutating tests: run sequentially, each in its own project.
+    // Both use destructive snapshot restores (DELETE ALL + UPSERT),
+    // so they must NOT run concurrently (separate projects with deps).
     {
-      name: "db-tests",
+      name: "db-tests-import",
       testMatch: /admin-import\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
@@ -54,16 +54,25 @@ export default defineConfig({
       },
       dependencies: ["setup"],
     },
-
-    // Read-only specs: run after db-tests complete (parallel safe)
     {
-      name: "chromium",
-      testIgnore: [/auth-boundary\.spec\.ts/, /admin-import\.spec\.ts/],
+      name: "db-tests-images",
+      testMatch: /admin-images\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         storageState: "tests/e2e/.auth/admin.json",
       },
-      dependencies: ["setup", "db-tests"],
+      dependencies: ["setup", "db-tests-import"],
+    },
+
+    // Read-only specs: run after all db-tests complete (parallel safe)
+    {
+      name: "chromium",
+      testIgnore: [/auth-boundary\.spec\.ts/, /admin-(import|images)\.spec\.ts/],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "tests/e2e/.auth/admin.json",
+      },
+      dependencies: ["setup", "db-tests-import", "db-tests-images"],
     },
 
     // Auth boundary tests: runs WITHOUT storageState (unauthenticated)
