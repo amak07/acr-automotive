@@ -97,6 +97,9 @@ async function importSeedData() {
       `\n🔒 Marked ${inactiveResult.rowCount} parts as INACTIVE for E2E testing`
     );
 
+    // Seed part_images from local product photos (if available)
+    await seedPartImages(client);
+
     // Get counts
     const partsResult = await client.query("SELECT COUNT(*) FROM parts");
     const vehiclesResult = await client.query(
@@ -105,13 +108,17 @@ async function importSeedData() {
     const crossRefsResult = await client.query(
       "SELECT COUNT(*) FROM cross_references"
     );
+    const imagesResult = await client.query(
+      "SELECT COUNT(*) FROM part_images"
+    );
 
     console.log("\n📊 Database Summary:");
     console.log(`   Parts: ${partsResult.rows[0].count}`);
     console.log(`   Vehicle Applications: ${vehiclesResult.rows[0].count}`);
     console.log(`   Cross References: ${crossRefsResult.rows[0].count}`);
+    console.log(`   Part Images: ${imagesResult.rows[0].count}`);
     console.log(
-      `   Total Records: ${parseInt(partsResult.rows[0].count) + parseInt(vehiclesResult.rows[0].count) + parseInt(crossRefsResult.rows[0].count)}`
+      `   Total Records: ${parseInt(partsResult.rows[0].count) + parseInt(vehiclesResult.rows[0].count) + parseInt(crossRefsResult.rows[0].count) + parseInt(imagesResult.rows[0].count)}`
     );
 
     // Create seed users (admin + data_manager)
@@ -129,6 +136,69 @@ async function importSeedData() {
   } finally {
     await client.end();
   }
+}
+
+/** Filename suffix → view_type mapping for product photos */
+const VIEW_TYPE_MAP: Record<string, { viewType: string; displayOrder: number; isPrimary: boolean }> = {
+  _fro: { viewType: "front", displayOrder: 0, isPrimary: true },
+  _bot: { viewType: "back", displayOrder: 1, isPrimary: false },
+  _top: { viewType: "top", displayOrder: 2, isPrimary: false },
+  _oth: { viewType: "other", displayOrder: 3, isPrimary: false },
+};
+
+/**
+ * Seed part_images from local product photos in public/product-images/IMAGENES-360-optimized/.
+ * Each SKU has 4 views: _fro (front), _bot (back), _top (top), _oth (other).
+ * Skips gracefully if the directory doesn't exist (e.g., in CI).
+ */
+async function seedPartImages(client: pg.Client) {
+  const imageDir = path.join(
+    process.cwd(),
+    "public",
+    "product-images",
+    "IMAGENES-360-optimized"
+  );
+
+  try {
+    await fs.access(imageDir);
+  } catch {
+    console.log("\n📷 Skipping part_images seed (image directory not found)");
+    return;
+  }
+
+  console.log("\n📷 Seeding part_images from local product photos...");
+
+  const files = await fs.readdir(imageDir);
+
+  // Parse filenames: ACR512001_fro.jpg → { sku: "ACR512001", suffix: "_fro" }
+  const imageEntries: { sku: string; suffix: string; filename: string }[] = [];
+  for (const file of files) {
+    const match = file.match(/^(ACR[A-Z0-9]+)(_fro|_bot|_top|_oth)\.jpg$/i);
+    if (match) {
+      imageEntries.push({ sku: match[1], suffix: match[2].toLowerCase(), filename: file });
+    }
+  }
+
+  // Group by SKU and batch insert
+  let inserted = 0;
+  for (const entry of imageEntries) {
+    const mapping = VIEW_TYPE_MAP[entry.suffix];
+    if (!mapping) continue;
+
+    const imageUrl = `/product-images/IMAGENES-360-optimized/${entry.filename}`;
+
+    const result = await client.query(
+      `INSERT INTO part_images (part_id, image_url, view_type, display_order, is_primary, caption)
+       SELECT p.id, $1, $2, $3, $4, NULL
+       FROM parts p WHERE p.acr_sku = $5
+       ON CONFLICT (part_id, view_type) DO UPDATE SET image_url = EXCLUDED.image_url`,
+      [imageUrl, mapping.viewType, mapping.displayOrder, mapping.isPrimary, entry.sku]
+    );
+
+    if (result.rowCount && result.rowCount > 0) inserted++;
+  }
+
+  console.log(`   ✅ Seeded ${inserted} part_images from ${new Set(imageEntries.map(e => e.sku)).size} SKUs`);
 }
 
 /**
