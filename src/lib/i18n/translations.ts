@@ -337,6 +337,14 @@ export const translations: Record<
     en: "Configure branding and preferences",
     es: "Configurar marca y preferencias",
   },
+  "admin.quickActions.export": {
+    en: "Export Catalog",
+    es: "Exportar Catálogo",
+  },
+  "admin.quickActions.exportDescription": {
+    en: "Download the full parts catalog as Excel",
+    es: "Descargar el catálogo completo de partes como Excel",
+  },
 
   // Admin Filters
   "admin.filters.toggle": {
@@ -2101,6 +2109,30 @@ export const translations: Record<
     en: "The first image is your primary image. Click and hold any image to drag and reorder.",
     es: "La primera imagen es tu imagen principal. Haz clic y mantén presionada cualquier imagen para arrastrar y reordenar.",
   },
+  "partDetails.images.slotFront": {
+    en: "Front (Primary)",
+    es: "Frente (Principal)",
+  },
+  "partDetails.images.slotBack": {
+    en: "Back",
+    es: "Reverso",
+  },
+  "partDetails.images.slotTop": {
+    en: "Top",
+    es: "Superior",
+  },
+  "partDetails.images.slotOther": {
+    en: "Other",
+    es: "Otro",
+  },
+  "partDetails.images.replaceImage": {
+    en: "Replace",
+    es: "Reemplazar",
+  },
+  "partDetails.images.clickToUpload": {
+    en: "Click to upload",
+    es: "Clic para subir",
+  },
 
   // Part Media Tabs
   "partDetails.media.title": {
@@ -3114,5 +3146,21 @@ export const translations: Record<
   "portal.helpText": {
     en: "Need help? Contact your administrator.",
     es: "¿Necesita ayuda? Contacte a su administrador.",
+  },
+  "portal.uploadImages.title": {
+    en: "Photo Manager",
+    es: "Gestor de Fotos",
+  },
+  "portal.uploadImages.description": {
+    en: "Upload photos and copy public URLs for your catalog",
+    es: "Suba fotos y copie las URLs públicas para su catálogo",
+  },
+  "portal.adminBanner.title": {
+    en: "Admin Dashboard",
+    es: "Panel de Administración",
+  },
+  "portal.adminBanner.description": {
+    en: "Access advanced tools, user management, and settings",
+    es: "Acceda a herramientas avanzadas, gestión de usuarios y configuración",
   },
 };

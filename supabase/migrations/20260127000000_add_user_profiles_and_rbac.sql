@@ -259,11 +259,13 @@ DROP POLICY IF EXISTS "Admin Update Site Assets" ON storage.objects;
 DROP POLICY IF EXISTS "Admin Delete Site Assets" ON storage.objects;
 
 -- Public read for all buckets
+DROP POLICY IF EXISTS "Public read storage" ON storage.objects;
 CREATE POLICY "Public read storage"
     ON storage.objects FOR SELECT
     USING (bucket_id IN ('acr-part-images', 'acr-360-frames', 'acr-site-assets'));
 
 -- Authenticated users can upload/update/delete in part images and 360 frames
+DROP POLICY IF EXISTS "Authenticated users manage part images" ON storage.objects;
 CREATE POLICY "Authenticated users manage part images"
     ON storage.objects FOR INSERT
     WITH CHECK (
@@ -271,6 +273,7 @@ CREATE POLICY "Authenticated users manage part images"
         AND is_authenticated_user()
     );
 
+DROP POLICY IF EXISTS "Authenticated users update part images" ON storage.objects;
 CREATE POLICY "Authenticated users update part images"
     ON storage.objects FOR UPDATE
     USING (
@@ -278,6 +281,7 @@ CREATE POLICY "Authenticated users update part images"
         AND is_authenticated_user()
     );
 
+DROP POLICY IF EXISTS "Authenticated users delete part images" ON storage.objects;
 CREATE POLICY "Authenticated users delete part images"
     ON storage.objects FOR DELETE
     USING (
@@ -286,6 +290,7 @@ CREATE POLICY "Authenticated users delete part images"
     );
 
 -- Only admins can manage site assets
+DROP POLICY IF EXISTS "Admins manage site assets insert" ON storage.objects;
 CREATE POLICY "Admins manage site assets insert"
     ON storage.objects FOR INSERT
     WITH CHECK (
@@ -293,6 +298,7 @@ CREATE POLICY "Admins manage site assets insert"
         AND is_admin()
     );
 
+DROP POLICY IF EXISTS "Admins manage site assets update" ON storage.objects;
 CREATE POLICY "Admins manage site assets update"
     ON storage.objects FOR UPDATE
     USING (
@@ -300,6 +306,7 @@ CREATE POLICY "Admins manage site assets update"
         AND is_admin()
     );
 
+DROP POLICY IF EXISTS "Admins manage site assets delete" ON storage.objects;
 CREATE POLICY "Admins manage site assets delete"
     ON storage.objects FOR DELETE
     USING (

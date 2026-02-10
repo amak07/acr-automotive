@@ -86,6 +86,7 @@ archive/
 .env.db
 supabase/.env
 supabase/config.toml  # May contain sensitive project-specific config
+supabase/production-data-snapshot*
 
 # Testing
 .nyc_output
@@ -100,6 +101,9 @@ tests/e2e/tmp/
 
 # Database snapshots (local dev backups)
 .snapshots/
+
+# Production database snapshots (JSON exports)
+supabase/production-snapshot/*.json
 
 # Storybook build outputs
 storybook-static/

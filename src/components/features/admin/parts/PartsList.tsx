@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@/contexts/LocaleContext";
-import { Download } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { createAcrPartsTableColumns } from "./parts-table-config";
 import { AcrPagination } from "@/components/acr";
 import { SearchTerms } from "./SearchFilters";
@@ -72,16 +72,24 @@ export function PartsList(props: PartsListProps) {
         <h2 className="text-base font-semibold text-acr-gray-800 lg:text-lg">
           {t("admin.dashboard.catalogTitle")}
         </h2>
-        {/* Keep only Export button - other actions are in QuickActions */}
-        <AcrButton variant="secondary" onClick={handleExport}>
-          <Download className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
-          <span className="hidden sm:inline">
-            {hasFilters
-              ? `Export Results (${partsTotal})`
-              : `Export All (${partsTotal})`}
-          </span>
-          <span className="sm:hidden">{partsTotal}</span>
-        </AcrButton>
+        <div className="flex items-center gap-2">
+          <AcrButton
+            variant="primary"
+            onClick={() => router.push("/admin/parts/add-new-part" as any)}
+          >
+            <Plus className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+            <span className="hidden sm:inline">{t("admin.quickActions.addPart")}</span>
+          </AcrButton>
+          <AcrButton variant="secondary" onClick={handleExport}>
+            <Download className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+            <span className="hidden sm:inline">
+              {hasFilters
+                ? `Export Results (${partsTotal})`
+                : `Export All (${partsTotal})`}
+            </span>
+            <span className="sm:hidden">{partsTotal}</span>
+          </AcrButton>
+        </div>
       </div>
 
       {/* Error State */}
