@@ -114,10 +114,6 @@ export async function DELETE(
     }
 
     const partId = part.id;
-    console.log("[API DELETE] Attempting to delete image:", {
-      partId,
-      imageId,
-    });
 
     // Get image record to extract filename
     const { data: image, error: fetchError } = await supabase
@@ -127,50 +123,31 @@ export async function DELETE(
       .eq("part_id", partId)
       .single();
 
-    console.log("[API DELETE] Fetch image result:", { image, fetchError });
-
     if (fetchError || !image) {
-      console.error("[API DELETE] Image not found:", {
-        imageId,
-        partId,
-        fetchError,
-      });
       return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
 
     // Extract storage path from URL
-    // URL format: https://xyz.supabase.co/storage/v1/object/public/acr-part-images/filename.jpg
-    // Extract everything after the bucket name
     const bucketName = "acr-part-images";
     const bucketPrefix = `/${bucketName}/`;
 
     let storagePath: string;
     if (image.image_url.includes(bucketPrefix)) {
-      // Extract path after bucket name
       storagePath = image.image_url.split(bucketPrefix)[1];
-      // Remove any query parameters (e.g., ?timestamp=123)
       storagePath = storagePath.split("?")[0];
     } else {
-      // Fallback: just use the filename (last part of URL)
       const urlParts = image.image_url.split("/");
       storagePath = urlParts[urlParts.length - 1].split("?")[0];
     }
 
-    console.log("[API DELETE] Extracted storage path:", storagePath);
-
-    // Delete from storage first (blocking, to ensure cleanup before DB delete)
+    // Delete from storage first
     const { error: storageError } = await supabase.storage
       .from(bucketName)
       .remove([storagePath]);
 
     if (storageError) {
-      console.error("[API DELETE] Storage deletion error:", storageError);
-      // Continue with database deletion even if storage fails (orphaned file is better than broken DB)
-    } else {
-      console.log(
-        "[API DELETE] Successfully deleted from storage:",
-        storagePath
-      );
+      console.error("Storage deletion error:", storageError);
+      // Continue with database deletion even if storage fails
     }
 
     // Delete from database
@@ -179,14 +156,8 @@ export async function DELETE(
       .delete()
       .eq("id", imageId);
 
-    if (dbError) {
-      console.error("[API DELETE] Database delete error:", dbError);
-      throw dbError;
-    }
+    if (dbError) throw dbError;
 
-    console.log("[API DELETE] Successfully deleted from database");
-
-    console.log("[API DELETE] Delete operation completed successfully");
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("[API DELETE] Error deleting image:", error);

@@ -357,6 +357,8 @@ export interface TranslationKeys {
   "admin.quickActions.uploadImagesDescription": string;
   "admin.quickActions.settings": string;
   "admin.quickActions.settingsDescription": string;
+  "admin.quickActions.export": string;
+  "admin.quickActions.exportDescription": string;
 
   // Admin Filters
   "admin.filters.toggle": string;
@@ -583,6 +585,12 @@ export interface TranslationKeys {
   "partDetails.images.deleteTooltip": string;
   "partDetails.images.dragTipLabel": string;
   "partDetails.images.dragTip": string;
+  "partDetails.images.slotFront": string;
+  "partDetails.images.slotBack": string;
+  "partDetails.images.slotTop": string;
+  "partDetails.images.slotOther": string;
+  "partDetails.images.replaceImage": string;
+  "partDetails.images.clickToUpload": string;
 
   // Part Media Tabs
   "partDetails.media.title": string;
@@ -862,4 +870,8 @@ export interface TranslationKeys {
   "portal.docs.imagesDesc": string;
   "portal.docs.viewAll": string;
   "portal.helpText": string;
+  "portal.uploadImages.title": string;
+  "portal.uploadImages.description": string;
+  "portal.adminBanner.title": string;
+  "portal.adminBanner.description": string;
 }

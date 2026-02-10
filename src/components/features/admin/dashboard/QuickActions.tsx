@@ -6,7 +6,7 @@ import type { Route } from "next";
 import {
   LucideIcon,
   Upload,
-  Plus,
+  Download,
   ImagePlus,
   Settings,
   ChevronDown,
@@ -23,6 +23,7 @@ interface QuickAction {
   icon: LucideIcon;
   href: string;
   variant: "primary" | "secondary";
+  isDownload?: boolean; // render as <a> instead of Next.js Link (for API downloads)
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
@@ -35,12 +36,13 @@ const QUICK_ACTIONS: QuickAction[] = [
     variant: "primary",
   },
   {
-    id: "addPart",
-    title: "admin.quickActions.addPart",
-    description: "admin.quickActions.addPartDescription",
-    icon: Plus,
-    href: "/admin/parts/add-new-part",
+    id: "export",
+    title: "admin.quickActions.export",
+    description: "admin.quickActions.exportDescription",
+    icon: Download,
+    href: "/api/admin/export",
     variant: "secondary",
+    isDownload: true,
   },
   {
     id: "uploadImages",
@@ -94,11 +96,15 @@ export function QuickActions() {
           <div className="grid grid-cols-2 gap-3">
             {QUICK_ACTIONS.map((action) => {
               const Icon = action.icon;
+              const Wrapper = action.isDownload ? "a" : Link;
+              const wrapperProps = action.isDownload
+                ? { href: action.href }
+                : { href: action.href as Route };
 
               return (
-                <Link
+                <Wrapper
                   key={action.id}
-                  href={action.href as Route}
+                  {...wrapperProps}
                   className="block group"
                 >
                   <AcrCard
@@ -134,7 +140,7 @@ export function QuickActions() {
                       </div>
                     </div>
                   </AcrCard>
-                </Link>
+                </Wrapper>
               );
             })}
           </div>
@@ -157,11 +163,15 @@ export function QuickActions() {
         <div className="grid grid-cols-4 gap-4">
           {QUICK_ACTIONS.map((action, index) => {
             const Icon = action.icon;
+            const Wrapper = action.isDownload ? "a" : Link;
+            const wrapperProps = action.isDownload
+              ? { href: action.href }
+              : { href: action.href as Route };
 
             return (
-              <Link
+              <Wrapper
                 key={action.id}
-                href={action.href as Route}
+                {...wrapperProps}
                 className={cn(
                   "block group",
                   "acr-animate-fade-up",
@@ -201,7 +211,7 @@ export function QuickActions() {
                     </div>
                   </div>
                 </AcrCard>
-              </Link>
+              </Wrapper>
             );
           })}
         </div>

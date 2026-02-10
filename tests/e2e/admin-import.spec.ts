@@ -37,6 +37,11 @@ async function uploadAndWaitForPreview(
   ).toBeVisible({ timeout: 30_000 });
 }
 
+// Outer serial block: prevents the two inner describe blocks from running
+// concurrently on different workers (their snapshot restores do global deletes).
+test.describe("Admin Import Tests", () => {
+  test.describe.configure({ mode: "serial" });
+
 test.describe("Admin Import/Export", () => {
   test.describe.configure({ mode: "serial" });
 
@@ -403,9 +408,10 @@ test.describe("Import UI edge cases", () => {
     await uploadAndWaitForPreview(page, buffer, "test-bulk-mixed-100.xlsx");
 
     // Part Changes tab should show all 3 diff sections
-    await expect(page.getByText(/New Parts/i)).toBeVisible();
-    await expect(page.getByText(/Updated Parts/i)).toBeVisible();
-    await expect(page.getByText(/Deleted Parts/i)).toBeVisible();
+    // Extended timeout: CI renders 75 diff entries slower than local
+    await expect(page.getByText(/New Parts/i)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Updated Parts/i)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Deleted Parts/i)).toBeVisible({ timeout: 15_000 });
 
     // Tab header shows total count
     await expect(page.getByText(/Part Changes/i)).toBeVisible();
@@ -443,3 +449,5 @@ test.describe("Import UI edge cases", () => {
     ).toBeVisible({ timeout: 30_000 });
   });
 });
+
+}); // end outer "Admin Import Tests"
