@@ -2,6 +2,14 @@
 -- Fixes critical bug where Excel import's onConflict: "part_id,view_type" silently
 -- creates duplicates instead of upserts (no constraint existed to enforce uniqueness).
 
+-- Step 0: Normalize legacy view_type values from staging/production data
+-- 'bottom' → 'back' (4-slot model: front/back/top/other)
+UPDATE part_images SET view_type = 'back' WHERE view_type = 'bottom';
+-- Any other non-standard values → NULL (Steps 2-3 will reassign or delete)
+UPDATE part_images SET view_type = NULL
+  WHERE view_type IS NOT NULL
+  AND view_type NOT IN ('front', 'back', 'top', 'other');
+
 -- Step 1: Deduplicate any existing rows with same (part_id, view_type)
 -- Keep the row with the highest ID (most recently inserted)
 DELETE FROM part_images a
@@ -55,6 +63,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_part_images_part_view_type
   ON part_images (part_id, view_type);
 
 -- Step 6: Add CHECK constraint for valid view_type values
-ALTER TABLE part_images
-  ADD CONSTRAINT chk_part_images_view_type
-  CHECK (view_type IN ('front', 'back', 'top', 'other'));
+DO $$ BEGIN
+  ALTER TABLE part_images
+    ADD CONSTRAINT chk_part_images_view_type
+    CHECK (view_type IN ('front', 'back', 'top', 'other'));
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
