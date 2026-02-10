@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { ACTIVE_CROSS_REFS, INACTIVE_CROSS_REFS } from "./fixtures/test-data";
 import { waitForHydration, quickSearch } from "./helpers/test-helpers";
 
 /**
@@ -7,6 +6,7 @@ import { waitForHydration, quickSearch } from "./helpers/test-helpers";
  *
  * Tests searching by competitor part numbers (e.g., FAG, TMK, ATV, SYD).
  * These are typed into the Quick Search input and resolved via the search_by_sku RPC.
+ * Read-only spec — no DB modifications, no snapshot isolation needed.
  * Plan: ~/.claude/plans/drifting-foraging-milner.md Section 3.4
  */
 

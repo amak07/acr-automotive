@@ -34,18 +34,21 @@ export async function createE2ESnapshot(): Promise<string> {
   const supabase = getE2EClient();
 
   // Fetch all data
-  const [parts, vehicleApps, crossRefs, aliases] = await Promise.all([
-    supabase.from("parts").select("*"),
-    supabase.from("vehicle_applications").select("*"),
-    supabase.from("cross_references").select("*"),
-    supabase.from("vehicle_aliases").select("*"),
-  ]);
+  const [parts, vehicleApps, crossRefs, aliases, partImages] =
+    await Promise.all([
+      supabase.from("parts").select("*"),
+      supabase.from("vehicle_applications").select("*"),
+      supabase.from("cross_references").select("*"),
+      supabase.from("vehicle_aliases").select("*"),
+      supabase.from("part_images").select("*"),
+    ]);
 
   const snapshotData = {
     parts: parts.data || [],
     vehicle_applications: vehicleApps.data || [],
     cross_references: crossRefs.data || [],
     vehicle_aliases: aliases.data || [],
+    part_images: partImages.data || [],
     timestamp: new Date().toISOString(),
   };
 
@@ -89,6 +92,13 @@ export async function restoreE2ESnapshot(snapshotId: string): Promise<void> {
   const snap = snapshots[0].snapshot_data;
 
   // Delete all (reverse FK order) — check errors
+  const delPI = await supabase
+    .from("part_images")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
+  if (delPI.error)
+    console.warn("[E2E Restore] part_images delete warning:", delPI.error.message);
+
   const delCR = await supabase
     .from("cross_references")
     .delete()
@@ -142,6 +152,13 @@ export async function restoreE2ESnapshot(snapshotId: string): Promise<void> {
       .upsert(snap.vehicle_aliases, { onConflict: "id" });
     if (error)
       throw new Error(`Failed to restore aliases: ${error.message}`);
+  }
+  if (snap.part_images?.length) {
+    const { error } = await supabase
+      .from("part_images")
+      .upsert(snap.part_images, { onConflict: "id" });
+    if (error)
+      throw new Error(`Failed to restore part_images: ${error.message}`);
   }
 }
 

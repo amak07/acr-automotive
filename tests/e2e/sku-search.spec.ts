@@ -6,12 +6,7 @@ import {
   fillSearchInput,
   quickSearch,
 } from "./helpers/test-helpers";
-import {
-  createE2ESnapshot,
-  restoreE2ESnapshot,
-  deleteE2ESnapshot,
-  getE2EClient,
-} from "./helpers/db-helpers";
+import { getE2EClient } from "./helpers/db-helpers";
 
 /**
  * SKU Search E2E Tests
@@ -158,40 +153,44 @@ test.describe("SKU Search", () => {
 // INACTIVE part visibility — regression test for workflow_status filter
 // ---------------------------------------------------------------------------
 test.describe("INACTIVE part visibility", () => {
-  let snapshotId: string;
+  let testSku: string;
 
   test.beforeAll(async () => {
-    snapshotId = await createE2ESnapshot();
-  });
-
-  test.afterAll(async () => {
-    if (snapshotId) {
-      await restoreE2ESnapshot(snapshotId);
-      await deleteE2ESnapshot(snapshotId);
-    }
-  });
-
-  test("INACTIVE part is not returned by public detail API", async ({
-    page,
-  }) => {
     const client = getE2EClient();
-    // Get a known active part
+    // Pick a known ACTIVE part to temporarily mark INACTIVE
     const { data } = await client
       .from("parts")
       .select("acr_sku")
       .eq("workflow_status", "ACTIVE")
       .limit(1)
       .single();
-    const sku = data!.acr_sku;
+    testSku = data!.acr_sku;
 
-    // Mark it INACTIVE
+    // Mark it INACTIVE for this test block
     await client
       .from("parts")
       .update({ workflow_status: "INACTIVE" })
-      .eq("acr_sku", sku);
+      .eq("acr_sku", testSku);
+  });
 
-    // Direct API lookup should return 404
-    const response = await page.request.get(`/api/public/parts?sku=${sku}`);
+  test.afterAll(async () => {
+    // Targeted cleanup: restore just the one record we modified
+    if (testSku) {
+      const client = getE2EClient();
+      await client
+        .from("parts")
+        .update({ workflow_status: "ACTIVE" })
+        .eq("acr_sku", testSku);
+    }
+  });
+
+  test("INACTIVE part is not returned by public detail API", async ({
+    page,
+  }) => {
+    // testSku was set to INACTIVE in beforeAll
+    const response = await page.request.get(
+      `/api/public/parts?sku=${testSku}`
+    );
     expect(response.status()).toBe(404);
     const json = await response.json();
     expect(json.success).toBe(false);
