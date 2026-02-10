@@ -357,6 +357,8 @@ export interface TranslationKeys {
   "admin.quickActions.uploadImagesDescription": string;
   "admin.quickActions.settings": string;
   "admin.quickActions.settingsDescription": string;
+  "admin.quickActions.export": string;
+  "admin.quickActions.exportDescription": string;
 
   // Admin Filters
   "admin.filters.toggle": string;
@@ -862,4 +864,8 @@ export interface TranslationKeys {
   "portal.docs.imagesDesc": string;
   "portal.docs.viewAll": string;
   "portal.helpText": string;
+  "portal.uploadImages.title": string;
+  "portal.uploadImages.description": string;
+  "portal.adminBanner.title": string;
+  "portal.adminBanner.description": string;
 }
