@@ -40,6 +40,16 @@ Use these skills when relevant:
 - CI runs `supabase db push` to apply migrations on push (path filter: `supabase/migrations/**`)
 - Always verify migrations are actually applied after deploy — check with `list_migrations` + schema queries
 
+### Supabase CLI Linking
+
+| Environment | Project ref | Link command |
+|-------------|------------|--------------|
+| **Staging** | `fzsdaqpwwbuwkvbzyiax` | `npx.cmd supabase link --project-ref fzsdaqpwwbuwkvbzyiax` |
+| **Production** | `bzfnqhghtmsiecvvgmkw` | `npx.cmd supabase link --project-ref bzfnqhghtmsiecvvgmkw` |
+
+- **PRODUCTION IS DANGEROUS**: Any `supabase` CLI command while linked to production (migration repair, db push, etc.) **MUST get explicit user permission** before execution. Always confirm with the user first.
+- Always `supabase unlink` after finishing production operations — never leave the CLI pointed at production.
+
 ## Development
 
 - Local Docker Supabase for development
