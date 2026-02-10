@@ -13,8 +13,10 @@ import {
   BookOpen,
   FileSpreadsheet,
   ImageIcon,
+  ImagePlus,
   ArrowRight,
   Sparkles,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStaggerClass } from "@/lib/animations";
@@ -27,7 +29,7 @@ import { getStaggerClass } from "@/lib/animations";
  */
 export default function DataPortalPage() {
   const router = useRouter();
-  const { user, profile, isLoading } = useAuth();
+  const { user, profile, isLoading, isAdmin } = useAuth();
   const { t } = useLocale();
 
   // Loading state
@@ -69,6 +71,36 @@ export default function DataPortalPage() {
           <p className="text-acr-gray-600 text-lg">{t("portal.description")}</p>
         </div>
 
+        {/* Admin Dashboard Banner (admin only) */}
+        {isAdmin && (
+          <AcrCard
+            variant="interactive"
+            className={cn(
+              "mb-8 cursor-pointer group acr-animate-fade-up",
+              "border-acr-gray-200 hover:border-acr-red-300"
+            )}
+            onClick={() => router.push("/admin")}
+            style={{ animationDelay: "0.6s" }}
+          >
+            <AcrCardContent className="p-4 lg:p-5">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-acr-red-100 flex items-center justify-center shrink-0 group-hover:bg-acr-red-600 transition-colors duration-300">
+                  <Shield className="w-5 h-5 text-acr-red-600 group-hover:text-white transition-colors duration-300" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-acr-gray-900 text-sm group-hover:text-acr-red-600 transition-colors">
+                    {t("portal.adminBanner.title")}
+                  </h3>
+                  <p className="text-xs text-acr-gray-500">
+                    {t("portal.adminBanner.description")}
+                  </p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-acr-gray-400 group-hover:text-acr-red-500 group-hover:translate-x-1 transition-all duration-300 shrink-0" />
+              </div>
+            </AcrCardContent>
+          </AcrCard>
+        )}
+
         {/* Quick Actions Section */}
         <section className="mb-12">
           <h2
@@ -78,7 +110,7 @@ export default function DataPortalPage() {
             {t("portal.quickActions")}
           </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
             {/* Import Card */}
             <AcrCard
               variant="interactive"
@@ -90,7 +122,7 @@ export default function DataPortalPage() {
             >
               <AcrCardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-acr-red-100 to-acr-red-50 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-acr-red-100 to-acr-red-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
                     <Upload className="w-7 h-7 text-acr-red-600" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -119,7 +151,7 @@ export default function DataPortalPage() {
             >
               <AcrCardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
                     <Download className="w-7 h-7 text-blue-600" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -131,6 +163,35 @@ export default function DataPortalPage() {
                     </div>
                     <p className="text-acr-gray-600 text-sm leading-relaxed">
                       {t("portal.export.description")}
+                    </p>
+                  </div>
+                </div>
+              </AcrCardContent>
+            </AcrCard>
+
+            {/* Upload Images Card */}
+            <AcrCard
+              variant="interactive"
+              className={cn(
+                "cursor-pointer group acr-animate-fade-up",
+                getStaggerClass(2)
+              )}
+              onClick={() => router.push("/data-portal/upload-images")}
+            >
+              <AcrCardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+                    <ImagePlus className="w-7 h-7 text-purple-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-semibold text-acr-gray-900">
+                        {t("portal.uploadImages.title")}
+                      </h3>
+                      <ArrowRight className="w-5 h-5 text-acr-gray-400 group-hover:text-purple-500 group-hover:translate-x-1 transition-all duration-300" />
+                    </div>
+                    <p className="text-acr-gray-600 text-sm leading-relaxed">
+                      {t("portal.uploadImages.description")}
                     </p>
                   </div>
                 </div>

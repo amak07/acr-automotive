@@ -31,23 +31,17 @@ function LoginForm() {
     try {
       const profile = await signIn(email, password);
 
-      // Redirect based on role
-      // Data managers go to /data-portal, admins can go anywhere
+      // Redirect to requested page or default to data-portal
       const requestedRedirect = searchParams?.get('redirect');
       let redirect: string;
 
-      if (profile.role === 'data_manager') {
-        // Data managers always go to data-portal
-        redirect = '/data-portal';
-      } else {
-        // Sanitize redirect: must be a relative path, not a login page or external URL
-        const isSafeRedirect = requestedRedirect
-          && requestedRedirect.startsWith('/')
-          && !requestedRedirect.startsWith('//')
-          && !requestedRedirect.endsWith('/login')
-          && requestedRedirect !== '/login';
-        redirect = isSafeRedirect ? requestedRedirect : '/admin';
-      }
+      // Sanitize redirect: must be a relative path, not a login page or external URL
+      const isSafeRedirect = requestedRedirect
+        && requestedRedirect.startsWith('/')
+        && !requestedRedirect.startsWith('//')
+        && !requestedRedirect.endsWith('/login')
+        && requestedRedirect !== '/login';
+      redirect = isSafeRedirect ? requestedRedirect : '/data-portal';
 
       router.push(redirect);
     } catch (err) {
