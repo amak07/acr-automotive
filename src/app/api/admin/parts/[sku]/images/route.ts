@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
-import { Tables, TablesInsert } from "@/lib/supabase/types";
-import { PostgrestError } from "@supabase/supabase-js";
+import { Tables } from "@/lib/supabase/types";
 import { normalizeSku } from "@/lib/utils/sku";
 import { requireAuth } from "@/lib/api/auth-helpers";
 
 type PartImage = Tables<"part_images">;
+
+const VALID_VIEW_TYPES = ["front", "back", "top", "other"] as const;
+type ViewType = (typeof VALID_VIEW_TYPES)[number];
 
 /**
  * GET /api/admin/parts/[sku]/images
@@ -55,12 +57,17 @@ export async function GET(
 
 /**
  * POST /api/admin/parts/[sku]/images
- * Upload multiple images for a part
+ * Upload a single image for a specific view_type slot (front/back/top/other).
+ * If the slot already has an image, it replaces it (deletes old file from storage).
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ sku: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireAuth(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { sku } = await params;
     const normalizedSku = normalizeSku(sku);
@@ -80,131 +87,166 @@ export async function POST(
 
     // Parse form data
     const formData = await request.formData();
-    const files = formData.getAll("files") as File[];
+    const file = formData.get("file") as File | null;
+    const viewType = formData.get("view_type") as string | null;
 
-    if (!files || files.length === 0) {
-      return NextResponse.json({ error: "No files provided" }, { status: 400 });
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Check current image count
-    const { data: existingImages, count: imageCount } = await supabase
-      .from("part_images")
-      .select("display_order", { count: "exact" })
-      .eq("part_id", partId)
-      .order("display_order", { ascending: false });
-
-    const MAX_IMAGES = 10; // Matches VALIDATION.maxProductImages in patterns.config.ts
-    const currentCount = imageCount || 0;
-
-    if (currentCount >= MAX_IMAGES) {
-      return NextResponse.json(
-        { error: `Maximum of ${MAX_IMAGES} images per part` },
-        { status: 400 }
-      );
-    }
-
-    const remainingSlots = MAX_IMAGES - currentCount;
-    if (files.length > remainingSlots) {
+    if (!viewType || !VALID_VIEW_TYPES.includes(viewType as ViewType)) {
       return NextResponse.json(
         {
-          error: `Can only upload ${remainingSlots} more image(s). Maximum ${MAX_IMAGES} images per part.`,
+          error: `Invalid view_type. Must be one of: ${VALID_VIEW_TYPES.join(", ")}`,
         },
         { status: 400 }
       );
     }
 
-    // New images are added at the end (highest display_order + 1)
-    let nextOrder =
-      existingImages && existingImages.length > 0
-        ? existingImages[0].display_order + 1
-        : 0;
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      return NextResponse.json(
+        { error: "File must be an image" },
+        { status: 400 }
+      );
+    }
 
-    const uploadedImages: PartImage[] = [];
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: "File too large. Maximum 5MB" },
+        { status: 400 }
+      );
+    }
 
-    // Upload each file
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    // Check if slot already has an image (for replacement)
+    const { data: existingImage } = await supabase
+      .from("part_images")
+      .select("*")
+      .eq("part_id", partId)
+      .eq("view_type", viewType)
+      .single();
 
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        continue; // Skip non-image files
+    // Generate unique filename
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(7);
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${partId}_${viewType}_${timestamp}_${randomSuffix}.${fileExt}`;
+
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from("acr-part-images")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("Upload error:", uploadError);
+      return NextResponse.json(
+        { error: "Failed to upload file" },
+        { status: 500 }
+      );
+    }
+
+    // Get public URL
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("acr-part-images").getPublicUrl(fileName);
+
+    // Display order maps: front=0, back=1, top=2, other=3
+    const displayOrderMap: Record<string, number> = {
+      front: 0,
+      back: 1,
+      top: 2,
+      other: 3,
+    };
+
+    let imageRecord: PartImage;
+
+    if (existingImage) {
+      // Replace existing: delete old file from storage, update DB record
+      const oldStoragePath = extractStoragePath(existingImage.image_url);
+      if (oldStoragePath) {
+        await supabase.storage.from("acr-part-images").remove([oldStoragePath]);
       }
 
-      // Validate file size (5MB max)
-      if (file.size > 5 * 1024 * 1024) {
-        continue; // Skip files larger than 5MB
-      }
-
-      // Generate unique filename
-      const timestamp = Date.now();
-      const randomSuffix = Math.random().toString(36).substring(7);
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${partId}_${timestamp}_${randomSuffix}.${fileExt}`;
-
-      // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("acr-part-images")
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        continue; // Skip this file if upload fails
-      }
-
-      // Get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("acr-part-images").getPublicUrl(fileName);
-
-      // Create database record
-      // Note: is_primary is deprecated, we use display_order (first = primary)
-      const newImage: TablesInsert<"part_images"> = {
-        part_id: partId,
-        image_url: publicUrl,
-        display_order: nextOrder++,
-        is_primary: false, // Deprecated field, kept for schema compatibility
-        caption: null,
-      };
-
-      const { data: imageRecord, error: dbError } = await supabase
+      const { data: updated, error: updateError } = await supabase
         .from("part_images")
-        .insert(newImage)
+        .update({
+          image_url: publicUrl,
+          is_primary: viewType === "front",
+          display_order: displayOrderMap[viewType],
+        })
+        .eq("id", existingImage.id)
         .select()
         .single();
 
-      if (dbError) {
-        console.error("Database insert error:", dbError);
-        // Clean up uploaded file
+      if (updateError) {
+        // Clean up uploaded file on DB error
         await supabase.storage.from("acr-part-images").remove([fileName]);
-        continue;
+        throw updateError;
       }
 
-      uploadedImages.push(imageRecord);
-    }
+      imageRecord = updated;
+    } else {
+      // Create new record
+      const { data: inserted, error: insertError } = await supabase
+        .from("part_images")
+        .insert({
+          part_id: partId,
+          image_url: publicUrl,
+          view_type: viewType,
+          display_order: displayOrderMap[viewType],
+          is_primary: viewType === "front",
+          caption: null,
+        })
+        .select()
+        .single();
 
-    if (uploadedImages.length === 0) {
-      return NextResponse.json(
-        { error: "Failed to upload any images" },
-        { status: 500 }
-      );
+      if (insertError) {
+        // Clean up uploaded file on DB error
+        await supabase.storage.from("acr-part-images").remove([fileName]);
+        throw insertError;
+      }
+
+      imageRecord = inserted;
     }
 
     return NextResponse.json(
       {
         success: true,
-        images: uploadedImages,
-        count: uploadedImages.length,
+        image: imageRecord,
+        replaced: !!existingImage,
+        count: 1,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error uploading images:", error);
+    console.error("Error uploading image:", error);
     return NextResponse.json(
-      { error: "Failed to upload images" },
+      { error: "Failed to upload image" },
       { status: 500 }
     );
   }
+}
+
+/**
+ * Extract the storage path from a Supabase public URL.
+ * URL format: https://xyz.supabase.co/storage/v1/object/public/acr-part-images/filename.jpg
+ */
+function extractStoragePath(imageUrl: string): string | null {
+  const bucketName = "acr-part-images";
+  const bucketPrefix = `/${bucketName}/`;
+
+  if (imageUrl.includes(bucketPrefix)) {
+    let path = imageUrl.split(bucketPrefix)[1];
+    path = path.split("?")[0]; // Remove query params
+    return path;
+  }
+
+  // Fallback: just use the filename
+  const urlParts = imageUrl.split("/");
+  const filename = urlParts[urlParts.length - 1]?.split("?")[0];
+  return filename || null;
 }
