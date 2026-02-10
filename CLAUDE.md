@@ -29,14 +29,25 @@ Use these skills when relevant:
 - `frontend-design` - UI/UX work
 - `supabase-postgres-best-practices` - Database queries/schema
 
+## Environments
+
+| Environment | MCP prefix | Deploys from | Workflow |
+|-------------|-----------|--------------|----------|
+| **Local** | `mcp__supabase-local__*` | `supabase start` (Docker) | — |
+| **Staging** | `mcp__supabase__*` | push to `dev` | `.github/workflows/staging.yml` |
+| **Production** | — | push to `main` | `.github/workflows/production.yml` |
+
+- CI runs `supabase db push` to apply migrations on push (path filter: `supabase/migrations/**`)
+- Always verify migrations are actually applied after deploy — check with `list_migrations` + schema queries
+
 ## Development
 
 - Local Docker Supabase for development
-- Supabase MCP servers configured (local + remote)
+- Supabase MCP servers configured (local + remote/staging)
 - `npm run db:save-snapshot` / `db:restore-snapshot` - Data backup
 - Clean restart: `supabase stop --no-backup && supabase start`, then re-seed: `npm.cmd run db:import-seed`
 - Docker container name conflicts: `docker rm -f <id>` or `supabase stop --no-backup` first
-- Seed creates: 865 parts, 1000 vehicle_apps, 1000 cross_refs, 15 aliases
+- Seed creates: 865 parts, 1000 vehicle_apps, 1000 cross_refs, 15 aliases, 661 part_images
 
 ## Git Worktrees
 
