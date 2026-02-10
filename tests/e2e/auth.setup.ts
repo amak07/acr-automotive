@@ -25,9 +25,9 @@ setup("authenticate as admin", async ({ page }) => {
   // Submit
   await page.getByRole("button", { name: "Sign In" }).click();
 
-  // Wait for redirect to /admin (role-based redirect for admin users)
-  await page.waitForURL("**/admin", { timeout: 15_000 });
-  await expect(page).toHaveURL(/\/admin/);
+  // Wait for redirect to /data-portal (all roles land on data-portal after login)
+  await page.waitForURL("**/data-portal", { timeout: 15_000 });
+  await expect(page).toHaveURL(/\/data-portal/);
 
   // Save authenticated browser state
   await page.context().storageState({ path: AUTH_FILE });

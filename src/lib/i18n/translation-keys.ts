@@ -585,6 +585,12 @@ export interface TranslationKeys {
   "partDetails.images.deleteTooltip": string;
   "partDetails.images.dragTipLabel": string;
   "partDetails.images.dragTip": string;
+  "partDetails.images.slotFront": string;
+  "partDetails.images.slotBack": string;
+  "partDetails.images.slotTop": string;
+  "partDetails.images.slotOther": string;
+  "partDetails.images.replaceImage": string;
+  "partDetails.images.clickToUpload": string;
 
   // Part Media Tabs
   "partDetails.media.title": string;

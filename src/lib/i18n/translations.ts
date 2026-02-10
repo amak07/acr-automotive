@@ -2109,6 +2109,30 @@ export const translations: Record<
     en: "The first image is your primary image. Click and hold any image to drag and reorder.",
     es: "La primera imagen es tu imagen principal. Haz clic y mantén presionada cualquier imagen para arrastrar y reordenar.",
   },
+  "partDetails.images.slotFront": {
+    en: "Front (Primary)",
+    es: "Frente (Principal)",
+  },
+  "partDetails.images.slotBack": {
+    en: "Back",
+    es: "Reverso",
+  },
+  "partDetails.images.slotTop": {
+    en: "Top",
+    es: "Superior",
+  },
+  "partDetails.images.slotOther": {
+    en: "Other",
+    es: "Otro",
+  },
+  "partDetails.images.replaceImage": {
+    en: "Replace",
+    es: "Reemplazar",
+  },
+  "partDetails.images.clickToUpload": {
+    en: "Click to upload",
+    es: "Clic para subir",
+  },
 
   // Part Media Tabs
   "partDetails.media.title": {

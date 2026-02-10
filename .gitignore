@@ -86,6 +86,7 @@ archive/
 .env.db
 supabase/.env
 supabase/config.toml  # May contain sensitive project-specific config
+supabase/production-data-snapshot*
 
 # Testing
 .nyc_output
