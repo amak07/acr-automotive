@@ -55,12 +55,15 @@ export async function GET(request: NextRequest) {
     // Check if any filters are applied
     const hasFilters = Object.values(filters).some((v) => v !== undefined);
 
+    // Derive base URL from request for Excel instruction hyperlinks
+    const origin = request.nextUrl.origin;
+
     const service = new ExcelExportService();
 
     // Generate Excel file (filtered or all)
     const buffer = hasFilters
-      ? await service.exportFiltered(filters)
-      : await service.exportAllData();
+      ? await service.exportFiltered(filters, origin)
+      : await service.exportAllData(origin);
 
     // Get export statistics for headers
     const stats = await service.getExportStats();
