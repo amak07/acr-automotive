@@ -21,6 +21,7 @@ import {
   PARTS_INSTRUCTIONS,
   VEHICLE_APPS_INSTRUCTIONS,
   ALIASES_INSTRUCTIONS,
+  EXCEL_COLORS,
 } from "@/services/excel/shared";
 
 // Type for cross-refs grouped by part and brand
@@ -96,7 +97,7 @@ export class ExcelExportService {
    * Export all catalog data to Excel workbook
    * @returns Excel file buffer ready for download
    */
-  async exportAllData(): Promise<Buffer> {
+  async exportAllData(baseUrl: string = ""): Promise<Buffer> {
     // Fetch all data from database
     const [parts, vehicles, crossRefsByPart, imagesByPart, aliases] =
       await Promise.all([
@@ -113,7 +114,7 @@ export class ExcelExportService {
     workbook.created = new Date();
 
     // Add Parts sheet (with inline cross-refs and images)
-    this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart);
+    this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart, "es", baseUrl);
 
     // Add Vehicle Applications sheet
     this.addVehiclesSheet(workbook, vehicles);
@@ -132,7 +133,7 @@ export class ExcelExportService {
    * @param filters - Search filters to apply
    * @returns Excel file buffer ready for download
    */
-  async exportFiltered(filters: ExportFilters): Promise<Buffer> {
+  async exportFiltered(filters: ExportFilters, baseUrl: string = ""): Promise<Buffer> {
     // Fetch filtered parts
     const parts = await this.fetchFilteredParts(filters);
 
@@ -145,7 +146,7 @@ export class ExcelExportService {
       workbook.creator = "ACR Automotive";
       workbook.created = new Date();
 
-      this.addPartsSheet(workbook, [], new Map(), new Map());
+      this.addPartsSheet(workbook, [], new Map(), new Map(), "es", baseUrl);
       this.addVehiclesSheet(workbook, []);
       const aliases = await this.fetchAllAliases();
       this.addAliasesSheet(workbook, aliases);
@@ -169,7 +170,7 @@ export class ExcelExportService {
     workbook.created = new Date();
 
     // Add sheets
-    this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart);
+    this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart, "es", baseUrl);
     this.addVehiclesSheet(workbook, vehicles);
     this.addAliasesSheet(workbook, aliases);
 
@@ -653,6 +654,19 @@ export class ExcelExportService {
 
       // Apply alternating row styling
       applyDataRowStyle(row, rowIndex, PARTS_COLUMNS.length);
+
+      // Re-apply hyperlink styling (applyDataRowStyle resets all fonts to black)
+      for (const { idx } of imageColIndices) {
+        const cell = row.getCell(idx);
+        if (cell.value && typeof cell.value === "object" && "hyperlink" in cell.value) {
+          cell.font = {
+            size: 10,
+            color: { argb: EXCEL_COLORS.TEXT_LINK },
+            underline: true,
+          };
+        }
+      }
+
       row.height = ROW_HEIGHTS.DATA_ROW;
     });
 

@@ -720,9 +720,9 @@ test.describe("Excel feature coverage", () => {
     await uploadAndWaitForPreview(page, buffer, "test-crossref-delete.xlsx");
 
     await expect(
-      page.getByText(/Cross-References\s*\(\d+\)/i)
+      page.getByRole("tab", { name: /Cross-References/i })
     ).toBeVisible();
-    await page.getByText(/Cross-References\s*\(\d+\)/i).click();
+    await page.getByRole("tab", { name: /Cross-References/i }).click();
     await expect(
       page.getByText(/Deleted Cross-References/i)
     ).toBeVisible();
