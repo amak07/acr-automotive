@@ -7,11 +7,24 @@ export interface TranslationKeys {
   // Admin Header
   "admin.header.title": string;
   "admin.header.admin": string;
+  "admin.dashboard.title": string;
   "admin.header.languageToggle": string;
   "admin.header.publicSearch": string;
   "admin.header.documentation": string;
   "admin.header.settings": string;
   "admin.header.users": string;
+
+  // Desktop nav short labels
+  "admin.nav.search": string;
+  "admin.nav.admin": string;
+  "admin.nav.users": string;
+  "admin.nav.settings": string;
+  "admin.nav.portal": string;
+  "admin.nav.docs": string;
+
+  // Language names
+  "common.language.en": string;
+  "common.language.es": string;
 
   // Admin Users Management
   "admin.users.title": string;

@@ -3,12 +3,14 @@
 import React, {
   createContext,
   useContext,
+  useEffect,
   useSyncExternalStore,
   useCallback,
   ReactNode,
 } from "react";
 import { Locale, TranslationKeys } from "@/lib/i18n/translation-keys";
 import { t as translateFn } from "@/lib/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Step 1: Define what data the Context will provide
 interface LocaleContextType {
@@ -62,6 +64,7 @@ function getLocaleServerSnapshot(isDevMode: boolean): Locale {
 export function LocaleProvider({ children }: LocaleProviderProps) {
   // Check if we're in development mode
   const isDevMode = process.env.NODE_ENV === "development";
+  const { profile } = useAuth();
 
   // Use useSyncExternalStore to read locale from localStorage
   // This avoids hydration mismatches and setState-in-effect issues
@@ -71,12 +74,36 @@ export function LocaleProvider({ children }: LocaleProviderProps) {
     () => getLocaleServerSnapshot(isDevMode)
   );
 
-  // Function to handle locale changes
-  const handleSetLocale = useCallback((newLocale: Locale) => {
-    localStorage.setItem("acr-locale", newLocale);
-    // Dispatch custom event to trigger re-render in same tab
-    window.dispatchEvent(new Event("locale-changed"));
-  }, []);
+  // Sync locale from user profile on login (database is source of truth)
+  useEffect(() => {
+    if (profile?.preferred_locale && profile.preferred_locale !== locale) {
+      localStorage.setItem("acr-locale", profile.preferred_locale);
+      window.dispatchEvent(new Event("locale-changed"));
+    }
+    // Intentionally omitting `locale` to avoid re-sync loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.preferred_locale]);
+
+  // Function to handle locale changes — also persists to database
+  const handleSetLocale = useCallback(
+    (newLocale: Locale) => {
+      // 1. Update localStorage immediately (instant UI response)
+      localStorage.setItem("acr-locale", newLocale);
+      window.dispatchEvent(new Event("locale-changed"));
+
+      // 2. Fire-and-forget save to database (if authenticated)
+      if (profile?.id) {
+        fetch("/api/auth/profile/locale", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ preferred_locale: newLocale }),
+        }).catch((err) => {
+          console.warn("Failed to persist locale preference:", err);
+        });
+      }
+    },
+    [profile?.id]
+  );
 
   // Translation function that uses current locale
   const t = (key: keyof TranslationKeys) => translateFn(key, locale);
