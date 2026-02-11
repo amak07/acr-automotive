@@ -225,7 +225,13 @@ export class ExcelImportService {
         value === "Alias" ||
         value === "Type" ||
         value === "Status" ||
-        value === "Errors"
+        value === "Errors" ||
+        // Spanish header keywords
+        value === "Marca" ||
+        value === "Modelo" ||
+        value === "Tipo" ||
+        value === "Estado" ||
+        value === "Errores"
       ) {
         row2HasColumnHeaders = true;
       }

@@ -201,7 +201,7 @@ export function ImportStep1Upload({
   const handleDownloadCatalog = async () => {
     setIsDownloading(true);
     try {
-      window.open("/api/admin/export", "_blank");
+      window.open(`/api/admin/export?locale=${locale}`, "_blank");
     } finally {
       // Brief delay so button shows loading state
       setTimeout(() => setIsDownloading(false), 1500);
