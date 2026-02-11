@@ -101,6 +101,8 @@ npx playwright test
 
 ## Landing the Plane (Session Completion)
 
+**Plan Rule:** Every implementation plan MUST include "Land the Plane" as its final checklist item, referencing this section. This applies regardless of which skill or workflow creates the plan.
+
 When ending a work session, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
 
 **0. Code review** (before committing)
