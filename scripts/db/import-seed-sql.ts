@@ -108,6 +108,9 @@ async function importSeedData() {
     // Seed part_images from local product photos (if available)
     await seedPartImages(client);
 
+    // Seed site_settings (banners + contact info)
+    await seedSiteSettings(client);
+
     // Get counts
     const partsResult = await client.query("SELECT COUNT(*) FROM parts");
     const vehiclesResult = await client.query(
@@ -247,6 +250,140 @@ async function seedPartImages(client: pg.Client) {
     `\n   ✅ Seeded ${inserted} part_images from ${new Set(imageEntries.map((e) => e.sku)).size} SKUs` +
       (uploadErrors > 0 ? ` (${uploadErrors} upload errors)` : "")
   );
+}
+
+/** Banner pairings: desktop image → mobile image */
+const BANNER_PAIRS = [
+  {
+    desktop: "acr_banner_v4.png",
+    mobile: "acr_banner_white_mobile2.png",
+    title: "ACR Automotive",
+  },
+  {
+    desktop: "acr_banner_dark_desktop.png",
+    mobile: "acr_banner_dark_mobile.png",
+    title: "ACR Automotive",
+  },
+  {
+    desktop: "acr_banner_mazas.png",
+    mobile: "acr_banner_bearing_mobile.png",
+    title: "ACR Automotive",
+  },
+];
+
+/**
+ * Seed site_settings with banner images and contact info.
+ * Uploads banners from public/banners/ to Supabase Storage and updates
+ * the branding and contact_info settings in the database.
+ */
+async function seedSiteSettings(client: pg.Client) {
+  // --- Upload banners ---
+  const bannerDir = path.join(process.cwd(), "public", "banners");
+
+  const banners: Array<{
+    id: string;
+    image_url: string;
+    mobile_image_url?: string;
+    title?: string;
+    display_order: number;
+    is_active: boolean;
+  }> = [];
+
+  let hasBannerDir = true;
+  try {
+    await fs.access(bannerDir);
+  } catch {
+    hasBannerDir = false;
+    console.log("\n🖼️  Skipping banner upload (public/banners/ not found)");
+  }
+
+  if (hasBannerDir) {
+    console.log("\n🖼️  Seeding banner images via Supabase Storage...");
+
+    for (let i = 0; i < BANNER_PAIRS.length; i++) {
+      const pair = BANNER_PAIRS[i];
+
+      // Upload desktop image
+      const desktopPath = path.join(bannerDir, pair.desktop);
+      const desktopBuffer = await fs.readFile(desktopPath);
+      const desktopStoragePath = `banners/${pair.desktop}`;
+
+      const { error: desktopErr } = await supabaseClient.storage
+        .from("acr-site-assets")
+        .upload(desktopStoragePath, desktopBuffer, {
+          contentType: "image/png",
+          upsert: true,
+        });
+
+      if (desktopErr) {
+        console.warn(`   ⚠ Failed to upload ${pair.desktop}: ${desktopErr.message}`);
+        continue;
+      }
+
+      const { data: desktopUrl } = supabaseClient.storage
+        .from("acr-site-assets")
+        .getPublicUrl(desktopStoragePath);
+
+      // Upload mobile image
+      const mobilePath = path.join(bannerDir, pair.mobile);
+      const mobileBuffer = await fs.readFile(mobilePath);
+      const mobileStoragePath = `banners/${pair.mobile}`;
+
+      const { error: mobileErr } = await supabaseClient.storage
+        .from("acr-site-assets")
+        .upload(mobileStoragePath, mobileBuffer, {
+          contentType: "image/png",
+          upsert: true,
+        });
+
+      if (mobileErr) {
+        console.warn(`   ⚠ Failed to upload ${pair.mobile}: ${mobileErr.message}`);
+      }
+
+      const { data: mobileUrl } = supabaseClient.storage
+        .from("acr-site-assets")
+        .getPublicUrl(mobileStoragePath);
+
+      banners.push({
+        id: crypto.randomUUID(),
+        image_url: desktopUrl.publicUrl,
+        mobile_image_url: mobileErr ? undefined : mobileUrl.publicUrl,
+        title: pair.title,
+        display_order: i,
+        is_active: true,
+      });
+    }
+
+    console.log(`   ✅ Uploaded ${banners.length} banner pairs`);
+  }
+
+  // --- Update branding setting ---
+  const branding = {
+    company_name: "ACR Automotive",
+    logo_url: "",
+    favicon_url: "",
+    banners,
+  };
+
+  await client.query(
+    `UPDATE site_settings SET value = $1::jsonb, updated_at = NOW() WHERE key = 'branding'`,
+    [JSON.stringify(branding)]
+  );
+  console.log("   ✅ Branding setting updated");
+
+  // --- Update contact_info setting ---
+  const contactInfo = {
+    email: "contacto@acrautomotive.com",
+    phone: "+52 81 1234 5678",
+    whatsapp: "+52 81 9876 5432",
+    address: "Av. Industrial 450, Parque Industrial, Monterrey, N.L. 64000, México",
+  };
+
+  await client.query(
+    `UPDATE site_settings SET value = $1::jsonb, updated_at = NOW() WHERE key = 'contact_info'`,
+    [JSON.stringify(contactInfo)]
+  );
+  console.log("   ✅ Contact info setting updated");
 }
 
 /**
