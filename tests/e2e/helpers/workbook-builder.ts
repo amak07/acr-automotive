@@ -55,6 +55,7 @@ export interface PartData {
 
 export interface VehicleAppData {
   acr_sku: string;
+  status?: string;
   make: string;
   model: string;
   start_year: number;
@@ -65,6 +66,7 @@ export interface AliasData {
   alias: string;
   canonical_name: string;
   alias_type: "make" | "model";
+  status?: string;
 }
 
 /**

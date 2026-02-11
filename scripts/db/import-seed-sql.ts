@@ -14,8 +14,16 @@
 import fs from "fs/promises";
 import path from "path";
 import pg from "pg";
+import { createClient } from "@supabase/supabase-js";
 
 const { Client } = pg;
+
+// Supabase client for Storage uploads (local dev only — standard demo service_role key)
+// Uses service_role to bypass RLS (anon can't upload after RBAC migration)
+const LOCAL_SUPABASE_URL = "http://127.0.0.1:54321";
+const LOCAL_SERVICE_ROLE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU";
+const supabaseClient = createClient(LOCAL_SUPABASE_URL, LOCAL_SERVICE_ROLE_KEY);
 
 // Default users for local development and testing
 const SEED_USERS = [
@@ -149,6 +157,7 @@ const VIEW_TYPE_MAP: Record<string, { viewType: string; displayOrder: number; is
 /**
  * Seed part_images from local product photos in public/product-images/IMAGENES-360-optimized/.
  * Each SKU has 4 views: _fro (front), _bot (back), _top (top), _oth (other).
+ * Uploads images to Supabase Storage and stores absolute URLs in the DB.
  * Skips gracefully if the directory doesn't exist (e.g., in CI).
  */
 async function seedPartImages(client: pg.Client) {
@@ -166,7 +175,7 @@ async function seedPartImages(client: pg.Client) {
     return;
   }
 
-  console.log("\n📷 Seeding part_images from local product photos...");
+  console.log("\n📷 Seeding part_images via Supabase Storage...");
 
   const files = await fs.readdir(imageDir);
 
@@ -179,26 +188,65 @@ async function seedPartImages(client: pg.Client) {
     }
   }
 
-  // Group by SKU and batch insert
+  // Upload to Storage and insert DB records in batches of 5
+  const BATCH_SIZE = 5;
   let inserted = 0;
-  for (const entry of imageEntries) {
-    const mapping = VIEW_TYPE_MAP[entry.suffix];
-    if (!mapping) continue;
+  let uploadErrors = 0;
 
-    const imageUrl = `/product-images/IMAGENES-360-optimized/${entry.filename}`;
+  for (let i = 0; i < imageEntries.length; i += BATCH_SIZE) {
+    const batch = imageEntries.slice(i, i + BATCH_SIZE);
 
-    const result = await client.query(
-      `INSERT INTO part_images (part_id, image_url, view_type, display_order, is_primary, caption)
-       SELECT p.id, $1, $2, $3, $4, NULL
-       FROM parts p WHERE p.acr_sku = $5
-       ON CONFLICT (part_id, view_type) DO UPDATE SET image_url = EXCLUDED.image_url`,
-      [imageUrl, mapping.viewType, mapping.displayOrder, mapping.isPrimary, entry.sku]
+    await Promise.all(
+      batch.map(async (entry) => {
+        const mapping = VIEW_TYPE_MAP[entry.suffix];
+        if (!mapping) return;
+
+        // Deterministic storage path for idempotent re-runs
+        const storagePath = `product-images/${entry.sku}${entry.suffix}.jpg`;
+        const filePath = path.join(imageDir, entry.filename);
+        const fileBuffer = await fs.readFile(filePath);
+
+        // Upload to Supabase Storage (upsert for idempotency)
+        const { error: uploadError } = await supabaseClient.storage
+          .from("acr-part-images")
+          .upload(storagePath, fileBuffer, {
+            contentType: "image/jpeg",
+            upsert: true,
+          });
+
+        if (uploadError) {
+          if (uploadErrors === 0) console.warn(`\n   ⚠ Storage upload error: ${uploadError.message}`);
+          uploadErrors++;
+          return;
+        }
+
+        // Get absolute public URL
+        const { data: urlData } = supabaseClient.storage
+          .from("acr-part-images")
+          .getPublicUrl(storagePath);
+
+        // Insert DB record with absolute URL
+        const result = await client.query(
+          `INSERT INTO part_images (part_id, image_url, view_type, display_order, is_primary, caption)
+           SELECT p.id, $1, $2, $3, $4, NULL
+           FROM parts p WHERE p.acr_sku = $5
+           ON CONFLICT (part_id, view_type) DO UPDATE SET image_url = EXCLUDED.image_url`,
+          [urlData.publicUrl, mapping.viewType, mapping.displayOrder, mapping.isPrimary, entry.sku]
+        );
+
+        if (result.rowCount && result.rowCount > 0) inserted++;
+      })
     );
 
-    if (result.rowCount && result.rowCount > 0) inserted++;
+    // Progress indicator
+    const pct = Math.round(((i + batch.length) / imageEntries.length) * 100);
+    process.stdout.write(`\r   Uploading... ${pct}% (${i + batch.length}/${imageEntries.length})`);
   }
 
-  console.log(`   ✅ Seeded ${inserted} part_images from ${new Set(imageEntries.map(e => e.sku)).size} SKUs`);
+  console.log(
+    `\n   ✅ Seeded ${inserted} part_images from ${new Set(imageEntries.map((e) => e.sku)).size} SKUs` +
+      (uploadErrors > 0 ? ` (${uploadErrors} upload errors)` : "")
+  );
 }
 
 /**
