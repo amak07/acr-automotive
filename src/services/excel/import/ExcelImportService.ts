@@ -141,6 +141,11 @@ export class ExcelImportService {
 
         let value = cell.value;
 
+        // Handle ExcelJS hyperlink cells — extract the URL
+        if (value && typeof value === "object" && "hyperlink" in value) {
+          value = (value as ExcelJS.CellHyperlinkValue).hyperlink;
+        }
+
         // Handle ExcelJS formula cells — use the computed result
         if (value && typeof value === "object" && "formula" in value) {
           value = (value as any).result;
