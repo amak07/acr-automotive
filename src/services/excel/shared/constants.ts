@@ -275,28 +275,63 @@ const BRAND_HEADER_TO_PROPERTY: Record<string, string> = {
  * Used for import when headers use spaces instead of underscores
  */
 const FRIENDLY_HEADER_TO_PROPERTY: Record<string, string> = {
-  // Part Information (friendly → property)
+  // Part Information (friendly → property) — English
   "acr sku": "acr_sku",
-  status: "status", // Workflow status
+  status: "status",
   "part type": "part_type",
   position: "position_type",
   "abs type": "abs_type",
   "bolt pattern": "bolt_pattern",
   "drive type": "drive_type",
-  // Image columns (friendly → property)
+  specifications: "specifications",
+  // Image columns (friendly → property) — English
   "image url front": "image_url_front",
   "image url back": "image_url_back",
   "image url top": "image_url_top",
   "image url other": "image_url_other",
   "360 viewer": "viewer_360_status",
-  // Vehicle Applications (friendly → property)
+  // Vehicle Applications (friendly → property) — English
+  make: "make",
+  model: "model",
   "start year": "start_year",
   "end year": "end_year",
-  // Aliases (friendly → property)
+  // Aliases (friendly → property) — English
   "canonical name": "canonical_name",
   type: "alias_type",
   // Shared columns
   errors: "errors",
+
+  // --- Spanish headers (Mexican auto parts industry) ---
+  // Parts sheet
+  estado: "status",
+  "tipo de parte": "part_type",
+  "posición": "position_type",
+  posicion: "position_type", // unaccented variant
+  "tipo de abs": "abs_type",
+  "patrón de birlos": "bolt_pattern",
+  "patron de birlos": "bolt_pattern", // unaccented variant
+  "tipo de tracción": "drive_type",
+  "tipo de traccion": "drive_type", // unaccented variant
+  especificaciones: "specifications",
+  // Image columns — Spanish
+  "url imagen frente": "image_url_front",
+  "url imagen atrás": "image_url_back",
+  "url imagen atras": "image_url_back", // unaccented variant
+  "url imagen arriba": "image_url_top",
+  "url imagen otra": "image_url_other",
+  "visor 360": "viewer_360_status",
+  // Vehicle Applications — Spanish
+  marca: "make",
+  modelo: "model",
+  "año inicio": "start_year",
+  "ano inicio": "start_year", // unaccented variant
+  "año fin": "end_year",
+  "ano fin": "end_year", // unaccented variant
+  // Aliases — Spanish
+  "nombre canónico": "canonical_name",
+  "nombre canonico": "canonical_name", // unaccented variant
+  tipo: "alias_type",
+  errores: "errors",
 };
 
 /**
@@ -616,4 +651,39 @@ export const WORKFLOW_STATUS_DISPLAY: Record<string, string> = {
   ACTIVE: "Activo",
   INACTIVE: "Inactivo",
   DELETE: "Eliminar",
+};
+
+// ----------------------------------------------------------------------------
+// Spanish Header Map (for locale-aware export + test builder)
+// ----------------------------------------------------------------------------
+
+/**
+ * Maps property name → Spanish column header text
+ * Used by ExcelExportService for locale-aware exports and TestWorkbookBuilder for i18n tests.
+ * Brand columns (National, ATV, SYD, etc.) are identical in both languages.
+ */
+export const SPANISH_HEADER_MAP: Record<string, string> = {
+  // Parts sheet
+  status: "Estado",
+  part_type: "Tipo de Parte",
+  position_type: "Posición",
+  abs_type: "Tipo de ABS",
+  bolt_pattern: "Patrón de Birlos",
+  drive_type: "Tipo de Tracción",
+  specifications: "Especificaciones",
+  // Image columns
+  image_url_front: "URL Imagen Frente",
+  image_url_back: "URL Imagen Atrás",
+  image_url_top: "URL Imagen Arriba",
+  image_url_other: "URL Imagen Otra",
+  viewer_360_status: "Visor 360",
+  errors: "Errores",
+  // Vehicle Applications sheet
+  make: "Marca",
+  model: "Modelo",
+  start_year: "Año Inicio",
+  end_year: "Año Fin",
+  // Aliases sheet
+  canonical_name: "Nombre Canónico",
+  alias_type: "Tipo",
 };

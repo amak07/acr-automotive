@@ -129,6 +129,9 @@ export class ValidationEngine {
       this.validateAliasesSheet(parsed.aliases.data, existingData);
     }
 
+    // Cascade delete warnings (W5, W6)
+    this.detectCascadeDeletes(parsed.parts.data, existingData);
+
     // Generate summary
     const summary = this.generateSummary();
 
@@ -362,6 +365,68 @@ export class ValidationEngine {
         }
       }
     });
+  }
+
+  // --------------------------------------------------------------------------
+  // Cascade Delete Detection (W5, W6)
+  // --------------------------------------------------------------------------
+
+  /**
+   * Detect cascade deletes: when a part is marked for deletion,
+   * warn about related cross-references and vehicle applications
+   * that will also be deleted.
+   */
+  private detectCascadeDeletes(
+    parts: ExcelPartRow[],
+    existingData: ExistingDatabaseData
+  ): void {
+    // Find parts marked for deletion that exist in the database
+    const deletedSkus = new Set<string>();
+    const deletedPartUuids = new Set<string>();
+
+    for (const part of parts) {
+      if (!part.acr_sku || !part.status) continue;
+      const statusLower = part.status.trim().toLowerCase();
+      if (statusLower !== "eliminar" && statusLower !== "delete") continue;
+
+      const existingPart = existingData.parts.get(part.acr_sku);
+      if (!existingPart?._id) continue;
+
+      deletedSkus.add(part.acr_sku);
+      deletedPartUuids.add(existingPart._id);
+    }
+
+    if (deletedSkus.size === 0) return;
+
+    // W5: Cross-references that will be cascade-deleted
+    for (const [, crossRef] of existingData.crossReferences) {
+      if (deletedPartUuids.has(crossRef.acr_part_id)) {
+        // Resolve acr_sku from the part UUID
+        let acr_sku = "";
+        for (const [sku, part] of existingData.parts) {
+          if (part._id === crossRef.acr_part_id) {
+            acr_sku = sku;
+            break;
+          }
+        }
+        this.addWarning(
+          ValidationWarningCode.W5_CROSS_REFERENCE_DELETED,
+          `Cross-reference deleted: ${acr_sku} - ${crossRef.competitor_brand} ${crossRef.competitor_sku}`,
+          SHEET_NAMES.PARTS
+        );
+      }
+    }
+
+    // W6: Vehicle applications that will be cascade-deleted
+    for (const [, va] of existingData.vehicleApplications) {
+      if (deletedSkus.has(va.acr_sku)) {
+        this.addWarning(
+          ValidationWarningCode.W6_VEHICLE_APPLICATION_DELETED,
+          `Vehicle application deleted: ${va.acr_sku} - ${va.make} ${va.model} ${va.start_year}-${va.end_year}`,
+          SHEET_NAMES.VEHICLE_APPLICATIONS
+        );
+      }
+    }
   }
 
   // --------------------------------------------------------------------------

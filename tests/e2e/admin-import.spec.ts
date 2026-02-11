@@ -889,4 +889,223 @@ test.describe("Excel feature coverage", () => {
   });
 });
 
+// ===========================================================================
+// Cascade Delete Warnings
+// ===========================================================================
+test.describe("Cascade delete warnings", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let snapshotId: string;
+  // Part with cross-refs and VAs (from seed data)
+  let cascadePart: {
+    acr_sku: string;
+    part_type: string;
+    position_type: string | null;
+    abs_type: string | null;
+    bolt_pattern: string | null;
+    drive_type: string | null;
+  };
+
+  test.beforeAll(async () => {
+    snapshotId = await createE2ESnapshot();
+    const client = getE2EClient();
+
+    // Find a part that has BOTH vehicle applications AND cross-references
+    const { data: partsWithVAs } = await client
+      .from("vehicle_applications")
+      .select("part_id")
+      .limit(1);
+
+    const partId = partsWithVAs![0].part_id;
+
+    // Verify this part also has cross-refs
+    const { count: crCount } = await client
+      .from("cross_references")
+      .select("id", { count: "exact", head: true })
+      .eq("acr_part_id", partId);
+
+    // If no cross-refs, find a different part that has both
+    let targetPartId = partId;
+    if (!crCount || crCount === 0) {
+      const { data: crParts } = await client
+        .from("cross_references")
+        .select("acr_part_id")
+        .limit(1);
+      targetPartId = crParts![0].acr_part_id;
+    }
+
+    const { data: partData } = await client
+      .from("parts")
+      .select("acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type")
+      .eq("id", targetPartId)
+      .single();
+
+    cascadePart = partData!;
+  });
+
+  test.afterAll(async () => {
+    if (snapshotId) {
+      await restoreE2ESnapshot(snapshotId);
+      await deleteE2ESnapshot(snapshotId);
+    }
+  });
+
+  test("deleting a part shows cascade warning for related VAs and cross-refs", async ({
+    page,
+  }) => {
+    const builder = new TestWorkbookBuilder();
+    builder.addPart({
+      acr_sku: cascadePart.acr_sku,
+      part_type: cascadePart.part_type,
+      position_type: cascadePart.position_type ?? undefined,
+      abs_type: cascadePart.abs_type ?? undefined,
+      bolt_pattern: cascadePart.bolt_pattern ?? undefined,
+      drive_type: cascadePart.drive_type ?? undefined,
+      status: "Eliminar",
+    });
+
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-cascade.xlsx");
+
+    // Cascade warning card should be visible
+    const cascadeCard = page.getByText(/Cascade Delete Warning/i);
+    await expect(cascadeCard).toBeVisible();
+
+    // Scroll to cascade card to reveal the checkbox
+    await cascadeCard.scrollIntoViewIfNeeded();
+
+    // Cascade acknowledgment checkbox should be present (label: "I understand...")
+    const ackCheckbox = page.getByLabel(/I understand these items/i);
+    await expect(ackCheckbox).toBeVisible();
+
+    // Execute Import should be disabled until cascade is acknowledged
+    await expect(
+      page.getByRole("button", { name: /Execute Import/i })
+    ).toBeDisabled();
+
+    // Cascade card mentions related items count
+    await expect(
+      page.getByText(/will also remove \d+ related items/i)
+    ).toBeVisible();
+
+    // Expand "Deleted Parts" to see SKU in cascade details
+    await page.getByText(/Deleted Parts/i).click();
+    await expect(page.getByText(cascadePart.acr_sku)).toBeVisible();
+  });
+});
+
+// ===========================================================================
+// Spanish Column Header Support (i18n)
+// ===========================================================================
+test.describe("Spanish column header support", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let snapshotId: string;
+
+  test.beforeAll(async () => {
+    snapshotId = await createE2ESnapshot();
+  });
+
+  test.afterAll(async () => {
+    if (snapshotId) {
+      await restoreE2ESnapshot(snapshotId);
+      await deleteE2ESnapshot(snapshotId);
+    }
+  });
+
+  test("Spanish-header workbook parses correctly and shows preview", async ({
+    page,
+  }) => {
+    const builder = new TestWorkbookBuilder("es");
+    builder.addPart({
+      acr_sku: "ACR-ES-TEST-001",
+      part_type: "Rotor de Freno",
+      status: "Activo",
+    });
+    builder.addVehicleApp({
+      acr_sku: "ACR-ES-TEST-001",
+      make: "TOYOTA",
+      model: "COROLLA",
+      start_year: 2020,
+      end_year: 2024,
+    });
+
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-spanish.xlsx");
+
+    // Preview should show the new part in Part Changes tab
+    await expect(page.getByText(/Part Changes\s*\(\d+\)/i)).toBeVisible();
+
+    // Expand "New Parts" accordion to see the SKU
+    await page.getByText(/New Parts/i).click();
+    await expect(page.getByText("ACR-ES-TEST-001")).toBeVisible();
+
+    // Vehicle apps tab should be present
+    await expect(page.getByText(/Vehicle Apps\s*\(\d+\)/i)).toBeVisible();
+  });
+
+  test("execute import with Spanish headers creates DB records", async ({
+    page,
+  }) => {
+    const builder = new TestWorkbookBuilder("es");
+    builder.addPart({
+      acr_sku: "ACR-ES-EXEC-001",
+      part_type: "Maza",
+      status: "Activo",
+    });
+
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-spanish-exec.xlsx");
+
+    // Click Execute Import
+    await page.getByRole("button", { name: /Execute Import/i }).click();
+
+    // Wait for success (exact text avoids matching toast notification title)
+    await expect(
+      page.getByText("Import Successful!")
+    ).toBeVisible({ timeout: 30_000 });
+
+    // Verify record was created in the database
+    const client = getE2EClient();
+    const { data } = await client
+      .from("parts")
+      .select("acr_sku, part_type")
+      .eq("acr_sku", "ACR-ES-EXEC-001")
+      .single();
+
+    expect(data).toBeTruthy();
+    expect(data!.part_type).toBe("Maza");
+  });
+
+  test("mixed English/Spanish workbook (brand columns stay English)", async ({
+    page,
+  }) => {
+    // Brand columns like "National", "ATV" are identical in both languages
+    const builder = new TestWorkbookBuilder("es");
+    builder.addPartWithCrossRefs(
+      {
+        acr_sku: "ACR-ES-MIX-001",
+        part_type: "Rotor",
+        status: "Activo",
+      },
+      { national: ["NAT-ES-001"] }
+    );
+
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-mixed-lang.xlsx");
+
+    // Should parse successfully — cross-refs tab visible
+    await expect(page.getByText(/Cross-References\s*\(\d+\)/i)).toBeVisible();
+
+    // Expand "New Parts" to verify the part SKU
+    await page.getByText(/New Parts/i).click();
+    await expect(page.getByText("ACR-ES-MIX-001")).toBeVisible();
+
+    // Switch to Cross-References tab, expand, verify cross-ref
+    await page.getByRole("tab", { name: /Cross-References/i }).click();
+    await page.getByText(/New Cross-References/i).click();
+    await expect(page.getByText("NAT-ES-001")).toBeVisible();
+  });
+});
+
 }); // end outer "Admin Import Tests"

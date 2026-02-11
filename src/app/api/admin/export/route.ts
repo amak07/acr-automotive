@@ -58,12 +58,15 @@ export async function GET(request: NextRequest) {
     // Derive base URL from request for Excel instruction hyperlinks
     const origin = request.nextUrl.origin;
 
+    // Read locale preference from query param (matches UI language setting)
+    const locale = (searchParams.get("locale") === "es" ? "es" : "en") as "en" | "es";
+
     const service = new ExcelExportService();
 
     // Generate Excel file (filtered or all)
     const buffer = hasFilters
-      ? await service.exportFiltered(filters, origin)
-      : await service.exportAllData(origin);
+      ? await service.exportFiltered(filters, origin, locale)
+      : await service.exportAllData(origin, locale);
 
     // Get export statistics for headers
     const stats = await service.getExportStats();
