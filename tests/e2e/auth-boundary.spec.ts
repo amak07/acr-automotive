@@ -95,8 +95,7 @@ test.describe("Auth Boundaries", () => {
     await page.getByRole("button", { name: "Sign In" }).click();
     await page.waitForURL("**/data-portal", { timeout: 15_000 });
 
-    // Open hamburger menu, then click Logout
-    await page.getByRole("button", { name: "Menu" }).click();
+    // Click Logout (visible directly in desktop nav bar)
     await page.getByRole("button", { name: /logout/i }).click();
 
     // After logout, session is cleared — user ends up at /login

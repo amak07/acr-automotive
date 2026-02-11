@@ -440,12 +440,12 @@ export function ImportWizard() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 acr-animate-fade-up">
         <div className="w-12 h-12 bg-acr-red-50 rounded-lg flex items-center justify-center">
           <Upload className="text-acr-red-600 w-6 h-6" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-acr-gray-900">
+          <h1 className="acr-brand-heading-2xl text-acr-gray-900">
             {t("admin.import.pageTitle")}
           </h1>
           <p className="text-sm text-acr-gray-600 mt-1">
@@ -455,14 +455,16 @@ export function ImportWizard() {
       </div>
 
       {/* Step Indicator */}
-      <ImportStepIndicator
-        currentStep={state.currentStep}
-        onStepClick={handleStepClick}
-        isImportComplete={state.importResult !== null}
-      />
+      <div className="acr-animate-fade-up acr-stagger-1">
+        <ImportStepIndicator
+          currentStep={state.currentStep}
+          onStepClick={handleStepClick}
+          isImportComplete={state.importResult !== null}
+        />
+      </div>
 
       {/* Step Content */}
-      <AcrCard variant="default" padding="none">
+      <AcrCard variant="default" padding="none" className="acr-animate-fade-up acr-stagger-2">
         <div className="p-6">
           {state.currentStep === 1 && (
             <ImportStep1Upload
