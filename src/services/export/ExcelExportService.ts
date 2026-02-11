@@ -7,6 +7,7 @@ import {
   ALIASES_COLUMNS,
   BRAND_COLUMN_MAP,
   WORKFLOW_STATUS_DISPLAY,
+  IMAGE_URL_COLUMN_NAMES,
   ExportFilters,
   // Styling imports
   PARTS_COLUMN_GROUPS,
@@ -587,6 +588,12 @@ export class ExcelExportService {
       baseUrl
     );
 
+    // Precompute image column indices (constant across all rows)
+    const imageColIndices = IMAGE_URL_COLUMN_NAMES.map((name) => ({
+      name,
+      idx: PARTS_COLUMNS.findIndex((c) => c.key === name) + 1,
+    })).filter((c) => c.idx > 0);
+
     // Row 4+: Data rows with alternating colors
     parts.forEach((part, rowIndex) => {
       const partId = part.id;
@@ -632,6 +639,17 @@ export class ExcelExportService {
         image_url_other: partImages.other || "",
         viewer_360_status: part.has_360_viewer ? "Confirmed" : "",
       });
+
+      // Convert image URL cells to hyperlinks with short filename display
+      for (const { idx } of imageColIndices) {
+        const cell = row.getCell(idx);
+        const url =
+          typeof cell.value === "string" ? cell.value.trim() : "";
+        if (url) {
+          const filename = url.split("/").pop() || url;
+          cell.value = { text: filename, hyperlink: url };
+        }
+      }
 
       // Apply alternating row styling
       applyDataRowStyle(row, rowIndex, PARTS_COLUMNS.length);
