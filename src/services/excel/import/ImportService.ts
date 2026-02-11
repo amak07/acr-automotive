@@ -492,7 +492,6 @@ export class ImportService {
             image_url: img.image_url,
             tenant_id: img.tenant_id,
             is_primary: img.view_type === "front", // Front image is primary
-            updated_by: "import",
           })),
           {
             onConflict: "part_id,view_type",
