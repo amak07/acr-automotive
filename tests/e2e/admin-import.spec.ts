@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { TestWorkbookBuilder } from "./helpers/workbook-builder";
+import ExcelJS from "exceljs";
+import { TestWorkbookBuilder, SHEET_NAMES } from "./helpers/workbook-builder";
 import {
   createE2ESnapshot,
   restoreE2ESnapshot,
@@ -447,6 +448,663 @@ test.describe("Import UI edge cases", () => {
     await expect(
       page.getByRole("button", { name: /Execute Import/i })
     ).toBeVisible({ timeout: 30_000 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Excel feature coverage — VA, Alias, Cross-Ref DELETE, Cascade, Image URL,
+// Export verification, all-tabs smoke test
+// ---------------------------------------------------------------------------
+test.describe("Excel feature coverage", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let snapshotId: string;
+
+  // Shared test data queried in beforeAll
+  let vaParentPart: {
+    acr_sku: string;
+    part_type: string;
+    position_type: string | null;
+    abs_type: string | null;
+    bolt_pattern: string | null;
+    drive_type: string | null;
+  };
+  let existingVA: {
+    make: string;
+    model: string;
+    start_year: number;
+    end_year: number;
+  };
+  let existingAlias: {
+    alias: string;
+    canonical_name: string;
+    alias_type: string;
+  };
+  let crossRefPart: {
+    acr_sku: string;
+    part_type: string;
+    position_type: string | null;
+    abs_type: string | null;
+    bolt_pattern: string | null;
+    drive_type: string | null;
+    national_sku: string;
+  };
+
+  test.beforeAll(async () => {
+    snapshotId = await createE2ESnapshot();
+    const client = getE2EClient();
+
+    // Find a VA + parent ACTIVE part (for VA update/delete & cascade tests)
+    const { data: vaRows } = await client
+      .from("vehicle_applications")
+      .select("part_id, make, model, start_year, end_year")
+      .order("created_at")
+      .limit(10);
+    for (const va of vaRows!) {
+      const { data: p } = await client
+        .from("parts")
+        .select(
+          "acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type"
+        )
+        .eq("id", va.part_id)
+        .eq("workflow_status", "ACTIVE")
+        .single();
+      if (p) {
+        existingVA = {
+          make: va.make,
+          model: va.model,
+          start_year: va.start_year,
+          end_year: va.end_year,
+        };
+        vaParentPart = p;
+        break;
+      }
+    }
+
+    // Find an existing alias (for delete test)
+    const { data: aliasRow } = await client
+      .from("vehicle_aliases")
+      .select("alias, canonical_name, alias_type")
+      .limit(1)
+      .single();
+    existingAlias = aliasRow!;
+
+    // Find a NATIONAL cross-ref with real SKU (for [DELETE] marker test)
+    const { data: crRow } = await client
+      .from("cross_references")
+      .select("acr_part_id, competitor_sku")
+      .eq("competitor_brand", "NATIONAL")
+      .neq("competitor_sku", "-")
+      .limit(1)
+      .single();
+    const { data: crPartData } = await client
+      .from("parts")
+      .select(
+        "acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type"
+      )
+      .eq("id", crRow!.acr_part_id)
+      .single();
+    crossRefPart = { ...crPartData!, national_sku: crRow!.competitor_sku };
+  });
+
+  test.afterAll(async () => {
+    if (snapshotId) {
+      await restoreE2ESnapshot(snapshotId);
+      await deleteE2ESnapshot(snapshotId);
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 9: VA add shows in Vehicle Apps tab
+  // ---------------------------------------------------------------------------
+  test("VA add shows in Vehicle Apps tab", async ({ page }) => {
+    const builder = new TestWorkbookBuilder();
+    builder.addPart({
+      acr_sku: "ACR-E2E-VA-ADD-001",
+      part_type: "Brake Rotor",
+      status: "Activo",
+    });
+    builder.addVehicleApp({
+      acr_sku: "ACR-E2E-VA-ADD-001",
+      make: "TOYOTA",
+      model: "CAMRY",
+      start_year: 2020,
+      end_year: 2024,
+    });
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-va-add.xlsx");
+
+    await expect(page.getByText(/Vehicle Apps\s*\(1\)/i)).toBeVisible();
+    await page.getByText(/Vehicle Apps\s*\(1\)/i).click();
+    await expect(
+      page.getByText(/New Vehicle Applications/i)
+    ).toBeVisible();
+    // Expand the collapsed section to reveal card content
+    await page.getByText(/New Vehicle Applications/i).click();
+    await expect(page.getByText("TOYOTA")).toBeVisible();
+    await expect(page.getByText("CAMRY")).toBeVisible();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 10: VA update (year range change) shows in Vehicle Apps tab
+  // ---------------------------------------------------------------------------
+  test("VA update shows in Vehicle Apps tab", async ({ page }) => {
+    const builder = new TestWorkbookBuilder();
+    builder.addPart({
+      acr_sku: vaParentPart.acr_sku,
+      part_type: vaParentPart.part_type,
+      position_type: vaParentPart.position_type ?? undefined,
+      abs_type: vaParentPart.abs_type ?? undefined,
+      bolt_pattern: vaParentPart.bolt_pattern ?? undefined,
+      drive_type: vaParentPart.drive_type ?? undefined,
+      status: "Activo",
+    });
+    builder.addVehicleApp({
+      acr_sku: vaParentPart.acr_sku,
+      make: existingVA.make,
+      model: existingVA.model,
+      start_year: existingVA.start_year,
+      end_year: existingVA.end_year + 1, // Change end year → triggers update
+    });
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-va-update.xlsx");
+
+    await expect(page.getByText(/Vehicle Apps\s*\(\d+\)/i)).toBeVisible();
+    await page.getByText(/Vehicle Apps\s*\(\d+\)/i).click();
+    await expect(
+      page.getByText(/Updated Vehicle Applications/i)
+    ).toBeVisible();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 11: VA delete shows in Vehicle Apps tab
+  // ---------------------------------------------------------------------------
+  test("VA delete shows in Vehicle Apps tab", async ({ page }) => {
+    const builder = new TestWorkbookBuilder();
+    builder.addPart({
+      acr_sku: vaParentPart.acr_sku,
+      part_type: vaParentPart.part_type,
+      position_type: vaParentPart.position_type ?? undefined,
+      abs_type: vaParentPart.abs_type ?? undefined,
+      bolt_pattern: vaParentPart.bolt_pattern ?? undefined,
+      drive_type: vaParentPart.drive_type ?? undefined,
+      status: "Activo",
+    });
+    builder.addVehicleApp({
+      acr_sku: vaParentPart.acr_sku,
+      make: existingVA.make,
+      model: existingVA.model,
+      start_year: existingVA.start_year,
+      end_year: existingVA.end_year,
+      status: "Eliminar",
+    });
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-va-delete.xlsx");
+
+    await expect(page.getByText(/Vehicle Apps\s*\(\d+\)/i)).toBeVisible();
+    await page.getByText(/Vehicle Apps\s*\(\d+\)/i).click();
+    await expect(
+      page.getByText(/Deleted Vehicle Applications/i)
+    ).toBeVisible();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 12: Alias add shows in Aliases tab
+  // ---------------------------------------------------------------------------
+  test("alias add shows in Aliases tab", async ({ page }) => {
+    const builder = new TestWorkbookBuilder();
+    builder.addPart({
+      acr_sku: "ACR-E2E-ALIAS-ADD-001",
+      part_type: "Brake Rotor",
+      status: "Activo",
+    });
+    builder.addAlias({
+      alias: "e2e-test-alias",
+      canonical_name: "E2E CANONICAL",
+      alias_type: "make",
+    });
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-alias-add.xlsx");
+
+    await expect(page.getByText(/Aliases\s*\(1\)/i)).toBeVisible();
+    await page.getByText(/Aliases\s*\(1\)/i).click();
+    // Expand the "new Aliases" section to reveal card content
+    await expect(page.getByText(/new Aliases/i)).toBeVisible();
+    await page.getByText(/new Aliases/i).click();
+    await expect(page.getByText("e2e-test-alias")).toBeVisible();
+    await expect(page.getByText("E2E CANONICAL")).toBeVisible();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 13: Alias delete shows in Aliases tab
+  // ---------------------------------------------------------------------------
+  test("alias delete shows in Aliases tab", async ({ page }) => {
+    const builder = new TestWorkbookBuilder();
+    builder.addPart({
+      acr_sku: "ACR-E2E-ALIAS-DEL-001",
+      part_type: "Brake Rotor",
+      status: "Activo",
+    });
+    builder.addAlias({
+      alias: existingAlias.alias,
+      canonical_name: existingAlias.canonical_name,
+      alias_type: existingAlias.alias_type as "make" | "model",
+      status: "Eliminar",
+    });
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-alias-delete.xlsx");
+
+    await expect(page.getByText(/Aliases\s*\(\d+\)/i)).toBeVisible();
+    await page.getByText(/Aliases\s*\(\d+\)/i).click();
+    await expect(page.getByText(/Deleted\s+Aliases/i)).toBeVisible();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 14: Cross-ref [DELETE] marker shows deleted cross-refs
+  // ---------------------------------------------------------------------------
+  test("cross-ref DELETE marker shows deleted cross-refs", async ({
+    page,
+  }) => {
+    const builder = new TestWorkbookBuilder();
+    builder.addPart({
+      acr_sku: crossRefPart.acr_sku,
+      part_type: crossRefPart.part_type,
+      position_type: crossRefPart.position_type ?? undefined,
+      abs_type: crossRefPart.abs_type ?? undefined,
+      bolt_pattern: crossRefPart.bolt_pattern ?? undefined,
+      drive_type: crossRefPart.drive_type ?? undefined,
+      national_skus: `[DELETE]${crossRefPart.national_sku}`,
+      status: "Activo",
+    });
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-crossref-delete.xlsx");
+
+    await expect(
+      page.getByRole("tab", { name: /Cross-References/i })
+    ).toBeVisible();
+    await page.getByRole("tab", { name: /Cross-References/i }).click();
+    await expect(
+      page.getByText(/Deleted Cross-References/i)
+    ).toBeVisible();
+    await page.getByText(/Deleted Cross-References/i).click();
+    await expect(
+      page.getByText(crossRefPart.national_sku, { exact: true })
+    ).toBeVisible();
+  });
+
+  // NOTE: Cascade delete warning tests (15, 16) deferred to bead acr-automotive-2lf.
+  // W5/W6 warning codes are defined but never emitted — UI is ready, generation is missing.
+
+  // ---------------------------------------------------------------------------
+  // Test 15: Image URL import creates part_images record
+  // ---------------------------------------------------------------------------
+  test("image URL import creates part_images record", async ({ page }) => {
+    const builder = new TestWorkbookBuilder();
+    builder.addPart({
+      acr_sku: "ACR-E2E-IMG-URL-001",
+      part_type: "Brake Rotor",
+      status: "Activo",
+      image_url_front: "https://example.com/e2e-front.jpg",
+    });
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-image-url.xlsx");
+
+    // Execute the import
+    await page.getByRole("button", { name: /Execute Import/i }).click();
+    await expect(page.getByText("Import Successful!")).toBeVisible({
+      timeout: 30_000,
+    });
+
+    // Verify part_images record was created in DB
+    const client = getE2EClient();
+    const { data: part } = await client
+      .from("parts")
+      .select("id")
+      .eq("acr_sku", "ACR-E2E-IMG-URL-001")
+      .single();
+    expect(part).toBeTruthy();
+
+    const { data: images } = await client
+      .from("part_images")
+      .select("view_type, image_url")
+      .eq("part_id", part!.id);
+    expect(images).toBeTruthy();
+    expect(images!.length).toBeGreaterThanOrEqual(1);
+    const frontImage = images!.find(
+      (img: any) => img.view_type === "front"
+    );
+    expect(frontImage).toBeTruthy();
+    expect(frontImage!.image_url).toContain(
+      "example.com/e2e-front.jpg"
+    );
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 18: Export → re-import round-trip preserves data (hyperlink test)
+  // ---------------------------------------------------------------------------
+  test("export then re-import shows no changes", async ({ page }) => {
+    // Download export
+    const response = await page.request.get("/api/admin/export");
+    expect(response.status()).toBe(200);
+    const exportBuffer = await response.body();
+
+    // Re-upload the same export file
+    await page.goto("/admin/import");
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "catalog-export-roundtrip.xlsx",
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      buffer: exportBuffer,
+    });
+
+    // Should show "No changes detected"
+    await expect(page.getByText(/No changes detected/i)).toBeVisible({
+      timeout: 30_000,
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 19: Export XLSX has correct sheet structure
+  // ---------------------------------------------------------------------------
+  test("export XLSX has correct sheet structure", async ({ page }) => {
+    const response = await page.request.get("/api/admin/export");
+    expect(response.status()).toBe(200);
+    const exportBuffer = await response.body();
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(exportBuffer.buffer as ArrayBuffer);
+
+    // 3 worksheets
+    expect(workbook.worksheets.length).toBe(3);
+    expect(workbook.getWorksheet(SHEET_NAMES.PARTS)).toBeTruthy();
+    expect(
+      workbook.getWorksheet(SHEET_NAMES.VEHICLE_APPLICATIONS)
+    ).toBeTruthy();
+    expect(workbook.getWorksheet(SHEET_NAMES.ALIASES)).toBeTruthy();
+
+    // Parts sheet has header rows + data
+    const partsSheet = workbook.getWorksheet(SHEET_NAMES.PARTS)!;
+    expect(partsSheet.rowCount).toBeGreaterThan(3);
+
+    // Row 2 = column headers — verify key columns
+    const headerRow = partsSheet.getRow(2);
+    const headers: string[] = [];
+    headerRow.eachCell({ includeEmpty: false }, (cell) => {
+      headers.push(String(cell.value || ""));
+    });
+    expect(headers).toContain("ACR SKU");
+    expect(headers).toContain("Part Type");
+    expect(headers).toContain("National");
+    expect(headers).toContain("Image URL Front");
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 20: Mixed import touches all 4 entity tabs
+  // ---------------------------------------------------------------------------
+  test("mixed import touches all 4 entity tabs", async ({ page }) => {
+    const builder = new TestWorkbookBuilder();
+
+    // New part + cross-ref
+    builder.addPartWithCrossRefs(
+      {
+        acr_sku: "ACR-E2E-ALL-TABS-001",
+        part_type: "Brake Rotor",
+        status: "Activo",
+      },
+      { national: ["NAT-ALL-TABS-001"] }
+    );
+
+    // New VA
+    builder.addVehicleApp({
+      acr_sku: "ACR-E2E-ALL-TABS-001",
+      make: "HONDA",
+      model: "CIVIC",
+      start_year: 2020,
+      end_year: 2024,
+    });
+
+    // New alias
+    builder.addAlias({
+      alias: "e2e-all-tabs-alias",
+      canonical_name: "E2E ALL TABS CANONICAL",
+      alias_type: "model",
+    });
+
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-all-tabs.xlsx");
+
+    // All 4 entity tabs visible
+    await expect(
+      page.getByText(/Part Changes\s*\(\d+\)/i)
+    ).toBeVisible();
+    await expect(
+      page.getByText(/Vehicle Apps\s*\(\d+\)/i)
+    ).toBeVisible();
+    await expect(
+      page.getByText(/Cross-References\s*\(\d+\)/i)
+    ).toBeVisible();
+    await expect(
+      page.getByText(/Aliases\s*\(\d+\)/i)
+    ).toBeVisible();
+  });
+});
+
+// ===========================================================================
+// Cascade Delete Warnings
+// ===========================================================================
+test.describe("Cascade delete warnings", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let snapshotId: string;
+  // Part with cross-refs and VAs (from seed data)
+  let cascadePart: {
+    acr_sku: string;
+    part_type: string;
+    position_type: string | null;
+    abs_type: string | null;
+    bolt_pattern: string | null;
+    drive_type: string | null;
+  };
+
+  test.beforeAll(async () => {
+    snapshotId = await createE2ESnapshot();
+    const client = getE2EClient();
+
+    // Find a part that has BOTH vehicle applications AND cross-references
+    const { data: partsWithVAs } = await client
+      .from("vehicle_applications")
+      .select("part_id")
+      .limit(1);
+
+    const partId = partsWithVAs![0].part_id;
+
+    // Verify this part also has cross-refs
+    const { count: crCount } = await client
+      .from("cross_references")
+      .select("id", { count: "exact", head: true })
+      .eq("acr_part_id", partId);
+
+    // If no cross-refs, find a different part that has both
+    let targetPartId = partId;
+    if (!crCount || crCount === 0) {
+      const { data: crParts } = await client
+        .from("cross_references")
+        .select("acr_part_id")
+        .limit(1);
+      targetPartId = crParts![0].acr_part_id;
+    }
+
+    const { data: partData } = await client
+      .from("parts")
+      .select("acr_sku, part_type, position_type, abs_type, bolt_pattern, drive_type")
+      .eq("id", targetPartId)
+      .single();
+
+    cascadePart = partData!;
+  });
+
+  test.afterAll(async () => {
+    if (snapshotId) {
+      await restoreE2ESnapshot(snapshotId);
+      await deleteE2ESnapshot(snapshotId);
+    }
+  });
+
+  test("deleting a part shows cascade warning for related VAs and cross-refs", async ({
+    page,
+  }) => {
+    const builder = new TestWorkbookBuilder();
+    builder.addPart({
+      acr_sku: cascadePart.acr_sku,
+      part_type: cascadePart.part_type,
+      position_type: cascadePart.position_type ?? undefined,
+      abs_type: cascadePart.abs_type ?? undefined,
+      bolt_pattern: cascadePart.bolt_pattern ?? undefined,
+      drive_type: cascadePart.drive_type ?? undefined,
+      status: "Eliminar",
+    });
+
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-cascade.xlsx");
+
+    // Cascade warning card should be visible
+    const cascadeCard = page.getByText(/Cascade Delete Warning/i);
+    await expect(cascadeCard).toBeVisible();
+
+    // Scroll to cascade card to reveal the checkbox
+    await cascadeCard.scrollIntoViewIfNeeded();
+
+    // Cascade acknowledgment checkbox should be present (label: "I understand...")
+    const ackCheckbox = page.getByLabel(/I understand these items/i);
+    await expect(ackCheckbox).toBeVisible();
+
+    // Execute Import should be disabled until cascade is acknowledged
+    await expect(
+      page.getByRole("button", { name: /Execute Import/i })
+    ).toBeDisabled();
+
+    // Cascade card mentions related items count
+    await expect(
+      page.getByText(/will also remove \d+ related items/i)
+    ).toBeVisible();
+
+    // Expand "Deleted Parts" to see SKU in cascade details
+    await page.getByText(/Deleted Parts/i).click();
+    await expect(page.getByText(cascadePart.acr_sku)).toBeVisible();
+  });
+});
+
+// ===========================================================================
+// Spanish Column Header Support (i18n)
+// ===========================================================================
+test.describe("Spanish column header support", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let snapshotId: string;
+
+  test.beforeAll(async () => {
+    snapshotId = await createE2ESnapshot();
+  });
+
+  test.afterAll(async () => {
+    if (snapshotId) {
+      await restoreE2ESnapshot(snapshotId);
+      await deleteE2ESnapshot(snapshotId);
+    }
+  });
+
+  test("Spanish-header workbook parses correctly and shows preview", async ({
+    page,
+  }) => {
+    const builder = new TestWorkbookBuilder("es");
+    builder.addPart({
+      acr_sku: "ACR-ES-TEST-001",
+      part_type: "Rotor de Freno",
+      status: "Activo",
+    });
+    builder.addVehicleApp({
+      acr_sku: "ACR-ES-TEST-001",
+      make: "TOYOTA",
+      model: "COROLLA",
+      start_year: 2020,
+      end_year: 2024,
+    });
+
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-spanish.xlsx");
+
+    // Preview should show the new part in Part Changes tab
+    await expect(page.getByText(/Part Changes\s*\(\d+\)/i)).toBeVisible();
+
+    // Expand "New Parts" accordion to see the SKU
+    await page.getByText(/New Parts/i).click();
+    await expect(page.getByText("ACR-ES-TEST-001")).toBeVisible();
+
+    // Vehicle apps tab should be present
+    await expect(page.getByText(/Vehicle Apps\s*\(\d+\)/i)).toBeVisible();
+  });
+
+  test("execute import with Spanish headers creates DB records", async ({
+    page,
+  }) => {
+    const builder = new TestWorkbookBuilder("es");
+    builder.addPart({
+      acr_sku: "ACR-ES-EXEC-001",
+      part_type: "Maza",
+      status: "Activo",
+    });
+
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-spanish-exec.xlsx");
+
+    // Click Execute Import
+    await page.getByRole("button", { name: /Execute Import/i }).click();
+
+    // Wait for success (exact text avoids matching toast notification title)
+    await expect(
+      page.getByText("Import Successful!")
+    ).toBeVisible({ timeout: 30_000 });
+
+    // Verify record was created in the database
+    const client = getE2EClient();
+    const { data } = await client
+      .from("parts")
+      .select("acr_sku, part_type")
+      .eq("acr_sku", "ACR-ES-EXEC-001")
+      .single();
+
+    expect(data).toBeTruthy();
+    expect(data!.part_type).toBe("Maza");
+  });
+
+  test("mixed English/Spanish workbook (brand columns stay English)", async ({
+    page,
+  }) => {
+    // Brand columns like "National", "ATV" are identical in both languages
+    const builder = new TestWorkbookBuilder("es");
+    builder.addPartWithCrossRefs(
+      {
+        acr_sku: "ACR-ES-MIX-001",
+        part_type: "Rotor",
+        status: "Activo",
+      },
+      { national: ["NAT-ES-001"] }
+    );
+
+    const buffer = await builder.toBuffer();
+    await uploadAndWaitForPreview(page, buffer, "test-mixed-lang.xlsx");
+
+    // Should parse successfully — cross-refs tab visible
+    await expect(page.getByText(/Cross-References\s*\(\d+\)/i)).toBeVisible();
+
+    // Expand "New Parts" to verify the part SKU
+    await page.getByText(/New Parts/i).click();
+    await expect(page.getByText("ACR-ES-MIX-001")).toBeVisible();
+
+    // Switch to Cross-References tab, expand, verify cross-ref
+    await page.getByRole("tab", { name: /Cross-References/i }).click();
+    await page.getByText(/New Cross-References/i).click();
+    await expect(page.getByText("NAT-ES-001")).toBeVisible();
   });
 });
 

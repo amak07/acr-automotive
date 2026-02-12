@@ -226,6 +226,11 @@
     @apply font-bold tracking-tight;
   }
 
+  .acr-brand-heading-lg {
+    font-family: var(--font-exo2);
+    @apply font-bold tracking-tight text-lg lg:text-xl;
+  }
+
   .acr-brand-heading-xl {
     font-family: var(--font-exo2);
     @apply font-bold tracking-tight text-xl lg:text-2xl;

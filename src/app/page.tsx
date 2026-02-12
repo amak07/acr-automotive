@@ -99,8 +99,13 @@ function HomePageContent() {
           )}
 
         {/* Search and Parts List - Contained width */}
-        <div className="px-4 py-6 mx-auto md:px-6 lg:max-w-6xl lg:px-8">
-          <PublicSearchFilters setSearchTerms={setSearchTerms} />
+        <div className="px-4 pt-8 pb-6 mx-auto md:px-6 lg:max-w-6xl lg:px-8">
+          <h1 className="acr-brand-heading-2xl text-acr-gray-900 mb-4 acr-animate-fade-up">
+            {t("public.header.title")}
+          </h1>
+          <div className="acr-animate-fade-up acr-stagger-1">
+            <PublicSearchFilters setSearchTerms={setSearchTerms} />
+          </div>
 
           {/* Error State for Parts Search - takes precedence over results */}
           {error ? (

@@ -4,123 +4,86 @@ import * as React from "react";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, LucideIcon, MoreVertical, Globe, Check } from "lucide-react";
+import { Menu, X, LucideIcon, Globe, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AcrLogo } from "@/components/ui/AcrLogo";
-import { AcrLanguageToggle } from "./LanguageToggle";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Locale } from "@/lib/i18n";
 import { useHomeLink } from "@/hooks";
 
+// Simplified flag SVGs — reliable cross-platform (emoji flags break on Windows)
+const FlagUS = ({ className }: { className?: string }) => (
+  <svg
+    className={cn("w-4 h-3 rounded-[2px] shrink-0", className)}
+    viewBox="0 0 16 12"
+  >
+    <rect width="16" height="12" fill="#B22234" />
+    <rect y="1" width="16" height="1" fill="white" />
+    <rect y="3" width="16" height="1" fill="white" />
+    <rect y="5" width="16" height="1" fill="white" />
+    <rect y="7" width="16" height="1" fill="white" />
+    <rect y="9" width="16" height="1" fill="white" />
+    <rect y="11" width="16" height="1" fill="white" />
+    <rect width="7" height="6" fill="#3C3B6E" />
+  </svg>
+);
+
+const FlagMX = ({ className }: { className?: string }) => (
+  <svg
+    className={cn("w-4 h-3 rounded-[2px] shrink-0", className)}
+    viewBox="0 0 16 12"
+  >
+    <rect width="5.33" height="12" fill="#006847" />
+    <rect x="5.33" width="5.34" height="12" fill="white" />
+    <rect x="10.67" width="5.33" height="12" fill="#CE1126" />
+  </svg>
+);
+
+const localeFlags = {
+  en: { Flag: FlagUS, short: "EN" },
+  es: { Flag: FlagMX, short: "ES" },
+} as const;
+
 export interface AcrHeaderAction {
-  /**
-   * Unique identifier for the action
-   */
   id: string;
-
-  /**
-   * Action label/text
-   */
   label: string;
-
-  /**
-   * Optional icon
-   */
   icon?: LucideIcon;
-
-  /**
-   * Link href (for navigation actions)
-   */
   href?: string;
-
-  /**
-   * Click handler (for button actions)
-   */
   onClick?: () => void;
-
-  /**
-   * Visual variant
-   * @default "default"
-   */
   variant?: "default" | "primary" | "danger";
-
-  /**
-   * Whether this should render as a button instead of link
-   */
   asButton?: boolean;
-
-  /**
-   * Custom className for the action
-   */
   className?: string;
-
-  /**
-   * Accessibility title
-   */
   title?: string;
 }
 
 export interface AcrHeaderProps {
-  /**
-   * Header title text
-   */
   title: string;
-
-  /**
-   * Optional tagline/subtitle displayed below title on desktop
-   */
   tagline?: string;
-
-  /**
-   * Current locale for language toggle
-   * @optional - if not provided, language toggle will not be shown
-   */
   locale?: Locale;
-
-  /**
-   * Locale change handler
-   * @optional - if not provided, language toggle will not be shown
-   */
   onLocaleChange?: (locale: Locale) => void;
-
-  /**
-   * Language toggle label text
-   * @optional - if not provided, language toggle will not be shown
-   */
   languageToggleLabel?: string;
-
-  /**
-   * Navigation actions for desktop/mobile
-   */
+  /** Translated language names, e.g. { en: "English", es: "Spanish" } */
+  languageLabels?: Record<Locale, string>;
+  /** Navigation actions — shown inline on desktop, in hamburger on mobile */
   actions?: AcrHeaderAction[];
-
-  /**
-   * Utility menu actions (3-dot menu) - shown in dropdown on desktop
-   * Typically includes: language switcher, logout, etc.
-   * @optional - if not provided, utility menu will not be shown
-   */
+  /** All menu items for mobile hamburger dropdown */
   utilityActions?: AcrHeaderAction[];
-
-  /**
-   * Custom className for the header
-   */
+  /** Logout action — rendered separately on desktop with distinct styling */
+  logoutAction?: AcrHeaderAction;
   className?: string;
-
-  /**
-   * Border variant
-   * @default "gray-200"
-   */
   borderVariant?: "gray-200" | "gray-300";
 }
 
-const actionVariantClasses = {
-  default: "text-acr-gray-600 hover:text-acr-blue-600 hover:bg-acr-gray-50",
-  primary: "text-acr-blue-600 hover:text-acr-blue-800 hover:bg-acr-blue-50",
-  danger: "text-red-600 hover:text-red-800 hover:bg-red-50",
-} as const;
-
 /**
  * ACR header component
- * Unified header component for both public and admin layouts
+ * Desktop: inline nav links + language dropdown + logout icon
+ * Mobile/Tablet: hamburger dropdown with all items
  */
 export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
   (
@@ -129,8 +92,10 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
       locale,
       onLocaleChange,
       languageToggleLabel,
+      languageLabels,
       actions = [],
       utilityActions = [],
+      logoutAction,
       className,
       borderVariant = "gray-200",
       ...props
@@ -143,14 +108,37 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
 
     const closeMenu = () => setIsMenuOpen(false);
 
-    // Check if a menu item is active based on current pathname
     const isActive = (href: string | undefined): boolean => {
       if (!href) return false;
-      // Exact match only - prevents /admin matching /admin/users
       return pathname === href;
     };
 
-    // Render menu item (for dropdown menu)
+    // Desktop inline nav item — text-only, underline active state
+    const renderDesktopNavItem = (action: AcrHeaderAction) => {
+      const active = isActive(action.href);
+      const classes = cn(
+        "px-2 py-1 text-[13px] font-medium transition-colors border-b-2",
+        active
+          ? "text-acr-red-600 border-acr-red-500"
+          : "text-acr-gray-500 border-transparent hover:text-acr-gray-800 hover:border-acr-gray-300"
+      );
+
+      if (action.href) {
+        return (
+          <Link
+            key={action.id}
+            href={action.href as any}
+            className={classes}
+            title={action.title || action.label}
+          >
+            {action.label}
+          </Link>
+        );
+      }
+      return null;
+    };
+
+    // Mobile dropdown menu item
     const renderMenuItem = (action: AcrHeaderAction) => {
       const active = isActive(action.href);
 
@@ -204,13 +192,15 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
       return null;
     };
 
+    // Current locale flag for the dropdown trigger
+    const currentLocale = locale ? localeFlags[locale] : null;
+    const currentLocaleLabel = locale && languageLabels ? languageLabels[locale] : null;
+
     return (
       <header
         ref={ref}
         className={cn(
-          // Red accent line at top - brand signature (thicker 2px)
           "relative before:absolute before:top-0 before:left-0 before:right-0 before:h-0.5 before:bg-acr-red-500",
-          // Base styling with shadow instead of hard border
           "transition-colors shadow-md bg-white",
           className
         )}
@@ -219,23 +209,103 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
         <div className="px-4 py-3 max-w-md mx-auto lg:max-w-6xl lg:px-8 lg:py-4">
           <div className="flex items-center justify-between">
             {/* Left side - Logo and Title */}
-            <div className="flex items-center gap-2 lg:gap-3 min-w-0 flex-1">
+            <div className="flex items-center gap-2 lg:gap-3 min-w-0">
               <Link
                 href={homeLink}
-                className="flex-shrink-0 hover:opacity-80 transition-opacity"
+                className="shrink-0 hover:opacity-80 transition-opacity"
               >
                 <AcrLogo className="h-14 md:h-12 lg:h-14" />
               </Link>
               {title && (
-                <h1 className="acr-brand-heading-xl text-acr-gray-800 truncate hidden md:block">
+                <h1
+                  className={cn(
+                    "acr-brand-heading-xl text-acr-gray-800 truncate hidden md:block",
+                    actions.length > 0 && "lg:hidden"
+                  )}
+                >
                   {title}
                 </h1>
               )}
             </div>
 
-            {/* Unified Menu Button (hamburger menu) - Always visible when utilityActions provided */}
+            {/* Desktop Nav - visible on lg+ screens */}
+            {actions.length > 0 && (
+              <nav className="hidden lg:flex items-center gap-2">
+                {actions.map((action) => renderDesktopNavItem(action))}
+
+                {/* Language dropdown — Google-style pill */}
+                {locale && onLocaleChange && currentLocale && (
+                  <>
+                    <div className="ml-2 mr-1 h-4 w-px bg-acr-gray-200" />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-acr-gray-500 hover:text-acr-gray-700 border border-acr-gray-300 rounded-full hover:bg-acr-gray-50 transition-colors"
+                          title={languageToggleLabel}
+                        >
+                          <Globe className="w-3.5 h-3.5" />
+                          <span>{currentLocaleLabel}</span>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuLabel className="text-xs text-acr-gray-500">
+                          {languageToggleLabel}
+                        </DropdownMenuLabel>
+                        {(["en", "es"] as Locale[]).map((lang) => {
+                          const { Flag } = localeFlags[lang];
+                          const label = languageLabels?.[lang] ?? lang;
+                          const isSelected = locale === lang;
+                          return (
+                            <DropdownMenuItem
+                              key={lang}
+                              onClick={() => onLocaleChange(lang)}
+                              className={cn(
+                                "flex items-center gap-2 cursor-pointer",
+                                isSelected && "bg-acr-red-50"
+                              )}
+                            >
+                              <Flag />
+                              <span
+                                className={cn(
+                                  isSelected &&
+                                    "text-acr-red-600 font-medium"
+                                )}
+                              >
+                                {label}
+                              </span>
+                              {isSelected && (
+                                <Check className="w-3.5 h-3.5 ml-auto text-acr-red-600" />
+                              )}
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
+                )}
+
+                {/* Logout — icon only */}
+                {logoutAction && (
+                  <>
+                    <div className="ml-1.5 mr-1 h-4 w-px bg-acr-gray-200" />
+                    <button
+                      onClick={logoutAction.onClick}
+                      className="p-1.5 rounded-md text-acr-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      title={logoutAction.title || logoutAction.label}
+                      aria-label={logoutAction.label}
+                    >
+                      {logoutAction.icon && (
+                        <logoutAction.icon className="w-4 h-4" />
+                      )}
+                    </button>
+                  </>
+                )}
+              </nav>
+            )}
+
+            {/* Mobile Hamburger Menu - hidden on lg+ */}
             {utilityActions.length > 0 && (
-              <div className="relative">
+              <div className="relative lg:hidden">
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="flex items-center justify-center p-2 rounded-lg text-acr-gray-600 hover:text-acr-red-600 hover:bg-acr-gray-50 transition-colors"
@@ -251,20 +321,15 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
 
                 {isMenuOpen && (
                   <>
-                    {/* Backdrop */}
                     <div className="fixed inset-0 z-10" onClick={closeMenu} />
 
-                    {/* Dropdown Menu */}
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-acr-gray-200 py-1 z-20">
-                      {/* Menu Items */}
                       {utilityActions.map((action) => renderMenuItem(action))}
 
-                      {/* Divider before language switcher */}
                       {locale && onLocaleChange && languageToggleLabel && (
                         <div className="border-t border-acr-gray-200 my-1" />
                       )}
 
-                      {/* Language Switcher (if provided) */}
                       {locale && onLocaleChange && languageToggleLabel && (
                         <div className="px-4 py-2">
                           <div className="flex items-center gap-2 text-xs font-semibold text-acr-gray-500 mb-2">
@@ -272,36 +337,32 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
                             <span>{languageToggleLabel}</span>
                           </div>
                           <div className="space-y-1">
-                            <button
-                              onClick={() => {
-                                onLocaleChange("en");
-                                closeMenu();
-                              }}
-                              className={cn(
-                                "w-full flex items-center justify-between px-3 py-1.5 text-sm rounded transition-colors",
-                                locale === "en"
-                                  ? "bg-acr-red-50 text-acr-red-600 font-medium"
-                                  : "text-acr-gray-700 hover:bg-acr-gray-50"
-                              )}
-                            >
-                              <span>English</span>
-                              {locale === "en" && <Check className="w-4 h-4" />}
-                            </button>
-                            <button
-                              onClick={() => {
-                                onLocaleChange("es");
-                                closeMenu();
-                              }}
-                              className={cn(
-                                "w-full flex items-center justify-between px-3 py-1.5 text-sm rounded transition-colors",
-                                locale === "es"
-                                  ? "bg-acr-red-50 text-acr-red-600 font-medium"
-                                  : "text-acr-gray-700 hover:bg-acr-gray-50"
-                              )}
-                            >
-                              <span>Español</span>
-                              {locale === "es" && <Check className="w-4 h-4" />}
-                            </button>
+                            {(["en", "es"] as Locale[]).map((lang) => {
+                              const { Flag } = localeFlags[lang];
+                              const label = languageLabels?.[lang] ?? lang;
+                              const isSelected = locale === lang;
+                              return (
+                                <button
+                                  key={lang}
+                                  onClick={() => {
+                                    onLocaleChange(lang);
+                                    closeMenu();
+                                  }}
+                                  className={cn(
+                                    "w-full flex items-center gap-2.5 px-3 py-1.5 text-sm rounded transition-colors",
+                                    isSelected
+                                      ? "bg-acr-red-50 text-acr-red-600 font-medium"
+                                      : "text-acr-gray-700 hover:bg-acr-gray-50"
+                                  )}
+                                >
+                                  <Flag />
+                                  <span>{label}</span>
+                                  {isSelected && (
+                                    <Check className="w-4 h-4 ml-auto" />
+                                  )}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                       )}

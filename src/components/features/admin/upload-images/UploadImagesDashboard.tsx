@@ -206,7 +206,7 @@ export function UploadImagesDashboard() {
     <main className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header with stagger animation */}
       <div className="mb-8 acr-animate-fade-up">
-        <h1 className="acr-brand-heading-xl text-acr-gray-900 mb-2">
+        <h1 className="acr-brand-heading-2xl text-acr-gray-900 mb-2">
           {t("admin.uploadImages.title")}
         </h1>
         <p className="text-acr-gray-600">{t("admin.uploadImages.description")}</p>

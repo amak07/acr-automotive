@@ -16,6 +16,7 @@ import { useDebounce } from "use-debounce";
 import { useMemo, Suspense, useState, useEffect } from "react";
 import { Preloader } from "@/components/ui/Preloader";
 import { useSettings } from "@/contexts/SettingsContext";
+import { useLocale } from "@/contexts/LocaleContext";
 
 // Path to dotLottie animation in public folder
 const GEAR_ANIMATION_SRC = "/animations/gear-loader.lottie";
@@ -24,6 +25,7 @@ function AdminPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { t } = useLocale();
 
   // Read state from URL
   const searchTerms = useMemo<SearchTerms>(
@@ -113,6 +115,9 @@ function AdminPageContent() {
 
   return (
     <main className="px-4 py-5 mx-auto md:px-6 lg:max-w-7xl lg:px-8 lg:py-8 space-y-4 lg:space-y-6">
+      <h1 className="acr-brand-heading-2xl text-acr-gray-900 acr-animate-fade-up">
+        {t("admin.dashboard.title")}
+      </h1>
       <QuickActions />
       <DashboardCards />
       <SearchFilters

@@ -7,6 +7,7 @@ import {
   ALIASES_COLUMNS,
   BRAND_COLUMN_MAP,
   WORKFLOW_STATUS_DISPLAY,
+  IMAGE_URL_COLUMN_NAMES,
   ExportFilters,
   // Styling imports
   PARTS_COLUMN_GROUPS,
@@ -20,6 +21,7 @@ import {
   PARTS_INSTRUCTIONS,
   VEHICLE_APPS_INSTRUCTIONS,
   ALIASES_INSTRUCTIONS,
+  EXCEL_COLORS,
 } from "@/services/excel/shared";
 
 // Type for cross-refs grouped by part and brand
@@ -95,7 +97,7 @@ export class ExcelExportService {
    * Export all catalog data to Excel workbook
    * @returns Excel file buffer ready for download
    */
-  async exportAllData(): Promise<Buffer> {
+  async exportAllData(baseUrl: string = "", locale: "en" | "es" = "en"): Promise<Buffer> {
     // Fetch all data from database
     const [parts, vehicles, crossRefsByPart, imagesByPart, aliases] =
       await Promise.all([
@@ -112,13 +114,13 @@ export class ExcelExportService {
     workbook.created = new Date();
 
     // Add Parts sheet (with inline cross-refs and images)
-    this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart);
+    this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart, locale, baseUrl);
 
     // Add Vehicle Applications sheet
-    this.addVehiclesSheet(workbook, vehicles);
+    this.addVehiclesSheet(workbook, vehicles, locale);
 
     // Add Vehicle Aliases sheet
-    this.addAliasesSheet(workbook, aliases);
+    this.addAliasesSheet(workbook, aliases, locale);
 
     // Generate Excel file buffer
     const buffer = await workbook.xlsx.writeBuffer();
@@ -131,7 +133,7 @@ export class ExcelExportService {
    * @param filters - Search filters to apply
    * @returns Excel file buffer ready for download
    */
-  async exportFiltered(filters: ExportFilters): Promise<Buffer> {
+  async exportFiltered(filters: ExportFilters, baseUrl: string = "", locale: "en" | "es" = "en"): Promise<Buffer> {
     // Fetch filtered parts
     const parts = await this.fetchFilteredParts(filters);
 
@@ -144,10 +146,10 @@ export class ExcelExportService {
       workbook.creator = "ACR Automotive";
       workbook.created = new Date();
 
-      this.addPartsSheet(workbook, [], new Map(), new Map());
-      this.addVehiclesSheet(workbook, []);
+      this.addPartsSheet(workbook, [], new Map(), new Map(), locale, baseUrl);
+      this.addVehiclesSheet(workbook, [], locale);
       const aliases = await this.fetchAllAliases();
-      this.addAliasesSheet(workbook, aliases);
+      this.addAliasesSheet(workbook, aliases, locale);
 
       const buffer = await workbook.xlsx.writeBuffer();
       return Buffer.from(buffer);
@@ -168,9 +170,9 @@ export class ExcelExportService {
     workbook.created = new Date();
 
     // Add sheets
-    this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart);
-    this.addVehiclesSheet(workbook, vehicles);
-    this.addAliasesSheet(workbook, aliases);
+    this.addPartsSheet(workbook, parts, crossRefsByPart, imagesByPart, locale, baseUrl);
+    this.addVehiclesSheet(workbook, vehicles, locale);
+    this.addAliasesSheet(workbook, aliases, locale);
 
     // Generate Excel file buffer
     const buffer = await workbook.xlsx.writeBuffer();
@@ -576,8 +578,8 @@ export class ExcelExportService {
     // Row 1: Group headers (merged cells for logical groupings)
     addGroupHeaderRow(worksheet, PARTS_COLUMNS, PARTS_COLUMN_GROUPS);
 
-    // Row 2: Column headers with styling
-    addColumnHeaderRow(worksheet, PARTS_COLUMNS);
+    // Row 2: Column headers with styling (locale-aware)
+    addColumnHeaderRow(worksheet, PARTS_COLUMNS, locale);
 
     // Row 3: Instructions row with help text
     addInstructionsRow(
@@ -586,6 +588,12 @@ export class ExcelExportService {
       PARTS_INSTRUCTIONS[locale],
       baseUrl
     );
+
+    // Precompute image column indices (constant across all rows)
+    const imageColIndices = IMAGE_URL_COLUMN_NAMES.map((name) => ({
+      name,
+      idx: PARTS_COLUMNS.findIndex((c) => c.key === name) + 1,
+    })).filter((c) => c.idx > 0);
 
     // Row 4+: Data rows with alternating colors
     parts.forEach((part, rowIndex) => {
@@ -633,8 +641,32 @@ export class ExcelExportService {
         viewer_360_status: part.has_360_viewer ? "Confirmed" : "",
       });
 
+      // Convert image URL cells to hyperlinks with short filename display
+      for (const { idx } of imageColIndices) {
+        const cell = row.getCell(idx);
+        const url =
+          typeof cell.value === "string" ? cell.value.trim() : "";
+        if (url) {
+          const filename = url.split("/").pop() || url;
+          cell.value = { text: filename, hyperlink: url };
+        }
+      }
+
       // Apply alternating row styling
       applyDataRowStyle(row, rowIndex, PARTS_COLUMNS.length);
+
+      // Re-apply hyperlink styling (applyDataRowStyle resets all fonts to black)
+      for (const { idx } of imageColIndices) {
+        const cell = row.getCell(idx);
+        if (cell.value && typeof cell.value === "object" && "hyperlink" in cell.value) {
+          cell.font = {
+            size: 10,
+            color: { argb: EXCEL_COLORS.TEXT_LINK },
+            underline: true,
+          };
+        }
+      }
+
       row.height = ROW_HEIGHTS.DATA_ROW;
     });
 
@@ -694,7 +726,7 @@ export class ExcelExportService {
       VEHICLE_APPLICATIONS_COLUMNS,
       VEHICLE_APPS_COLUMN_GROUPS
     );
-    addColumnHeaderRow(worksheet, VEHICLE_APPLICATIONS_COLUMNS);
+    addColumnHeaderRow(worksheet, VEHICLE_APPLICATIONS_COLUMNS, locale);
     addInstructionsRow(
       worksheet,
       VEHICLE_APPLICATIONS_COLUMNS,
@@ -772,7 +804,7 @@ export class ExcelExportService {
     }));
 
     addGroupHeaderRow(worksheet, ALIASES_COLUMNS, ALIASES_COLUMN_GROUPS);
-    addColumnHeaderRow(worksheet, ALIASES_COLUMNS);
+    addColumnHeaderRow(worksheet, ALIASES_COLUMNS, locale);
     addInstructionsRow(
       worksheet,
       ALIASES_COLUMNS,

@@ -110,7 +110,7 @@ export class ExcelImportService {
     const headerMap: Map<number, string> = new Map();
 
     headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-      const header = cell.value?.toString() || "";
+      const header = this.getCellText(cell.value);
       if (header) {
         const propertyName = headerToPropertyName(header);
         headerMap.set(colNumber, propertyName);
@@ -140,6 +140,11 @@ export class ExcelImportService {
         }
 
         let value = cell.value;
+
+        // Handle ExcelJS hyperlink cells — extract the URL
+        if (value && typeof value === "object" && "hyperlink" in value) {
+          value = (value as ExcelJS.CellHyperlinkValue).hyperlink;
+        }
 
         // Handle ExcelJS formula cells — use the computed result
         if (value && typeof value === "object" && "formula" in value) {
@@ -182,6 +187,17 @@ export class ExcelImportService {
     return rows;
   }
 
+  /** Extract display text from ExcelJS cell value (handles hyperlinks, formulas, plain values) */
+  private getCellText(value: ExcelJS.CellValue): string {
+    if (!value) return "";
+    if (typeof value === "object") {
+      if ("text" in value)
+        return String((value as ExcelJS.CellHyperlinkValue).text || "");
+      if ("formula" in value) return String((value as any).result || "");
+    }
+    return String(value);
+  }
+
   /**
    * Detect worksheet header format to determine where data starts
    *
@@ -201,7 +217,7 @@ export class ExcelImportService {
     // Check Row 2 for column header characteristics
     let row2HasColumnHeaders = false;
     row2.eachCell({ includeEmpty: false }, (cell) => {
-      const value = cell.value?.toString() || "";
+      const value = this.getCellText(cell.value);
       if (
         /^[A-Z][a-z]*[_ ]/.test(value) ||
         value === "Make" ||
@@ -209,7 +225,13 @@ export class ExcelImportService {
         value === "Alias" ||
         value === "Type" ||
         value === "Status" ||
-        value === "Errors"
+        value === "Errors" ||
+        // Spanish header keywords
+        value === "Marca" ||
+        value === "Modelo" ||
+        value === "Tipo" ||
+        value === "Estado" ||
+        value === "Errores"
       ) {
         row2HasColumnHeaders = true;
       }
@@ -218,7 +240,7 @@ export class ExcelImportService {
     // Check Row 3 for instruction-like content
     let row3HasInstructions = false;
     row3.eachCell({ includeEmpty: false }, (cell) => {
-      const value = cell.value?.toString() || "";
+      const value = this.getCellText(cell.value);
       if (
         value.includes("separate with") ||
         value.includes("separar con") ||

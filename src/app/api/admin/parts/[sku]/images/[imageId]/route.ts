@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase/client";
+import { supabase, createAdminClient } from "@/lib/supabase/client";
 import { z } from "zod";
 import { normalizeSku } from "@/lib/utils/sku";
 import { requireAuth } from "@/lib/api/auth-helpers";
@@ -53,8 +53,9 @@ export async function PUT(
       return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
 
-    // Update caption
-    const { data, error: updateError } = await supabase
+    // Use admin client for DB write (route is already auth-gated)
+    const adminClient = createAdminClient();
+    const { data, error: updateError } = await adminClient
       .from("part_images")
       .update({ caption })
       .eq("id", imageId)
@@ -140,8 +141,11 @@ export async function DELETE(
       storagePath = urlParts[urlParts.length - 1].split("?")[0];
     }
 
+    // Use admin client for storage operations (route is already auth-gated)
+    const adminClient = createAdminClient();
+
     // Delete from storage first
-    const { error: storageError } = await supabase.storage
+    const { error: storageError } = await adminClient.storage
       .from(bucketName)
       .remove([storagePath]);
 
@@ -151,7 +155,7 @@ export async function DELETE(
     }
 
     // Delete from database
-    const { error: dbError } = await supabase
+    const { error: dbError } = await adminClient
       .from("part_images")
       .delete()
       .eq("id", imageId);
