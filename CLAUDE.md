@@ -94,6 +94,13 @@ npx playwright test
 
 **Locator priority:** `getByTestId` > `getByRole` with name > `getByLabel` > CSS selectors. Never use `.first()` / `.nth()` as a permanent fix for ambiguous selectors.
 
+## Testing Rules
+
+- **No sneaky implementation changes**: When writing tests, do NOT modify production/implementation code to make tests easier to write or pass. Tests must work against the current codebase as-is.
+- **Bug discovery protocol**: If a test reveals a genuine bug or gap in implementation code, STOP and prompt the user before making any implementation changes. The user decides whether to fix the bug now or file it for later.
+- **Do not modify existing test files**: New test coverage goes in NEW test files. Do not edit existing test files unless the user has been prompted and approved the change. If existing tests conflict with new tests, investigate why — the conflict itself may indicate a real issue.
+- **Test IDs require approval**: Adding `data-testid` attributes to production components requires user approval (see E2E Testing section).
+
 ## Pre-commit Hooks
 
 - lint-staged (ESLint + Prettier)
