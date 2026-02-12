@@ -158,24 +158,41 @@ const VIEW_TYPE_MAP: Record<string, { viewType: string; displayOrder: number; is
 };
 
 /**
- * Seed part_images from local product photos in public/product-images/IMAGENES-360-optimized/.
- * Each SKU has 4 views: _fro (front), _bot (back), _top (top), _oth (other).
+ * Seed part_images from local product photos.
+ * Each SKU has up to 4 views: _fro (front), _bot (back), _top (top), _oth (other).
  * Uploads images to Supabase Storage and stores absolute URLs in the DB.
- * Skips gracefully if the directory doesn't exist (e.g., in CI).
+ *
+ * Checks two directories in order:
+ * 1. public/product-images/IMAGENES-360-optimized/ (full product catalog, gitignored)
+ * 2. tests/fixtures/seed-images/ (minimal test SKUs, committed to git for CI)
  */
 async function seedPartImages(client: pg.Client) {
-  const imageDir = path.join(
+  const primaryDir = path.join(
     process.cwd(),
     "public",
     "product-images",
     "IMAGENES-360-optimized"
   );
+  const fallbackDir = path.join(
+    process.cwd(),
+    "tests",
+    "fixtures",
+    "seed-images"
+  );
 
+  let imageDir: string;
   try {
-    await fs.access(imageDir);
+    await fs.access(primaryDir);
+    imageDir = primaryDir;
   } catch {
-    console.log("\n📷 Skipping part_images seed (image directory not found)");
-    return;
+    try {
+      await fs.access(fallbackDir);
+      imageDir = fallbackDir;
+      console.log("\n📷 Using test fixture images (full catalog not found)");
+    } catch {
+      console.log("\n📷 Skipping part_images seed (no image directories found)");
+      return;
+    }
   }
 
   console.log("\n📷 Seeding part_images via Supabase Storage...");
