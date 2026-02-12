@@ -1030,6 +1030,9 @@ async function main() {
 
       // Execute
       const exec = await executeImport(cookie, buffer);
+      if (!exec.success) {
+        console.log("  Execute response:", JSON.stringify(exec, null, 2));
+      }
       assert(exec.success === true, "execute should succeed");
 
       const afterParts = await countParts();
