@@ -70,8 +70,15 @@ export class ImportService {
       console.log("[ImportService] Bulk operations completed");
 
       // Step 3: Process image URLs from parts (Phase 3B)
+      // Exclude parts deleted in this import — they no longer exist in DB
+      const deletedPartIds = new Set(
+        diff.parts?.deletes?.map((d) => d.before?._id).filter(Boolean) ?? []
+      );
+      const activePartsData = parsed.parts.data.filter(
+        (p) => !p._id || !deletedPartIds.has(p._id)
+      );
       const imageStats = await this.processImageUrls(
-        parsed.parts.data,
+        activePartsData,
         metadata.tenantId
       );
       console.log("[ImportService] Image URLs processed:", imageStats);
