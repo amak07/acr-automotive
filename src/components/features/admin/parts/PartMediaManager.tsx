@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Image, RotateCw } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useQuery } from "@tanstack/react-query";
 import { PartImagesManager } from "./PartImagesManager";
@@ -21,7 +22,14 @@ type MediaTab = "photos" | "360viewer";
  */
 export function PartMediaManager({ partSku }: PartMediaManagerProps) {
   const { t } = useLocale();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<MediaTab>("photos");
+
+  useEffect(() => {
+    if (searchParams.get("tab") === "360viewer") {
+      setActiveTab("360viewer");
+    }
+  }, [searchParams]);
 
   // Fetch 360° viewer status for badge indicator
   const { data: viewer360Data } = useQuery({

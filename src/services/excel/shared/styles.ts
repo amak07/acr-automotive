@@ -339,7 +339,10 @@ export const PARTS_INSTRUCTIONS: Record<
       text: "Upload via Photo Manager",
       link: "/admin/upload-images",
     },
-    "360 Viewer": "Auto-set when frames uploaded",
+    "360 Viewer": {
+      text: "Manage in Data Portal",
+      link: "/data-portal/360-viewer",
+    },
     Errors: "Do not modify (auto formula)",
   },
   es: {
@@ -383,7 +386,10 @@ export const PARTS_INSTRUCTIONS: Record<
       text: "Subir en Administrador de Fotos",
       link: "/admin/upload-images",
     },
-    "360 Viewer": "Se establece cuando se suben frames",
+    "360 Viewer": {
+      text: "Administrar en Portal de Datos",
+      link: "/data-portal/360-viewer",
+    },
     Errors: "No modificar (fórmula automática)",
   },
 };

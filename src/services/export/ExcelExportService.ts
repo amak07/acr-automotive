@@ -62,7 +62,7 @@ export class ExcelExportService {
     let selectColumns = "*";
     if (tableName === "parts") {
       selectColumns =
-        "id, acr_sku, workflow_status, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, has_360_viewer";
+        "id, acr_sku, workflow_status, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, has_360_viewer, viewer_360_frame_count";
     }
 
     const PAGE_SIZE = 1000;
@@ -193,7 +193,7 @@ export class ExcelExportService {
       let query = supabase
         .from("parts")
         .select(
-          "id, acr_sku, workflow_status, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, has_360_viewer"
+          "id, acr_sku, workflow_status, part_type, position_type, abs_type, bolt_pattern, drive_type, specifications, has_360_viewer, viewer_360_frame_count"
         )
         .order("acr_sku", { ascending: true });
 
@@ -595,6 +595,9 @@ export class ExcelExportService {
       idx: PARTS_COLUMNS.findIndex((c) => c.key === name) + 1,
     })).filter((c) => c.idx > 0);
 
+    // Precompute 360 viewer column index
+    const viewer360ColIdx = PARTS_COLUMNS.findIndex((c) => c.key === "viewer_360_status") + 1;
+
     // Row 4+: Data rows with alternating colors
     parts.forEach((part, rowIndex) => {
       const partId = part.id;
@@ -638,7 +641,9 @@ export class ExcelExportService {
         image_url_back: partImages.back || "",
         image_url_top: partImages.top || "",
         image_url_other: partImages.other || "",
-        viewer_360_status: part.has_360_viewer ? "Confirmed" : "",
+        viewer_360_status: part.has_360_viewer
+          ? `Confirmed (${part.viewer_360_frame_count || 0} frames)`
+          : "",
       });
 
       // Convert image URL cells to hyperlinks with short filename display
@@ -652,6 +657,17 @@ export class ExcelExportService {
         }
       }
 
+      // Convert 360 viewer status cell to hyperlink
+      if (viewer360ColIdx > 0) {
+        const viewer360Cell = row.getCell(viewer360ColIdx);
+        if (viewer360Cell.value && typeof viewer360Cell.value === "string" && viewer360Cell.value !== "") {
+          viewer360Cell.value = {
+            text: viewer360Cell.value as string,
+            hyperlink: `${baseUrl}/admin/parts/${encodeURIComponent(part.acr_sku)}?tab=360viewer`,
+          };
+        }
+      }
+
       // Apply alternating row styling
       applyDataRowStyle(row, rowIndex, PARTS_COLUMNS.length);
 
@@ -660,6 +676,18 @@ export class ExcelExportService {
         const cell = row.getCell(idx);
         if (cell.value && typeof cell.value === "object" && "hyperlink" in cell.value) {
           cell.font = {
+            size: 10,
+            color: { argb: EXCEL_COLORS.TEXT_LINK },
+            underline: true,
+          };
+        }
+      }
+
+      // Re-apply hyperlink styling for 360 viewer cell
+      if (viewer360ColIdx > 0) {
+        const viewer360Cell = row.getCell(viewer360ColIdx);
+        if (viewer360Cell.value && typeof viewer360Cell.value === "object" && "hyperlink" in viewer360Cell.value) {
+          viewer360Cell.font = {
             size: 10,
             color: { argb: EXCEL_COLORS.TEXT_LINK },
             underline: true,

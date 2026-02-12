@@ -3195,6 +3195,82 @@ export const translations: Record<
     en: "Upload photos and copy public URLs for your catalog",
     es: "Suba fotos y copie las URLs públicas para su catálogo",
   },
+  // 360° Viewer - Dashboard card
+  "portal.viewer360.title": {
+    en: "360° Viewer",
+    es: "Visor 360°",
+  },
+  "portal.viewer360.description": {
+    en: "Manage 360° spin viewers for parts in the catalog",
+    es: "Administrar visores 360° de las piezas del catálogo",
+  },
+
+  // 360° Viewer - Overview page
+  "admin.viewer360.title": {
+    en: "360° Viewer Manager",
+    es: "Administrador de Visor 360°",
+  },
+  "admin.viewer360.description": {
+    en: "View and manage 360° spin viewers for all parts",
+    es: "Ver y administrar visores 360° de todas las piezas",
+  },
+  "admin.viewer360.howItWorks": {
+    en: "How it works",
+    es: "Cómo funciona",
+  },
+  "admin.viewer360.step1": {
+    en: "Browse the parts list below to see which parts have 360° viewers configured",
+    es: "Revise la lista de piezas para ver cuáles tienen visores 360° configurados",
+  },
+  "admin.viewer360.step2": {
+    en: "Click \"Manage Frames\" to upload or edit 360° viewer frames for any part",
+    es: "Haga clic en \"Administrar Frames\" para subir o editar los frames del visor 360°",
+  },
+  "admin.viewer360.step3": {
+    en: "Use \"View Public Page\" to preview how the 360° viewer looks to customers",
+    es: "Use \"Ver Página Pública\" para previsualizar cómo se ve el visor 360° para los clientes",
+  },
+  "admin.viewer360.statsLabel": {
+    en: "parts with 360° viewers",
+    es: "piezas con visores 360°",
+  },
+  "admin.viewer360.filterAll": {
+    en: "All Parts",
+    es: "Todas las Piezas",
+  },
+  "admin.viewer360.filterMissing": {
+    en: "Missing 360°",
+    es: "Sin 360°",
+  },
+  "admin.viewer360.confirmed": {
+    en: "Confirmed",
+    es: "Confirmado",
+  },
+  "admin.viewer360.frames": {
+    en: "frames",
+    es: "frames",
+  },
+  "admin.viewer360.notUploaded": {
+    en: "Not uploaded",
+    es: "No subido",
+  },
+  "admin.viewer360.viewPublicPage": {
+    en: "View Public Page",
+    es: "Ver Página Pública",
+  },
+  "admin.viewer360.manageFrames": {
+    en: "Manage Frames",
+    es: "Administrar Frames",
+  },
+  "admin.viewer360.emptyTitle": {
+    en: "No parts found",
+    es: "No se encontraron piezas",
+  },
+  "admin.viewer360.emptyDescription": {
+    en: "Add parts to the catalog to start managing 360° viewers",
+    es: "Agregue piezas al catálogo para comenzar a administrar visores 360°",
+  },
+
   "portal.adminBanner.title": {
     en: "Admin Dashboard",
     es: "Panel de Administración",
