@@ -55,6 +55,7 @@ export interface PartData {
 
 export interface VehicleAppData {
   acr_sku: string;
+  status?: string;
   make: string;
   model: string;
   start_year: number;
@@ -65,6 +66,7 @@ export interface AliasData {
   alias: string;
   canonical_name: string;
   alias_type: "make" | "model";
+  status?: string;
 }
 
 /**
@@ -89,6 +91,11 @@ export class TestWorkbookBuilder {
   private parts: PartData[] = [];
   private vehicleApps: VehicleAppData[] = [];
   private aliases: AliasData[] = [];
+  private locale: "en" | "es";
+
+  constructor(locale: "en" | "es" = "en") {
+    this.locale = locale;
+  }
 
   // -- Fluent builders -------------------------------------------------------
 
@@ -164,21 +171,20 @@ export class TestWorkbookBuilder {
   private buildPartsSheet(workbook: ExcelJS.Workbook): void {
     const ws = workbook.addWorksheet(SHEET_NAMES.PARTS);
 
-    // Set column definitions (keys, widths)
+    // Set column definitions (keys and widths only — headers added manually via addColumnHeaderRow)
     ws.columns = PARTS_COLUMNS.map((col) => ({
-      header: col.header,
       key: col.key,
       width: col.width,
     }));
 
-    // Row 1: Group headers (merged)
+    // Row 1: Group headers (use English columns — group defs reference English headers)
     addGroupHeaderRow(ws, PARTS_COLUMNS, PARTS_COLUMN_GROUPS);
 
-    // Row 2: Column headers
-    addColumnHeaderRow(ws, PARTS_COLUMNS);
+    // Row 2: Column headers (locale-aware — writes Spanish text when es)
+    addColumnHeaderRow(ws, PARTS_COLUMNS, this.locale);
 
-    // Row 3: Instructions (English)
-    addInstructionsRow(ws, PARTS_COLUMNS, PARTS_INSTRUCTIONS.en);
+    // Row 3: Instructions
+    addInstructionsRow(ws, PARTS_COLUMNS, PARTS_INSTRUCTIONS[this.locale]);
 
     // Row 4+: Data
     for (const part of this.parts) {
@@ -197,14 +203,13 @@ export class TestWorkbookBuilder {
     const ws = workbook.addWorksheet(SHEET_NAMES.VEHICLE_APPLICATIONS);
 
     ws.columns = VEHICLE_APPLICATIONS_COLUMNS.map((col) => ({
-      header: col.header,
       key: col.key,
       width: col.width,
     }));
 
     addGroupHeaderRow(ws, VEHICLE_APPLICATIONS_COLUMNS, VEHICLE_APPS_COLUMN_GROUPS);
-    addColumnHeaderRow(ws, VEHICLE_APPLICATIONS_COLUMNS);
-    addInstructionsRow(ws, VEHICLE_APPLICATIONS_COLUMNS, VEHICLE_APPS_INSTRUCTIONS.en);
+    addColumnHeaderRow(ws, VEHICLE_APPLICATIONS_COLUMNS, this.locale);
+    addInstructionsRow(ws, VEHICLE_APPLICATIONS_COLUMNS, VEHICLE_APPS_INSTRUCTIONS[this.locale]);
 
     for (const app of this.vehicleApps) {
       const rowValues: Record<string, any> = {};
@@ -222,14 +227,13 @@ export class TestWorkbookBuilder {
     const ws = workbook.addWorksheet(SHEET_NAMES.ALIASES);
 
     ws.columns = ALIASES_COLUMNS.map((col) => ({
-      header: col.header,
       key: col.key,
       width: col.width,
     }));
 
     addGroupHeaderRow(ws, ALIASES_COLUMNS, ALIASES_COLUMN_GROUPS);
-    addColumnHeaderRow(ws, ALIASES_COLUMNS);
-    addInstructionsRow(ws, ALIASES_COLUMNS, ALIASES_INSTRUCTIONS.en);
+    addColumnHeaderRow(ws, ALIASES_COLUMNS, this.locale);
+    addInstructionsRow(ws, ALIASES_COLUMNS, ALIASES_INSTRUCTIONS[this.locale]);
 
     for (const alias of this.aliases) {
       const rowValues: Record<string, any> = {};

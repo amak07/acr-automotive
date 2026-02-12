@@ -39,14 +39,14 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    // Auth setup: logs in as admin, saves storageState for reuse
+    // Auth setup: logs in as admin + data_manager, saves storageState for reuse
     { name: "setup", testMatch: /.*\.setup\.ts/ },
 
-    // DB-mutating tests: run first, before read-only specs.
-    // admin-import uses destructive snapshot restores (DELETE ALL + UPSERT),
-    // so it must complete before any other spec reads the DB.
+    // DB-mutating tests: run sequentially, each in its own project.
+    // All use destructive snapshot restores (DELETE ALL + UPSERT),
+    // so they must NOT run concurrently (separate projects with deps).
     {
-      name: "db-tests",
+      name: "db-tests-import",
       testMatch: /admin-import\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
@@ -54,24 +54,67 @@ export default defineConfig({
       },
       dependencies: ["setup"],
     },
-
-    // Read-only specs: run after db-tests complete (parallel safe)
     {
-      name: "chromium",
-      testIgnore: [/auth-boundary\.spec\.ts/, /admin-import\.spec\.ts/],
+      name: "db-tests-images",
+      testMatch: /admin-images\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         storageState: "tests/e2e/.auth/admin.json",
       },
-      dependencies: ["setup", "db-tests"],
+      dependencies: ["setup", "db-tests-import"],
+    },
+    {
+      name: "db-tests-data-manager",
+      testMatch: /data-manager-workflow\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "tests/e2e/.auth/data-manager.json",
+      },
+      dependencies: ["setup", "db-tests-images"],
+    },
+    {
+      name: "db-tests-upload-dashboard",
+      testMatch: /upload-images-dashboard\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "tests/e2e/.auth/admin.json",
+      },
+      dependencies: ["setup", "db-tests-data-manager"],
     },
 
-    // Auth boundary tests: runs WITHOUT storageState (unauthenticated)
+    // Auth enforcement: modifies user_profiles.is_active, runs after data-manager tests
+    {
+      name: "auth-enforcement",
+      testMatch: /auth-api-enforcement\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup", "db-tests-upload-dashboard"],
+    },
+
+    // Read-only specs: run after all db-tests complete (parallel safe)
+    {
+      name: "chromium",
+      testIgnore: [
+        /auth-boundary\.spec\.ts/,
+        /auth-api-enforcement\.spec\.ts/,
+        /admin-(import|images)\.spec\.ts/,
+        /data-manager-workflow\.spec\.ts/,
+        /upload-images-dashboard\.spec\.ts/,
+      ],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "tests/e2e/.auth/admin.json",
+      },
+      dependencies: ["setup", "db-tests-import", "db-tests-images", "db-tests-data-manager", "db-tests-upload-dashboard", "auth-enforcement"],
+    },
+
+    // Auth boundary tests: runs WITHOUT storageState (unauthenticated).
+    // Must run AFTER db-tests-data-manager because the logout test invalidates
+    // the data_manager session on the server (signOut revokes the refresh token).
     {
       name: "auth-tests",
       testMatch: /auth-boundary\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
-      dependencies: ["setup"], // Needs setup to create data_manager auth state
+      dependencies: ["setup", "db-tests-data-manager"],
     },
   ],
 

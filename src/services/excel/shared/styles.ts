@@ -3,6 +3,7 @@
 // ============================================================================
 
 import ExcelJS from "exceljs";
+import { SPANISH_HEADER_MAP } from "./constants";
 
 /**
  * ACR Brand colors in ARGB format for ExcelJS
@@ -258,17 +259,21 @@ export function addGroupHeaderRow(
 
 /**
  * Add column header row (Row 2) with styling
+ * When locale is "es", uses Spanish header names from SPANISH_HEADER_MAP
  */
 export function addColumnHeaderRow(
   worksheet: ExcelJS.Worksheet,
-  columns: ColumnDefinition[]
+  columns: ColumnDefinition[],
+  locale: "en" | "es" = "en"
 ): void {
   const headerRow = worksheet.getRow(2);
   headerRow.height = ROW_HEIGHTS.COLUMN_HEADER;
 
   columns.forEach((col, idx) => {
     const cell = headerRow.getCell(idx + 1);
-    cell.value = col.header;
+    cell.value = locale === "es"
+      ? (SPANISH_HEADER_MAP[col.key] || col.header)
+      : col.header;
     applyColumnHeaderStyle(cell);
   });
 }
@@ -488,7 +493,8 @@ export function addInstructionsRow(
 
   columns.forEach((col, idx) => {
     const cell = instructionsRow.getCell(idx + 1);
-    const instruction = instructions[col.header];
+    // Look up by header first, then by key (handles Spanish headers with English-keyed instructions)
+    const instruction = instructions[col.header] ?? instructions[col.key];
 
     if (typeof instruction === "object" && instruction?.link) {
       // Clickable hyperlink

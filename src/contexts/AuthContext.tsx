@@ -14,6 +14,7 @@ export interface UserProfile {
   is_active: boolean;
   created_at: string;
   last_login_at: string | null;
+  preferred_locale: 'en' | 'es' | null;
 }
 
 interface AuthContextType {

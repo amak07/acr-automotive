@@ -21,6 +21,10 @@ export const translations: Record<
     en: "Admin",
     es: "Admin",
   },
+  "admin.dashboard.title": {
+    en: "Admin Dashboard",
+    es: "Panel de Administración",
+  },
   "admin.header.languageToggle": {
     en: "Language",
     es: "Idioma",
@@ -40,6 +44,42 @@ export const translations: Record<
   "admin.header.users": {
     en: "Users",
     es: "Usuarios",
+  },
+
+  // Desktop nav short labels
+  "admin.nav.search": {
+    en: "Search",
+    es: "Búsqueda",
+  },
+  "admin.nav.admin": {
+    en: "Admin",
+    es: "Admin",
+  },
+  "admin.nav.users": {
+    en: "Users",
+    es: "Usuarios",
+  },
+  "admin.nav.settings": {
+    en: "Settings",
+    es: "Config",
+  },
+  "admin.nav.portal": {
+    en: "Portal",
+    es: "Portal",
+  },
+  "admin.nav.docs": {
+    en: "Docs",
+    es: "Docs",
+  },
+
+  // Language names (shown in current locale)
+  "common.language.en": {
+    en: "English",
+    es: "Inglés",
+  },
+  "common.language.es": {
+    en: "Spanish",
+    es: "Español",
   },
 
   // Admin Users Management

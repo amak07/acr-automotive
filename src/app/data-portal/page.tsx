@@ -30,7 +30,7 @@ import { getStaggerClass } from "@/lib/animations";
 export default function DataPortalPage() {
   const router = useRouter();
   const { user, profile, isLoading, isAdmin } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   // Loading state
   if (isLoading) {
@@ -147,7 +147,7 @@ export default function DataPortalPage() {
                 "cursor-pointer group acr-animate-fade-up",
                 getStaggerClass(1)
               )}
-              onClick={() => (window.location.href = "/api/admin/export")}
+              onClick={() => (window.location.href = `/api/admin/export?locale=${locale}`)}
             >
               <AcrCardContent className="p-6">
                 <div className="flex items-start gap-4">

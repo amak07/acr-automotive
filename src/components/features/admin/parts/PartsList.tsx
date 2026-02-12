@@ -26,7 +26,7 @@ type PartsListProps = {
 export function PartsList(props: PartsListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const {
     partsData,
     partsTotal,
@@ -52,13 +52,11 @@ export function PartsList(props: PartsListProps) {
       }
     });
 
-    // Trigger download
-    const queryString = params.toString();
-    const url = queryString
-      ? `/api/admin/export?${queryString}`
-      : "/api/admin/export";
+    // Pass locale so exported headers match UI language
+    params.set("locale", locale);
 
-    window.location.href = url;
+    // Trigger download
+    window.location.href = `/api/admin/export?${params.toString()}`;
   };
 
   // Check if any filters are active

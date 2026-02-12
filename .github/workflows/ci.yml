@@ -55,6 +55,15 @@ jobs:
             echo "Waiting for database... ($i/30)"
             sleep 2
           done
+          # Wait for Supabase Storage API (needed for image uploads during seed)
+          for i in {1..30}; do
+            if curl -sf http://localhost:54321/storage/v1/ > /dev/null 2>&1; then
+              echo "Supabase Storage API is ready!"
+              break
+            fi
+            echo "Waiting for Supabase Storage API... ($i/30)"
+            sleep 2
+          done
           # Seed data + mark INACTIVE parts + create admin user
           npx tsx scripts/db/import-seed-sql.ts
 

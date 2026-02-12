@@ -63,8 +63,16 @@ const QUICK_ACTIONS: QuickAction[] = [
 ];
 
 export function QuickActions() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Resolve action href dynamically (export needs locale param)
+  const getActionHref = (action: QuickAction) => {
+    if (action.id === "export") {
+      return `${action.href}?locale=${locale}`;
+    }
+    return action.href;
+  };
 
   return (
     <>
@@ -96,10 +104,11 @@ export function QuickActions() {
           <div className="grid grid-cols-2 gap-3">
             {QUICK_ACTIONS.map((action) => {
               const Icon = action.icon;
+              const href = getActionHref(action);
               const Wrapper = action.isDownload ? "a" : Link;
               const wrapperProps = action.isDownload
-                ? { href: action.href }
-                : { href: action.href as Route };
+                ? { href }
+                : { href: href as Route };
 
               return (
                 <Wrapper
@@ -163,10 +172,11 @@ export function QuickActions() {
         <div className="grid grid-cols-4 gap-4">
           {QUICK_ACTIONS.map((action, index) => {
             const Icon = action.icon;
+            const href = getActionHref(action);
             const Wrapper = action.isDownload ? "a" : Link;
             const wrapperProps = action.isDownload
-              ? { href: action.href }
-              : { href: action.href as Route };
+              ? { href }
+              : { href: href as Route };
 
             return (
               <Wrapper

@@ -40,6 +40,16 @@ Use these skills when relevant:
 - CI runs `supabase db push` to apply migrations on push (path filter: `supabase/migrations/**`)
 - Always verify migrations are actually applied after deploy — check with `list_migrations` + schema queries
 
+### Supabase CLI Linking
+
+| Environment | Project ref | Link command |
+|-------------|------------|--------------|
+| **Staging** | `fzsdaqpwwbuwkvbzyiax` | `npx.cmd supabase link --project-ref fzsdaqpwwbuwkvbzyiax` |
+| **Production** | `bzfnqhghtmsiecvvgmkw` | `npx.cmd supabase link --project-ref bzfnqhghtmsiecvvgmkw` |
+
+- **PRODUCTION IS DANGEROUS**: Any `supabase` CLI command while linked to production (migration repair, db push, etc.) **MUST get explicit user permission** before execution. Always confirm with the user first.
+- Always `supabase unlink` after finishing production operations — never leave the CLI pointed at production.
+
 ## Development
 
 - Local Docker Supabase for development
@@ -84,12 +94,26 @@ npx playwright test
 
 **Locator priority:** `getByTestId` > `getByRole` with name > `getByLabel` > CSS selectors. Never use `.first()` / `.nth()` as a permanent fix for ambiguous selectors.
 
+## Testing Rules
+
+- **No sneaky implementation changes**: When writing tests, do NOT modify production/implementation code to make tests easier to write or pass. Tests must work against the current codebase as-is.
+- **HARD STOP on production code changes**: If a test or CI failure reveals a bug in production code (`src/`, `lib/`, `services/`), you MUST:
+  1. STOP immediately — do not plan or implement a fix
+  2. Show the user: what broke, the root cause, and which production file(s) would need to change
+  3. Wait for explicit approval before touching any production file
+  4. If the user says "file it for later", create a beads issue and move on
+  This rule applies even when the fix seems obvious. No exceptions.
+- **Do not modify existing test files**: New test coverage goes in NEW test files. Do not edit existing test files unless the user has been prompted and approved the change. If existing tests conflict with new tests, investigate why — the conflict itself may indicate a real issue.
+- **Test IDs require approval**: Adding `data-testid` attributes to production components requires user approval (see E2E Testing section).
+
 ## Pre-commit Hooks
 
 - lint-staged (ESLint + Prettier)
 - Beads sync (flushes task database to git)
 
 ## Landing the Plane (Session Completion)
+
+**Plan Rule:** Every implementation plan MUST include "Land the Plane" as its final checklist item, referencing this section. This applies regardless of which skill or workflow creates the plan.
 
 When ending a work session, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
 
