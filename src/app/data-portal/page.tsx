@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Sparkles,
   Shield,
+  RotateCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStaggerClass } from "@/lib/animations";
@@ -192,6 +193,35 @@ export default function DataPortalPage() {
                     </div>
                     <p className="text-acr-gray-600 text-sm leading-relaxed">
                       {t("portal.uploadImages.description")}
+                    </p>
+                  </div>
+                </div>
+              </AcrCardContent>
+            </AcrCard>
+
+            {/* 360° Viewer Card */}
+            <AcrCard
+              variant="interactive"
+              className={cn(
+                "cursor-pointer group acr-animate-fade-up",
+                getStaggerClass(3)
+              )}
+              onClick={() => router.push("/data-portal/360-viewer")}
+            >
+              <AcrCardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-100 to-teal-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+                    <RotateCw className="w-7 h-7 text-teal-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-semibold text-acr-gray-900">
+                        {t("portal.viewer360.title")}
+                      </h3>
+                      <ArrowRight className="w-5 h-5 text-acr-gray-400 group-hover:text-teal-500 group-hover:translate-x-1 transition-all duration-300" />
+                    </div>
+                    <p className="text-acr-gray-600 text-sm leading-relaxed">
+                      {t("portal.viewer360.description")}
                     </p>
                   </div>
                 </div>

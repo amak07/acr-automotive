@@ -258,8 +258,9 @@ export class ImportService {
           bolt_pattern: row.bolt_pattern,
           drive_type: row.drive_type,
           specifications: row.specifications,
-          has_360_viewer: false, // 360 viewer managed separately via admin UI
-          viewer_360_frame_count: null,
+          // Note: has_360_viewer and viewer_360_frame_count are NOT included here.
+          // These fields are managed exclusively via the admin UI 360 viewer upload.
+          // The SQL function defaults new parts to false/0.
           updated_by: "import",
         };
       });
@@ -285,8 +286,8 @@ export class ImportService {
           bolt_pattern: row.bolt_pattern,
           drive_type: row.drive_type,
           specifications: row.specifications,
-          has_360_viewer: false, // 360 viewer managed separately via admin UI
-          viewer_360_frame_count: null,
+          // Note: has_360_viewer and viewer_360_frame_count are NOT included.
+          // The SQL function preserves existing values on updates.
           updated_by: "import",
         };
       });
