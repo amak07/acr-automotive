@@ -40,9 +40,10 @@ export async function middleware(request: NextRequest) {
     if (profile) {
       const isDataManager = profile.role === 'data_manager';
 
-      // Data managers can ONLY access /data-portal/*
-      // Redirect them away from /admin/* routes
-      if (isDataManager && isAdminRoute) {
+      // Data managers can access /data-portal/* and /admin/parts/*
+      // Redirect them away from other /admin/* routes
+      const isAdminPartsRoute = pathname.startsWith('/admin/parts/');
+      if (isDataManager && isAdminRoute && !isAdminPartsRoute) {
         const url = request.nextUrl.clone();
         url.pathname = '/data-portal';
         return NextResponse.redirect(url);

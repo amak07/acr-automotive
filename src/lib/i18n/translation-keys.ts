@@ -907,6 +907,9 @@ export interface TranslationKeys {
   "admin.viewer360.manageFrames": string;
   "admin.viewer360.emptyTitle": string;
   "admin.viewer360.emptyDescription": string;
+  "admin.viewer360.searchPlaceholder": string;
+  "admin.viewer360.pagination": string;
+  "admin.viewer360.filterHas360": string;
 
   "portal.adminBanner.title": string;
   "portal.adminBanner.description": string;

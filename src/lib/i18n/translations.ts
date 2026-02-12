@@ -3270,6 +3270,18 @@ export const translations: Record<
     en: "Add parts to the catalog to start managing 360° viewers",
     es: "Agregue piezas al catálogo para comenzar a administrar visores 360°",
   },
+  "admin.viewer360.searchPlaceholder": {
+    en: "Search by SKU...",
+    es: "Buscar por SKU...",
+  },
+  "admin.viewer360.pagination": {
+    en: "Showing {{start}}-{{end}} of {{total}}",
+    es: "Mostrando {{start}}-{{end}} de {{total}}",
+  },
+  "admin.viewer360.filterHas360": {
+    en: "Has 360°",
+    es: "Con 360°",
+  },
 
   "portal.adminBanner.title": {
     en: "Admin Dashboard",
