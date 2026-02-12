@@ -97,7 +97,12 @@ npx playwright test
 ## Testing Rules
 
 - **No sneaky implementation changes**: When writing tests, do NOT modify production/implementation code to make tests easier to write or pass. Tests must work against the current codebase as-is.
-- **Bug discovery protocol**: If a test reveals a genuine bug or gap in implementation code, STOP and prompt the user before making any implementation changes. The user decides whether to fix the bug now or file it for later.
+- **HARD STOP on production code changes**: If a test or CI failure reveals a bug in production code (`src/`, `lib/`, `services/`), you MUST:
+  1. STOP immediately — do not plan or implement a fix
+  2. Show the user: what broke, the root cause, and which production file(s) would need to change
+  3. Wait for explicit approval before touching any production file
+  4. If the user says "file it for later", create a beads issue and move on
+  This rule applies even when the fix seems obvious. No exceptions.
 - **Do not modify existing test files**: New test coverage goes in NEW test files. Do not edit existing test files unless the user has been prompted and approved the change. If existing tests conflict with new tests, investigate why — the conflict itself may indicate a real issue.
 - **Test IDs require approval**: Adding `data-testid` attributes to production components requires user approval (see E2E Testing section).
 
