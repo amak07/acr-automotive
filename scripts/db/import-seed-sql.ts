@@ -235,7 +235,7 @@ async function seedPartImages(client: pg.Client) {
           });
 
         if (uploadError) {
-          if (uploadErrors === 0) console.warn(`\n   ⚠ Storage upload error: ${uploadError.message}`);
+          console.warn(`\n   ⚠ Storage upload error for ${entry.filename}: ${uploadError.message}`);
           uploadErrors++;
           return;
         }
@@ -261,6 +261,11 @@ async function seedPartImages(client: pg.Client) {
     // Progress indicator
     const pct = Math.round(((i + batch.length) / imageEntries.length) * 100);
     process.stdout.write(`\r   Uploading... ${pct}% (${i + batch.length}/${imageEntries.length})`);
+  }
+
+  if (uploadErrors > 0 && inserted === 0) {
+    console.error(`\n   ❌ All ${uploadErrors} image uploads failed — part_images table is empty!`);
+    console.error(`   Check that Supabase Storage API is ready and "acr-part-images" bucket exists.`);
   }
 
   console.log(
