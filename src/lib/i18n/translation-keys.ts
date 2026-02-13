@@ -910,6 +910,7 @@ export interface TranslationKeys {
   "admin.viewer360.searchPlaceholder": string;
   "admin.viewer360.pagination": string;
   "admin.viewer360.filterHas360": string;
+  "admin.viewer360.refreshTooltip": string;
 
   "portal.adminBanner.title": string;
   "portal.adminBanner.description": string;
