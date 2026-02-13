@@ -3282,6 +3282,10 @@ export const translations: Record<
     en: "Has 360°",
     es: "Con 360°",
   },
+  "admin.viewer360.refreshTooltip": {
+    en: "Refresh parts list",
+    es: "Actualizar lista de piezas",
+  },
 
   "portal.adminBanner.title": {
     en: "Admin Dashboard",

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useGetParts } from "@/hooks/api/admin/parts";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 import { PartSummary } from "@/types";
 import {
@@ -15,12 +15,14 @@ import {
   Info,
   Search,
   X,
+  RefreshCw,
 } from "lucide-react";
 import { AcrCard } from "@/components/acr";
 import { AcrPagination } from "@/components/acr/Pagination";
 import { AcrSpinner } from "@/components/acr/Spinner";
 import { Part360Viewer } from "@/components/features/public/parts/Part360Viewer";
 import { cn } from "@/lib/utils";
+import { queryKeys } from "@/hooks/common/queryKeys";
 
 type FilterMode = "all" | "yes" | "no";
 
@@ -103,6 +105,22 @@ export function Viewer360Dashboard() {
   }
 
   const offset = (currentPage - 1) * limit;
+
+  const queryClient = useQueryClient();
+
+  // Refresh data when tab becomes visible (user returns from Manage Frames tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.parts.lists(),
+        });
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [queryClient]);
 
   // Fetch parts via existing admin API
   const { data, isLoading } = useGetParts({
@@ -205,81 +223,94 @@ export function Viewer360Dashboard() {
         </div>
       </AcrCard>
 
-      {/* Search + filter bar */}
-      <div
-        className={cn(
-          "flex flex-col sm:flex-row sm:items-center gap-3 mb-6",
-          "acr-animate-fade-up acr-stagger-2"
-        )}
+      {/* Search + filter + stats card */}
+      <AcrCard
+        padding="compact"
+        className={cn("mb-6", "acr-animate-fade-up acr-stagger-2")}
       >
-        {/* Search input */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-acr-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("admin.viewer360.searchPlaceholder")}
-            className={cn(
-              "w-full pl-9 pr-9 py-2 rounded-lg border border-acr-gray-200",
-              "text-sm text-acr-gray-900 placeholder:text-acr-gray-400",
-              "focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400",
-              "transition-all duration-200"
-            )}
-          />
-          {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-acr-gray-400 hover:text-acr-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-
-        {/* Filter toggle - 3 way */}
-        <div className="flex items-center gap-1 bg-acr-gray-100 rounded-lg p-1 flex-shrink-0">
-          {(
-            [
-              { mode: "all" as FilterMode, label: t("admin.viewer360.filterAll") },
-              {
-                mode: "yes" as FilterMode,
-                label: t("admin.viewer360.filterHas360"),
-              },
-              {
-                mode: "no" as FilterMode,
-                label: t("admin.viewer360.filterMissing"),
-              },
-            ] as const
-          ).map(({ mode, label }) => (
-            <button
-              key={mode}
-              onClick={() => setFilterMode(mode)}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          {/* Search input */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-acr-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("admin.viewer360.searchPlaceholder")}
               className={cn(
-                "px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200",
-                filterMode === mode
-                  ? "bg-white text-acr-gray-900 shadow-sm"
-                  : "text-acr-gray-500 hover:text-acr-gray-700"
+                "w-full pl-9 pr-9 py-2 rounded-lg border border-acr-gray-200",
+                "text-sm text-acr-gray-900 placeholder:text-acr-gray-400",
+                "focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400",
+                "transition-all duration-200"
               )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-acr-gray-400 hover:text-acr-gray-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
 
-      {/* Stats bar */}
-      <div className="flex items-center gap-2 mb-4">
-        <div className="px-3 py-1.5 bg-teal-50 text-teal-700 rounded-full text-sm font-medium">
-          {isLoading ? (
-            <AcrSpinner size="xs" color="gray" inline />
-          ) : (
-            <>
-              {totalCount} {t("admin.viewer360.statsLabel")}
-            </>
-          )}
+          {/* Filter toggle - 3 way */}
+          <div className="flex items-center gap-1 bg-acr-gray-100 rounded-lg p-1 flex-shrink-0">
+            {(
+              [
+                { mode: "all" as FilterMode, label: t("admin.viewer360.filterAll") },
+                {
+                  mode: "yes" as FilterMode,
+                  label: t("admin.viewer360.filterHas360"),
+                },
+                {
+                  mode: "no" as FilterMode,
+                  label: t("admin.viewer360.filterMissing"),
+                },
+              ] as const
+            ).map(({ mode, label }) => (
+              <button
+                key={mode}
+                onClick={() => setFilterMode(mode)}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer",
+                  filterMode === mode
+                    ? "bg-white text-acr-gray-900 shadow-sm"
+                    : "text-acr-gray-500 hover:text-acr-gray-700"
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+
+        {/* Stats + refresh row */}
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-acr-gray-100">
+          <div className="px-3 py-1.5 bg-teal-50 text-teal-700 rounded-full text-sm font-medium">
+            {isLoading ? (
+              <AcrSpinner size="xs" color="gray" inline />
+            ) : (
+              <>
+                {totalCount} {t("admin.viewer360.statsLabel")}
+              </>
+            )}
+          </div>
+          <button
+            onClick={() =>
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.parts.lists(),
+              })
+            }
+            className="p-1.5 rounded-md text-acr-gray-400 hover:text-teal-600 hover:bg-teal-50 transition-all duration-200 cursor-pointer"
+            title={t("admin.viewer360.refreshTooltip")}
+          >
+            <RefreshCw
+              className={cn("w-4 h-4", isLoading && "animate-spin")}
+            />
+          </button>
+        </div>
+      </AcrCard>
 
       {/* Loading state */}
       {isLoading && (
@@ -353,6 +384,8 @@ export function Viewer360Dashboard() {
                   )}
                   <Link
                     href={`/admin/parts/${part.acr_sku}?tab=360viewer`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className={cn(
                       "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium",
                       "bg-teal-50 text-teal-700 hover:bg-teal-100 hover:text-teal-800",
