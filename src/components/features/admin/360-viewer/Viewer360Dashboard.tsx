@@ -93,10 +93,14 @@ export function Viewer360Dashboard() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Reset page on search/filter change
-  useEffect(() => {
+  // Reset page on search/filter change (render-time adjustment per React docs)
+  const [prevSearch, setPrevSearch] = useState(debouncedSearch);
+  const [prevFilter, setPrevFilter] = useState(filterMode);
+  if (debouncedSearch !== prevSearch || filterMode !== prevFilter) {
+    setPrevSearch(debouncedSearch);
+    setPrevFilter(filterMode);
     setCurrentPage(1);
-  }, [debouncedSearch, filterMode]);
+  }
 
   const offset = (currentPage - 1) * limit;
 
