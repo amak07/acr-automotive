@@ -23,13 +23,24 @@ type MediaTab = "photos" | "360viewer";
 export function PartMediaManager({ partSku }: PartMediaManagerProps) {
   const { t } = useLocale();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<MediaTab>("photos");
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState<MediaTab>(
+    tabParam === "360viewer" ? "360viewer" : "photos"
+  );
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // Adjust tab when URL param changes (render-time adjustment per React docs)
+  const [prevTabParam, setPrevTabParam] = useState(tabParam);
+  if (tabParam !== prevTabParam) {
+    setPrevTabParam(tabParam);
+    if (tabParam === "360viewer") {
+      setActiveTab("360viewer");
+    }
+  }
+
+  // Scroll into view when arriving via deep link (pure side effect, no setState)
   useEffect(() => {
     if (searchParams.get("tab") === "360viewer") {
-      setActiveTab("360viewer");
-      // Scroll the media card into view after a short delay for layout
       setTimeout(() => {
         cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
