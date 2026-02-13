@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase/client";
+import { supabase, createAdminClient } from "@/lib/supabase/client";
 import sharp from "sharp";
 import { normalizeSku } from "@/lib/utils/sku";
 import { requireAuth } from "@/lib/api/auth-helpers";
@@ -81,6 +81,9 @@ export async function POST(
   const authResult = await requireAuth(req);
   if (authResult instanceof NextResponse) return authResult;
 
+  // Use admin client for storage/DB writes (route is already auth-gated)
+  const adminClient = createAdminClient();
+
   try {
     const { sku } = await params;
     const normalizedSku = normalizeSku(sku);
@@ -102,11 +105,26 @@ export async function POST(
     const formData = await req.formData();
     const files: File[] = [];
 
-    // Extract all uploaded files
+    // Extract all uploaded files (validate MIME type server-side)
+    const nonImageFiles: string[] = [];
     for (const [key, value] of formData.entries()) {
       if (value instanceof File) {
-        files.push(value);
+        if (!value.type.startsWith("image/")) {
+          nonImageFiles.push(value.name);
+        } else {
+          files.push(value);
+        }
       }
+    }
+
+    if (nonImageFiles.length > 0) {
+      return NextResponse.json(
+        {
+          error: "Only image files are allowed",
+          invalidFiles: nonImageFiles,
+        },
+        { status: 400 }
+      );
     }
 
     console.log(
@@ -153,32 +171,21 @@ export async function POST(
     let warning: string | null = null;
     if (files.length < CONFIG.recommendedFrames) {
       warning = `${CONFIG.recommendedFrames}+ frames recommended for smooth rotation`;
-    } else if (files.length > CONFIG.maxFrames) {
-      warning = `Consider using ${CONFIG.maxFrames} frames or fewer for optimal loading`;
     }
 
     console.log(
       `[360-frames] Validation passed. Processing ${files.length} frames...`
     );
 
-    // Delete existing 360 frames
-    const { data: existingFrames } = await supabase
+    // Fetch existing frames (needed for cleanup after successful upload)
+    const { data: existingFrames } = await adminClient
       .from("part_360_frames")
-      .select("storage_path")
+      .select("storage_path, frame_number")
       .eq("part_id", partId);
 
-    if (existingFrames && existingFrames.length > 0) {
-      console.log(
-        `[360-frames] Deleting ${existingFrames.length} existing frames`
-      );
-      const paths = existingFrames.map((f) => f.storage_path);
-      await supabase.storage.from("acr-part-images").remove(paths);
-      await supabase.from("part_360_frames").delete().eq("part_id", partId);
-    }
-
-    // Process and upload frames
-    const uploadedFrames: UploadedFrame[] = [];
-    const errors: string[] = [];
+    // Step 1: Upload all new frames to storage FIRST (upsert overwrites in place)
+    // If any frame fails, we abort without touching DB records.
+    const uploadedFrames: (UploadedFrame & { storage_path: string })[] = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -187,17 +194,14 @@ export async function POST(
       );
 
       try {
-        // Optimize image with Sharp
         const optimized = await optimizeFrame(file);
         console.log(
           `[360-frames] Optimized ${file.name}: ${file.size} → ${optimized.size} bytes (${Math.round((optimized.size / file.size) * 100)}%)`
         );
 
-        // Storage path: 360-viewer/{acr_sku}/frame-000.jpg
         const storagePath = `360-viewer/${part.acr_sku}/frame-${i.toString().padStart(3, "0")}.jpg`;
 
-        // Upload to Supabase
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await adminClient.storage
           .from("acr-part-images")
           .upload(storagePath, optimized.buffer, {
             contentType: "image/jpeg",
@@ -213,32 +217,14 @@ export async function POST(
           throw uploadError;
         }
 
-        // Get public URL
         const {
           data: { publicUrl },
-        } = supabase.storage.from("acr-part-images").getPublicUrl(storagePath);
-
-        // Save to database
-        const { error: dbError } = await supabase
-          .from("part_360_frames")
-          .insert({
-            part_id: partId,
-            frame_number: i,
-            image_url: publicUrl,
-            storage_path: storagePath,
-            file_size_bytes: optimized.size,
-            width: optimized.width,
-            height: optimized.height,
-          });
-
-        if (dbError) {
-          console.error(`[360-frames] Database error for frame ${i}:`, dbError);
-          throw dbError;
-        }
+        } = adminClient.storage.from("acr-part-images").getPublicUrl(storagePath);
 
         uploadedFrames.push({
           frame_number: i,
           image_url: publicUrl,
+          storage_path: storagePath,
           file_size_bytes: optimized.size,
           width: optimized.width,
           height: optimized.height,
@@ -247,24 +233,69 @@ export async function POST(
         console.log(`[360-frames] Frame ${i + 1} uploaded successfully`);
       } catch (error) {
         const errorMsg = `Frame ${i + 1} (${file.name}): ${error instanceof Error ? error.message : "Unknown error"}`;
-        errors.push(errorMsg);
         console.error(`[360-frames] ${errorMsg}`);
+        // Abort: don't touch DB, existing viewer stays intact
+        return NextResponse.json(
+          {
+            error: `Upload failed at frame ${i + 1}. Existing viewer preserved.`,
+            details: errorMsg,
+          },
+          { status: 500 }
+        );
       }
     }
 
-    // If any errors occurred, return partial success
-    if (errors.length > 0 && uploadedFrames.length === 0) {
+    // Step 2: All frames uploaded successfully — now swap DB records
+    console.log(
+      `[360-frames] All ${uploadedFrames.length} frames uploaded. Swapping DB records...`
+    );
+
+    // Delete old DB records
+    if (existingFrames && existingFrames.length > 0) {
+      await adminClient.from("part_360_frames").delete().eq("part_id", partId);
+    }
+
+    // Insert new DB records
+    const { error: insertError } = await adminClient
+      .from("part_360_frames")
+      .insert(
+        uploadedFrames.map((f) => ({
+          part_id: partId,
+          frame_number: f.frame_number,
+          image_url: f.image_url,
+          storage_path: f.storage_path,
+          file_size_bytes: f.file_size_bytes,
+          width: f.width,
+          height: f.height,
+        }))
+      );
+
+    if (insertError) {
+      console.error("[360-frames] Bulk insert error:", insertError);
       return NextResponse.json(
         {
-          error: "All frames failed to upload",
-          details: errors,
+          error: "Failed to save frame records",
+          details: insertError.message,
         },
         { status: 500 }
       );
     }
 
-    // Update part record
-    const { error: updateError } = await supabase
+    // Step 3: Clean up excess old storage files (e.g., replacing 24 frames with 12)
+    if (existingFrames && existingFrames.length > uploadedFrames.length) {
+      const excessPaths = existingFrames
+        .filter((f) => f.frame_number >= uploadedFrames.length)
+        .map((f) => f.storage_path);
+      if (excessPaths.length > 0) {
+        console.log(
+          `[360-frames] Cleaning up ${excessPaths.length} excess old storage files`
+        );
+        await adminClient.storage.from("acr-part-images").remove(excessPaths);
+      }
+    }
+
+    // Step 4: Update part record
+    const { error: updateError } = await adminClient
       .from("parts")
       .update({
         has_360_viewer: uploadedFrames.length >= CONFIG.minFrames,
@@ -274,7 +305,6 @@ export async function POST(
 
     if (updateError) {
       console.error("[360-frames] Part update error:", updateError);
-      // Don't fail the request if only the part update fails
     }
 
     console.log(
@@ -284,9 +314,8 @@ export async function POST(
     return NextResponse.json({
       success: true,
       frameCount: uploadedFrames.length,
-      frames: uploadedFrames,
+      frames: uploadedFrames.map(({ storage_path, ...frame }) => frame),
       warning,
-      errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {
     console.error("[360-frames] Upload error:", error);
@@ -372,6 +401,9 @@ export async function DELETE(
   const authResult = await requireAuth(req);
   if (authResult instanceof NextResponse) return authResult;
 
+  // Use admin client for storage/DB writes (route is already auth-gated)
+  const adminClient = createAdminClient();
+
   try {
     const { sku } = await params;
     const normalizedSku = normalizeSku(sku);
@@ -394,7 +426,7 @@ export async function DELETE(
     );
 
     // Get all frames
-    const { data: frames } = await supabase
+    const { data: frames } = await adminClient
       .from("part_360_frames")
       .select("storage_path")
       .eq("part_id", partId);
@@ -404,7 +436,7 @@ export async function DELETE(
 
       // Delete from storage
       const paths = frames.map((f) => f.storage_path);
-      const { error: storageError } = await supabase.storage
+      const { error: storageError } = await adminClient.storage
         .from("acr-part-images")
         .remove(paths);
 
@@ -414,7 +446,7 @@ export async function DELETE(
       }
 
       // Delete from database
-      const { error: dbError } = await supabase
+      const { error: dbError } = await adminClient
         .from("part_360_frames")
         .delete()
         .eq("part_id", partId);
@@ -426,7 +458,7 @@ export async function DELETE(
     }
 
     // Update part record
-    const { error: updateError } = await supabase
+    const { error: updateError } = await adminClient
       .from("parts")
       .update({
         has_360_viewer: false,

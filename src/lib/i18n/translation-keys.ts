@@ -885,6 +885,32 @@ export interface TranslationKeys {
   "portal.helpText": string;
   "portal.uploadImages.title": string;
   "portal.uploadImages.description": string;
+
+  // 360° Viewer - Dashboard card
+  "portal.viewer360.title": string;
+  "portal.viewer360.description": string;
+
+  // 360° Viewer - Overview page
+  "admin.viewer360.title": string;
+  "admin.viewer360.description": string;
+  "admin.viewer360.howItWorks": string;
+  "admin.viewer360.step1": string;
+  "admin.viewer360.step2": string;
+  "admin.viewer360.step3": string;
+  "admin.viewer360.statsLabel": string;
+  "admin.viewer360.filterAll": string;
+  "admin.viewer360.filterMissing": string;
+  "admin.viewer360.confirmed": string;
+  "admin.viewer360.frames": string;
+  "admin.viewer360.notUploaded": string;
+  "admin.viewer360.viewPublicPage": string;
+  "admin.viewer360.manageFrames": string;
+  "admin.viewer360.emptyTitle": string;
+  "admin.viewer360.emptyDescription": string;
+  "admin.viewer360.searchPlaceholder": string;
+  "admin.viewer360.pagination": string;
+  "admin.viewer360.filterHas360": string;
+
   "portal.adminBanner.title": string;
   "portal.adminBanner.description": string;
 }

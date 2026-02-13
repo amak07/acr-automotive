@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Image, RotateCw } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useQuery } from "@tanstack/react-query";
 import { PartImagesManager } from "./PartImagesManager";
@@ -21,7 +22,30 @@ type MediaTab = "photos" | "360viewer";
  */
 export function PartMediaManager({ partSku }: PartMediaManagerProps) {
   const { t } = useLocale();
-  const [activeTab, setActiveTab] = useState<MediaTab>("photos");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState<MediaTab>(
+    tabParam === "360viewer" ? "360viewer" : "photos"
+  );
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Adjust tab when URL param changes (render-time adjustment per React docs)
+  const [prevTabParam, setPrevTabParam] = useState(tabParam);
+  if (tabParam !== prevTabParam) {
+    setPrevTabParam(tabParam);
+    if (tabParam === "360viewer") {
+      setActiveTab("360viewer");
+    }
+  }
+
+  // Scroll into view when arriving via deep link (pure side effect, no setState)
+  useEffect(() => {
+    if (searchParams.get("tab") === "360viewer") {
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [searchParams]);
 
   // Fetch 360° viewer status for badge indicator
   const { data: viewer360Data } = useQuery({
@@ -40,7 +64,7 @@ export function PartMediaManager({ partSku }: PartMediaManagerProps) {
   const has360Viewer = (viewer360Data?.count || 0) > 0;
 
   return (
-    <AcrCard variant="default" padding="none" className="overflow-hidden">
+    <AcrCard ref={cardRef} variant="default" padding="none" className="overflow-hidden">
       {/* Thin red accent line at top - matches public search patterns */}
       <div className="h-0.5 bg-acr-red-500" />
 

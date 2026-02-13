@@ -49,7 +49,7 @@ async function enrichWithPrimaryImages(
       .from("part_360_frames")
       .select("part_id, image_url, frame_number")
       .in("part_id", partIdsWithoutImages)
-      .eq("frame_number", 1); // Get first frame only
+      .eq("frame_number", 0); // Get first frame (0-indexed)
 
     if (framesError) {
       console.error("Error fetching 360 frames:", framesError);
