@@ -81,13 +81,17 @@ test.describe("360° Viewer UI Tests", () => {
     await searchInput.fill(TEST_SKU);
     await expect(page.getByText(TEST_SKU)).toBeVisible({ timeout: 10_000 });
 
-    // Manage Frames link → navigates to admin part page with 360 tab
+    // Manage Frames link → opens in new tab → admin part page with 360 tab
+    const popupPromise = page.waitForEvent("popup");
     await page
       .getByRole("link", { name: /manage frames/i })
       .first()
       .click();
-    await expect(page).toHaveURL(/admin\/parts\/.*tab=360viewer/);
-    await expect(page.getByTestId("part-360-viewer-section")).toBeVisible();
+    const managePage = await popupPromise;
+    await managePage.waitForLoadState();
+    await expect(managePage).toHaveURL(/admin\/parts\/.*tab=360viewer/);
+    await expect(managePage.getByTestId("part-360-viewer-section")).toBeVisible();
+    await managePage.close();
 
     // Public page shows 360 viewer
     await page.goto(`/parts/${TEST_SKU}`);
