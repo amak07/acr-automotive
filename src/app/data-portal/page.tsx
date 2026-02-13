@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Sparkles,
   Shield,
+  RotateCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStaggerClass } from "@/lib/animations";
@@ -110,7 +111,7 @@ export default function DataPortalPage() {
             {t("portal.quickActions")}
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
             {/* Import Card */}
             <AcrCard
               variant="interactive"
@@ -120,22 +121,20 @@ export default function DataPortalPage() {
               )}
               onClick={() => router.push("/data-portal/import")}
             >
-              <AcrCardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-acr-red-100 to-acr-red-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
-                    <Upload className="w-7 h-7 text-acr-red-600" />
+              <AcrCardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-acr-red-100 to-acr-red-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+                    <Upload className="w-5 h-5 text-acr-red-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-semibold text-acr-gray-900">
-                        {t("portal.import.title")}
-                      </h3>
-                      <ArrowRight className="w-5 h-5 text-acr-gray-400 group-hover:text-acr-red-500 group-hover:translate-x-1 transition-all duration-300" />
-                    </div>
-                    <p className="text-acr-gray-600 text-sm leading-relaxed">
+                    <h3 className="font-semibold text-acr-gray-900 text-sm">
+                      {t("portal.import.title")}
+                    </h3>
+                    <p className="text-acr-gray-500 text-xs mt-0.5">
                       {t("portal.import.description")}
                     </p>
                   </div>
+                  <ArrowRight className="w-4 h-4 text-acr-gray-400 group-hover:text-acr-red-500 group-hover:translate-x-1 transition-all duration-300 shrink-0" />
                 </div>
               </AcrCardContent>
             </AcrCard>
@@ -149,22 +148,20 @@ export default function DataPortalPage() {
               )}
               onClick={() => (window.location.href = `/api/admin/export?locale=${locale}`)}
             >
-              <AcrCardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
-                    <Download className="w-7 h-7 text-blue-600" />
+              <AcrCardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+                    <Download className="w-5 h-5 text-blue-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-semibold text-acr-gray-900">
-                        {t("portal.export.title")}
-                      </h3>
-                      <ArrowRight className="w-5 h-5 text-acr-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300" />
-                    </div>
-                    <p className="text-acr-gray-600 text-sm leading-relaxed">
+                    <h3 className="font-semibold text-acr-gray-900 text-sm">
+                      {t("portal.export.title")}
+                    </h3>
+                    <p className="text-acr-gray-500 text-xs mt-0.5">
                       {t("portal.export.description")}
                     </p>
                   </div>
+                  <ArrowRight className="w-4 h-4 text-acr-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300 shrink-0" />
                 </div>
               </AcrCardContent>
             </AcrCard>
@@ -178,22 +175,47 @@ export default function DataPortalPage() {
               )}
               onClick={() => router.push("/data-portal/upload-images")}
             >
-              <AcrCardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
-                    <ImagePlus className="w-7 h-7 text-purple-600" />
+              <AcrCardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+                    <ImagePlus className="w-5 h-5 text-purple-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-semibold text-acr-gray-900">
-                        {t("portal.uploadImages.title")}
-                      </h3>
-                      <ArrowRight className="w-5 h-5 text-acr-gray-400 group-hover:text-purple-500 group-hover:translate-x-1 transition-all duration-300" />
-                    </div>
-                    <p className="text-acr-gray-600 text-sm leading-relaxed">
+                    <h3 className="font-semibold text-acr-gray-900 text-sm">
+                      {t("portal.uploadImages.title")}
+                    </h3>
+                    <p className="text-acr-gray-500 text-xs mt-0.5">
                       {t("portal.uploadImages.description")}
                     </p>
                   </div>
+                  <ArrowRight className="w-4 h-4 text-acr-gray-400 group-hover:text-purple-500 group-hover:translate-x-1 transition-all duration-300 shrink-0" />
+                </div>
+              </AcrCardContent>
+            </AcrCard>
+
+            {/* 360° Viewer Card */}
+            <AcrCard
+              variant="interactive"
+              className={cn(
+                "cursor-pointer group acr-animate-fade-up",
+                getStaggerClass(3)
+              )}
+              onClick={() => router.push("/data-portal/360-viewer")}
+            >
+              <AcrCardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-100 to-teal-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+                    <RotateCw className="w-5 h-5 text-teal-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-acr-gray-900 text-sm">
+                      {t("portal.viewer360.title")}
+                    </h3>
+                    <p className="text-acr-gray-500 text-xs mt-0.5">
+                      {t("portal.viewer360.description")}
+                    </p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-acr-gray-400 group-hover:text-teal-500 group-hover:translate-x-1 transition-all duration-300 shrink-0" />
                 </div>
               </AcrCardContent>
             </AcrCard>

@@ -35,6 +35,23 @@ export function createOversizedBuffer(): Buffer {
   return buf;
 }
 
+/** Generate N frame buffers as multipart-ready object for 360 upload API.
+ *  Uses JPEG because the 360 route runs Sharp optimization which needs a
+ *  more robust image buffer than the minimal 68-byte PNG. */
+export function createFrameSet(
+  count: number
+): Record<string, { name: string; mimeType: string; buffer: Buffer }> {
+  const frames: Record<string, { name: string; mimeType: string; buffer: Buffer }> = {};
+  for (let i = 0; i < count; i++) {
+    frames[`frame${i}`] = {
+      name: `frame-${String(i).padStart(3, "0")}.jpg`,
+      mimeType: "image/jpeg",
+      buffer: createJpegBuffer(),
+    };
+  }
+  return frames;
+}
+
 /** Plain text file descriptor for type-rejection tests. */
 export const TEXT_FILE = {
   name: "test.txt",
