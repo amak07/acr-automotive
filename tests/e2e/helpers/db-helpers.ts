@@ -34,13 +34,14 @@ export async function createE2ESnapshot(): Promise<string> {
   const supabase = getE2EClient();
 
   // Fetch all data
-  const [parts, vehicleApps, crossRefs, aliases, partImages] =
+  const [parts, vehicleApps, crossRefs, aliases, partImages, part360Frames] =
     await Promise.all([
       supabase.from("parts").select("*"),
       supabase.from("vehicle_applications").select("*"),
       supabase.from("cross_references").select("*"),
       supabase.from("vehicle_aliases").select("*"),
       supabase.from("part_images").select("*"),
+      supabase.from("part_360_frames").select("*"),
     ]);
 
   const snapshotData = {
@@ -49,6 +50,7 @@ export async function createE2ESnapshot(): Promise<string> {
     cross_references: crossRefs.data || [],
     vehicle_aliases: aliases.data || [],
     part_images: partImages.data || [],
+    part_360_frames: part360Frames.data || [],
     timestamp: new Date().toISOString(),
   };
 
@@ -92,6 +94,13 @@ export async function restoreE2ESnapshot(snapshotId: string): Promise<void> {
   const snap = snapshots[0].snapshot_data;
 
   // Delete all (reverse FK order) — check errors
+  const del360 = await supabase
+    .from("part_360_frames")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
+  if (del360.error)
+    console.warn("[E2E Restore] part_360_frames delete warning:", del360.error.message);
+
   const delPI = await supabase
     .from("part_images")
     .delete()
@@ -159,6 +168,13 @@ export async function restoreE2ESnapshot(snapshotId: string): Promise<void> {
       .upsert(snap.part_images, { onConflict: "id" });
     if (error)
       throw new Error(`Failed to restore part_images: ${error.message}`);
+  }
+  if (snap.part_360_frames?.length) {
+    const { error } = await supabase
+      .from("part_360_frames")
+      .upsert(snap.part_360_frames, { onConflict: "id" });
+    if (error)
+      throw new Error(`Failed to restore part_360_frames: ${error.message}`);
   }
 }
 

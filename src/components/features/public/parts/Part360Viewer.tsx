@@ -148,9 +148,16 @@ export function Part360Viewer({
     handleDragEnd();
   };
 
-  // Keyboard navigation
+  // Keyboard navigation (only when viewer or fullscreen is focused)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle when the viewer container is focused or in fullscreen
+      const isFocused =
+        isFullscreen ||
+        containerRef.current?.contains(document.activeElement) ||
+        containerRef.current === document.activeElement;
+      if (!isFocused) return;
+
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         setCurrentFrame((prev) => (prev - 1 + totalFrames) % totalFrames);
@@ -162,21 +169,20 @@ export function Part360Viewer({
       }
     };
 
-    if (containerRef.current) {
-      window.addEventListener("keydown", handleKeyDown);
-    }
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [totalFrames, hideInstructions]);
+  }, [totalFrames, hideInstructions, isFullscreen]);
 
-  // Lazy load remaining frames in background
+  // Lazy load frames in staggered batches to avoid network contention
   useEffect(() => {
-    // Preload first 3 frames immediately
-    const framesToPreload = [0, 1, 2];
+    let cancelled = false;
+    const BATCH_SIZE = 4;
 
-    framesToPreload.forEach((index) => {
+    // Preload first 3 frames immediately
+    [0, 1, 2].forEach((index) => {
       if (index < frameUrls.length) {
         const img = new Image();
         img.onload = () => {
@@ -186,16 +192,39 @@ export function Part360Viewer({
       }
     });
 
-    // Background load remaining frames
-    const remainingFrames = frameUrls.slice(3);
-    remainingFrames.forEach((url, idx) => {
-      const frameIndex = idx + 3;
-      const img = new Image();
-      img.onload = () => {
-        setLoadedFrames((prev) => new Set(prev).add(frameIndex));
-      };
-      img.src = url;
-    });
+    // Background load remaining frames in batches
+    const remaining = frameUrls.slice(3).map((url, idx) => ({
+      url,
+      index: idx + 3,
+    }));
+
+    async function loadBatches() {
+      for (let i = 0; i < remaining.length; i += BATCH_SIZE) {
+        if (cancelled) return;
+        const batch = remaining.slice(i, i + BATCH_SIZE);
+        await Promise.all(
+          batch.map(
+            ({ url, index }) =>
+              new Promise<void>((resolve) => {
+                const img = new Image();
+                img.onload = img.onerror = () => {
+                  if (!cancelled) {
+                    setLoadedFrames((prev) => new Set(prev).add(index));
+                  }
+                  resolve();
+                };
+                img.src = url;
+              })
+          )
+        );
+      }
+    }
+
+    loadBatches();
+
+    return () => {
+      cancelled = true;
+    };
   }, [frameUrls]);
 
   // Fullscreen toggle - simple state-based approach (works on all browsers including iOS Safari)
@@ -203,7 +232,7 @@ export function Part360Viewer({
     setIsFullscreen((prev) => !prev);
   };
 
-  // Handle ESC key to exit fullscreen
+  // Handle ESC key to exit fullscreen + prevent body scroll
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isFullscreen) {
@@ -213,10 +242,12 @@ export function Part360Viewer({
 
     if (isFullscreen) {
       document.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
     }
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
     };
   }, [isFullscreen]);
 
