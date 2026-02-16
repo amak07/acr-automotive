@@ -76,6 +76,8 @@ export interface AcrHeaderProps {
   utilityActions?: AcrHeaderAction[];
   /** Logout action — rendered separately on desktop with distinct styling */
   logoutAction?: AcrHeaderAction;
+  /** Display name of the logged-in user (shown next to logout) */
+  userDisplayName?: string;
   className?: string;
   borderVariant?: "gray-200" | "gray-300";
 }
@@ -96,6 +98,7 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
       actions = [],
       utilityActions = [],
       logoutAction,
+      userDisplayName,
       className,
       borderVariant = "gray-200",
       ...props
@@ -110,7 +113,12 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
 
     const isActive = (href: string | undefined): boolean => {
       if (!href) return false;
-      return pathname === href;
+      if (pathname === href) return true;
+      // Prefix match for non-root paths (e.g., /admin matches /admin/users)
+      if (href !== "/" && pathname.startsWith(href + "/")) return true;
+      // Search (/) stays active on public part detail pages (/parts/*)
+      if (href === "/" && pathname.startsWith("/parts/")) return true;
+      return false;
     };
 
     // Desktop inline nav item — text-only, underline active state
@@ -284,10 +292,15 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
                   </>
                 )}
 
-                {/* Logout — icon only */}
+                {/* User display name + Logout */}
                 {logoutAction && (
                   <>
                     <div className="ml-1.5 mr-1 h-4 w-px bg-acr-gray-200" />
+                    {userDisplayName && (
+                      <span className="text-xs font-semibold text-acr-gray-500 truncate max-w-35">
+                        {userDisplayName}
+                      </span>
+                    )}
                     <button
                       onClick={logoutAction.onClick}
                       className="p-1.5 rounded-md text-acr-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
@@ -324,6 +337,14 @@ export const AcrHeader = React.forwardRef<HTMLElement, AcrHeaderProps>(
                     <div className="fixed inset-0 z-10" onClick={closeMenu} />
 
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-acr-gray-200 py-1 z-20">
+                      {userDisplayName && (
+                        <>
+                          <div className="px-4 py-2 text-xs font-semibold text-acr-gray-500 truncate">
+                            {userDisplayName}
+                          </div>
+                          <div className="border-t border-acr-gray-200 my-1" />
+                        </>
+                      )}
                       {utilityActions.map((action) => renderMenuItem(action))}
 
                       {locale && onLocaleChange && languageToggleLabel && (

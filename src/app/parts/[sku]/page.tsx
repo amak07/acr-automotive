@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/shared/layout/AppHeader";
 import { PublicPartDetails } from "@/components/features/public/parts/PublicPartDetails";
 import { usePublicPartById } from "@/hooks";
 import { Preloader } from "@/components/ui/Preloader";
+import { usePreloader } from "@/contexts/PreloaderContext";
 
 // Path to dotLottie animation in public folder
 const GEAR_ANIMATION_SRC = "/animations/gear-loader.lottie";
@@ -15,13 +16,14 @@ function PartDetailsContent() {
   const sku = params.sku as string;
 
   const { data: part, isLoading, error } = usePublicPartById(sku);
+  const { markPageReady } = usePreloader();
 
   // Show preloader during initial load (no data yet)
   const isInitialLoad = isLoading && !part;
 
   return (
     <>
-      <Preloader isLoading={isInitialLoad} animationSrc={GEAR_ANIMATION_SRC} />
+      <Preloader isLoading={isInitialLoad} animationSrc={GEAR_ANIMATION_SRC} onComplete={markPageReady} />
 
       <main className="px-4 py-6 mx-auto md:px-6 lg:max-w-6xl lg:px-8">
         <PublicPartDetails part={part} isLoading={isLoading} error={error} />

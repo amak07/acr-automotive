@@ -18,6 +18,7 @@ export const SHEET_NAMES = {
 export const COLUMN_HEADERS = {
   // Parts sheet
   PARTS: {
+    VIEW_PART: "View", // Export-only: hyperlink to public page, ignored on import
     ACR_SKU: "ACR SKU",
     STATUS: "Status",
     PART_TYPE: "Part Type",
@@ -76,6 +77,7 @@ export const COLUMN_HEADERS = {
 export const PROPERTY_NAMES = {
   // Parts
   PARTS: {
+    VIEW_PART: "view_part",
     ACR_SKU: "acr_sku",
     STATUS: "status",
     PART_TYPE: "part_type",
@@ -132,6 +134,7 @@ export const PROPERTY_NAMES = {
 export const COLUMN_WIDTHS = {
   // Parts sheet
   PARTS: {
+    VIEW_PART: 8,
     ACR_SKU: 15,
     STATUS: 12,
     PART_TYPE: 20,
@@ -425,6 +428,11 @@ export function splitCrossRefSkus(
  * Note: Not using 'as const' because ExcelJS expects mutable arrays
  */
 export const PARTS_COLUMNS = [
+  {
+    header: COLUMN_HEADERS.PARTS.VIEW_PART,
+    key: PROPERTY_NAMES.PARTS.VIEW_PART,
+    width: COLUMN_WIDTHS.PARTS.VIEW_PART,
+  },
   {
     header: COLUMN_HEADERS.PARTS.ACR_SKU,
     key: PROPERTY_NAMES.PARTS.ACR_SKU,

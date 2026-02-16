@@ -5,7 +5,6 @@ import { AcrButton, AcrCard } from "@/components/acr";
 import {
   Save,
   Eye,
-  ArrowLeft,
   Package,
   MapPin,
   Link2,
@@ -13,9 +12,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { ConfirmDialog } from "@/components/acr";
 
 interface PartDetailsSidebarProps {
   acrSku?: string;
@@ -60,20 +56,6 @@ export function PartDetailsSidebar({
   },
 }: PartDetailsSidebarProps) {
   const { t } = useLocale();
-  const router = useRouter();
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-
-  const handleBack = () => {
-    if (isDirty) {
-      setShowConfirmDialog(true);
-    } else {
-      router.push("/admin");
-    }
-  };
-
-  const handleConfirmBack = () => {
-    router.push("/admin");
-  };
 
   // Calculate overall completion percentage
   const completionCount =
@@ -232,7 +214,7 @@ export function PartDetailsSidebar({
             <div className="border-t border-acr-gray-200 my-5" />
 
             {/* Action Buttons */}
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
               {/* Save Button */}
               <AcrButton
                 variant="primary"
@@ -275,18 +257,6 @@ export function PartDetailsSidebar({
                   <span>{t("partDetails.actions.preview")}</span>
                 </AcrButton>
               </Link>
-
-              {/* Back Button */}
-              <AcrButton
-                variant="ghost"
-                size="default"
-                className="w-full"
-                onClick={handleBack}
-                type="button"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>{t("common.actions.back")}</span>
-              </AcrButton>
             </div>
 
             {/* Unsaved Changes Indicator */}
@@ -304,17 +274,6 @@ export function PartDetailsSidebar({
         </AcrCard>
       </div>
 
-      {/* Confirm Dialog */}
-      <ConfirmDialog
-        isOpen={showConfirmDialog}
-        onClose={() => setShowConfirmDialog(false)}
-        onConfirm={handleConfirmBack}
-        title={t("common.confirm.unsavedChanges.title")}
-        description={t("common.confirm.unsavedChanges.description")}
-        confirmText={t("common.actions.discard")}
-        cancelText={t("common.actions.cancel")}
-        variant="warning"
-      />
     </>
   );
 }
