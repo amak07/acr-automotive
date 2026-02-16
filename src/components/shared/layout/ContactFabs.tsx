@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Mail, MessageCircle } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import { usePreloader } from "@/contexts/PreloaderContext";
 
 /**
  * ContactFabs - Floating Action Buttons for WhatsApp and Email
@@ -24,16 +24,7 @@ export function ContactFabs() {
   const { settings, isLoading } = useSettings();
   const { t } = useLocale();
   const pathname = usePathname();
-  const [hasMinTimeElapsed, setHasMinTimeElapsed] = useState(false);
-
-  // Ensure minimum delay of 750ms to match Preloader minimum duration
-  // This prevents FABs from flashing on screen during initial page load
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setHasMinTimeElapsed(true);
-    }, 750);
-    return () => clearTimeout(timer);
-  }, []);
+  const { isPageReady } = usePreloader();
 
   // Only render on public search (/) and part details (/parts/*) pages
   const isPublicSearchPage = pathname === "/";
@@ -42,8 +33,8 @@ export function ContactFabs() {
     return null;
   }
 
-  // Don't render until settings loaded, contact info exists, AND minimum time elapsed
-  if (isLoading || !settings?.contact_info || !hasMinTimeElapsed) {
+  // Don't render until settings loaded, contact info exists, AND preloader has completed
+  if (isLoading || !settings?.contact_info || !isPageReady) {
     return null;
   }
 
@@ -70,7 +61,7 @@ export function ContactFabs() {
 
   return (
     <div
-      className="fixed z-50 flex-col gap-3 hidden 2xl:flex bottom-20 left-[calc((100vw-72rem)/2-5rem)]"
+      className="fixed z-50 flex-col gap-3 hidden 2xl:flex bottom-20 left-[calc((100vw-72rem)/2-5rem)] animate-[acr-fade-in_0.3s_ease-out_forwards]"
       role="complementary"
       aria-label={t("contactFabs.ariaLabel")}
     >

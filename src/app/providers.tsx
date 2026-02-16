@@ -6,6 +6,7 @@ import { useState } from "react";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { PreloaderProvider } from "@/contexts/PreloaderContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -29,7 +30,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         <AuthProvider>
           <SettingsProvider>
-            <LocaleProvider>{children}</LocaleProvider>
+            <PreloaderProvider>
+              <LocaleProvider>{children}</LocaleProvider>
+            </PreloaderProvider>
           </SettingsProvider>
         </AuthProvider>
       </RootProvider>

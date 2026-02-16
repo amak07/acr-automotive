@@ -16,6 +16,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { CardError } from "@/components/ui/error-states";
 import { Preloader } from "@/components/ui/Preloader";
+import { usePreloader } from "@/contexts/PreloaderContext";
 import { DEFAULT_PUBLIC_SEARCH_TERMS } from "./constants";
 
 // Path to dotLottie animation in public folder
@@ -27,6 +28,7 @@ function HomePageContent() {
   const searchParams = useSearchParams();
   const { t } = useLocale();
   const { settings, isLoading: settingsLoading } = useSettings();
+  const { markPageReady } = usePreloader();
 
   // Read search terms from URL
   const searchTerms = useMemo<PublicSearchTerms>(
@@ -89,7 +91,7 @@ function HomePageContent() {
   return (
     <>
       {/* Full-page preloader - shows during initial load */}
-      <Preloader isLoading={isInitialLoad} animationSrc={GEAR_ANIMATION_SRC} />
+      <Preloader isLoading={isInitialLoad} animationSrc={GEAR_ANIMATION_SRC} onComplete={markPageReady} />
 
       <main className="mx-auto mt-1">
         {/* Banner Carousel - Full width */}

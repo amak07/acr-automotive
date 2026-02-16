@@ -20,6 +20,11 @@ interface PreloaderProps {
    * If not provided, falls back to CSS spinner
    */
   animationSrc?: string;
+  /**
+   * Callback fired after the preloader has fully faded out and been removed from the DOM.
+   * Use this to coordinate dependent UI (e.g., FABs, animations) via PreloaderContext.
+   */
+  onComplete?: () => void;
 }
 
 // State machine for preloader
@@ -60,6 +65,7 @@ export function Preloader({
   isLoading,
   minDuration = 600,
   animationSrc,
+  onComplete,
 }: PreloaderProps) {
   const [state, dispatch] = useReducer(preloaderReducer, {
     visible: true,
@@ -84,10 +90,11 @@ export function Preloader({
       // Remove from DOM after fade-out animation completes
       const removeTimer = setTimeout(() => {
         dispatch({ type: "REMOVE" });
+        onComplete?.();
       }, 200);
       return () => clearTimeout(removeTimer);
     }
-  }, [isLoading, state.minTimeElapsed, state.visible]);
+  }, [isLoading, state.minTimeElapsed, state.visible, onComplete]);
 
   if (!state.shouldRender) return null;
 
