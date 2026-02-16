@@ -81,20 +81,26 @@ export function Preloader({
     return () => clearTimeout(timer);
   }, [minDuration]);
 
-  // Handle fade out when both loading complete AND min time elapsed
+  // Start fade-out when both loading complete AND min time elapsed
   useEffect(() => {
     if (!isLoading && state.minTimeElapsed && state.visible) {
-      // Dispatch in microtask to avoid synchronous setState in effect
       queueMicrotask(() => dispatch({ type: "FADE_OUT" }));
+    }
+  }, [isLoading, state.minTimeElapsed, state.visible]);
 
-      // Remove from DOM after fade-out animation completes
+  // After fade-out completes, remove from DOM and signal completion
+  useEffect(() => {
+    if (!state.visible && state.shouldRender) {
       const removeTimer = setTimeout(() => {
         dispatch({ type: "REMOVE" });
         onComplete?.();
       }, 200);
       return () => clearTimeout(removeTimer);
     }
-  }, [isLoading, state.minTimeElapsed, state.visible, onComplete]);
+    // onComplete excluded from deps — expected to be stable (from context useCallback)
+    // Including it would re-trigger the timer on every reference change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.visible, state.shouldRender]);
 
   if (!state.shouldRender) return null;
 
