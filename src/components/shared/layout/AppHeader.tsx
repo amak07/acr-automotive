@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Shield, Settings, LogOut, Search, BookOpen, Users, Database } from 'lucide-react';
+import { Shield, Settings, LogOut, Search, BookOpen, Database } from 'lucide-react';
 import { AcrHeader, type AcrHeaderAction } from '@/components/acr';
 
 interface AppHeaderProps {
@@ -53,13 +53,13 @@ export function AppHeader({ variant = 'public' }: AppHeaderProps) {
       desktopActions.push({ id: 'admin', label: t('admin.nav.admin'), href: '/admin' });
       mobileActions.push({ id: 'admin', label: t('admin.header.admin'), icon: Shield, href: '/admin' });
 
-      // Users (admin only)
-      desktopActions.push({ id: 'users', label: t('admin.nav.users'), href: '/admin/users' });
-      mobileActions.push({ id: 'users', label: t('admin.header.users'), icon: Users, href: '/admin/users' });
+      // Settings (admin only — top-level route)
+      desktopActions.push({ id: 'settings', label: t('admin.nav.settings'), href: '/settings' });
+      mobileActions.push({ id: 'settings', label: t('admin.header.settings'), icon: Settings, href: '/settings' });
 
-      // Settings (admin only)
-      desktopActions.push({ id: 'settings', label: t('admin.nav.settings'), href: '/admin/settings' });
-      mobileActions.push({ id: 'settings', label: t('admin.header.settings'), icon: Settings, href: '/admin/settings' });
+      // Data Portal (admins can access too)
+      desktopActions.push({ id: 'portal', label: t('admin.nav.portal'), href: '/data-portal' });
+      mobileActions.push({ id: 'portal', label: t('portal.title'), icon: Database, href: '/data-portal' });
     } else {
       // Data Portal (data managers)
       desktopActions.push({ id: 'portal', label: t('admin.nav.portal'), href: '/data-portal' });
@@ -83,6 +83,7 @@ export function AppHeader({ variant = 'public' }: AppHeaderProps) {
   }
 
   const borderVariant = variant === 'public' ? 'gray-300' : 'gray-200';
+  const userDisplayName = profile?.full_name || profile?.email;
 
   return (
     <AcrHeader
@@ -90,6 +91,7 @@ export function AppHeader({ variant = 'public' }: AppHeaderProps) {
       actions={desktopActions}
       logoutAction={logoutAction}
       utilityActions={mobileActions}
+      userDisplayName={userDisplayName}
       locale={locale}
       onLocaleChange={setLocale}
       languageToggleLabel={t('admin.settings.language')}

@@ -53,7 +53,7 @@ export interface ColumnGroup {
 export const PARTS_COLUMN_GROUPS: ColumnGroup[] = [
   {
     name: "Part Information",
-    startCol: "ACR SKU",
+    startCol: "View",
     endCol: "Specifications",
     backgroundColor: EXCEL_COLORS.PASTEL_PEACH,
   },
@@ -300,6 +300,7 @@ export const PARTS_INSTRUCTIONS: Record<
 > = {
   en: {
     // Part Information
+    View: "Link to public page",
     "ACR SKU": "Unique ID. Do not modify.",
     Status: "Activo, Inactivo, or Eliminar",
     "Part Type": "MAZA, ROTOR, etc.",
@@ -347,6 +348,7 @@ export const PARTS_INSTRUCTIONS: Record<
   },
   es: {
     // Part Information
+    View: "Enlace a página pública",
     "ACR SKU": "ID único. No modificar.",
     Status: "Activo, Inactivo o Eliminar",
     "Part Type": "MAZA, ROTOR, etc.",

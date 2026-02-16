@@ -385,6 +385,22 @@ export const translations: Record<
     en: "Download the full parts catalog as Excel",
     es: "Descargar el catálogo completo de partes como Excel",
   },
+  "admin.quickActions.360viewer": {
+    en: "360 Viewer",
+    es: "Visor 360",
+  },
+  "admin.quickActions.360viewerDescription": {
+    en: "Manage 360° product views",
+    es: "Gestionar vistas de producto 360°",
+  },
+  "admin.quickActions.users": {
+    en: "Users",
+    es: "Usuarios",
+  },
+  "admin.quickActions.usersDescription": {
+    en: "Manage user accounts and roles",
+    es: "Gestionar cuentas de usuario y roles",
+  },
 
   // Admin Filters
   "admin.filters.toggle": {

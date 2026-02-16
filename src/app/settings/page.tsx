@@ -1,5 +1,5 @@
 /**
- * Admin Settings Page
+ * Settings Page (top-level route, admin-only)
  * Manage site-wide settings: Contact Info, Branding, SEO, Banners
  */
 

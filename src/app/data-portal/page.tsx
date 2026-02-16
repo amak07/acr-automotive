@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { AcrCard, AcrCardContent } from "@/components/acr/Card";
-import { AcrSpinner } from "@/components/acr/Spinner";
+import { Preloader } from "@/components/ui/Preloader";
 import { AppHeader } from "@/components/shared/layout/AppHeader";
 import {
   Upload,
@@ -35,11 +35,7 @@ export default function DataPortalPage() {
 
   // Loading state
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <AcrSpinner size="lg" color="primary" />
-      </div>
-    );
+    return <Preloader isLoading={true} animationSrc="/animations/gear-loader.lottie" />;
   }
 
   // Not authenticated
