@@ -589,6 +589,9 @@ export class ExcelExportService {
       baseUrl
     );
 
+    // Precompute View column index
+    const viewColIdx = PARTS_COLUMNS.findIndex((c) => c.key === "view_part") + 1;
+
     // Precompute image column indices (constant across all rows)
     const imageColIndices = IMAGE_URL_COLUMN_NAMES.map((name) => ({
       name,
@@ -616,6 +619,7 @@ export class ExcelExportService {
       }
 
       const row = worksheet.addRow({
+        view_part: "View",
         acr_sku: part.acr_sku,
         status: WORKFLOW_STATUS_DISPLAY[part.workflow_status] || "Activo",
         part_type: part.part_type,
@@ -646,6 +650,15 @@ export class ExcelExportService {
           : "",
       });
 
+      // Convert View cell to hyperlink to public detail page
+      if (viewColIdx > 0) {
+        const viewCell = row.getCell(viewColIdx);
+        viewCell.value = {
+          text: "View",
+          hyperlink: `${baseUrl}/parts/${encodeURIComponent(part.acr_sku)}`,
+        };
+      }
+
       // Convert image URL cells to hyperlinks with short filename display
       for (const { idx } of imageColIndices) {
         const cell = row.getCell(idx);
@@ -672,6 +685,18 @@ export class ExcelExportService {
       applyDataRowStyle(row, rowIndex, PARTS_COLUMNS.length);
 
       // Re-apply hyperlink styling (applyDataRowStyle resets all fonts to black)
+      if (viewColIdx > 0) {
+        const viewCell = row.getCell(viewColIdx);
+        if (viewCell.value && typeof viewCell.value === "object" && "hyperlink" in viewCell.value) {
+          viewCell.font = {
+            size: 10,
+            color: { argb: EXCEL_COLORS.TEXT_LINK },
+            underline: true,
+          };
+          viewCell.alignment = { horizontal: "center", vertical: "middle" };
+        }
+      }
+
       for (const { idx } of imageColIndices) {
         const cell = row.getCell(idx);
         if (cell.value && typeof cell.value === "object" && "hyperlink" in cell.value) {

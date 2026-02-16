@@ -372,6 +372,10 @@ export interface TranslationKeys {
   "admin.quickActions.settingsDescription": string;
   "admin.quickActions.export": string;
   "admin.quickActions.exportDescription": string;
+  "admin.quickActions.360viewer": string;
+  "admin.quickActions.360viewerDescription": string;
+  "admin.quickActions.users": string;
+  "admin.quickActions.usersDescription": string;
 
   // Admin Filters
   "admin.filters.toggle": string;
