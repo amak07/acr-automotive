@@ -17,6 +17,7 @@ import { useMemo, Suspense, useState, useEffect } from "react";
 import { Preloader } from "@/components/ui/Preloader";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import { usePreloader } from "@/contexts/PreloaderContext";
 
 // Path to dotLottie animation in public folder
 const GEAR_ANIMATION_SRC = "/animations/gear-loader.lottie";
@@ -140,6 +141,7 @@ function AdminPageContent() {
 
 function AdminPageWrapper() {
   const { isLoading: settingsLoading } = useSettings();
+  const { markPageReady } = usePreloader();
   const searchParams = useSearchParams();
 
   // Get initial parts data to determine loading state
@@ -164,7 +166,7 @@ function AdminPageWrapper() {
   return (
     <>
       {/* Full-page preloader - shows during initial load, covers everything */}
-      <Preloader isLoading={isInitialLoad} animationSrc={GEAR_ANIMATION_SRC} />
+      <Preloader isLoading={isInitialLoad} animationSrc={GEAR_ANIMATION_SRC} onComplete={markPageReady} />
       <AdminPageContent />
     </>
   );
