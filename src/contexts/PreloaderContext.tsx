@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 
 interface PreloaderContextValue {
@@ -16,21 +16,16 @@ const PreloaderContext = createContext<PreloaderContextValue>({
 });
 
 export function PreloaderProvider({ children }: { children: React.ReactNode }) {
-  const [isPageReady, setIsPageReady] = useState(false);
   const pathname = usePathname();
-  const prevPathname = useRef(pathname);
+  const [readyPathname, setReadyPathname] = useState<string | null>(null);
 
-  // Reset on route change
-  useEffect(() => {
-    if (pathname !== prevPathname.current) {
-      setIsPageReady(false);
-      prevPathname.current = pathname;
-    }
-  }, [pathname]);
+  // Derived: page is ready only when markPageReady was called for the current pathname
+  // Automatically resets to false on navigation (pathname changes, readyPathname doesn't match)
+  const isPageReady = readyPathname === pathname;
 
   const markPageReady = useCallback(() => {
-    setIsPageReady(true);
-  }, []);
+    setReadyPathname(pathname);
+  }, [pathname]);
 
   return (
     <PreloaderContext.Provider value={{ isPageReady, markPageReady }}>
