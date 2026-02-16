@@ -8,7 +8,8 @@ import {
   Upload,
   Download,
   ImagePlus,
-  Settings,
+  RotateCw,
+  Users,
   ChevronDown,
 } from "lucide-react";
 import { AcrCard } from "@/components/acr";
@@ -53,11 +54,19 @@ const QUICK_ACTIONS: QuickAction[] = [
     variant: "secondary",
   },
   {
-    id: "settings",
-    title: "admin.quickActions.settings",
-    description: "admin.quickActions.settingsDescription",
-    icon: Settings,
-    href: "/admin/settings",
+    id: "360viewer",
+    title: "admin.quickActions.360viewer",
+    description: "admin.quickActions.360viewerDescription",
+    icon: RotateCw,
+    href: "/data-portal/360-viewer",
+    variant: "secondary",
+  },
+  {
+    id: "users",
+    title: "admin.quickActions.users",
+    description: "admin.quickActions.usersDescription",
+    icon: Users,
+    href: "/admin/users",
     variant: "secondary",
   },
 ];
@@ -168,8 +177,8 @@ export function QuickActions() {
           </p>
         </div>
 
-        {/* Action Cards Grid - 4 cols on desktop */}
-        <div className="grid grid-cols-4 gap-4">
+        {/* Action Cards Grid - 5 cols on desktop */}
+        <div className="grid grid-cols-3 lg:grid-cols-5 gap-4">
           {QUICK_ACTIONS.map((action, index) => {
             const Icon = action.icon;
             const href = getActionHref(action);

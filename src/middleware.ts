@@ -2,8 +2,8 @@
  * Next.js Middleware for Authentication and Role-Based Access
  *
  * Protects admin routes and handles role-based redirects:
- * - Admin users: Full access to /admin/* and /data-portal/*
- * - Data Managers: Access only to /data-portal/*
+ * - Admin users: Full access to /admin/*, /settings, and /data-portal/*
+ * - Data Managers: Access only to /data-portal/* and /admin/parts/*
  */
 
 import { NextResponse, type NextRequest } from 'next/server';
@@ -18,7 +18,8 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = pathname.startsWith('/admin');
   const isDataPortalRoute = pathname.startsWith('/data-portal');
   const isDocsRoute = pathname.startsWith('/docs');
-  const isProtectedPath = isAdminRoute || isDataPortalRoute || isDocsRoute;
+  const isSettingsRoute = pathname.startsWith('/settings');
+  const isProtectedPath = isAdminRoute || isDataPortalRoute || isDocsRoute || isSettingsRoute;
 
   if (isProtectedPath) {
     // Not authenticated - redirect to login
@@ -41,9 +42,9 @@ export async function middleware(request: NextRequest) {
       const isDataManager = profile.role === 'data_manager';
 
       // Data managers can access /data-portal/* and /admin/parts/*
-      // Redirect them away from other /admin/* routes
+      // Redirect them away from other /admin/*, /settings routes
       const isAdminPartsRoute = pathname.startsWith('/admin/parts/');
-      if (isDataManager && isAdminRoute && !isAdminPartsRoute) {
+      if (isDataManager && (isSettingsRoute || (isAdminRoute && !isAdminPartsRoute))) {
         const url = request.nextUrl.clone();
         url.pathname = '/data-portal';
         return NextResponse.redirect(url);
