@@ -104,12 +104,34 @@ export default defineConfig({
       dependencies: ["setup", "db-tests-360-api"],
     },
 
-    // Auth enforcement: modifies user_profiles.is_active, runs after 360 UI tests
+    // Stress tests: large volume import/export with snapshot isolation
+    {
+      name: "db-tests-stress",
+      testMatch: /stress-import-export\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "tests/e2e/.auth/admin.json",
+      },
+      dependencies: ["setup", "db-tests-360-ui"],
+    },
+
+    // Public 360° viewer interaction tests: uploads frames, tests drag/fullscreen/keyboard
+    {
+      name: "db-tests-public-360",
+      testMatch: /public-360-interaction\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "tests/e2e/.auth/admin.json",
+      },
+      dependencies: ["setup", "db-tests-stress"],
+    },
+
+    // Auth enforcement: modifies user_profiles.is_active, runs after all DB-mutating tests
     {
       name: "auth-enforcement",
       testMatch: /auth-api-enforcement\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
-      dependencies: ["setup", "db-tests-360-ui"],
+      dependencies: ["setup", "db-tests-public-360"],
     },
 
     // Read-only specs: run after all db-tests complete (parallel safe)
@@ -122,12 +144,14 @@ export default defineConfig({
         /admin-360-(api|ui)\.spec\.ts/,
         /data-manager-workflow\.spec\.ts/,
         /upload-images-dashboard\.spec\.ts/,
+        /stress-import-export\.spec\.ts/,
+        /public-360-interaction\.spec\.ts/,
       ],
       use: {
         ...devices["Desktop Chrome"],
         storageState: "tests/e2e/.auth/admin.json",
       },
-      dependencies: ["setup", "db-tests-import", "db-tests-images", "db-tests-data-manager", "db-tests-upload-dashboard", "db-tests-360-api", "db-tests-360-ui", "auth-enforcement"],
+      dependencies: ["setup", "db-tests-import", "db-tests-images", "db-tests-data-manager", "db-tests-upload-dashboard", "db-tests-360-api", "db-tests-360-ui", "db-tests-stress", "db-tests-public-360", "auth-enforcement"],
     },
 
     // Auth boundary tests: runs WITHOUT storageState (unauthenticated).
